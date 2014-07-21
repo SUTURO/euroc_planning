@@ -1,0 +1,25 @@
+#!/bin/bash
+
+ROS_ROOT=/opt/ros/hydro
+EUROC_ROOT=/opt/euroc_c2s1
+EUROC_ROS=$EUROC_ROOT/ros
+
+if test -z "$ROS_DISTRO"; then 
+    source $ROS_ROOT/setup.bash
+    ROS_MASTER_URI=http://localhost:11311
+else
+    echo "Using the following ROS_MASTER_URI:"
+    echo export ROS_MASTER_URI=$ROS_MASTER_URI
+fi
+
+source $EUROC_ROS/install/setup.bash
+source ~/euroc_ws/devel/setup.bash
+
+
+# Call your own solution application here
+rosrun euroc_planning start_complete_demo.py
+
+
+# do not remove this part:
+# notify system that you are finished and that the VM's can be stopped.
+$EUROC_ROOT/bin/challenger_finished
