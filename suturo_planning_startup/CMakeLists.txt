@@ -1,10 +1,11 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(euroc_planning)
+project(suturo_planning_startup)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  euroc_c2_msgs
   rospy
   std_msgs
 )
@@ -66,7 +67,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
-#   std_msgs
+#   euroc_c2_msgs#   std_msgs
 # )
 
 ###################################
@@ -80,8 +81,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES python_test
-#  CATKIN_DEPENDS rospy std_msgs
+#  LIBRARIES suturo_planning_startup
+#  CATKIN_DEPENDS euroc_c2_msgs rospy std_msgs
 #  DEPENDS system_lib
 )
 
@@ -97,19 +98,19 @@ include_directories(
 )
 
 ## Declare a cpp library
-# add_library(python_test
-#   src/${PROJECT_NAME}/python_test.cpp
+# add_library(suturo_planning_startup
+#   src/${PROJECT_NAME}/suturo_planning_startup.cpp
 # )
 
 ## Declare a cpp executable
-# add_executable(python_test_node src/python_test_node.cpp)
+# add_executable(suturo_planning_startup_node src/suturo_planning_startup_node.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-# add_dependencies(python_test_node python_test_generate_messages_cpp)
+# add_dependencies(suturo_planning_startup_node suturo_planning_startup_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(python_test_node
+# target_link_libraries(suturo_planning_startup_node
 #   ${catkin_LIBRARIES}
 # )
 
@@ -128,7 +129,7 @@ include_directories(
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS python_test python_test_node
+# install(TARGETS suturo_planning_startup suturo_planning_startup_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -153,7 +154,7 @@ include_directories(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_python_test.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_suturo_planning_startup.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

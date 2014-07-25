@@ -17,7 +17,7 @@ source ~/euroc_ws/devel/setup.bash
 
 
 # Call your own solution application here
-rosrun euroc_planning start_complete_demo.py
+rosrun suturo_planning_startup start_complete_demo.py
 
 
 # do not remove this part:
