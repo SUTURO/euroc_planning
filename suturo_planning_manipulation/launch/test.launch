@@ -1,0 +1,8 @@
+<launch>
+
+  <include file="$(find suturo_manipulation_moveit)/launch/demo.launch"/>
+
+  <node name="grasping" pkg="suturo_planning_manipulation" type="grasping.py" respawn="false" output="screen">
+  </node>
+
+</launch>
