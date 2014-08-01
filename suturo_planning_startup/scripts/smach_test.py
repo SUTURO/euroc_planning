@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-import roslib
-roslib.load_manifest('suturo_planning_plans')
 import suturo_planning_plans
 
 
