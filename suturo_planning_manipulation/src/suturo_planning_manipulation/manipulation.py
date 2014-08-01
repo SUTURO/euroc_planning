@@ -15,6 +15,7 @@ gripper_max_pose = 0.03495
 
 
 class Manipulation(object):
+
     def __init__(self):
         self.__listener = tf.TransformListener()
         moveit_commander.roscpp_initialize(sys.argv)
@@ -77,9 +78,8 @@ class Manipulation(object):
                 break
 
     def place(self, destination):
-        
+        """" destination of type pose-stamped """
         pass
-
 
     def sort_grasps(self, grasps):
         grasps.sort(key=self.__grasp_value)
@@ -89,3 +89,11 @@ class Manipulation(object):
 
     def get_planning_scene(self):
         return self.__planning_scene_interface
+
+    def turn_arm(self, speed, distance):
+        """
+        :param speed: float
+        :param distance: float #radian
+        :return: undefined
+        """
+        pass
