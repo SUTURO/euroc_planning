@@ -6,17 +6,70 @@ import time
 
 class Task1(smach.StateMachine):
     def __init__(self):
-        smach.StateMachine.__init__(self, outcomes=['outcome1', 'outcome2'])
+        smach.StateMachine.__init__(self, outcomes=['success', 'fail'])
         with self:
-            smach.StateMachine.add('StartManipulation', StartManipulation(),
-                                   transitions={'outcome6': 'outcome1',
-                                                'outcome7': 'outcome2'})
+            smach.StateMachine.add('SearchObject', SearchObject(),
+                                   transitions={'objectFound': 'PerceiveObject',
+                                                'noObjectsLeft': 'success'})
+            smach.StateMachine.add('PerceiveObject', PerceiveObject(),
+                                   transitions={'validObject': 'GraspObject',
+                                                'noObject': 'SearchObject'})
+            smach.StateMachine.add('GraspObject', GraspObject(),
+                                   transitions={'success': 'PlaceObject',
+                                                'fail': 'GraspObject'})
+            smach.StateMachine.add('PlaceObject', PlaceObject(),
+                                   transitions={'success': 'CheckPlacement',
+                                                'fail': 'PerceiveObject'})
+            smach.StateMachine.add('CheckPlacement', CheckPlacement(),
+                                   transitions={'onTarget': 'SearchObject',
+                                                'notOnTarget': 'GraspObject'})
 
 
-class StartManipulation(smach.State):
+class SearchObject(smach.State):
     def __init__(self):
-        smach.State.__init__(self, outcomes=['outcome6', 'outcome7'])
+        smach.State.__init__(self, outcomes=['objectFound', 'noObjectsLeft'])
 
     def execute(self, userdata):
-        rospy.loginfo('Executing state StartManipulation')
-        return 'outcome6'
+        rospy.loginfo('Executing state SearchObject')
+        time.sleep(3)
+        return 'objectFound'
+
+
+class PerceiveObject(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['noObject', 'validObject'])
+
+    def execute(self, userdata):
+        rospy.loginfo('Executing state PerceiveObject')
+        time.sleep(3)
+        return 'validObject'
+
+
+class GraspObject(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['success', 'fail'])
+
+    def execute(self, userdata):
+        rospy.loginfo('Executing state GraspObject')
+        time.sleep(3)
+        return 'success'
+
+
+class PlaceObject(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['success', 'fail'])
+
+    def execute(self, userdata):
+        rospy.loginfo('Executing state PlaceObject')
+        time.sleep(3)
+        return 'success'
+
+
+class CheckPlacement(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['onTarget', 'notOnTarget'])
+
+    def execute(self, userdata):
+        rospy.loginfo('Executing state ')
+        time.sleep(3)
+        return 'onTarget'
