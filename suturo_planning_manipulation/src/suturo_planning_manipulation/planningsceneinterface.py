@@ -1,5 +1,9 @@
+from geometry_msgs.msg._PoseStamped import PoseStamped
+from geometry_msgs.msg._Quaternion import Quaternion
 import moveit_commander
 import moveit_msgs
+from moveit_msgs.msg._CollisionObject import CollisionObject
+from shape_msgs.msg._SolidPrimitive import SolidPrimitive
 
 __author__ = 'ichumuh'
 
@@ -18,11 +22,31 @@ class PlanningSceneInterface(object):
                                                            queue_size=10)
         rospy.wait_for_service("get_planning_scene")
         self.__ps_service_client = rospy.ServiceProxy('get_planning_scene', moveit_msgs.srv.GetPlanningScene)
-
+        m = moveit_commander.PlanningSceneInterface()
         rospy.sleep(1)
 
     def __del__(self):
         pass
+
+    def add_ground(self):
+        pose = PoseStamped()
+        pose.header.frame_id = "/odom_combined"
+        pose.pose.position = Point(0, 0, -0.01)
+        pose.pose.orientation = Quaternion(0, 0, 0, 1)
+        box = self.__make_box("ground", pose, [2, 2, 0.01])
+        self.add_object(box)
+
+    def __make_box(self, name, pose, size):
+        co = CollisionObject()
+        co.operation = CollisionObject.ADD
+        co.id = name
+        co.header = pose.header
+        box = SolidPrimitive()
+        box.type = SolidPrimitive.BOX
+        box.dimensions = list(size)
+        co.primitives = [box]
+        co.primitive_poses = [pose.pose]
+        return co
 
     def get_collision_objects(self):
         return self.get_planning_scene().world.collision_objects

@@ -25,20 +25,24 @@ class Manipulation(object):
         self.__planning_scene_interface = PlanningSceneInterface()
         # self.__gripper_max_pose = 0.03495
         rospy.sleep(2)
+        self.__planning_scene_interface.add_ground()
 
     def __del__(self):
         moveit_commander.roscpp_shutdown()
         moveit_commander.os._exit(0)
 
     def move_to(self, goal_pose):
-        visualize_grasps([goal_pose])
-        angle = quaternion_from_euler(0, pi / 2, 0)
-        o = goal_pose.pose.orientation
-        no = quaternion_multiply([o.x, o.y, o.z, o.w], angle)
-        goal_pose.pose.orientation = geometry_msgs.msg.Quaternion(*no)
+        if type(goal_pose) is str:
+           self.__group.set_named_target("scan_pose1")
+        else:
+            visualize_grasps([goal_pose])
+            angle = quaternion_from_euler(0, pi / 2, 0)
+            o = goal_pose.pose.orientation
+            no = quaternion_multiply([o.x, o.y, o.z, o.w], angle)
+            goal_pose.pose.orientation = geometry_msgs.msg.Quaternion(*no)
 
-        goal_pose = self.transform(goal_pose)
-        self.__group.set_pose_target(goal_pose)
+            goal_pose = self.transform(goal_pose)
+            self.__group.set_pose_target(goal_pose)
 
         return self.__group.go()
 
@@ -77,6 +81,9 @@ class Manipulation(object):
                 print "grasped"
                 break
 
+    def stop(self):
+        self.__group.stop()
+
     def place(self, destination):
         """" destination of type pose-stamped """
         pass
@@ -90,10 +97,17 @@ class Manipulation(object):
     def get_planning_scene(self):
         return self.__planning_scene_interface
 
-    def turn_arm(self, speed, distance):
+    def turn_arm(self, speed, distance, linkid=0):
         """
         :param speed: float
-        :param distance: float #radian
+        :param distance: float #radian 0 - 5,9341
         :return: undefined
         """
-        pass
+        distance -= 2.96705972839 #-joint limit
+        jv = self.__group.get_current_joint_values()
+        jv[linkid] = distance
+        self.__group.set_joint_value_target(jv)
+        return self.__group.go()
+
+    def get_arm_move_gourp(self):
+        return self.__group

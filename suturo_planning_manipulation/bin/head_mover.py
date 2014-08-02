@@ -24,33 +24,48 @@ from suturo_planning_manipulation.planningsceneinterface import PlanningSceneInt
 
 if __name__ == '__main__':
     rospy.init_node('head_mover', anonymous=True)
-    co = moveit_msgs.msg.CollisionObject()
-    co.id = "green_cylinder"
-    co.header.frame_id = "/odom_combined"
-    co.primitives = []
-    co.primitives.append(shape_msgs.msg.SolidPrimitive())
-    co.primitives[0].type = shape_msgs.msg.SolidPrimitive.CYLINDER
-    co.primitives[0].dimensions.append(0.1)
-    co.primitives[0].dimensions.append(0.1)
+    # co = moveit_msgs.msg.CollisionObject()
+    # co.id = "green_cylinder"
+    # co.header.frame_id = "/odom_combined"
+    # co.primitives = []
+    # co.primitives.append(shape_msgs.msg.SolidPrimitive())
+    # co.primitives[0].type = shape_msgs.msg.SolidPrimitive.CYLINDER
+    # co.primitives[0].dimensions.append(0.1)
+    # co.primitives[0].dimensions.append(0.1)
     # co.primitives[0].dimensions.append(0.05)
-    co.primitive_poses = []
-    co.primitive_poses.append(geometry_msgs.msg.Pose())
-    co.primitive_poses[0].position = geometry_msgs.msg.Point(1, 1, 0)
-    co.primitive_poses[0].orientation = geometry_msgs.msg.Quaternion(0, 0, 0, 1)
+    # co.primitive_poses = []
+    # co.primitive_poses.append(geometry_msgs.msg.Pose())
+    # co.primitive_poses[0].position = geometry_msgs.msg.Point(1, 1, 0)
+    # co.primitive_poses[0].orientation = geometry_msgs.msg.Quaternion(0, 0, 0, 1)
 
-    a = moveit_commander.PlanningSceneInterface()
+    # a = moveit_commander.PlanningSceneInterface()
+    # rospy.sleep(2)
+    # muh = geometry_msgs.msg.PoseStamped()
+    # muh.header.frame_id = "/odom_combined"
+    # muh.pose.position = geometry_msgs.msg.Point(0, 0, 0)
+    # muh.pose.orientation = orientation = geometry_msgs.msg.Quaternion(0, 0, 0, 1)
+    # a.add_plane("muh", muh)
+    # rospy.sleep(2)
+    # ps = PlanningSceneInterface()
+    # print ps.get_collision_objects()
+
+
+
+    mani = Manipulation()
     rospy.sleep(2)
-    muh = geometry_msgs.msg.PoseStamped()
-    muh.header.frame_id = "/odom_combined"
-    muh.pose.position = geometry_msgs.msg.Point(0, 0, 0)
-    muh.pose.orientation = orientation = geometry_msgs.msg.Quaternion(0, 0, 0, 1)
-    a.add_plane("muh", muh)
-    rospy.sleep(2)
-    ps = PlanningSceneInterface()
-    print ps.get_collision_objects()
+    # mani.grasp("red_cube")
+    # mani.move_to("scan_pose1")
+    # mani.turn_arm(0, 0)
+    # mani.turn_arm(0, pi/2)
+    # mani.turn_arm(0, pi)
+    # mani.turn_arm(0, pi * 1.5)
+    # mani.turn_arm(0, 5,9341)
+    # while (not rospy.is_shutdown()):
+    #     print mani.get_arm_move_gourp().get_current_joint_values()
+    #     rospy.sleep(1)
 
-
-    # mani = Manipulationon()
+    # mani.stop()
+    # rospy.sleep(2)
     # muh = calculate_grasp_position_cylinder(co)
     # for g in muh:
     #     print g.pose.position
