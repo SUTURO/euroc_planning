@@ -61,6 +61,13 @@ class PlanningSceneInterface(object):
     def get_attached_objects(self):
         return self.get_planning_scene().robot_state.attached_collision_objects
 
+    def get_attached_object(self):
+        acos = self.get_attached_objects()
+        if len(acos) == 0:
+            rospy.logerr("No objects attached!")
+        else:
+            return self.get_planning_scene().robot_state.attached_collision_objects[0]
+
     def get_planning_scene(self):
         try:
             ps = self.__ps_service_client(moveit_msgs.msg.PlanningSceneComponents(1023))

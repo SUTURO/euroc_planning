@@ -19,7 +19,7 @@ import visualization_msgs.msg
 
 finger_length = 0.06
 hand_length = 0.1535
-pre_grasp_length = 0.09
+pre_grasp_length = 0.08
 
 
 def calculate_grasp_position(collision_object):
@@ -191,7 +191,7 @@ def cross_product(p1, p2):
     return result
 
 
-def visualize_grasps(grasps):
+def visualize_pose(grasps):
     pub = rospy.Publisher('visualization_marker', visualization_msgs.msg.Marker, queue_size=10)
     rospy.sleep(1)
     r = rospy.Rate(1)  # 10hz
@@ -219,10 +219,6 @@ def visualize_grasps(grasps):
         # rospy.loginfo(marker)
         pub.publish(marker)
         r.sleep()
-
-
-if __name__ == '__main__':
-    print "muh"
 
 
 

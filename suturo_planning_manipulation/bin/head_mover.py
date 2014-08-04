@@ -5,6 +5,7 @@ import numpy
 import sys
 import copy
 from math import sqrt
+from geometry_msgs.msg._PointStamped import PointStamped
 from moveit_msgs.msg._CollisionObject import CollisionObject
 import rospy
 import moveit_commander
@@ -14,7 +15,7 @@ import shape_msgs.msg
 import tf
 from tf.transformations import quaternion_from_matrix, rotation_matrix
 import suturo_planning_manipulation.calc_grasp_position
-from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_position_box, visualize_grasps, calculate_grasp_position
+from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_position_box, visualize_pose, calculate_grasp_position
 from suturo_planning_manipulation.manipulation import Manipulation
 from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_position_cylinder
 from suturo_planning_manipulation.calc_grasp_position import get_pre_grasp
@@ -52,14 +53,30 @@ if __name__ == '__main__':
 
 
     mani = Manipulation()
-    rospy.sleep(2)
     # mani.grasp("red_cube")
+
+    dest = PointStamped()
+    dest.header.frame_id = "/odom_combined"
+    # dest.point = Point(-0.3, -0.4, 0.03)
+    dest.point = Point(0.5, 0.5, 0.00)
+    mani.place(dest)
+
+    mani.grasp("green_cylinder")
+
+    dest = PointStamped()
+    dest.header.frame_id = "/odom_combined"
+    dest.point = Point(0.5, 0, 0)
+    mani.place(dest)
+
+    # mani.turn_arm(0, 0, 6)
+    # print "muh"
+    # mani.open_gripper()
     # mani.move_to("scan_pose1")
-    # mani.turn_arm(0, 0)
+    # mani.turn_arm(0, 2.9)
     # mani.turn_arm(0, pi/2)
     # mani.turn_arm(0, pi)
     # mani.turn_arm(0, pi * 1.5)
-    # mani.turn_arm(0, 5,9341)
+    # mani.turn_arm(0, 5.9)
     # while (not rospy.is_shutdown()):
     #     print mani.get_arm_move_gourp().get_current_joint_values()
     #     rospy.sleep(1)
@@ -109,3 +126,7 @@ if __name__ == '__main__':
     # co2.type = 23
     # print co
     # print co2
+
+        # while not rospy.is_shutdown():
+    #     print mani.get_arm_move_gourp(  ).get_current_joint_values()
+    #     rospy.sleep(0.5)

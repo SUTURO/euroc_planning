@@ -3,12 +3,17 @@ from math import pi
 
 import sys
 import copy
+from euroc_c2_msgs.srv import *
+from geometry_msgs.msg._PointStamped import PointStamped
+from geometry_msgs.msg._Vector3 import Vector3
+from geometry_msgs.msg._Vector3Stamped import Vector3Stamped
 from numpy.core.multiarray import ndarray
 import rospy
 import moveit_commander
 import moveit_msgs.msg
 import geometry_msgs.msg
 from calc_grasp_position import *
+from place import get_place_position, get_pre_place_position
 from planningsceneinterface import *
 
 gripper_max_pose = 0.03495
@@ -19,10 +24,13 @@ class Manipulation(object):
     def __init__(self):
         self.__listener = tf.TransformListener()
         moveit_commander.roscpp_initialize(sys.argv)
-        self.__group = moveit_commander.MoveGroupCommander("arm")
-        self.__group.set_planning_time(2)
+        self.__arm_group = moveit_commander.MoveGroupCommander("arm")
+        self.__arm_group.set_planning_time(5)
         self.__gripper_group = moveit_commander.MoveGroupCommander("gripper")
         self.__planning_scene_interface = PlanningSceneInterface()
+
+        euroc_interface_node = '/euroc_interface_node/'
+        self.__set_object_load_srv = rospy.ServiceProxy(euroc_interface_node + 'set_object_load', SetObjectLoad)
         # self.__gripper_max_pose = 0.03495
         rospy.sleep(2)
         self.__planning_scene_interface.add_ground()
@@ -32,30 +40,40 @@ class Manipulation(object):
         moveit_commander.os._exit(0)
 
     def move_to(self, goal_pose):
-        if type(goal_pose) is str:
-           self.__group.set_named_target("scan_pose1")
+        goal = deepcopy(goal_pose)
+        if type(goal) is str:
+           self.__arm_group.set_named_target("scan_pose1")
         else:
-            visualize_grasps([goal_pose])
+            visualize_pose([goal])
             angle = quaternion_from_euler(0, pi / 2, 0)
-            o = goal_pose.pose.orientation
+            o = goal.pose.orientation
             no = quaternion_multiply([o.x, o.y, o.z, o.w], angle)
-            goal_pose.pose.orientation = geometry_msgs.msg.Quaternion(*no)
+            goal.pose.orientation = geometry_msgs.msg.Quaternion(*no)
 
-            goal_pose = self.transform(goal_pose)
-            self.__group.set_pose_target(goal_pose)
+            goal = self.transform_to(goal)
+            self.__arm_group.set_pose_target(goal)
 
-        return self.__group.go()
+        return self.__arm_group.go()
 
-    def transform(self, pose_target):
+    def transform_to(self, pose_target, target_frame="/odom_combined"):
         try:
-            return self.__listener.transformPose("/odom_combined", pose_target)
+            if type(pose_target) is PoseStamped:
+                # self.__listener.waitForTransform()
+                return self.__listener.transformPose(target_frame, pose_target)
+            if type(pose_target) is Vector3Stamped:
+                return self.__listener.transformVector3(target_frame, pose_target)
+            if type(pose_target) is PointStamped:
+                return self.__listener.transformPoint(target_frame, pose_target)
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
             return None
+
 
     def open_gripper(self, position=gripper_max_pose):
         self.__gripper_group.set_joint_value_target([-position, position])
         self.__gripper_group.go()
         self.__gripper_group.detach_object()
+
+        self.load_object(0, Vector3(0, 0, 0))
 
     def close_gripper(self, object_name=""):
         if object_name != "":
@@ -78,21 +96,51 @@ class Manipulation(object):
                     continue
 
                 self.close_gripper(collision_object.id)
+
+                self.load_object(1, self.get_center_of_mass(collision_object))
                 print "grasped"
+                # rospy.sleep(1)
                 break
 
+    def get_center_of_mass(self, collision_object):
+        center_of_mass= Vector3Stamped()
+        point = Point()
+        if len(collision_object.primitives) == 1:
+            point = collision_object.primitive_poses[0].position
+
+        center_of_mass.header.frame_id = collision_object.header.frame_id
+        center_of_mass.vector = Vector3(point.x, point.y, point.z)
+        # print "center:  ", center_of_mass
+        center_of_mass = self.transform_to(center_of_mass, "link7")
+        return center_of_mass.vector
+
     def stop(self):
-        self.__group.stop()
+        self.__arm_group.stop()
 
     def place(self, destination):
-        """" destination of type pose-stamped """
-        pass
+        """ destination of type pose-stamped """
+        dest = deepcopy(destination)
+        co = self.__planning_scene_interface.get_attached_object().object
+        dest = self.transform_to(dest, "/odom_combined")
+        place_pose = get_place_position(co, dest, self.__listener)
+        self.move_to(get_pre_place_position(place_pose))
+        self.move_to(place_pose)
+        self.open_gripper()
+        self.move_to(get_pre_place_position(place_pose))
+
+    def load_object(self, mass, cog):
+        request = SetObjectLoadRequest()
+        request.mass = mass
+        request.center_of_gravity = cog
+        resp = self.__set_object_load_srv(request)
+        print resp.error_message
+        return resp
 
     def sort_grasps(self, grasps):
         grasps.sort(key=self.__grasp_value)
 
     def __grasp_value(self, grasp):
-        return -self.transform(grasp).pose.position.z
+        return -self.transform_to(grasp).pose.position.z
 
     def get_planning_scene(self):
         return self.__planning_scene_interface
@@ -103,11 +151,11 @@ class Manipulation(object):
         :param distance: float #radian 0 - 5,9341
         :return: undefined
         """
-        distance -= 2.96705972839 #-joint limit
-        jv = self.__group.get_current_joint_values()
+        # distance -= 2.96705972839 #-joint limit
+        jv = self.__arm_group.get_current_joint_values()
         jv[linkid] = distance
-        self.__group.set_joint_value_target(jv)
-        return self.__group.go()
+        self.__arm_group.set_joint_value_target(jv)
+        return self.__arm_group.go()
 
     def get_arm_move_gourp(self):
-        return self.__group
+        return self.__arm_group
