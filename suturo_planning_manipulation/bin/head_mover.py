@@ -53,7 +53,7 @@ if __name__ == '__main__':
 
 
     mani = Manipulation()
-    # mani.grasp("red_cube")
+    mani.grasp("red_cube")
 
     dest = PointStamped()
     dest.header.frame_id = "/odom_combined"
@@ -68,11 +68,18 @@ if __name__ == '__main__':
     dest.point = Point(0.5, 0, 0)
     mani.place(dest)
 
+    mani.grasp("blue_handle")
+
+    dest = PointStamped()
+    dest.header.frame_id = "/odom_combined"
+    dest.point = Point(0.5, -0.5, 0)
+    mani.place(dest)
+
     # mani.turn_arm(0, 0, 6)
     # print "muh"
     # mani.open_gripper()
     # mani.move_to("scan_pose1")
-    # mani.turn_arm(0, 2.9)
+    # mani.turn_arm(0, -2.9)
     # mani.turn_arm(0, pi/2)
     # mani.turn_arm(0, pi)
     # mani.turn_arm(0, pi * 1.5)

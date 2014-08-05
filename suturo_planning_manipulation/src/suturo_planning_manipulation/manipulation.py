@@ -13,7 +13,7 @@ import moveit_commander
 import moveit_msgs.msg
 import geometry_msgs.msg
 from calc_grasp_position import *
-from place import get_place_position, get_pre_place_position
+from place import get_place_position, get_pre_place_position, pre_place_length
 from planningsceneinterface import *
 
 gripper_max_pose = 0.03495
@@ -34,6 +34,7 @@ class Manipulation(object):
         # self.__gripper_max_pose = 0.03495
         rospy.sleep(2)
         self.__planning_scene_interface.add_ground()
+        # self.__arm_group.set_path_constraints()
 
     def __del__(self):
         moveit_commander.roscpp_shutdown()
@@ -56,16 +57,29 @@ class Manipulation(object):
         return self.__arm_group.go()
 
     def transform_to(self, pose_target, target_frame="/odom_combined"):
-        try:
-            if type(pose_target) is PoseStamped:
-                # self.__listener.waitForTransform()
-                return self.__listener.transformPose(target_frame, pose_target)
-            if type(pose_target) is Vector3Stamped:
-                return self.__listener.transformVector3(target_frame, pose_target)
-            if type(pose_target) is PointStamped:
-                return self.__listener.transformPoint(target_frame, pose_target)
-        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-            return None
+        odom_pose = None
+        i = 0
+        while odom_pose == None and i < 5:
+            try:
+                if type(pose_target) is PoseStamped:
+                    # self.__listener.waitForTransform()
+                    odom_pose =  self.__listener.transformPose(target_frame, pose_target)
+                    break
+                if type(pose_target) is Vector3Stamped:
+                    odom_pose = self.__listener.transformVector3(target_frame, pose_target)
+                    break
+                if type(pose_target) is PointStamped:
+                    odom_pose = self.__listener.transformPoint(target_frame, pose_target)
+                    break
+            except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+                print "tf error"
+            rospy.sleep(0.5)
+            i += 1
+            print "tf fail nr. ", i
+
+        if odom_pose == None:
+            print "FUUUUUUUUUUUUUU!!!! fucking tf shit!!!!"
+        return odom_pose
 
 
     def open_gripper(self, position=gripper_max_pose):
@@ -94,8 +108,9 @@ class Manipulation(object):
 
                 if not self.move_to(grasp):
                     continue
-
+                rospy.sleep(1)
                 self.close_gripper(collision_object.id)
+
 
                 self.load_object(1, self.get_center_of_mass(collision_object))
                 print "grasped"
@@ -103,16 +118,22 @@ class Manipulation(object):
                 break
 
     def get_center_of_mass(self, collision_object):
-        center_of_mass= Vector3Stamped()
-        point = Point()
-        if len(collision_object.primitives) == 1:
-            point = collision_object.primitive_poses[0].position
-
-        center_of_mass.header.frame_id = collision_object.header.frame_id
-        center_of_mass.vector = Vector3(point.x, point.y, point.z)
+        # center_of_mass= Vector3Stamped()
+        # point = Point()
+        # if len(collision_object.primitives) == 1:
+        #     point = collision_object.primitive_poses[0].position
+        #
+        # center_of_mass.header.frame_id = collision_object.header.frame_id
+        # center_of_mass.vector = Vector3(point.x, point.y, point.z)
         # print "center:  ", center_of_mass
-        center_of_mass = self.transform_to(center_of_mass, "link7")
-        return center_of_mass.vector
+        # center_of_mass = self.transform_to(center_of_mass, "link7")
+        # print "center2:  ", center_of_mass
+
+        now = rospy.Time.now()
+        self.__listener.waitForTransform("/tcp", "/" + collision_object.id, now, rospy.Duration(4))
+        (p, q) = self.__listener.lookupTransform("/tcp", "/" + collision_object.id, now)
+
+        return Vector3(p[0], p[1], p[2])
 
     def stop(self):
         self.__arm_group.stop()
@@ -126,7 +147,11 @@ class Manipulation(object):
         self.move_to(get_pre_place_position(place_pose))
         self.move_to(place_pose)
         self.open_gripper()
-        self.move_to(get_pre_place_position(place_pose))
+
+        post_place_pose = PoseStamped()
+        post_place_pose.header.frame_id = "/tcp"
+        post_place_pose.pose.position = Point(0, 0, -pre_place_length)
+        self.move_to(post_place_pose)
 
     def load_object(self, mass, cog):
         request = SetObjectLoadRequest()
