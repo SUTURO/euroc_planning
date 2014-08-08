@@ -25,13 +25,16 @@ def toplevel_plan():
                                    transitions={'success': 'StopSimulation',
                                                 'fail': 'Task1Plan'})
             smach.StateMachine.add('StopSimulation', start_nodes.StopSimulation(),
+                                   transitions={'success': 'StopNodes',
+                                                'fail': 'fail'})
+
+            smach.StateMachine.add('StopNodes', start_nodes.StopNodes(),
                                    transitions={'success': 'success',
                                                 'fail': 'fail'})
 
         smach.StateMachine.add('ExecuteTask1', execute_task1,
                                transitions={'success': 'success',
                                             'fail': 'fail'})
-
 
     # Create and start the introspection server
     sis = smach_ros.IntrospectionServer('toplevel', toplevel, '/SM_ROOT')
