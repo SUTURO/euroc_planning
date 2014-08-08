@@ -1,61 +1,163 @@
 #!/usr/bin/env python
-import yaml, rospy, threading
-from suturo_msgs.msg import task
+import yaml
+import rospy
+from yaml_exceptions import EmptyString
+from yaml_exceptions import UnhandledValue
+from yaml_exceptions import IllegalValue
+from suturo_msgs.msg import Task
+from suturo_msgs.msg import MastOfCam
+from suturo_msgs.msg import Object
+from suturo_msgs.msg import Shape
 from std_msgs.msg import String
+from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Vector3
 
 
-class Yaml_pars0r:
+class YamlPars0r:
 
     def __init__(self):
-        self._yaml = None
-        self._message = None
-        self._lockYaml = threading.Lock()
-        self._lockMessage = threading.Lock()
-        self.pub = rospy.Publisher('yaml_pars0r', task, queue_size=10, latch=True)
+        self.pub = rospy.Publisher('suturo/yaml_pars0r', Task, queue_size=10, latch=True)
         rospy.init_node('yaml_pars0r_node', anonymous=True)
-        self._subscriber = rospy.Subscriber("yaml_pars0r_input", String, self.get_input)
+        self._subscriber = rospy.Subscriber("suturo/yaml_pars0r_input", String, self.get_input)
 
     def get_input(self, msg):
-        self._lockMessage.acquire()
-        self._yaml = msg.data
-        self._lockMessage.release()
-        self.publish()
+        self.publish(msg.data)
 
-    def get_dict_value(self, dictionary, key):
+    @staticmethod
+    def get_dict_value(dictionary, key):
         if (type(dictionary) is dict) and (key in dictionary):
             val = dictionary[key]
         else:
             val = ""
-        print("val: " + val)
+        rospy.loginfo("val: " + str(val))
         return val
 
-    def publish(self):
-        self.parse_yaml()
-        self._lockMessage.acquire()
-        #rospy.loginfo(message)
-        if self._message:
-            self.pub.publish(self._message)
-        self._lockMessage.release()
+    def publish(self, data):
+        try:
+            msg = self.parse_yaml(data)
+            self.pub.publish(msg)
+        except (EmptyString, UnhandledValue, IllegalValue, UnhandledValue, ValueError, TypeError) as e:
+            rospy.logerr('publish: Could not parse yaml description: %s', e)
+        except Exception as e:
+            rospy.logerr('publish: Could not parse yaml description: %s', e)
 
-    def parse_yaml(self):
-        self._lockYaml.acquire()
-        if self._yaml:
-            y = yaml.load(self._yaml)
-        else:
-            y = None
-        self._lockYaml.release()
+    def parse_yaml(self, data):
+        y = yaml.load(data)
         if y:
-            msg = task(
-                description=self.get_dict_value(y, 'description'),
-                log_filename=self.get_dict_value(y, 'log_filename'))
-            self._lockYaml.acquire()
-            self._message = msg
-            self._lockYaml.release()
+            f_description = self.get_dict_value(y, 'description')
+            f_log_filename = self.get_dict_value(y, 'log_filename')
+            f_mast_of_cam = self.get_dict_value(y, 'mast_of_cam')
+            if f_mast_of_cam:
+                f_base_pose = f_mast_of_cam['base_pose']
+                f_pan_tilt_base = f_mast_of_cam['pan_tilt_base']
+                f_speed_limit = f_mast_of_cam['speed_limit']
+            else:
+                f_base_pose = ""
+                f_pan_tilt_base = ""
+                f_speed_limit = ""
+            try:
+                f_objects = self.parse_objects(self.get_dict_value(y, 'objects'))
+            except (UnhandledValue, IllegalValue, UnhandledValue, ValueError, TypeError) as e:
+                rospy.logerr('parse_yaml: Exception while parsing objects: %s', e)
+                raise e
+            msg = Task(
+                description=f_description,
+                log_filename=f_log_filename,
+                mast_of_cam=MastOfCam(
+                    base_pose=f_base_pose,
+                    pan_tilt_base=f_pan_tilt_base,
+                    speed_limit=f_speed_limit
+                ),
+                objects=f_objects
+            )
+            return msg
+        else:
+            raise EmptyString('The given yaml description seems to be empty.')
+
+    def parse_objects(self, objects):
+        parsed_objects = []
+        for obj in objects:
+            f_name = obj
+            rospy.loginfo('parse_objects: objects[obj]: %s', objects[obj])
+            f_color = self.get_dict_value(objects[obj], 'color')
+            f_description = self.get_dict_value(objects[obj], 'description')
+            try:
+                f_shapes = self.get_dict_value(objects[obj], 'shape')
+                f_shapes = self.parse_shapes(f_shapes)
+            except (UnhandledValue, IllegalValue, UnhandledValue, ValueError) as e:
+                rospy.logerr('parse_objects: Exception %s while parsing shapes: %s', e, f_shapes)
+                raise e
+            f_material = self.get_dict_value(objects[obj], 'surface_material')
+            if f_material == 'aluminium':
+                f_material = Object.ALUMINIUM
+            else:
+                raise UnhandledValue('Unhandled surface_material: ' + str(f_material))
+            rospy.loginfo('parse_objects: f_color: %s', f_color)
+            rospy.loginfo('parse_objects: f_description: %s', f_description)
+            rospy.loginfo('parse_objects: f_shapes: %s', f_shapes)
+            rospy.loginfo('parse_objects: f_material: %s', f_material)
+            parsed_objects.append(Object(
+                name=f_name,
+                color=f_color,
+                description=f_description,
+                shapes=f_shapes,
+                surface_material=f_material
+            ))
+        return parsed_objects
+
+    def parse_shapes(self, shapes):
+        rospy.loginfo('parse_shapes: parsing shapes: %s', shapes)
+        parsed_shapes = []
+        for s in shapes:
+            f_type = self.get_dict_value(s, 'type')
+            try:
+                if f_type == 'cylinder':
+                    f_type = Shape.CYLINDER
+                elif f_type == 'box':
+                    f_type = Shape.BOX
+                else:
+                    raise UnhandledValue("Unhandled shape type: " + str(f_type))
+                f_dimensions = [0.0] * 6
+                f_pose = self.get_dict_value(s, 'pose')
+                rospy.loginfo('parse_shapes: f_pose: %s', f_pose)
+                try:
+                    pose_msg = Twist(
+                        linear=Vector3(
+                            x=f_pose[0],
+                            y=f_pose[1],
+                            z=f_pose[2]
+                        ),
+                        angular=Vector3(
+                            x=f_pose[3],
+                            y=f_pose[4],
+                            z=f_pose[5]
+                        )
+                    )
+                except (IndexError, TypeError) as e:
+                    raise IllegalValue('Apparently there are fields missing in the shape\'s pose: ' + str(f_pose))
+                f_density = self.get_dict_value(s, 'density')
+                if f_type == Shape.BOX:
+                    f_size = self.get_dict_value(s, 'size')
+                    f_dimensions[Shape.BOX_X] = f_size[0]
+                    f_dimensions[Shape.BOX_Y] = f_size[1]
+                    f_dimensions[Shape.BOX_Z] = f_size[2]
+                elif f_type == Shape.CYLINDER:
+                    f_dimensions[Shape.CYLINDER_LENGTH] = self.get_dict_value(s, 'length')
+                    f_dimensions[Shape.CYLINDER_RADIUS] = self.get_dict_value(s, 'radius')
+                else:
+                    raise UnhandledValue("Unhandled shape type: " + str(f_type))
+                parsed_shapes.append(Shape(
+                    type=f_type,
+                    dimensions=f_dimensions,
+                    density=f_density,
+                    pose=pose_msg
+                ))
+            except (ValueError) as e:
+                rospy.logerr('parse_shapes: Exception %s while parsing shapes: %s', e, shapes)
+                raise e
+        return parsed_shapes
 
     def __del__(self):
         rospy.loginfo("Deleting yaml pars0r instance.")
         self._subscriber.unregister()
         rospy.signal_shutdown()
-
-# Testing:
-# rostopic pub -1 /yaml_pars0r_input std_msgs/String '{data: "description: there are 3 objects lying on the table (red_cube, green_cylinder, blue_handle).\n  their projected origin needs to be placed in their respective target zones (zone_A,\n  zone_B, zone_C) on the table.\nlog_filename: /home/andz/euroc_c2s1_logs/euroc_c2_s1_20140807_151009_suturo.log\nmast_of_cam:\n  base_pose: [0.92, 0.92, 0, 0, 0, -2.356]\n  pan_tilt_base: [0, 0, 1.1, 0, 0, 0]\n  speed_limit: [1.7453, 1.7453]\nobjects:\n  blue_handle:\n    color: 0000ff\n    description: a blue compound of a cylinder with two cubes\n    shape:\n    - density: 2710\n      length: 0.3\n      pose: [0, 0, 0.175, 0, 0, 0]\n      radius: 0.01\n      type: cylinder\n    - density: 2710\n      pose: [0, 0, 0, 0, 0, 0]\n      size: [0.05, 0.05, 0.05]\n      type: box\n    - density: 2710\n      pose: [0, 0, 0.35, 0, 0, 0]\n      size: [0.05, 0.05, 0.05]\n      type: box\n    surface_material: aluminium\n  green_cylinder:\n    color: 00ff00\n    description: a green cylinder\n    shape:\n    - density: 19302\n      length: 0.1\n      pose: [0, 0, 0, 0, 0, 0]\n      radius: 0.02\n      type: cylinder\n    surface_material: aluminium\n  red_cube:\n    color: ff0000\n    description: a red cube\n    shape:\n    - density: 7850\n      pose: [0, 0, 0, 0, 0, 0]\n      size: [0.05, 0.05, 0.05]\n      type: box\n    surface_material: aluminium\nrobot:\n  gripper_pose: [0, 0, 0.08, 3.1415927, 0, 0]\n  gripper_speed_limit: 0.5\n  gripper_tcp: [0, 0, -0.093, -3.1415927, 0, 0]\n  pose: [0, 0, 0.005, 0, 0, 0]\n  speed_limit: [1.7453, 1.7453, 2.7925, 2.7925, 4.7124, 3.6652, 3.6652]\nsensors:\n  scene_depth_cam:\n    camera:\n      horizontal_fov: 1.047\n      image: {height: 480, width: 640}\n    relative_pose:\n      from: scene_rgb_cam\n      pose: [0.0, -0.04, 0.0, 0, 0, 0]\n    update_rate: 30\n  scene_rgb_cam:\n    camera:\n      horizontal_fov: 1.047\n      image: {height: 480, width: 640}\n    pose: [0.2, 0.02, 0, 0, 0, 0]\n    update_rate: 30\n  tcp_depth_cam:\n    camera:\n      horizontal_fov: 1.047\n      image: {height: 480, width: 640}\n    relative_pose:\n      from: tcp_rgb_cam\n      pose: [0.0, -0.04, 0.0, 0, 0, 0]\n    update_rate: 30\n  tcp_rgb_cam:\n    camera:\n      horizontal_fov: 1.047\n      image: {height: 480, width: 640}\n    pose: [-0.02, 0.0565, -0.063, -1.5708, 1.5708, 0.0]\n    update_rate: 30\ntarget_zones:\n  zone_A:\n    expected_object: red_cube\n    max_distance: 0.05\n    target_position: [0.5, 0.5, 0]\n  zone_B:\n    expected_object: blue_handle\n    max_distance: 0.05\n    target_position: [0.5, -0.5, 0]\n  zone_C:\n    expected_object: green_cylinder\n    max_distance: 0.05\n    target_position: [0.5, 0, 0]\ntask_name: task 1\ntime_limit: 600\ntwo_axes_table:\n  speed_limit: [0.5, 0.5]\n"}'
