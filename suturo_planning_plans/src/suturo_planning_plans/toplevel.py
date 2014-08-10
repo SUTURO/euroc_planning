@@ -59,7 +59,8 @@ class InitSimulation(smach.StateMachine):
     def __init__(self, task_name):
         smach.StateMachine.__init__(self, outcomes=['success', 'fail'],
                                     input_keys=[],
-                                    output_keys=[])
+                                    output_keys=['manipulation', 'objects_found', 'yaml', 'perception_process',
+                                                 'manipulation_process'])
         with self:
             smach.StateMachine.add('StartPerception', start_nodes.StartPerception(),
                                    transitions={'success': 'StartSimulation',

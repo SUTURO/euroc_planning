@@ -1,13 +1,13 @@
 import rospy
 import smach
-import smach_ros
 import time
+from suturo_planning_perception import perception
 
 
 class Task1(smach.StateMachine):
     def __init__(self):
         smach.StateMachine.__init__(self, outcomes=['success', 'fail'],
-                                    input_keys=['yaml', 'objects_found'],
+                                    input_keys=['manipulation', 'yaml', 'objects_found'],
                                     output_keys=[])
         with self:
             smach.StateMachine.add('SearchObject', SearchObject(),
@@ -32,14 +32,23 @@ class SearchObject(smach.State):
 
     def __init__(self):
         smach.State.__init__(self, outcomes=['objectFound', 'noObjectsLeft'],
-                             input_keys=['manipulation', 'yaml'],
+                             input_keys=['manipulation', 'yaml', 'objects_found'],
                              output_keys=['object_to_perceive'])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state SearchObject')
+
+        # take initial scan pose
         if self.rad_of_last_object == 0:
             userdata.manipulation.move_to('scanpose1')
-        # look for object
+
+            # look for objects
+            recognized_objects = perception.recognize_objects_of_interest()
+            if 0 != 0:  # check if an object was recognized
+                userdata.object_to_perceive = recognized_objects[1]
+                return 'objectFound'
+
+        # search for objects
         num_of_scans = 12
         max_rad = 5.93
         rad_per_step = max_rad / num_of_scans
@@ -47,8 +56,11 @@ class SearchObject(smach.State):
             userdata.manipulation.turn_arm(1.0, x)
             self.rad_of_last_object = x
             #look for object
-            if True:
+            recognized_objects = perception.recognize_objects_of_interest()
+            if 0 != 0:  # check if an object was recognized
+                userdata.object_to_perceive = recognized_objects[1]
                 return 'objectFound'
+
         # some code to look into the dead angle
         time.sleep(3)
         return 'noObjectsLeft'
@@ -62,7 +74,11 @@ class PerceiveObject(smach.State):
 
     def execute(self, userdata):
         rospy.loginfo('Executing state PerceiveObject')
-        userdata.object_to_grasp = 0  # awesome code from andz to look at the object
+        # awesome code from andz to get the pose to perceive the object
+
+        perceived_object = perception.get_gripper_perception()
+        # check if it was an object
+        userdata.object_to_grasp = perceived_object
         time.sleep(3)
         return 'validObject'
 
@@ -103,5 +119,7 @@ class CheckPlacement(smach.State):
     def execute(self, userdata):
         rospy.loginfo('Executing state ')
         userdata.manipulation.move_to(0)  # again andz's super code
+
+        # something with the gripper cam
         time.sleep(3)
         return 'onTarget'
