@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import subprocess
+import signal
 import atexit
 import time
 import sys
@@ -17,7 +18,7 @@ def main(task):
     #Taskselector
     print "Starting task_selector"
     global pro_task_selector
-    pro_task_selector = subprocess.Popen('/opt/euroc_c2s1/start_euroc_task_selector', stdout=subprocess.PIPE,
+    pro_task_selector = subprocess.Popen('rosrun euroc_launch TaskSelector', stdout=subprocess.PIPE,
                                          shell=True, preexec_fn=os.setsid)
     time.sleep(5)
 
@@ -34,8 +35,7 @@ def exit_handler():
     stop_task()
     time.sleep(2)
     global pro_task_selector
-    assert isinstance(pro_task_selector, subprocess.Popen)
-    pro_task_selector.kill()
+    os.killpg(pro_task_selector.pid, signal.SIGTERM)
 
 
 atexit.register(exit_handler)

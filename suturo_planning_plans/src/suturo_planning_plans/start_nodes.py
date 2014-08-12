@@ -3,6 +3,7 @@ import smach
 import time
 import subprocess
 import os
+import signal
 import atexit
 import suturo_planning_task_selector
 from suturo_planning_manipulation.manipulation import Manipulation
@@ -82,8 +83,8 @@ class StopNodes(smach.State):
 
     def execute(self, userdata):
         rospy.loginfo('Stopping Nodes')
-        userdata.perception_process.kill()
-        userdata.manipulation_process.kill()
+        os.killpg(userdata.perception_process.pid, signal.SIGTERM)
+        os.killpg(userdata.manipulation_process.pid, signal.SIGTERM)
         time.sleep(3)
         return 'success'
 
@@ -93,10 +94,10 @@ def exit_handler():
     print 'Killing perception and manipulation'
     global manipulation_process
     if manipulation_process != 0:
-        manipulation_process.kill()
+        os.killpg(perception_process.pid, signal.SIGTERM)
     global perception_process
     if perception_process != 0:
-        perception_process.kill()
+        os.killpg(manipulation_process.pid, signal.SIGTERM)
 
 
 atexit.register(exit_handler)

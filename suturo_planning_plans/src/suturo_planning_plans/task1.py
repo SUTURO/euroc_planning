@@ -40,7 +40,7 @@ class SearchObject(smach.State):
 
         # take initial scan pose
         if self.rad_of_last_object == 0:
-            userdata.manipulation.move_to('scanpose1')
+            userdata.manipulation.move_to('scan_pose1')
 
             # look for objects
             recognized_objects = perception.recognize_objects_of_interest()

@@ -21,9 +21,11 @@ def toplevel_plan():
             smach.StateMachine.add('InitSimulation', InitSimulation('task1_v1'),
                                    transitions={'success': 'Task1Plan',
                                                 'fail': 'fail'})
+
             smach.StateMachine.add('Task1Plan', task1.Task1(),
                                    transitions={'success': 'StopSimulation',
                                                 'fail': 'Task1Plan'})
+
             smach.StateMachine.add('StopSimulation', start_nodes.StopSimulation(),
                                    transitions={'success': 'StopNodes',
                                                 'fail': 'fail'})
