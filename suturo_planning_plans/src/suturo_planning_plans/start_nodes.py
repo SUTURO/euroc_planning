@@ -6,7 +6,6 @@ import os
 import signal
 import atexit
 import suturo_planning_task_selector
-from suturo_planning_manipulation.manipulation import Manipulation
 
 
 perception_process = 0
@@ -17,7 +16,7 @@ class StartManipulation(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['success', 'fail'],
                              input_keys=[],
-                             output_keys=['manipulation', 'manipulation_process'])
+                             output_keys=['manipulation_process'])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state StartManipulation')
@@ -26,7 +25,6 @@ class StartManipulation(smach.State):
                                                 stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
         userdata.manipulation_process = manipulation_process
         time.sleep(3)
-        userdata.manipulation = Manipulation()
         return 'success'
 
 

@@ -2,13 +2,17 @@ import rospy
 import smach
 import time
 from suturo_planning_perception import perception
+from suturo_planning_manipulation.manipulation import Manipulation
+
+manipulation = 0
 
 
 class Task1(smach.StateMachine):
     def __init__(self):
         smach.StateMachine.__init__(self, outcomes=['success', 'fail'],
-                                    input_keys=['manipulation', 'yaml', 'objects_found'],
+                                    input_keys=['yaml', 'objects_found'],
                                     output_keys=[])
+
         with self:
             smach.StateMachine.add('SearchObject', SearchObject(),
                                    transitions={'objectFound': 'PerceiveObject',
@@ -28,35 +32,45 @@ class Task1(smach.StateMachine):
 
 
 class SearchObject(smach.State):
-    rad_of_last_object = 0
+
+    _scans = 0
 
     def __init__(self):
         smach.State.__init__(self, outcomes=['objectFound', 'noObjectsLeft'],
-                             input_keys=['manipulation', 'yaml', 'objects_found'],
+                             input_keys=['yaml', 'objects_found'],
                              output_keys=['object_to_perceive'])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state SearchObject')
 
+        global manipulation
+        if manipulation == 0:
+            manipulation = Manipulation()
+
         # take initial scan pose
-        if self.rad_of_last_object == 0:
-            userdata.manipulation.move_to('scan_pose1')
+        if self._scans == 0:
+            self._scans = 1
+            manipulation.move_to('scan_pose1')
 
             # look for objects
-            recognized_objects = perception.recognize_objects_of_interest()
+            recognized_objects = 0 #perception.recognize_objects_of_interest()
             if 0 != 0:  # check if an object was recognized
                 userdata.object_to_perceive = recognized_objects[1]
                 return 'objectFound'
 
         # search for objects
         num_of_scans = 12
-        max_rad = 5.93
+        max_rad = 5.9
         rad_per_step = max_rad / num_of_scans
-        for x in range(self.rad_of_last_object + rad_per_step, max_rad, rad_per_step):
-            userdata.manipulation.turn_arm(1.0, x)
-            self.rad_of_last_object = x
+        for x in range(self._scans, num_of_scans):
+            self._scans = x
+            rad = x * rad_per_step - 2.945
+            print 'Turning arm ' + str(rad)
+            manipulation.turn_arm(1.0, rad)
+            time.sleep(2)
+
             #look for object
-            recognized_objects = perception.recognize_objects_of_interest()
+            recognized_objects = 0 #perception.recognize_objects_of_interest()
             if 0 != 0:  # check if an object was recognized
                 userdata.object_to_perceive = recognized_objects[1]
                 return 'objectFound'
@@ -69,7 +83,7 @@ class SearchObject(smach.State):
 class PerceiveObject(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['noObject', 'validObject'],
-                             input_keys=['manipulation', 'object_to_perceive'],
+                             input_keys=['object_to_perceive'],
                              output_keys=['object_to_grasp'])
 
     def execute(self, userdata):
@@ -86,12 +100,13 @@ class PerceiveObject(smach.State):
 class GraspObject(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['success', 'fail'],
-                             input_keys=['manipulation', 'object_to_grasp'],
+                             input_keys=['object_to_grasp'],
                              output_keys=[])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state GraspObject')
-        userdata.manipulation.grasp(userdata.object_to_grasp)
+        global manipulation
+        manipulation.grasp(userdata.object_to_grasp)
         time.sleep(3)
         return 'success'
 
@@ -99,13 +114,15 @@ class GraspObject(smach.State):
 class PlaceObject(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['success', 'fail'],
-                             input_keys=['manipulation', 'yaml'],
+                             input_keys=['yaml'],
                              output_keys=[])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state PlaceObject')
+        global manipulation
+
         destination = 0  # get the target zone from the yaml
-        userdata.manipulation.place(destination)
+        manipulation.place(destination)
         time.sleep(3)
         return 'success'
 
@@ -113,12 +130,13 @@ class PlaceObject(smach.State):
 class CheckPlacement(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['onTarget', 'notOnTarget'],
-                             input_keys=['manipulation'],
+                             input_keys=['yaml'],
                              output_keys=[])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state ')
-        userdata.manipulation.move_to(0)  # again andz's super code
+        global manipulation
+        manipulation.move_to(0)  # again andz's super code
 
         # something with the gripper cam
         time.sleep(3)
