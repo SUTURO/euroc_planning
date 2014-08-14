@@ -43,7 +43,7 @@ class Manipulation(object):
     def move_to(self, goal_pose):
         goal = deepcopy(goal_pose)
         if type(goal) is str:
-           self.__arm_group.set_named_target("scan_pose1")
+            self.__arm_group.set_named_target("scan_pose1")
         else:
             visualize_pose([goal])
             angle = quaternion_from_euler(0, pi / 2, 0)
@@ -59,11 +59,11 @@ class Manipulation(object):
     def transform_to(self, pose_target, target_frame="/odom_combined"):
         odom_pose = None
         i = 0
-        while odom_pose == None and i < 5:
+        while odom_pose is None and i < 5:
             try:
                 if type(pose_target) is PoseStamped:
                     # self.__listener.waitForTransform()
-                    odom_pose =  self.__listener.transformPose(target_frame, pose_target)
+                    odom_pose = self.__listener.transformPose(target_frame, pose_target)
                     break
                 if type(pose_target) is Vector3Stamped:
                     odom_pose = self.__listener.transformVector3(target_frame, pose_target)
@@ -77,10 +77,9 @@ class Manipulation(object):
             i += 1
             print "tf fail nr. ", i
 
-        if odom_pose == None:
+        if odom_pose is None:
             print "FUUUUUUUUUUUUUU!!!! fucking tf shit!!!!"
         return odom_pose
-
 
     def open_gripper(self, position=gripper_max_pose):
         self.__gripper_group.set_joint_value_target([-position, position])
@@ -110,7 +109,6 @@ class Manipulation(object):
                     continue
                 rospy.sleep(1)
                 self.close_gripper(collision_object.id)
-
 
                 self.load_object(1, self.get_center_of_mass(collision_object))
                 print "grasped"

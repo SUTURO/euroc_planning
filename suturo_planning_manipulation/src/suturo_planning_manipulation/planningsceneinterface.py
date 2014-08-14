@@ -1,3 +1,4 @@
+from __builtin__ import staticmethod
 from geometry_msgs.msg._PoseStamped import PoseStamped
 from geometry_msgs.msg._Quaternion import Quaternion
 import moveit_commander
@@ -36,7 +37,8 @@ class PlanningSceneInterface(object):
         box = self.__make_box("ground", pose, [2, 2, 0.01])
         self.add_object(box)
 
-    def __make_box(self, name, pose, size):
+    @staticmethod
+    def __make_box(name, pose, size):
         co = CollisionObject()
         co.operation = CollisionObject.ADD
         co.id = name

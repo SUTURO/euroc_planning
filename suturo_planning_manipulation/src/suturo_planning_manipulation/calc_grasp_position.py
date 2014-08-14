@@ -119,8 +119,9 @@ def calculate_grasp_position_cylinder(collision_object, n=8):
     grasp_positions.sort()
     return grasp_positions
 
+
 def get_angle(p1, p2):
-    return acos(scalar_product(p1, p2) / (sqrt(scalar_product(p1, p1)) * sqrt(scalar_product(p2, p2))));
+    return acos(scalar_product(p1, p2) / (sqrt(scalar_product(p1, p1)) * sqrt(scalar_product(p2, p2))))
 
 
 def three_points_to_quaternion(origin, to, roll):
@@ -147,12 +148,13 @@ def three_points_to_quaternion(origin, to, roll):
 
 
 def subtract_point(p1, p2):
-    if type(p1) is geometry_msgs.msg.Point and type(p2) is geometry_msgs.msg.Point:
-        result = geometry_msgs.msg.Point()
-        result.x = p1.x - p2.x
-        result.y = p1.y - p2.y
-        result.z = p1.z - p2.z
-        return result
+    assert(geometry_msgs.msg.Point, p1)
+    assert(geometry_msgs.msg.Point, p2)
+    result = geometry_msgs.msg.Point()
+    result.x = p1.x - p2.x
+    result.y = p1.y - p2.y
+    result.z = p1.z - p2.z
+    return result
 
 
 def normalize(p):
