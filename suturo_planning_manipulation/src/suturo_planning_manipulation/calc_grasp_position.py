@@ -149,8 +149,8 @@ def three_points_to_quaternion(origin, to, roll):
 
 
 def subtract_point(p1, p2):
-    assert(geometry_msgs.msg.Point, p1)
-    assert(geometry_msgs.msg.Point, p2)
+    assert(type(p1) is geometry_msgs.msg.Point, "p1 is not of type Point")
+    assert(type(p2) is geometry_msgs.msg.Point, "p2 is not of type Point")
     result = geometry_msgs.msg.Point()
     result.x = p1.x - p2.x
     result.y = p1.y - p2.y

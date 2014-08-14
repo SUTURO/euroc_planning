@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from math import pi
+from pdb import post_mortem
 
 import sys
 import copy
@@ -13,7 +14,7 @@ import moveit_commander
 import moveit_msgs.msg
 import geometry_msgs.msg
 from calc_grasp_position import *
-from place import get_place_position, get_pre_place_position, pre_place_length
+from place import get_place_position, get_pre_place_position, pre_place_length, post_place_length
 from planningsceneinterface import *
 
 gripper_max_pose = 0.03495
@@ -145,11 +146,13 @@ class Manipulation(object):
         self.move_to(get_pre_place_position(place_pose))
         self.move_to(place_pose)
         self.open_gripper()
+        rospy.sleep(0.25)
 
         post_place_pose = PoseStamped()
         post_place_pose.header.frame_id = "/tcp"
-        post_place_pose.pose.position = Point(0, 0, -pre_place_length)
+        post_place_pose.pose.position = Point(0, 0, -post_place_length)
         self.move_to(post_place_pose)
+        rospy.sleep(0.25)
 
     def load_object(self, mass, cog):
         request = SetObjectLoadRequest()

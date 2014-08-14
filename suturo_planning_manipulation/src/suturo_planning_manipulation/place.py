@@ -11,6 +11,7 @@ from calc_grasp_position import finger_length, hand_length, pre_grasp_length
 __author__ = 'ichumuh'
 
 pre_place_length = 0.05
+post_place_length = 0.1
 safe_place = 0.005
 
 
