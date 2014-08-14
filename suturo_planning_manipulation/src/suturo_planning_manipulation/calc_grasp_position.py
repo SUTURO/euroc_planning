@@ -112,10 +112,11 @@ def calculate_grasp_position_cylinder(collision_object, n=8):
     # grasp_positions.append(make_grasp_pose(depth, points[5], points[4], collision_object.id))
 
     for i in range(0, n):
-        a = 2 * pi * ((i+0.0) /(n+0.0))
+        a = 2 * pi * ((i+0.0) / (n+0.0))
         # print ((i+0.0) /(n+0.0))
         # print Point(cos(a), sin(a), 0)
-        grasp_positions.append(make_grasp_pose(depth_side, Point(cos(a), sin(a), 0), Point(0, 0, 1), collision_object.id))
+        grasp_positions.append(make_grasp_pose(depth_side, Point(cos(a), sin(a), 0), Point(0, 0, 1),
+                                               collision_object.id))
     grasp_positions.sort()
     return grasp_positions
 

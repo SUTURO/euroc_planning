@@ -50,8 +50,6 @@ if __name__ == '__main__':
     # ps = PlanningSceneInterface()
     # print ps.get_collision_objects()
 
-
-
     mani = Manipulation()
     mani.grasp("red_cube")
 
