@@ -5,6 +5,7 @@ from utils import *
 from suturo_planning_perception import perception
 from suturo_planning_manipulation.manipulation import Manipulation
 
+# Holds the manipulation object
 manipulation = None
 
 
@@ -61,6 +62,9 @@ class SearchObject(smach.State):
         num_of_scans = 12
         max_rad = 5.9
         rad_per_step = max_rad / num_of_scans
+        colors = [hex_to_color_msg('ff0000'),
+                  # hex_to_color_msg('00ff00'),
+                  hex_to_color_msg('0000ff')]
         for x in range(self._next_scan, num_of_scans):
             self._next_scan += 1
             rad = x * rad_per_step - 2.945
@@ -69,13 +73,14 @@ class SearchObject(smach.State):
             time.sleep(1)
 
             # look for objects
-            recognized_objects = [] # perception.recognize_objects_of_interest()
+            print 'Colors: ' + str(colors)
+            recognized_objects = perception.recognize_objects_of_interest(colors)
+            print 'Found objects: ' + str(recognized_objects)
             if len(recognized_objects) > 0:  # check if an object was recognized
                 userdata.object_to_perceive = recognized_objects.pop(0)
                 self._found_objects = recognized_objects
                 return 'objectFound'
 
-        # some code to look into the dead angle
         time.sleep(3)
         return 'noObjectsLeft'
 
@@ -90,11 +95,13 @@ class PerceiveObject(smach.State):
         rospy.loginfo('Executing state PerceiveObject')
 
         # awesome code from andz to get the pose to perceive the object coming soon
-        userdata.object_to_perceive.pose.pose.position.z += 12  # assuming z is the height
+        userdata.object_to_perceive.pose.pose.position.x += 12  # assuming x is the height
         global manipulation
-        manipulation.move_to(userdata.object_to_perceive.pose)
+        # manipulation.move_to(userdata.object_to_perceive.pose)
 
         perceived_objects = perception.get_gripper_perception()
+        print 'Perceived objects: ' + str(perceived_objects)
+        print 'Selected object: ' + str(get_object_to_move(perceived_objects))
 
         # check if it was an object
         userdata.object_to_move = get_object_to_move(perceived_objects)
