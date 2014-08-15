@@ -2,6 +2,9 @@
 import yaml
 import rospy
 import re
+import time
+import signal
+import sys
 from yaml_exceptions import UnhandledValue
 from suturo_msgs.msg import Task
 from suturo_msgs.msg import MastOfCam
@@ -23,11 +26,13 @@ class YamlPars0r:
 
     def __init__(self):
         self.pub = rospy.Publisher('suturo/yaml_pars0r', Task, queue_size=10, latch=True)
-        rospy.init_node('yaml_pars0r_node', anonymous=True)
+        rospy.init_node('yaml_pars0r_node', anonymous=True, log_level=rospy.INFO)
         self._subscriber = rospy.Subscriber("suturo/yaml_pars0r_input", String, self.get_input)
+        rospy.loginfo('Initialised YAML parser.')
 
     def get_input(self, msg):
-        #rospy.loginfo('get_input: ' + str(msg))
+        rospy.loginfo('Received input')
+        rospy.logdebug('get_input: ' + str(msg))
         self.publish(msg.data)
 
     @staticmethod
@@ -40,13 +45,14 @@ class YamlPars0r:
             val = []
         else:
             val = None
-        rospy.loginfo("key: " + str(key) + ", val: " + str(val))
+        rospy.logdebug("key: " + str(key) + ", val: " + str(val))
         return val
 
     def publish(self, data):
         try:
             msg = self.parse_yaml(data)
-            rospy.loginfo('publish: Publishing message: ' + str(msg))
+            rospy.logdebug('publish: Publishing message: ' + str(msg))
+            rospy.loginfo('Publishing description for task \'%s\'', msg.task_name)
             self.pub.publish(msg)
         except UnhandledValue as e:
             rospy.logerr('publish: Could not parse yaml description: %s: %s', type(e), e)
@@ -55,6 +61,7 @@ class YamlPars0r:
 
     @staticmethod
     def parse_yaml(data):
+        rospy.loginfo('Parsing...')
         y = yaml.load(data)
         if y is not None:
             f_description = YamlPars0r.get_dict_value(y, 'description')
@@ -75,7 +82,7 @@ class YamlPars0r:
             gripper_tcp_msg = YamlPars0r.parse_twist(YamlPars0r.get_dict_value(f_robot, 'gripper_tcp'))
             robot_pose_msg = YamlPars0r.parse_twist(YamlPars0r.get_dict_value(f_robot, 'pose'))
             f_robot_speed_limit = YamlPars0r.get_dict_value(f_robot, 'speed_limit', list)
-            rospy.loginfo('f_robot_speed_limit: ' + str(f_robot_speed_limit))
+            rospy.logdebug('f_robot_speed_limit: ' + str(f_robot_speed_limit))
             robot_msg = Robot()
             robot_msg.gripper_pose = gripper_pose_msg
             robot_msg.gripper_speed_limit = f_gripper_speed_limit
@@ -106,8 +113,6 @@ class YamlPars0r:
 
     @staticmethod
     def parse_task_type(task):
-        if task is None:
-            return int('inf')
         if re.match('task 1', task) is not None:
             return Task.TASK_1
         elif re.match('task 2', task) is not None:
@@ -160,7 +165,7 @@ class YamlPars0r:
             return parsed_sensors
         for s in sensors:
             f_name = s
-            rospy.loginfo('parse_sensors: sensors[s]: %s', sensors[s])
+            rospy.logdebug('parse_sensors: sensors[s]: %s', sensors[s])
             if f_name == 'scene_depth_cam':
                 f_sensor_type = Sensor.CAMERA
                 f_cam_type = Camera.SCENE_DEPTH_CAM
@@ -207,7 +212,7 @@ class YamlPars0r:
 
     @staticmethod
     def parse_twist_stamped(twist_stamped):
-        rospy.loginfo('parse_twist_stamped: parsing ' + str(twist_stamped))
+        rospy.logdebug('parse_twist_stamped: parsing ' + str(twist_stamped))
         f_from = YamlPars0r.get_dict_value(twist_stamped, 'from')
         f_pose = YamlPars0r.get_dict_value(twist_stamped, 'pose')
         twist_msg = YamlPars0r.parse_twist(f_pose)
@@ -223,7 +228,7 @@ class YamlPars0r:
 
     @staticmethod
     def parse_twist(twist):
-        rospy.loginfo('parse_twist: parsing ' + str(twist))
+        rospy.logdebug('parse_twist: parsing ' + str(twist))
         f_linear = Vector3(float('inf'), float('inf'), float('inf'))
         f_angular = Vector3(float('inf'), float('inf'), float('inf'))
         if twist is not None:
@@ -263,7 +268,7 @@ class YamlPars0r:
             return parsed_objects
         for obj in objects:
             f_name = obj
-            rospy.loginfo('parse_objects: objects[obj]: %s', objects[obj])
+            rospy.logdebug('parse_objects: objects[obj]: %s', objects[obj])
             f_color = YamlPars0r.get_dict_value(objects[obj], 'color')
             f_description = YamlPars0r.get_dict_value(objects[obj], 'description')
             try:
@@ -279,10 +284,10 @@ class YamlPars0r:
                 pass
             else:
                 raise UnhandledValue('Unhandled surface_material: ' + str(f_material))
-            rospy.loginfo('parse_objects: f_color: %s', f_color)
-            rospy.loginfo('parse_objects: f_description: %s', f_description)
-            rospy.loginfo('parse_objects: f_shapes: %s', f_shapes)
-            rospy.loginfo('parse_objects: f_material: %s', f_material)
+            rospy.logdebug('parse_objects: f_color: %s', f_color)
+            rospy.logdebug('parse_objects: f_description: %s', f_description)
+            rospy.logdebug('parse_objects: f_shapes: %s', f_shapes)
+            rospy.logdebug('parse_objects: f_material: %s', f_material)
             obj = Object(shapes=f_shapes)
             if f_name is not None:
                 obj.name = f_name
@@ -297,7 +302,7 @@ class YamlPars0r:
 
     @staticmethod
     def parse_shapes(shapes):
-        rospy.loginfo('parse_shapes: parsing shapes: %s', shapes)
+        rospy.logdebug('parse_shapes: parsing shapes: %s', shapes)
         parsed_shapes = []
         if shapes is None:
             return parsed_shapes
@@ -310,11 +315,11 @@ class YamlPars0r:
             else:
                 raise UnhandledValue("Unhandled shape type: " + str(f_type))
             f_pose = YamlPars0r.get_dict_value(s, 'pose')
-            rospy.loginfo('parse_shapes: f_pose: %s', f_pose)
+            rospy.logdebug('parse_shapes: f_pose: %s', f_pose)
             pose_msg = YamlPars0r.parse_twist(f_pose)
             f_density = YamlPars0r.get_dict_value(s, 'density', float)
             f_dimensions = [float('inf')] * 6
-            rospy.loginfo('parse_shapes: f_type: %s', f_type)
+            rospy.logdebug('parse_shapes: f_type: %s', f_type)
             if f_type == Shape.BOX:
                 f_size = YamlPars0r.get_dict_value(s, 'size')
                 try:
@@ -347,7 +352,18 @@ class YamlPars0r:
             parsed_shapes.append(shape)
         return parsed_shapes
 
-    def __del__(self):
-        rospy.loginfo("Deleting yaml pars0r instance.")
+    def kill(self, sig, frame):
+        rospy.loginfo('Caught ctrl-c. Shutting down.')
         self._subscriber.unregister()
-        rospy.signal_shutdown("")
+        rospy.signal_shutdown("Shutting down YAML pars0r")
+        sys.exit()
+
+
+def main():
+    y = YamlPars0r()
+    signal.signal(signal.SIGINT, lambda sig, frame: y.kill(sig, frame))
+    while True:
+        time.sleep(0.05)
+
+if __name__ == "__main__":
+    main()
