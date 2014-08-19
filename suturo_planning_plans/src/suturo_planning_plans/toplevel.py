@@ -9,8 +9,6 @@ import start_nodes
 def toplevel_plan():
     rospy.init_node('suturo_planning_execution')
 
-    manipulation = 0
-
     # Create a SMACH state machine
     toplevel = smach.StateMachine(outcomes=['success', 'fail'])
 

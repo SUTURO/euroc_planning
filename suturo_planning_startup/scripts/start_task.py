@@ -6,6 +6,7 @@ import atexit
 import time
 import sys
 from suturo_planning_task_selector import start_task, stop_task, save_task
+from suturo_planning_plans.toplevel import toplevel_plan
 
 
 pro_task_selector = 0
@@ -13,7 +14,7 @@ pro_task_selector = 0
 save_log = False
 
 
-def main(task):
+def main(task, with_plan):
 
     #Taskselector
     print "Starting task_selector"
@@ -22,10 +23,17 @@ def main(task):
                                          shell=True, preexec_fn=os.setsid)
     time.sleep(5)
 
-    #Start tasks
-    start_task(task)
-    while True:
-        time.sleep(1)
+    #If plans should be started start the state machine
+    if with_plan:
+        print 'Started plan'
+        toplevel_plan()
+    else:
+        #Start tasks
+        start_task(task)
+
+        print 'Waiting for ctrl-c'
+        while True:
+            time.sleep(1)
 
 
 def exit_handler():
@@ -42,6 +50,9 @@ atexit.register(exit_handler)
 
 
 if __name__ == '__main__':
-    if len(sys.argv) == 3 and sys.argv[2] == "--save":
+    if '--save' in sys.argv:
         save_log = True
-    main(sys.argv[1])
+    if '--plan' in sys.argv:
+        main(sys.argv[1], True)
+    else:
+        main(sys.argv[1], False)

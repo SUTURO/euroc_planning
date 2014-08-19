@@ -56,15 +56,19 @@ class SearchObject(smach.State):
 
         # take initial scan pose
         if self._next_scan == 0:
+            print 'Take scan pose 1'
             manipulation.move_to('scan_pose1')
+
+        # get the colors of the objects
+        colors = []
+        for obj in userdata.yaml.objects:
+            colors.append(hex_to_color_msg(obj.color))
 
         # search for objects
         num_of_scans = 12
         max_rad = 5.9
         rad_per_step = max_rad / num_of_scans
-        colors = [hex_to_color_msg('ff0000'),
-                  # hex_to_color_msg('00ff00'),
-                  hex_to_color_msg('0000ff')]
+
         for x in range(self._next_scan, num_of_scans):
             self._next_scan += 1
             rad = x * rad_per_step - 2.945
@@ -95,13 +99,17 @@ class PerceiveObject(smach.State):
         rospy.loginfo('Executing state PerceiveObject')
 
         # awesome code from andz to get the pose to perceive the object coming soon
-        userdata.object_to_perceive.pose.pose.position.x += 12  # assuming x is the height
-        global manipulation
+        # userdata.object_to_perceive.pose.pose.position.x += 12  # assuming x is the height
+        # global manipulation
         # manipulation.move_to(userdata.object_to_perceive.pose)
 
         perceived_objects = perception.get_gripper_perception()
         print 'Perceived objects: ' + str(perceived_objects)
         print 'Selected object: ' + str(get_object_to_move(perceived_objects))
+        collision_objects = []
+        for obj in perceived_objects:
+            collision_objects.append(obj.object)
+        publish_collision_objects(collision_objects)
 
         # check if it was an object
         userdata.object_to_move = get_object_to_move(perceived_objects)
@@ -118,6 +126,7 @@ class GraspObject(smach.State):
     def execute(self, userdata):
         rospy.loginfo('Executing state GraspObject')
         global manipulation
+        print 'Trying to grasp:\n' + str(userdata.object_to_move.object)
         manipulation.grasp(userdata.object_to_move.object)
         time.sleep(3)
         return 'success'

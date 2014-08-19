@@ -1,5 +1,6 @@
 import rospy
 from euroc_c2_msgs.srv import *
+from suturo_planning_yaml_pars0r.yaml_pars0r import YamlPars0r
 
 
 def start_task(scene):
@@ -7,7 +8,8 @@ def start_task(scene):
     rospy.wait_for_service('euroc_c2_task_selector/start_simulator')
     try:
         start_simulator = rospy.ServiceProxy('euroc_c2_task_selector/start_simulator', StartSimulator)
-        return start_simulator('suturo', scene)
+        yaml_description = start_simulator('suturo', scene).description_yaml
+        return YamlPars0r.parse_yaml(yaml_description)
     except rospy.ServiceException, e:
         print "Service call failed: %s"%e
 

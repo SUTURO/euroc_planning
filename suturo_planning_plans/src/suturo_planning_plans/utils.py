@@ -16,7 +16,7 @@ def hex_to_color_msg(hex_str):
 
 
 def publish_collision_objects(objects):
-    pub = rospy.publisher('collision_object', CollisionObject, queue_size=10)
+    pub = rospy.Publisher('collision_object', CollisionObject, queue_size=10)
     for obj in objects:
         pub.publish(obj)
 
