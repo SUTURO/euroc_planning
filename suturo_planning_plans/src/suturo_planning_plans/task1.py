@@ -4,6 +4,7 @@ import time
 from utils import *
 from suturo_planning_perception import perception
 from suturo_planning_manipulation.manipulation import Manipulation
+from geometry_msgs.msg import *
 
 # Holds the manipulation object
 manipulation = None
@@ -49,6 +50,7 @@ class SearchObject(smach.State):
         global manipulation
         if manipulation is None:
             manipulation = Manipulation()
+            time.sleep(2)
 
         if len(self._found_objects) > 0:
             userdata.object_to_perceive = self._found_objects.pop(0)
@@ -132,7 +134,10 @@ class GraspObject(smach.State):
         grasp_result = manipulation.grasp(userdata.object_to_move.object)
         print 'Grasp result:' + str(grasp_result)
 
-        return 'success'
+        if grasp_result:
+            return 'success'
+        else:
+            return 'fail'
 
 
 class PlaceObject(smach.State):
@@ -145,9 +150,11 @@ class PlaceObject(smach.State):
         rospy.loginfo('Executing state PlaceObject')
         global manipulation
 
-        destination = 0  # get the target zone from the yaml
+        destination = PointStamped()
+        destination.header.frame_id = '/odom_combined'
+        destination.point = userdata.yaml.target_zones[0].target_position
         manipulation.place(destination)
-        time.sleep(3)
+
         return 'success'
 
 

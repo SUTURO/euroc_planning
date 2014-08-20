@@ -24,7 +24,7 @@ class StartManipulation(smach.State):
         manipulation_process = subprocess.Popen('roslaunch euroc_launch manipulation.launch',
                                                 stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
         userdata.manipulation_process = manipulation_process
-        time.sleep(3)
+        time.sleep(5)
         return 'success'
 
 
@@ -92,10 +92,10 @@ def exit_handler():
     print 'Killing perception and manipulation'
     global manipulation_process
     if manipulation_process != 0:
-        os.killpg(perception_process.pid, signal.SIGTERM)
+        os.killpg(manipulation_process.pid, signal.SIGTERM)
     global perception_process
     if perception_process != 0:
-        os.killpg(manipulation_process.pid, signal.SIGTERM)
+        os.killpg(perception_process.pid, signal.SIGTERM)
 
 
 atexit.register(exit_handler)

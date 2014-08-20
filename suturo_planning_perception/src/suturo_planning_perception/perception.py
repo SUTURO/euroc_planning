@@ -29,6 +29,5 @@ def get_scene_perception():
         print "Service call failed: %s" % e
 
 
-
 def get_table():
     1
