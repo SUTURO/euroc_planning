@@ -70,11 +70,13 @@ class SearchObject(smach.State):
         rad_per_step = max_rad / num_of_scans
 
         for x in range(self._next_scan, num_of_scans):
+            # skip turning arm on first scan
+            if self._next_scan != 0:
+                rad = x * rad_per_step - 2.945
+                print 'Turning arm ' + str(rad)
+                manipulation.turn_arm(1.0, rad)
+
             self._next_scan += 1
-            rad = x * rad_per_step - 2.945
-            print 'Turning arm ' + str(rad)
-            manipulation.turn_arm(1.0, rad)
-            time.sleep(1)
 
             # look for objects
             print 'Colors: ' + str(colors)
@@ -85,7 +87,6 @@ class SearchObject(smach.State):
                 self._found_objects = recognized_objects
                 return 'objectFound'
 
-        time.sleep(3)
         return 'noObjectsLeft'
 
 
@@ -104,16 +105,17 @@ class PerceiveObject(smach.State):
         # manipulation.move_to(userdata.object_to_perceive.pose)
 
         perceived_objects = perception.get_gripper_perception()
-        print 'Perceived objects: ' + str(perceived_objects)
-        print 'Selected object: ' + str(get_object_to_move(perceived_objects))
         collision_objects = []
         for obj in perceived_objects:
+            obj.object.id = str(obj.c_centroid.x)
             collision_objects.append(obj.object)
         publish_collision_objects(collision_objects)
 
+        print 'Perceived objects: ' + str(perceived_objects)
+        print 'Selected object: ' + str(get_object_to_move(perceived_objects))
+
         # check if it was an object
         userdata.object_to_move = get_object_to_move(perceived_objects)
-        time.sleep(3)
         return 'validObject'
 
 
@@ -126,9 +128,10 @@ class GraspObject(smach.State):
     def execute(self, userdata):
         rospy.loginfo('Executing state GraspObject')
         global manipulation
-        print 'Trying to grasp:\n' + str(userdata.object_to_move.object)
-        manipulation.grasp(userdata.object_to_move.object)
-        time.sleep(3)
+        print 'Trying to grasp:\n' + str(userdata.object_to_move.object.id)
+        grasp_result = manipulation.grasp(userdata.object_to_move.object)
+        print 'Grasp result:' + str(grasp_result)
+
         return 'success'
 
 

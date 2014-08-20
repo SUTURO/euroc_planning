@@ -25,4 +25,4 @@ def get_object_to_move(objects):
     for obj in objects:
         if obj.c_id == EurocObject.OBJECT:
             return obj
-    return None
+    return objects[0]
