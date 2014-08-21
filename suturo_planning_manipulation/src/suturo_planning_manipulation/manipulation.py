@@ -114,7 +114,8 @@ class Manipulation(object):
                 self.load_object(1, self.get_center_of_mass(collision_object))
                 print "grasped"
                 # rospy.sleep(1)
-                break
+                return True
+        return None
 
     def get_center_of_mass(self, collision_object):
         # center_of_mass= Vector3Stamped()
