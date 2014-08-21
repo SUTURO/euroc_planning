@@ -17,12 +17,14 @@ _save_log = False
 
 def main(task, with_plan, init_sim):
 
+    # signal.signal(signal.SIGINT, exit_handler)
+
     if init_sim:
         #Taskselector
         print "Starting task_selector"
-        global pro_task_selector
-        pro_task_selector = subprocess.Popen('rosrun euroc_launch TaskSelector', stdout=subprocess.PIPE,
-                                             shell=True, preexec_fn=os.setsid)
+        global _pro_task_selector
+        _pro_task_selector = subprocess.Popen('rosrun euroc_launch TaskSelector', stdout=subprocess.PIPE,
+                                              shell=True, preexec_fn=os.setsid)
     time.sleep(5)
 
     #If plans should be started start the state machine
@@ -36,18 +38,20 @@ def main(task, with_plan, init_sim):
         start_task(task)
 
         print 'Waiting for ctrl-c'
-        while True:
-            time.sleep(0.2)
+        rospy.spin()
 
 
 def exit_handler():
-    global _save_log
-    if _save_log:
-        save_task()
-    stop_task()
-    time.sleep(2)
+    if not rospy.is_shutdown():
+        global _save_log
+        if _save_log:
+            save_task()
+        stop_task()
+        time.sleep(2)
     global _pro_task_selector
-    if _pro_task_selector:
+    if _pro_task_selector is not None:
+        print 'Stopping gazebo'
+        _pro_task_selector.terminate()
         os.killpg(_pro_task_selector.pid, signal.SIGTERM)
 
 
