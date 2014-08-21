@@ -7,7 +7,7 @@ from suturo_planning_manipulation.manipulation import Manipulation
 from geometry_msgs.msg import *
 
 # Holds the manipulation object
-manipulation = None
+_manipulation = None
 
 
 class Task1(smach.StateMachine):
@@ -31,9 +31,12 @@ class Task1(smach.StateMachine):
                                                 'fail': 'PerceiveObject'})
             smach.StateMachine.add('CheckPlacement', CheckPlacement(),
                                    transitions={'onTarget': 'SearchObject',
-                                                'notOnTarget': 'GraspObject'})
+                                                'notOnTarget': 'GraspObject',
+                                                'nextObject': 'GraspObject'})
 
-        self.userdata.object_found = None
+        self.userdata.objects_found = []
+        self.userdata.pending_objects = []
+        self.userdata.placed_objects = []
 
 
 class SearchObject(smach.State):
@@ -43,28 +46,26 @@ class SearchObject(smach.State):
 
     def __init__(self):
         smach.State.__init__(self, outcomes=['objectFound', 'noObjectsLeft'],
-                             input_keys=['yaml', 'object_found'],
+                             input_keys=['yaml', 'objects_found'],
                              output_keys=['object_to_perceive'])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state SearchObject')
 
-        if userdata.object_found is not None:
-            self._found_objects.append(userdata.object_found)
-
-        global manipulation
-        if manipulation is None:
-            manipulation = Manipulation()
+        global _manipulation
+        if _manipulation is None:
+            _manipulation = Manipulation()
             time.sleep(2)
 
-        if len(self._found_objects) > 0:
-            userdata.object_to_perceive = self._found_objects.pop(0)
-            return 'objectFound'
+        # Add the found objects
+        if len(userdata.objects_found) > 0:
+            self._found_objects = userdata.objects_found
+            _manipulation.move_to('scan_pose1')
 
         # take initial scan pose
         if self._next_scan == 0:
             print 'Take scan pose 1'
-            manipulation.move_to('scan_pose1')
+            _manipulation.move_to('scan_pose1')
 
         # get the colors of the objects
         colors = []
@@ -81,7 +82,7 @@ class SearchObject(smach.State):
             if self._next_scan != 0:
                 rad = x * rad_per_step - 2.945
                 print 'Turning arm ' + str(rad)
-                manipulation.turn_arm(1.0, rad)
+                _manipulation.turn_arm(1.0, rad)
 
             self._next_scan += 1
 
@@ -92,6 +93,8 @@ class SearchObject(smach.State):
             if len(recognized_objects) > 0:  # check if an object was recognized
                 userdata.object_to_perceive = recognized_objects.pop(0)
                 self._found_objects = recognized_objects
+                time.sleep(2)
+
                 return 'objectFound'
 
         return 'noObjectsLeft'
@@ -101,7 +104,7 @@ class PerceiveObject(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['noObject', 'validObject'],
                              input_keys=['object_to_perceive'],
-                             output_keys=['object_to_move'])
+                             output_keys=['object_to_move', 'pending_objects', 'objects_found'])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state PerceiveObject')
@@ -112,11 +115,15 @@ class PerceiveObject(smach.State):
         # manipulation.move_to(userdata.object_to_perceive.pose)
 
         perceived_objects = perception.get_gripper_perception()
+        if perceived_objects is None:
+            return 'noObject'
+
         collision_objects = []
         for obj in perceived_objects:
             obj.object.id = str(obj.c_centroid.x)
             collision_objects.append(obj.object)
         publish_collision_objects(collision_objects)
+        userdata.objects_found = perceived_objects
 
         print 'Perceived objects: ' + str(perceived_objects)
         print 'Selected object: ' + str(get_object_to_move(perceived_objects))
@@ -138,9 +145,10 @@ class GraspObject(smach.State):
 
     def execute(self, userdata):
         rospy.loginfo('Executing state GraspObject')
-        global manipulation
+
+        global _manipulation
         print 'Trying to grasp:\n' + str(userdata.object_to_move.object.id)
-        grasp_result = manipulation.grasp(userdata.object_to_move.object)
+        grasp_result = _manipulation.grasp(userdata.object_to_move.object)
         print 'Grasp result:' + str(grasp_result)
 
         if grasp_result:
@@ -157,30 +165,37 @@ class PlaceObject(smach.State):
 
     def execute(self, userdata):
         rospy.loginfo('Executing state PlaceObject')
-        global manipulation
+        global _manipulation
 
         destination = PointStamped()
         destination.header.frame_id = '/odom_combined'
         destination.point = userdata.yaml.target_zones[0].target_position
-        manipulation.place(destination)
+        _manipulation.place(destination)
 
         return 'success'
 
 
 class CheckPlacement(smach.State):
+
+    _placed_objects = []
+
     def __init__(self):
-        smach.State.__init__(self, outcomes=['onTarget', 'notOnTarget'],
-                             input_keys=['yaml', 'object_to_move'],
-                             output_keys=['object_found'])
+        smach.State.__init__(self, outcomes=['onTarget', 'notOnTarget', 'nextObject'],
+                             input_keys=['yaml', 'object_to_move', 'pending_objects'],
+                             output_keys=['placed_objects'])
 
     def execute(self, userdata):
-        rospy.loginfo('Executing state ')
+
         # global manipulation
         # manipulation.move_to(0)  # again andz's super code
 
         # something with the gripper cam
         # time.sleep(3)
 
-        userdata.object_found = userdata.object_to_move
+        self._placed_objects.append(userdata.object_to_move)
+        userdata.placed_objects = self._placed_objects
+
+        if len(userdata.pending_objects) > 0:
+            return 'nextObject'
 
         return 'onTarget'
