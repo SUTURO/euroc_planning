@@ -2,13 +2,14 @@ import rospy
 import smach
 import smach_ros
 import threading
+import time
 import task1
 import start_nodes
-from std_msgs.msg import String
+from suturo_msgs.msg import Task
+from suturo_planning_yaml_pars0r.yaml_pars0r import YamlPars0r
 
 
 def toplevel_plan(init_sim):
-    rospy.init_node('suturo_planning_execution')
 
     # Create a SMACH state machine
     toplevel = smach.StateMachine(outcomes=['success', 'fail'])
@@ -19,26 +20,31 @@ def toplevel_plan(init_sim):
         execute_task1 = smach.StateMachine(outcomes=['success', 'fail'])
 
         with execute_task1:
+            task1_success = 'success'
+
             if init_sim:
                 smach.StateMachine.add('InitSimulation', InitSimulation('task1_v1'),
                                        transitions={'success': 'Task1Plan',
                                                     'fail': 'fail'})
+
+                smach.StateMachine.add('StopSimulation', start_nodes.StopSimulation(),
+                                       transitions={'success': 'StopNodes',
+                                                    'fail': 'fail'})
+
+                smach.StateMachine.add('StopNodes', start_nodes.StopNodes(),
+                                       transitions={'success': 'success',
+                                                    'fail': 'fail'})
+
+                task1_success = 'StopSimulation'
             else:
                 smach.StateMachine.add('GetYaml', GetYaml(),
                                        transitions={'success': 'Task1Plan',
                                                     'fail': 'fail'})
 
             smach.StateMachine.add('Task1Plan', task1.Task1(),
-                                   transitions={'success': 'StopSimulation',
+                                   transitions={'success': task1_success,
                                                 'fail': 'Task1Plan'})
 
-            smach.StateMachine.add('StopSimulation', start_nodes.StopSimulation(),
-                                   transitions={'success': 'StopNodes',
-                                                'fail': 'fail'})
-
-            smach.StateMachine.add('StopNodes', start_nodes.StopNodes(),
-                                   transitions={'success': 'success',
-                                                'fail': 'fail'})
 
         smach.StateMachine.add('ExecuteTask1', execute_task1,
                                transitions={'success': 'success',
@@ -79,17 +85,37 @@ class InitSimulation(smach.StateMachine):
                                    transitions={'success': 'success',
                                                 'fail': 'StartManipulation'})
 
+
 class GetYaml(smach.State):
-    yaml = None
+    _yaml = None
+
+    _lock = None
 
     def __init__(self):
+        self._lock = threading.Lock()
         smach.State.__init__(self, outcomes=['success', 'fail'],
                              input_keys=[],
                              output_keys=['yaml'])
 
     def execute(self, userdata):
-        subscriber = rospy.Subscriber("suturo/yaml_pars0r_input", String, )
+        subscriber = rospy.Subscriber("suturo/yaml_pars0r", Task, self.parse_yaml)
+        rospy.loginfo('Waiting for yaml')
 
-    def parse(self):
-        12
+        self._lock.acquire()
+        while self._yaml is None:
+            self._lock.release()
+            time.sleep(0.05)
+            self._lock.acquire()
+
+        rospy.loginfo('Got yaml ' + str(self._yaml))
+        userdata.yaml = self._yaml
+        self._lock.release()
+
+        return 'success'
+
+    def parse_yaml(self, msg):
+        self._lock.acquire()
+        self._yaml = msg
+        rospy.loginfo('Parsed yaml: ' + str(self._yaml))
+        self._lock.release()
 

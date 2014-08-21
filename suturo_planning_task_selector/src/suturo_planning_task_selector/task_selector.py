@@ -9,7 +9,8 @@ def start_task(scene):
     try:
         start_simulator = rospy.ServiceProxy('euroc_c2_task_selector/start_simulator', StartSimulator)
         yaml_description = start_simulator('suturo', scene).description_yaml
-        return YamlPars0r.parse_yaml(yaml_description)
+        yaml_parser = YamlPars0r()
+        return yaml_parser.parse_and_publish(yaml_description)
     except rospy.ServiceException, e:
         print "Service call failed: %s"%e
 

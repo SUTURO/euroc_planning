@@ -13,7 +13,7 @@ manipulation = None
 class Task1(smach.StateMachine):
     def __init__(self):
         smach.StateMachine.__init__(self, outcomes=['success', 'fail'],
-                                    input_keys=['yaml', 'objects_found'],
+                                    input_keys=['yaml'],
                                     output_keys=[])
 
         with self:
@@ -27,11 +27,13 @@ class Task1(smach.StateMachine):
                                    transitions={'success': 'PlaceObject',
                                                 'fail': 'GraspObject'})
             smach.StateMachine.add('PlaceObject', PlaceObject(),
-                                    transitions={'success': 'CheckPlacement',
+                                   transitions={'success': 'CheckPlacement',
                                                 'fail': 'PerceiveObject'})
             smach.StateMachine.add('CheckPlacement', CheckPlacement(),
                                    transitions={'onTarget': 'SearchObject',
                                                 'notOnTarget': 'GraspObject'})
+
+        self.userdata.object_found = None
 
 
 class SearchObject(smach.State):
@@ -41,11 +43,14 @@ class SearchObject(smach.State):
 
     def __init__(self):
         smach.State.__init__(self, outcomes=['objectFound', 'noObjectsLeft'],
-                             input_keys=['yaml', 'objects_found'],
+                             input_keys=['yaml', 'object_found'],
                              output_keys=['object_to_perceive'])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state SearchObject')
+
+        if userdata.object_found is not None:
+            self._found_objects.append(userdata.object_found)
 
         global manipulation
         if manipulation is None:
@@ -117,8 +122,12 @@ class PerceiveObject(smach.State):
         print 'Selected object: ' + str(get_object_to_move(perceived_objects))
 
         # check if it was an object
-        userdata.object_to_move = get_object_to_move(perceived_objects)
-        return 'validObject'
+        object_candidate = get_object_to_move(perceived_objects)
+        if object_candidate is not None:
+            userdata.object_to_move = object_candidate
+            return 'validObject'
+        else:
+            return 'noObject'
 
 
 class GraspObject(smach.State):
@@ -162,13 +171,16 @@ class CheckPlacement(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['onTarget', 'notOnTarget'],
                              input_keys=['yaml', 'object_to_move'],
-                             output_keys=[])
+                             output_keys=['object_found'])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state ')
-        global manipulation
-        manipulation.move_to(0)  # again andz's super code
+        # global manipulation
+        # manipulation.move_to(0)  # again andz's super code
 
         # something with the gripper cam
-        time.sleep(3)
+        # time.sleep(3)
+
+        userdata.object_found = userdata.object_to_move
+
         return 'onTarget'
