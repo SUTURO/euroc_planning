@@ -2,8 +2,6 @@
 import yaml
 import rospy
 import re
-import time
-import signal
 import sys
 from yaml_exceptions import UnhandledValue
 from suturo_msgs.msg import Task
@@ -26,14 +24,14 @@ class YamlPars0r:
 
     def __init__(self):
         self.pub = rospy.Publisher('suturo/yaml_pars0r', Task, queue_size=10, latch=True)
-        rospy.init_node('yaml_pars0r_node', anonymous=True, log_level=rospy.INFO)
+        #rospy.init_node('yaml_pars0r_node', anonymous=True, log_level=rospy.INFO)
         self._subscriber = rospy.Subscriber("suturo/yaml_pars0r_input", String, self.get_input)
         rospy.loginfo('Initialised YAML parser.')
 
     def get_input(self, msg):
-        rospy.loginfo('Received input')
+        rospy.loginfo('Received input.')
         rospy.logdebug('get_input: ' + str(msg))
-        self.publish(msg.data)
+        self.parse_and_publish(msg.data)
 
     @staticmethod
     def get_dict_value(dictionary, key, val_type=None):
@@ -48,16 +46,17 @@ class YamlPars0r:
         rospy.logdebug("key: " + str(key) + ", val: " + str(val))
         return val
 
-    def publish(self, data):
+    def parse_and_publish(self, data):
         try:
             msg = self.parse_yaml(data)
-            rospy.logdebug('publish: Publishing message: ' + str(msg))
+            rospy.logdebug('parse_and_publish: Publishing message: ' + str(msg))
             rospy.loginfo('Publishing description for task \'%s\'', msg.task_name)
             self.pub.publish(msg)
+            return msg
         except UnhandledValue as e:
-            rospy.logerr('publish: Could not parse yaml description: %s: %s', type(e), e)
+            rospy.logerr('parse_and_publish: Could not parse yaml description: %s: %s', type(e), e)
         except Exception as e:
-            rospy.logerr('publish: Could not parse yaml description: %s: %s', type(e), e)
+            rospy.logerr('parse_and_publish: Could not parse yaml description: %s: %s', type(e), e)
 
     @staticmethod
     def parse_yaml(data):
@@ -357,13 +356,3 @@ class YamlPars0r:
         self._subscriber.unregister()
         rospy.signal_shutdown("Shutting down YAML pars0r")
         sys.exit()
-
-
-def main():
-    y = YamlPars0r()
-    signal.signal(signal.SIGINT, lambda sig, frame: y.kill(sig, frame))
-    while True:
-        time.sleep(0.05)
-
-if __name__ == "__main__":
-    main()
