@@ -90,10 +90,15 @@ class Manipulation(object):
         self.load_object(0, Vector3(0, 0, 0))
 
     def close_gripper(self, object_name=""):
-        if object_name != "":
-            self.__gripper_group.attach_object(object_name, "gp", ["gp", "finger1", "finger2"])
+        if object_name.id != "":
+            self.__gripper_group.attach_object(object_name.id, "gp", ["gp", "finger1", "finger2"])
             rospy.sleep(0.5)
-        self.__gripper_group.set_joint_value_target([0.0, 0.0])
+        if object_name.primitives[0].type == 1:
+            length = object_name.primitives[0].dimensions[0]
+            self.__gripper_group.set_joint_value_target([-(length/2), length/2])
+        if object_name.primitives[0].type == 3:
+            radius = object_name.primitives[0].dimensions[1]
+            self.__gripper_group.set_joint_value_target([-radius+0.005, radius-0.005])
         self.__gripper_group.go()
 
     def grasp(self, collision_object):
@@ -109,7 +114,7 @@ class Manipulation(object):
                 if not self.move_to(grasp):
                     continue
                 rospy.sleep(1)
-                self.close_gripper(collision_object.id)
+                self.close_gripper(collision_object)
 
                 self.load_object(1, self.get_center_of_mass(collision_object))
                 print "grasped"
