@@ -114,7 +114,7 @@ class PerceiveObject(smach.State):
         # global manipulation
         # manipulation.move_to(userdata.object_to_perceive.pose)
 
-        perceived_objects = perception.get_gripper_perception()
+        perceived_objects = get_valid_objects(perception.get_gripper_perception())
         if perceived_objects is None:
             return 'noObject'
 
