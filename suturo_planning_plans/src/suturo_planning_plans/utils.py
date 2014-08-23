@@ -31,6 +31,9 @@ def get_object_to_move(objects):
 
 
 def get_valid_objects(objects):
+    if objects is None:
+        return []
+
     valid_objects = []
     for obj in objects:
         if obj.object.primitives[0].dimensions != (-1.0, -1.0, -1.0):

@@ -43,6 +43,8 @@ class SearchObject(smach.State):
 
     _next_scan = 0
     _found_objects = []
+    _recognized_objects = []
+    _obj_colors = []
 
     def __init__(self):
         smach.State.__init__(self, outcomes=['objectFound', 'noObjectsLeft'],
@@ -52,13 +54,23 @@ class SearchObject(smach.State):
     def execute(self, userdata):
         rospy.loginfo('Executing state SearchObject')
 
+        if not self._obj_colors:
+            for obj in userdata.yaml.objects:
+                self._obj_colors.append(hex_to_color_msg(obj.color))
+
+        # TODO find a way to take last pose
+        # First check previously recognized objects
+        # if self._recognized_objects:
+        #     userdata.object_to_perceive = self._recognized_objects.pop(0)
+        #     return 'objectFound'
+
         global _manipulation
         if _manipulation is None:
             _manipulation = Manipulation()
             time.sleep(2)
 
         # Add the found objects
-        if len(userdata.objects_found) > 0:
+        if userdata.objects_found:
             self._found_objects = userdata.objects_found
             _manipulation.move_to('scan_pose1')
 
@@ -67,10 +79,13 @@ class SearchObject(smach.State):
             print 'Take scan pose 1'
             _manipulation.move_to('scan_pose1')
 
-        # get the colors of the objects
-        colors = []
-        for obj in userdata.yaml.objects:
-            colors.append(hex_to_color_msg(obj.color))
+        # get the colors of the missing objects, assuming for now that every object has its own color
+        colors = self._obj_colors
+        for obj in self._found_objects:
+            try:
+                colors.remove(obj.color)
+            except ValueError:
+                pass
 
         # search for objects
         num_of_scans = 12
@@ -88,11 +103,12 @@ class SearchObject(smach.State):
 
             # look for objects
             print 'Colors: ' + str(colors)
-            recognized_objects = perception.recognize_objects_of_interest(colors)
-            print 'Found objects: ' + str(recognized_objects)
-            if len(recognized_objects) > 0:  # check if an object was recognized
-                userdata.object_to_perceive = recognized_objects.pop(0)
-                self._found_objects = recognized_objects
+            self._recognized_objects = perception.recognize_objects_of_interest(colors)
+            print 'Found objects: ' + str(self._recognized_objects)
+            if self._recognized_objects:  # check if an object was recognized
+                userdata.object_to_perceive = self._recognized_objects.pop(0)
+
+                # Might help with tf
                 time.sleep(2)
 
                 return 'objectFound'
@@ -109,19 +125,16 @@ class PerceiveObject(smach.State):
     def execute(self, userdata):
         rospy.loginfo('Executing state PerceiveObject')
 
-        # awesome code from andz to get the pose to perceive the object coming soon
-        # userdata.object_to_perceive.pose.pose.position.x += 12  # assuming x is the height
-        # global manipulation
-        # manipulation.move_to(userdata.object_to_perceive.pose)
-
         perceived_objects = get_valid_objects(perception.get_gripper_perception())
-        if perceived_objects is None:
+        if not perceived_objects:
+            userdata.objects_found = []
             return 'noObject'
 
         collision_objects = []
         for obj in perceived_objects:
             obj.object.id = str(obj.c_centroid.x)
             collision_objects.append(obj.object)
+            obj.color = userdata.object_to_perceive.color
         publish_collision_objects(collision_objects)
         userdata.objects_found = perceived_objects
 
@@ -186,16 +199,10 @@ class CheckPlacement(smach.State):
 
     def execute(self, userdata):
 
-        # global manipulation
-        # manipulation.move_to(0)  # again andz's super code
-
-        # something with the gripper cam
-        # time.sleep(3)
-
         self._placed_objects.append(userdata.object_to_move)
         userdata.placed_objects = self._placed_objects
 
-        if len(userdata.pending_objects) > 0:
+        if userdata.pending_objects:
             return 'nextObject'
 
         return 'onTarget'
