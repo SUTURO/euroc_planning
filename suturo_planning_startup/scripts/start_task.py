@@ -29,11 +29,11 @@ def main(task, with_plan, init_sim):
 
     #If plans should be started start the state machine
     if with_plan:
-        rospy.init_node('suturo_planning_execution', log_level=rospy.INFO)
+        rospy.init_node('suturo_planning_execution', log_level=rospy.DEBUG)
         print 'Started plan'
         toplevel_plan(init_sim)
     else:
-        rospy.init_node('suturo_planning_start_task', log_level=rospy.INFO)
+        rospy.init_node('suturo_planning_start_task', log_level=rospy.DEBUG)
         #Start tasks
         start_task(task)
 

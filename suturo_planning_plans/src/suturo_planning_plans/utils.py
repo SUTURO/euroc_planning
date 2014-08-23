@@ -39,3 +39,57 @@ def get_valid_objects(objects):
         if obj.object.primitives[0].dimensions != (-1.0, -1.0, -1.0):
             valid_objects.append(obj)
     return valid_objects
+
+
+def match_object(obj, yaml):
+    description = get_yaml_for_object(obj, yaml)
+    obj.color = hex_to_color_msg(description.color)
+    obj.object.id = description.name
+    return description
+
+
+def get_yaml_for_object(obj, yaml):
+    diff = 9999  # a high value
+    best_fit = None
+    object_volume = get_volume_euroc_object(obj)
+    for yaml_object in yaml.objects:
+        new_diff = abs(object_volume - get_volume_yaml_object(yaml_object))
+        if new_diff < diff:
+            diff = new_diff
+            best_fit = yaml_object
+    return best_fit
+
+
+def get_volume_euroc_object(obj):
+    volume = 0
+    for shape in obj.object.primitives:
+        volume += get_volume_shape(shape, shape.type)
+    return volume
+
+
+def get_volume_yaml_object(obj):
+    volume = 0
+    for shape in obj.shapes:
+        volume += get_volume_shape(shape, shape.shape_type)
+    return volume
+
+
+def get_volume_shape(shape, type):
+    get_volume = {1: volume_box, 2: volume_sphere, 3: volume_cylinder, 3: volume_cone}
+    return get_volume.get(type)(shape)
+
+
+def volume_box(shape):
+    return shape.dimensions[0] * shape.dimensions[1] * shape.dimensions[2]
+
+
+def volume_sphere(shape):
+    return shape.dimensions[0] ** 3
+
+
+def volume_cylinder(shape):
+    return shape.dimensions[0] * shape.dimensions[1] * shape.dimensions[1]
+
+
+def volume_cone(shape):
+    return shape.dimensions[0] * shape.dimensions[1] * shape.dimensions[1]

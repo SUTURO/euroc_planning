@@ -119,7 +119,7 @@ class SearchObject(smach.State):
 class PerceiveObject(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['noObject', 'validObject'],
-                             input_keys=['object_to_perceive'],
+                             input_keys=['object_to_perceive', 'yaml'],
                              output_keys=['object_to_move', 'pending_objects', 'objects_found'])
 
     def execute(self, userdata):
@@ -132,14 +132,13 @@ class PerceiveObject(smach.State):
 
         collision_objects = []
         for obj in perceived_objects:
-            obj.object.id = str(obj.c_centroid.x)
+            # obj.object.id = str(obj.c_centroid.x)
+            matched_obj = match_object(obj, userdata.yaml)
+            rospy.logdebug('Matched: ' + str(obj) + '\nwith: ' + str(matched_obj))
             collision_objects.append(obj.object)
-            obj.color = userdata.object_to_perceive.color
+            # obj.color = userdata.object_to_perceive.color
         publish_collision_objects(collision_objects)
         userdata.objects_found = perceived_objects
-
-        print 'Perceived objects: ' + str(perceived_objects)
-        print 'Selected object: ' + str(get_object_to_move(perceived_objects))
 
         # check if it was an object
         object_candidate = get_object_to_move(perceived_objects)
