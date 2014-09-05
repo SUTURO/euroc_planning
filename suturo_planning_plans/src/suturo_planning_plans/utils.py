@@ -2,8 +2,10 @@ import rospy
 import struct
 from std_msgs.msg import ColorRGBA
 from moveit_msgs.msg import CollisionObject
-from suturo_perception_msgs.msg import EurocObject
 
+
+# Holds the manipulation object
+manipulation = None
 
 def hex_to_color_msg(hex_str):
     rgb = struct.unpack('BBB', hex_str.decode('hex'))

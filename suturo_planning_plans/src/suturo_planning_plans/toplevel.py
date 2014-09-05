@@ -45,7 +45,6 @@ def toplevel_plan(init_sim):
                                    transitions={'success': task1_success,
                                                 'fail': 'Task1Plan'})
 
-
         smach.StateMachine.add('ExecuteTask1', execute_task1,
                                transitions={'success': 'success',
                                             'fail': 'fail'})
