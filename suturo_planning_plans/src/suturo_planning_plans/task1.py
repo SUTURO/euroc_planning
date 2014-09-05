@@ -72,6 +72,11 @@ class SearchObject(smach.State):
         # Add the found objects
         if userdata.objects_found:
             self._found_objects = userdata.objects_found
+            # Stop searching if all objects were found
+            if len(self._found_objects) == len(userdata.yaml.objects):
+                return 'noObjectsLeft'
+
+            # After placing an object go back into the scan_pose1
             _manipulation.move_to('scan_pose1')
 
         # take initial scan pose

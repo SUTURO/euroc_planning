@@ -88,8 +88,8 @@ def volume_sphere(shape):
 
 
 def volume_cylinder(shape):
-    return shape.dimensions[0] * shape.dimensions[1] * shape.dimensions[1]
+    return shape.dimensions[0] * ((shape.dimensions[1] * 2) ** 2)
 
 
 def volume_cone(shape):
-    return shape.dimensions[0] * shape.dimensions[1] * shape.dimensions[1]
+    return shape.dimensions[0] * ((shape.dimensions[1] * 2) ** 2)
