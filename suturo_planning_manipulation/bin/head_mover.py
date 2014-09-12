@@ -51,27 +51,33 @@ if __name__ == '__main__':
     # print ps.get_collision_objects()
 
     mani = Manipulation()
-    mani.grasp("red_cube")
+    ogog = geometry_msgs.msg.PoseStamped()
+    ogog.header.frame_id = "/odom_combined"
+    ogog.header.stamp = rospy.Time.now()
+    ogog.pose.position = geometry_msgs.msg.Point(0.0, 0.1, 0.05)
+    ogog.pose.orientation = geometry_msgs.msg.Quaternion(0.0, 0.0, 0.0, 1.0)
+    mani.move_base(ogog)
+    # mani.grasp("red_cube")
 
-    dest = PointStamped()
-    dest.header.frame_id = "/odom_combined"
-    # dest.point = Point(-0.3, -0.4, 0.03)
-    dest.point = Point(0.5, 0.5, 0.00)
-    mani.place(dest)
+    # dest = PointStamped()
+    # dest.header.frame_id = "/odom_combined"
+    # # dest.point = Point(-0.3, -0.4, 0.03)
+    # dest.point = Point(0.5, 0.5, 0.00)
+    # mani.place(dest)
 
-    mani.grasp("green_cylinder")
+    # mani.grasp("green_cylinder")
 
-    dest = PointStamped()
-    dest.header.frame_id = "/odom_combined"
-    dest.point = Point(0.5, 0, 0)
-    mani.place(dest)
+    # dest = PointStamped()
+    # dest.header.frame_id = "/odom_combined"
+    # dest.point = Point(0.5, 0, 0)
+    # mani.place(dest)
 
-    mani.grasp("blue_handle")
+    # mani.grasp("blue_handle")
 
-    dest = PointStamped()
-    dest.header.frame_id = "/odom_combined"
-    dest.point = Point(0.5, -0.5, 0)
-    mani.place(dest)
+    # dest = PointStamped()
+    # dest.header.frame_id = "/odom_combined"
+    # dest.point = Point(0.5, -0.5, 0)
+    # mani.place(dest)
 
     # mani.turn_arm(0, 0, 6)
     # print "muh"

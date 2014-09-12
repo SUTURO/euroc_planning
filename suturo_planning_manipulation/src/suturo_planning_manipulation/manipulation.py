@@ -29,6 +29,7 @@ class Manipulation(object):
         self.__arm_group.set_planning_time(5)
         self.__gripper_group = moveit_commander.MoveGroupCommander("gripper")
         self.__planning_scene_interface = PlanningSceneInterface()
+        self.__base_group = moveit_commander.MoveGroupCommander("base")
 
         euroc_interface_node = '/euroc_interface_node/'
         self.__set_object_load_srv = rospy.ServiceProxy(euroc_interface_node + 'set_object_load', SetObjectLoad)
@@ -40,6 +41,14 @@ class Manipulation(object):
     def __del__(self):
         moveit_commander.roscpp_shutdown()
         moveit_commander.os._exit(0)
+
+    def move_base(self, goal_pose):
+        #print self.__base_group.get_current_pose()
+        goal = deepcopy(goal_pose)
+        #print goal
+
+        self.__base_group.set_joint_value_target([goal.pose.position.x,goal.pose.position.y])
+        return self.__base_group.go()
 
     def move_to(self, goal_pose):
         goal = deepcopy(goal_pose)
