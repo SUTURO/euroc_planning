@@ -57,12 +57,12 @@ class Manipulation(object):
         return self.__base_group.go()
 
     def move_to(self, goal_pose):
-        return self.move_group_to(goal_pose, self.__arm_group)
+        return self.__move_group_to(goal_pose, self.__arm_group)
 
     def move_arm_and_base_to(self, goal_pose):
-        return self.move_group_to(goal_pose, self.__arm_base_group)
+        return self.__move_group_to(goal_pose, self.__arm_base_group)
 
-    def move_group_to(self, goal_pose, move_group):
+    def __move_group_to(self, goal_pose, move_group):
         move_group.set_start_state_to_current_state()
         goal = deepcopy(goal_pose)
         if type(goal) is str:
@@ -126,27 +126,12 @@ class Manipulation(object):
         self.__gripper_group.go()
 
     def grasp(self, collision_object, object_density=1):
-        if type(collision_object) is str:
-            collision_object = self.__planning_scene_interface.get_collision_object(collision_object)
-        grasp_positions = calculate_grasp_position(collision_object)
-        self.sort_grasps(grasp_positions)
-        print len(grasp_positions)
-        self.open_gripper()
-        for grasp in grasp_positions:
-            if self.move_to(get_pre_grasp(grasp)):
-                if not self.move_to(grasp):
-                    continue
-                rospy.sleep(1)
-                self.close_gripper(collision_object)
-
-                self.load_object(self.calc_object_weight(collision_object, object_density),
-                                 self.get_center_of_mass(collision_object))
-                print "grasped"
-                # rospy.sleep(1)
-                return True
-        return None
+        return self.__grasp_with_group(collision_object, self.__arm_group)
 
     def grasp_and_move(self, collision_object):
+        return self.__grasp_with_group(collision_object, self.__arm_base_group)
+
+    def __grasp_with_group(self, collision_object, move_group):
         if type(collision_object) is str:
             collision_object = self.__planning_scene_interface.get_collision_object(collision_object)
         grasp_positions = calculate_grasp_position(collision_object)
@@ -154,9 +139,9 @@ class Manipulation(object):
         print len(grasp_positions)
         self.open_gripper()
         for grasp in grasp_positions:
-            if self.move_arm_and_base_to(get_pre_grasp(grasp)):
+            if self.__move_group_to(get_pre_grasp(grasp), move_group):
 
-                if not self.move_arm_and_base_to(grasp):
+                if not self.__move_group_to(grasp, move_group):
                     continue
                 rospy.sleep(1)
                 self.close_gripper(collision_object)
@@ -194,36 +179,27 @@ class Manipulation(object):
 
     def place(self, destination):
         """ destination of type pose-stamped """
-        dest = deepcopy(destination)
-        co = self.__planning_scene_interface.get_attached_object().object
-        dest = self.transform_to(dest, "/odom_combined")
-        place_pose = get_place_position(co, dest, self.__listener)
-        self.move_to(get_pre_place_position(place_pose))
-        self.move_to(place_pose)
-        self.open_gripper()
-        rospy.sleep(0.25)
-
-        post_place_pose = PoseStamped()
-        post_place_pose.header.frame_id = "/tcp"
-        post_place_pose.pose.position = Point(0, 0, -post_place_length)
-        self.move_to(post_place_pose)
-        rospy.sleep(0.25)
+        return self.__place_with_group(destination, self.__arm_group)
 
     def place_and_move(self, destination):
+        """ destination of type pose-stamped """
+        return self.__place_with_group(destination, self.__arm_base_group)
+
+    def __place_with_group(self, destination, move_group):
         """ destination of type pose-stamped """
         dest = deepcopy(destination)
         co = self.__planning_scene_interface.get_attached_object().object
         dest = self.transform_to(dest, "/odom_combined")
         place_pose = get_place_position(co, dest, self.__listener)
-        self.move_arm_and_base_to(get_pre_place_position(place_pose))
-        self.move_arm_and_base_to(place_pose)
+        self.__move_group_to(get_pre_place_position(place_pose), move_group)
+        self.__move_group_to(place_pose, move_group)
         self.open_gripper()
         rospy.sleep(0.25)
 
         post_place_pose = PoseStamped()
         post_place_pose.header.frame_id = "/tcp"
         post_place_pose.pose.position = Point(0, 0, -post_place_length)
-        self.move_arm_and_base_to(post_place_pose)
+        self.__move_group_to(post_place_pose, move_group)
         rospy.sleep(0.25)
 
     def load_object(self, mass, cog):

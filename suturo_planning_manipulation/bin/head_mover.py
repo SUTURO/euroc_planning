@@ -24,20 +24,20 @@ from suturo_planning_manipulation.planningsceneinterface import PlanningSceneInt
 
 
 def test_task1(mani):
-    mani.grasp_and_move("red_cube")
-
+    # mani.grasp_and_move("red_cube")
+    #
     # dest = PointStamped()
     # dest.header.frame_id = "/odom_combined"
     # # dest.point = Point(-0.3, -0.4, 0.03)
     # dest.point = Point(0.5, 0.5, 0.00)
-    # mani.place(dest)
+    # mani.place_and_move(dest)
 
-    # mani.grasp("green_cylinder")
+    mani.grasp("green_cylinder")
 
-    # dest = PointStamped()
-    # dest.header.frame_id = "/odom_combined"
-    # dest.point = Point(0.5, 0, 0)
-    # mani.place(dest)
+    dest = PointStamped()
+    dest.header.frame_id = "/odom_combined"
+    dest.point = Point(0.5, 0, 0)
+    mani.place(dest)
 
     # mani.grasp("blue_handle")
 
