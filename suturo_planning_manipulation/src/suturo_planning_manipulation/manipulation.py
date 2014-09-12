@@ -30,6 +30,7 @@ class Manipulation(object):
         self.__gripper_group = moveit_commander.MoveGroupCommander("gripper")
         self.__planning_scene_interface = PlanningSceneInterface()
         self.__base_group = moveit_commander.MoveGroupCommander("base")
+        self.__arm_base_group = moveit_commander.MoveGroupCommander("arm_base")
 
         euroc_interface_node = '/euroc_interface_node/'
         self.__set_object_load_srv = rospy.ServiceProxy(euroc_interface_node + 'set_object_load', SetObjectLoad)
@@ -65,6 +66,22 @@ class Manipulation(object):
             self.__arm_group.set_pose_target(goal)
 
         return self.__arm_group.go()
+
+    def move_arm_and_base(self, goal_pose):
+        goal = deepcopy(goal_pose)
+        if type(goal) is str:
+            self.__arm_base_group.set_named_target("scan_pose1")
+        else:
+            visualize_pose([goal])
+            angle = quaternion_from_euler(0, pi / 2, 0)
+            o = goal.pose.orientation
+            no = quaternion_multiply([o.x, o.y, o.z, o.w], angle)
+            goal.pose.orientation = geometry_msgs.msg.Quaternion(*no)
+
+            goal = self.transform_to(goal)
+            self.__arm_base_group.set_pose_target(goal)
+
+        return self.__arm_base_group.go()
 
     def transform_to(self, pose_target, target_frame="/odom_combined"):
         odom_pose = None
@@ -131,6 +148,27 @@ class Manipulation(object):
                 return True
         return None
 
+    def grasp_and_move(self, collision_object):
+        if type(collision_object) is str:
+            collision_object = self.__planning_scene_interface.get_collision_object(collision_object)
+        grasp_positions = calculate_grasp_position(collision_object)
+        self.sort_grasps(grasp_positions)
+        print len(grasp_positions)
+        self.open_gripper()
+        for grasp in grasp_positions:
+            if self.move_arm_and_base(get_pre_grasp(grasp)):
+
+                if not self.move_arm_and_base(grasp):
+                    continue
+                rospy.sleep(1)
+                self.close_gripper(collision_object)
+
+                self.load_object(1, self.get_center_of_mass(collision_object))
+                print "grasped"
+                # rospy.sleep(1)
+                return True
+        return None
+
     def get_center_of_mass(self, collision_object):
         # center_of_mass= Vector3Stamped()
         # point = Point()
@@ -167,6 +205,23 @@ class Manipulation(object):
         post_place_pose.header.frame_id = "/tcp"
         post_place_pose.pose.position = Point(0, 0, -post_place_length)
         self.move_to(post_place_pose)
+        rospy.sleep(0.25)
+
+    def place_and_move(self, destination):
+        """ destination of type pose-stamped """
+        dest = deepcopy(destination)
+        co = self.__planning_scene_interface.get_attached_object().object
+        dest = self.transform_to(dest, "/odom_combined")
+        place_pose = get_place_position(co, dest, self.__listener)
+        self.move_arm_and_base(get_pre_place_position(place_pose))
+        self.move_arm_and_base(place_pose)
+        self.open_gripper()
+        rospy.sleep(0.25)
+
+        post_place_pose = PoseStamped()
+        post_place_pose.header.frame_id = "/tcp"
+        post_place_pose.pose.position = Point(0, 0, -post_place_length)
+        self.move_arm_and_base(post_place_pose)
         rospy.sleep(0.25)
 
     def load_object(self, mass, cog):
