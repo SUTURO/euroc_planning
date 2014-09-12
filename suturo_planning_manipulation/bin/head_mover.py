@@ -23,47 +23,14 @@ from suturo_planning_manipulation.planningsceneinterface import *
 from suturo_planning_manipulation.planningsceneinterface import PlanningSceneInterface
 
 
-if __name__ == '__main__':
-    rospy.init_node('head_mover', anonymous=True)
-    # co = moveit_msgs.msg.CollisionObject()
-    # co.id = "green_cylinder"
-    # co.header.frame_id = "/odom_combined"
-    # co.primitives = []
-    # co.primitives.append(shape_msgs.msg.SolidPrimitive())
-    # co.primitives[0].type = shape_msgs.msg.SolidPrimitive.CYLINDER
-    # co.primitives[0].dimensions.append(0.1)
-    # co.primitives[0].dimensions.append(0.1)
-    # co.primitives[0].dimensions.append(0.05)
-    # co.primitive_poses = []
-    # co.primitive_poses.append(geometry_msgs.msg.Pose())
-    # co.primitive_poses[0].position = geometry_msgs.msg.Point(1, 1, 0)
-    # co.primitive_poses[0].orientation = geometry_msgs.msg.Quaternion(0, 0, 0, 1)
+def test_task1(mani):
+    mani.grasp("red_cube")
 
-    # a = moveit_commander.PlanningSceneInterface()
-    # rospy.sleep(2)
-    # muh = geometry_msgs.msg.PoseStamped()
-    # muh.header.frame_id = "/odom_combined"
-    # muh.pose.position = geometry_msgs.msg.Point(0, 0, 0)
-    # muh.pose.orientation = orientation = geometry_msgs.msg.Quaternion(0, 0, 0, 1)
-    # a.add_plane("muh", muh)
-    # rospy.sleep(2)
-    # ps = PlanningSceneInterface()
-    # print ps.get_collision_objects()
-
-    mani = Manipulation()
-    # ogog = geometry_msgs.msg.PoseStamped()
-    # ogog.header.frame_id = "/odom_combined"
-    # ogog.header.stamp = rospy.Time.now()
-    # ogog.pose.position = geometry_msgs.msg.Point(0.0, 0.1, 0.05)
-    # ogog.pose.orientation = geometry_msgs.msg.Quaternion(0.0, 0.0, 0.0, 1.0)
-    # mani.move_base(ogog)
-    mani.grasp_and_move("red_cube")
-
-    dest = PointStamped()
-    dest.header.frame_id = "/odom_combined"
-    # dest.point = Point(-0.3, -0.4, 0.03)
-    dest.point = Point(0.5, 0.5, 0.00)
-    mani.place_and_move(dest)
+    # dest = PointStamped()
+    # dest.header.frame_id = "/odom_combined"
+    # # dest.point = Point(-0.3, -0.4, 0.03)
+    # dest.point = Point(0.5, 0.5, 0.00)
+    # mani.place(dest)
 
     # mani.grasp("green_cylinder")
 
@@ -79,11 +46,54 @@ if __name__ == '__main__':
     # dest.point = Point(0.5, -0.5, 0)
     # mani.place(dest)
 
+if __name__ == '__main__':
+    rospy.init_node('head_mover', anonymous=True)
+
+    mani = Manipulation()
+
+    # co = mani.get_planning_scene().get_collision_object("red_cube")
+    # print mani.calc_object_weight(co, 2710)
+    print mani.get_arm_move_group().get_current_joint_values()
+
+    mani = Manipulation()
+    ogog = geometry_msgs.msg.PoseStamped()
+    ogog.header.frame_id = "/odom_combined"
+    ogog.header.stamp = rospy.Time.now()
+    ogog.pose.position = geometry_msgs.msg.Point(0.0, 0.1, 0.05)
+    ogog.pose.orientation = geometry_msgs.msg.Quaternion(0.0, 0.0, 0.0, 1.0)
+    mani.move_base(ogog)
+    # mani.grasp("red_cube")
+    # test_task1(mani)
+    # mani.open_gripper()
+    # mani.grasp("blue_handle")
+    # p = PoseStamped()
+    # p2 = PoseStamped()
+    # p.header.stamp = rospy.Time.now()
+    # p.header.frame_id = "/odom_combined"
+    # p.pose.position = Point(0, 0, 0.9)
+    # q = quaternion_from_euler(0, 0, pi)
+    # p.pose.orientation = Quaternion(*q)
+    #
+    # # angle = quaternion_from_euler(0, pi / 2, 0)
+    # # o = Quaternion(*q)
+    # # no = quaternion_multiply([o.x, o.y, o.z, o.w], angle)
+    # #
+    # #
+    # # p2 = deepcopy(p)
+    # #
+    # # p2.pose.orientation = geometry_msgs.msg.Quaternion(*no)
+    #
+    # # p.pose.orientation = Quaternion(0, 0, 0, 1)
+    # # mani.set_constraint(p2)
+    # print "moving"
+    # # mani.move_to(p, False)
+    # mani.move_to(p, True)
+
     # mani.turn_arm(0, 0, 6)
     # print "muh"
     # mani.open_gripper()
     # mani.move_to("scan_pose1")
-    # mani.turn_arm(0, -2.9)
+    # mani.turn_arm(0, -2.9, 6)
     # mani.turn_arm(0, pi/2)
     # mani.turn_arm(0, pi)
     # mani.turn_arm(0, pi * 1.5)

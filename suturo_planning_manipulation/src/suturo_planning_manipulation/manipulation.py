@@ -6,8 +6,11 @@ import sys
 import copy
 from euroc_c2_msgs.srv import *
 from geometry_msgs.msg._PointStamped import PointStamped
+from geometry_msgs.msg._Pose import Pose
 from geometry_msgs.msg._Vector3 import Vector3
 from geometry_msgs.msg._Vector3Stamped import Vector3Stamped
+from moveit_commander import planning_scene_interface
+from moveit_msgs.msg import *
 from numpy.core.multiarray import ndarray
 import rospy
 import moveit_commander
@@ -21,12 +24,11 @@ gripper_max_pose = 0.03495
 
 
 class Manipulation(object):
-
     def __init__(self):
         self.__listener = tf.TransformListener()
         moveit_commander.roscpp_initialize(sys.argv)
         self.__arm_group = moveit_commander.MoveGroupCommander("arm")
-        self.__arm_group.set_planning_time(5)
+        self.__arm_group.set_planning_time(10)
         self.__gripper_group = moveit_commander.MoveGroupCommander("gripper")
         self.__planning_scene_interface = PlanningSceneInterface()
         self.__base_group = moveit_commander.MoveGroupCommander("base")
@@ -35,9 +37,13 @@ class Manipulation(object):
         euroc_interface_node = '/euroc_interface_node/'
         self.__set_object_load_srv = rospy.ServiceProxy(euroc_interface_node + 'set_object_load', SetObjectLoad)
         # self.__gripper_max_pose = 0.03495
-        rospy.sleep(2)
+        rospy.sleep(1)
         self.__planning_scene_interface.add_ground()
+        print "manipulation started"
         # self.__arm_group.set_path_constraints()
+        # self.set_constraint()
+        # self.__arm_group.set_planner_id("RRTConnectkConfigDefault")
+
 
     def __del__(self):
         moveit_commander.roscpp_shutdown()
@@ -51,7 +57,8 @@ class Manipulation(object):
         self.__base_group.set_joint_value_target([goal.pose.position.x,goal.pose.position.y])
         return self.__base_group.go()
 
-    def move_to(self, goal_pose):
+    def move_to(self, goal_pose, constraint=False):
+        self.__arm_group.set_start_state_to_current_state()
         goal = deepcopy(goal_pose)
         if type(goal) is str:
             self.__arm_group.set_named_target("scan_pose1")
@@ -61,6 +68,11 @@ class Manipulation(object):
             o = goal.pose.orientation
             no = quaternion_multiply([o.x, o.y, o.z, o.w], angle)
             goal.pose.orientation = geometry_msgs.msg.Quaternion(*no)
+
+            if constraint:
+                self.set_constraint(goal)
+
+            print goal
 
             goal = self.transform_to(goal)
             self.__arm_group.set_pose_target(goal)
@@ -89,7 +101,6 @@ class Manipulation(object):
         while odom_pose is None and i < 5:
             try:
                 if type(pose_target) is PoseStamped:
-                    # self.__listener.waitForTransform()
                     odom_pose = self.__listener.transformPose(target_frame, pose_target)
                     break
                 if type(pose_target) is Vector3Stamped:
@@ -127,7 +138,7 @@ class Manipulation(object):
             self.__gripper_group.set_joint_value_target([-radius+0.005, radius-0.005])
         self.__gripper_group.go()
 
-    def grasp(self, collision_object):
+    def grasp(self, collision_object, object_density=1):
         if type(collision_object) is str:
             collision_object = self.__planning_scene_interface.get_collision_object(collision_object)
         grasp_positions = calculate_grasp_position(collision_object)
@@ -140,9 +151,10 @@ class Manipulation(object):
                 if not self.move_to(grasp):
                     continue
                 rospy.sleep(1)
-                self.close_gripper(collision_object)
+                self.close_gripper(collision_object.id)
 
-                self.load_object(1, self.get_center_of_mass(collision_object))
+                self.load_object(self.calc_object_weight(collision_object, object_density),
+                                 self.get_center_of_mass(collision_object))
                 print "grasped"
                 # rospy.sleep(1)
                 return True
@@ -181,8 +193,24 @@ class Manipulation(object):
         # center_of_mass = self.transform_to(center_of_mass, "link7")
         # print "center2:  ", center_of_mass
 
+    def calc_object_weight(self, collision_object, density):
+        weight = 0
+        for i in range(0, len(collision_object.primitives)):
+            print i
+            if collision_object.primitives[i].type == shape_msgs.msg.SolidPrimitive().BOX:
+                x = collision_object.primitives[i].dimensions[shape_msgs.msg.SolidPrimitive.BOX_X]
+                y = collision_object.primitives[i].dimensions[shape_msgs.msg.SolidPrimitive.BOX_Y]
+                z = collision_object.primitives[i].dimensions[shape_msgs.msg.SolidPrimitive.BOX_Z]
+                weight += x * y * z * density
+            elif collision_object.primitives[i].type == shape_msgs.msg.SolidPrimitive().CYLINDER:
+                r = collision_object.primitives[i].dimensions[shape_msgs.msg.SolidPrimitive.CYLINDER_RADIUS]
+                h = collision_object.primitives[i].dimensions[shape_msgs.msg.SolidPrimitive.CYLINDER_HEIGHT]
+                weight += pi * r * r * h * density
+        return weight
+
+    def get_center_of_mass(self, collision_object):
         now = rospy.Time.now()
-        self.__listener.waitForTransform("/tcp", "/" + collision_object.id, now, rospy.Duration(4))
+        self.__listener.waitForTransform("/tcp", "/" + collision_object.id, now, rospy.Duration(5))
         (p, q) = self.__listener.lookupTransform("/tcp", "/" + collision_object.id, now)
 
         return Vector3(p[0], p[1], p[2])
@@ -241,17 +269,45 @@ class Manipulation(object):
     def get_planning_scene(self):
         return self.__planning_scene_interface
 
-    def turn_arm(self, speed, distance, linkid=0):
+    def turn_arm(self, joint_value):
         """
-        :param speed: float
-        :param distance: float #radian 0 - 5,9341
+        :param joint_value: float #radian -2.96 to 2.96
         :return: undefined
         """
-        # distance -= 2.96705972839 #-joint limit
-        jv = self.__arm_group.get_current_joint_values()
-        jv[linkid] = distance
-        self.__arm_group.set_joint_value_target(jv)
+        current_joint_values = self.__arm_group.get_current_joint_values()
+        current_joint_values[0] = joint_value
+        self.__arm_group.set_joint_value_target(current_joint_values)
         return self.__arm_group.go()
 
-    def get_arm_move_gourp(self):
+    def get_arm_move_group(self):
         return self.__arm_group
+
+    def set_constraint(self, pose):
+        c = Constraints()
+        # c.name = ""
+        # pc = PositionConstraint()
+        # pc.header.frame_id = "/odom_combined"
+        # pc.link_name = "gp"
+        # box = SolidPrimitive()
+        # box.type = SolidPrimitive.SPHERE
+        # box.dimensions.append(2.0)
+        # pc.constraint_region.primitives.append(box)
+        # box_pose = Pose()
+        # box_pose.position = Point(0.0, 0.0, 1.0)
+        # box_pose.orientation = Quaternion(0.0, 0.0, 0.0, 1.0)
+        # pc.constraint_region.primitive_poses.append(box_pose)
+        # pc.weight = 1.0
+        # c.position_constraints.append(pc)
+
+        oc = OrientationConstraint()
+        oc.link_name = "link7"
+        oc.weight = 1.0
+        oc.header = pose.header
+        oc.orientation = pose.pose.orientation
+        # oc.orientation = Quaternion(0, 0, 0, 1)
+        oc.absolute_x_axis_tolerance = pi
+        oc.absolute_y_axis_tolerance = pi
+        oc.absolute_z_axis_tolerance = 0.1  # pi
+        c.orientation_constraints.append(oc)
+        print c
+        self.__arm_group.set_path_constraints(c)
