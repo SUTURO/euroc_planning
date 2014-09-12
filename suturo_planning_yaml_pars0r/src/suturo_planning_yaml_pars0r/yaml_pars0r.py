@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 import yaml
+from geometry_msgs.msg._Quaternion import Quaternion
 import rospy
 import re
 import sys
+from tf.transformations import quaternion_inverse, quaternion_from_euler
 from yaml_exceptions import UnhandledValue
 from suturo_msgs.msg import Task
 from suturo_msgs.msg import MastOfCam
 from suturo_msgs.msg import Object
-from suturo_msgs.msg import Shape
 from suturo_msgs.msg import Robot
 from suturo_msgs.msg import Sensor
 from suturo_msgs.msg import Camera
@@ -18,6 +19,8 @@ from geometry_msgs.msg import Twist
 from geometry_msgs.msg import TwistStamped
 from geometry_msgs.msg import Vector3
 from geometry_msgs.msg import Point
+from geometry_msgs.msg import Pose
+from shape_msgs.msg import SolidPrimitive
 
 
 class YamlPars0r:
@@ -261,6 +264,15 @@ class YamlPars0r:
         )
 
     @staticmethod
+    def parse_pose(pose):
+        f_pose = Pose()
+        f_pose.position.x = pose[0]
+        f_pose.position.y = pose[1]
+        f_pose.position.z = pose[2]
+        f_pose.orientation = Quaternion(*quaternion_from_euler(pose[3], pose[4], pose[5]))
+        return f_pose
+
+    @staticmethod
     def parse_objects(objects):
         parsed_objects = []
         if objects is None:
@@ -271,12 +283,12 @@ class YamlPars0r:
             f_color = YamlPars0r.get_dict_value(objects[obj], 'color')
             f_description = YamlPars0r.get_dict_value(objects[obj], 'description')
             try:
-                f_shapes = YamlPars0r.get_dict_value(objects[obj], 'shape')
-                f_shapes = YamlPars0r.parse_shapes(f_shapes)
+                f_primitives = YamlPars0r.parse_primitives(YamlPars0r.get_dict_value(objects[obj], 'shape'))
             except UnhandledValue as e:
-                rospy.logerr('parse_objects: Exception %s while parsing shapes: %s', e, f_shapes)
+                rospy.logerr('parse_objects: Exception %s while parsing primitives: %s', e, f_primitives)
                 raise e
             f_material = YamlPars0r.get_dict_value(objects[obj], 'surface_material')
+
             if f_material == 'aluminium':
                 f_material = Object.ALUMINIUM
             elif f_material is None:
@@ -285,9 +297,11 @@ class YamlPars0r:
                 raise UnhandledValue('Unhandled surface_material: ' + str(f_material))
             rospy.logdebug('parse_objects: f_color: %s', f_color)
             rospy.logdebug('parse_objects: f_description: %s', f_description)
-            rospy.logdebug('parse_objects: f_shapes: %s', f_shapes)
+            rospy.logdebug('parse_objects: f_primitives: %s', f_primitives)
             rospy.logdebug('parse_objects: f_material: %s', f_material)
-            obj = Object(shapes=f_shapes)
+            obj = Object(primitives=f_primitives[0],
+                         primitive_poses=f_primitives[1],
+                         primitive_densities=f_primitives[2])
             if f_name is not None:
                 obj.name = f_name
             if f_color is not None:
@@ -300,56 +314,57 @@ class YamlPars0r:
         return parsed_objects
 
     @staticmethod
-    def parse_shapes(shapes):
-        rospy.logdebug('parse_shapes: parsing shapes: %s', shapes)
-        parsed_shapes = []
-        if shapes is None:
-            return parsed_shapes
-        for s in shapes:
-            f_type = YamlPars0r.get_dict_value(s, 'type')
+    def parse_primitives(primitives):
+        rospy.logdebug('parse_shapes: parsing primitives: %s', primitives)
+        parsed_primitives = []
+        primitive_poses = []
+        densities = []
+        if primitives is None:
+            return parsed_primitives
+        for primitive in primitives:
+            f_type = YamlPars0r.get_dict_value(primitive, 'type')
             if f_type == 'cylinder':
-                f_type = Shape.CYLINDER
+                f_type = SolidPrimitive.CYLINDER
             elif f_type == 'box':
-                f_type = Shape.BOX
+                f_type = SolidPrimitive.BOX
             else:
                 raise UnhandledValue("Unhandled shape type: " + str(f_type))
-            f_pose = YamlPars0r.get_dict_value(s, 'pose')
-            rospy.logdebug('parse_shapes: f_pose: %s', f_pose)
-            pose_msg = YamlPars0r.parse_twist(f_pose)
-            f_density = YamlPars0r.get_dict_value(s, 'density', float)
-            f_dimensions = [float('inf')] * 6
-            rospy.logdebug('parse_shapes: f_type: %s', f_type)
-            if f_type == Shape.BOX:
-                f_size = YamlPars0r.get_dict_value(s, 'size')
+            f_pose = YamlPars0r.parse_pose(YamlPars0r.get_dict_value(primitive, 'pose'))
+            rospy.logdebug('parse_primitives: f_pose: %s', f_pose)
+            f_density = YamlPars0r.get_dict_value(primitive, 'density', float)
+            f_dimensions = []
+            rospy.logdebug('parse_primitives: f_type: %s', f_type)
+            if f_type == SolidPrimitive.BOX:
+                f_dimensions = [float('inf')] * 3
+                f_size = YamlPars0r.get_dict_value(primitive, 'size')
                 try:
-                    f_dimensions[Shape.BOX_X] = f_size[0]
+                    f_dimensions[SolidPrimitive.BOX_X] = f_size[0]
                 except IndexError:
                     rospy.loginfo('x value in dimensions is not set.')
                 try:
-                    f_dimensions[Shape.BOX_Y] = f_size[1]
+                    f_dimensions[SolidPrimitive.BOX_Y] = f_size[1]
                 except IndexError:
                     rospy.loginfo('Y value in dimensions is not set.')
                 try:
-                    f_dimensions[Shape.BOX_Z] = f_size[2]
+                    f_dimensions[SolidPrimitive.BOX_Z] = f_size[2]
                 except IndexError:
                     rospy.loginfo('z value in dimensions is not set.')
-            elif f_type == Shape.CYLINDER:
-                f_length = YamlPars0r.get_dict_value(s, 'length', float)
-                f_radius = YamlPars0r.get_dict_value(s, 'radius', float)
+            elif f_type == SolidPrimitive.CYLINDER:
+                f_dimensions = [float('inf')] * 2
+                f_length = YamlPars0r.get_dict_value(primitive, 'length', float)
+                f_radius = YamlPars0r.get_dict_value(primitive, 'radius', float)
                 if f_length is not None:
-                    f_dimensions[Shape.CYLINDER_LENGTH] = f_length
+                    f_dimensions[SolidPrimitive.CYLINDER_HEIGHT] = f_length
                 if f_radius is not None:
-                    f_dimensions[Shape.CYLINDER_RADIUS] = f_radius
+                    f_dimensions[SolidPrimitive.CYLINDER_RADIUS] = f_radius
             else:
-                raise UnhandledValue("Unhandled shape type: " + str(f_type))
-            shape = Shape(
-                dimensions=f_dimensions,
-                pose=pose_msg,
-                shape_type=f_type,
-                density=f_density
-            )
-            parsed_shapes.append(shape)
-        return parsed_shapes
+                raise UnhandledValue("Unhandled primitive type: " + str(f_type))
+            primitive = SolidPrimitive(dimensions=f_dimensions,
+                                       type=f_type)
+            parsed_primitives.append(primitive)
+            primitive_poses.append(f_pose)
+            densities.append(f_density)
+        return [parsed_primitives, primitive_poses, densities]
 
     def kill(self, sig, frame):
         rospy.loginfo('Caught ctrl-c. Shutting down.')

@@ -64,34 +64,34 @@ def get_yaml_for_object(obj, yaml):
 
 def get_volume_euroc_object(obj):
     volume = 0
-    for shape in obj.object.primitives:
-        volume += get_volume_shape(shape, shape.type)
+    for primitive in obj.object.primitives:
+        volume += get_volume_primitive(primitive, primitive.type)
     return volume
 
 
 def get_volume_yaml_object(obj):
     volume = 0
     for shape in obj.shapes:
-        volume += get_volume_shape(shape, shape.shape_type)
+        volume += get_volume_primitive(shape, shape.shape_type)
     return volume
 
 
-def get_volume_shape(shape, type):
+def get_volume_primitive(primitive, primitive_type):
     get_volume = {1: volume_box, 2: volume_sphere, 3: volume_cylinder, 3: volume_cone}
-    return get_volume.get(type)(shape)
+    return get_volume.get(primitive_type)(primitive)
 
 
-def volume_box(shape):
-    return shape.dimensions[0] * shape.dimensions[1] * shape.dimensions[2]
+def volume_box(primitive):
+    return primitive.dimensions[0] * primitive.dimensions[1] * primitive.dimensions[2]
 
 
-def volume_sphere(shape):
-    return shape.dimensions[0] ** 3
+def volume_sphere(primitive):
+    return primitive.dimensions[0] ** 3
 
 
-def volume_cylinder(shape):
-    return shape.dimensions[0] * ((shape.dimensions[1] * 2) ** 2)
+def volume_cylinder(primitive):
+    return primitive.dimensions[0] * ((primitive.dimensions[1] * 2) ** 2)
 
 
-def volume_cone(shape):
-    return shape.dimensions[0] * ((shape.dimensions[1] * 2) ** 2)
+def volume_cone(primitive):
+    return primitive.dimensions[0] * ((primitive.dimensions[1] * 2) ** 2)
