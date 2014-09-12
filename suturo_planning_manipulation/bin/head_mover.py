@@ -24,7 +24,7 @@ from suturo_planning_manipulation.planningsceneinterface import PlanningSceneInt
 
 
 def test_task1(mani):
-    mani.grasp("red_cube")
+    mani.grasp_and_move("red_cube")
 
     # dest = PointStamped()
     # dest.header.frame_id = "/odom_combined"
@@ -50,18 +50,19 @@ if __name__ == '__main__':
     rospy.init_node('head_mover', anonymous=True)
 
     mani = Manipulation()
+    test_task1(mani)
 
     # co = mani.get_planning_scene().get_collision_object("red_cube")
     # print mani.calc_object_weight(co, 2710)
-    print mani.get_arm_move_group().get_current_joint_values()
-
-    mani = Manipulation()
-    ogog = geometry_msgs.msg.PoseStamped()
-    ogog.header.frame_id = "/odom_combined"
-    ogog.header.stamp = rospy.Time.now()
-    ogog.pose.position = geometry_msgs.msg.Point(0.0, 0.1, 0.05)
-    ogog.pose.orientation = geometry_msgs.msg.Quaternion(0.0, 0.0, 0.0, 1.0)
-    mani.move_base(ogog)
+    # print mani.get_arm_move_group().get_current_joint_values()
+    #
+    # mani = Manipulation()
+    # ogog = geometry_msgs.msg.PoseStamped()
+    # ogog.header.frame_id = "/odom_combined"
+    # ogog.header.stamp = rospy.Time.now()
+    # ogog.pose.position = geometry_msgs.msg.Point(0.0, 0.1, 0.05)
+    # ogog.pose.orientation = geometry_msgs.msg.Quaternion(0.0, 0.0, 0.0, 1.0)
+    # mani.move_base(ogog)
     # mani.grasp("red_cube")
     # test_task1(mani)
     # mani.open_gripper()
