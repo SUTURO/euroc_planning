@@ -46,9 +46,15 @@ class EurocTask(smach.StateMachine):
     def __init__(self, init_sim, task_name):
         smach.StateMachine.__init__(self, outcomes=['success', 'fail'])
 
-        tasks = {'task1': task1.Task1,
+        plans = {'task1': task1.Task1,
                  'task2': task1.Task1,
-                 'task3': task3.Task3}
+                 'task3': task1.Task1}
+
+        plan_args = {'task1': [False],
+                     'task2': [False],
+                     'task3': [True]}
+
+        task = task_name.split('_')[0]
 
         with self:
             task_success = 'success'
@@ -72,7 +78,7 @@ class EurocTask(smach.StateMachine):
                                        transitions={'success': task_name,
                                                     'fail': 'fail'})
 
-            smach.StateMachine.add(task_name, tasks[task_name.split('_')[0]](),
+            smach.StateMachine.add(task_name, plans[task](*plan_args[task]),
                                    transitions={'success': task_success,
                                                 'fail': task_name})
 
