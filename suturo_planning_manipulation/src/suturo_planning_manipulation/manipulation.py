@@ -46,7 +46,7 @@ class Manipulation(object):
         #print self.__base_group.get_current_pose()
         goal = deepcopy(goal_pose)
         #print goal
-
+        self.__base_group.get_join
         self.__base_group.set_joint_value_target([goal.pose.position.x,goal.pose.position.y])
         return self.__base_group.go()
 
