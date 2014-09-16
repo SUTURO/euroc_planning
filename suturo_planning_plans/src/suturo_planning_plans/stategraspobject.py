@@ -14,9 +14,9 @@ class GraspObject(smach.State):
 
         print 'Trying to grasp:\n' + str(userdata.object_to_move.object.id)
         if userdata.enable_movement:
-            grasp_result = utils.manipulation.grasp(userdata.object_to_move.object)
-        else:
             grasp_result = utils.manipulation.grasp_and_move(userdata.object_to_move.object)
+        else:
+            grasp_result = utils.manipulation.grasp(userdata.object_to_move.object)
         print 'Grasp result:' + str(grasp_result)
 
         if grasp_result:

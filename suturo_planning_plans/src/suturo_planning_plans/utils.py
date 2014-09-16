@@ -71,8 +71,8 @@ def get_volume_euroc_object(obj):
 
 def get_volume_yaml_object(obj):
     volume = 0
-    for shape in obj.shapes:
-        volume += get_volume_primitive(shape, shape.shape_type)
+    for shape in obj.primitives:
+        volume += get_volume_primitive(shape, shape.type)
     return volume
 
 

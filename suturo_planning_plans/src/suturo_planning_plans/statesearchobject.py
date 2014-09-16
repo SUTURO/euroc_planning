@@ -36,6 +36,8 @@ class SearchObject(smach.State):
             utils.manipulation = Manipulation()
             time.sleep(2)
 
+        scan_pose = 'scan_pose2'
+
         # Add the found objects
         if userdata.objects_found:
             self._found_objects = userdata.objects_found
@@ -44,12 +46,12 @@ class SearchObject(smach.State):
                 return 'noObjectsLeft'
 
             # After placing an object go back into the scan_pose1
-            utils.manipulation.move_to('scan_pose1')
+            utils.manipulation.move_to(scan_pose)
 
         # take initial scan pose
         if self._next_scan == 0:
-            print 'Take scan pose 1'
-            utils.manipulation.move_to('scan_pose1')
+            print 'Take ' + scan_pose
+            utils.manipulation.move_to(scan_pose)
 
         # get the colors of the missing objects, assuming for now that every object has its own color
         colors = self._obj_colors
@@ -69,7 +71,7 @@ class SearchObject(smach.State):
             if self._next_scan != 0:
                 rad = x * rad_per_step - 2.945
                 print 'Turning arm ' + str(rad)
-                utils.manipulation.turn_arm(1.0, rad)
+                utils.manipulation.turn_arm(rad)
 
             self._next_scan += 1
 
