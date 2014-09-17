@@ -193,16 +193,23 @@ class Manipulation(object):
         co = self.__planning_scene_interface.get_attached_object().object
         dest = self.transform_to(dest, "/odom_combined")
         place_pose = get_place_position(co, dest, self.__listener)
-        self.__move_group_to(get_pre_place_position(place_pose), move_group)
-        self.__move_group_to(place_pose, move_group)
+        if not self.__move_group_to(get_pre_place_position(place_pose), move_group):
+			print "Can't reach preplaceposition."
+			return False
+        if not self.__move_group_to(place_pose, move_group):
+			print "Can't reach placeposition."
+			return False
         self.open_gripper()
         rospy.sleep(0.25)
 
         post_place_pose = PoseStamped()
         post_place_pose.header.frame_id = "/tcp"
         post_place_pose.pose.position = Point(0, 0, -post_place_length)
-        self.__move_group_to(post_place_pose, move_group)
+        if not self.__move_group_to(post_place_pose, move_group):
+			print "Can't reach postplaceposition."
+			return False
         rospy.sleep(0.25)
+		return True
 
     def load_object(self, mass, cog):
         request = SetObjectLoadRequest()
