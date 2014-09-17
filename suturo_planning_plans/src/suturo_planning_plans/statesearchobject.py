@@ -4,11 +4,13 @@ import utils
 from utils import hex_to_color_msg
 from suturo_planning_manipulation.manipulation import Manipulation
 from suturo_planning_perception import perception
+from geometry_msgs.msg import PoseStamped
 
 
 class SearchObject(smach.State):
 
     _next_scan = 0
+    _current_position = 0
     _found_objects = []
     _recognized_objects = []
     _obj_colors = []
@@ -35,7 +37,7 @@ class SearchObject(smach.State):
             utils.manipulation = Manipulation()
             rospy.sleep(2)
 
-        scan_pose = 'scan_pose2'
+        scan_pose = 'scan_pose1'
 
         # Add the found objects
         if userdata.objects_found:
@@ -61,29 +63,44 @@ class SearchObject(smach.State):
                 pass
 
         # search for objects
+        search_positions = [[0.3, 0.3, 0.0], [-0.3, 0.3, 0.0], [-0.3, -0.3, 0.0], [0.3, -0.3, 0.0]]
         num_of_scans = 12
         max_rad = 5.9
         rad_per_step = max_rad / num_of_scans
 
-        for x in range(self._next_scan, num_of_scans):
-            # skip turning arm on first scan
-            if self._next_scan != 0:
-                rad = x * rad_per_step - 2.945
-                print 'Turning arm ' + str(rad)
-                utils.manipulation.turn_arm(rad)
+        for pos in range(self._current_position, len(search_positions)):
+            pose_stamped = PoseStamped()
+            pose_stamped.header.frame_id = '/odom_combined'
+            pose_stamped.header.stamp = rospy.get_rostime
+            pose_stamped.pose.position.x = search_positions[pos][0]
+            pose_stamped.pose.position.y = search_positions[pos][1]
+            pose_stamped.pose.position.z = search_positions[pos][2]
 
-            self._next_scan += 1
+            utils.manipulation.move_base(pose_stamped)
 
-            # look for objects
-            print 'Colors: ' + str(colors)
-            self._recognized_objects = perception.recognize_objects_of_interest(colors)
-            print 'Found objects: ' + str(self._recognized_objects)
-            if self._recognized_objects:  # check if an object was recognized
-                userdata.object_to_perceive = self._recognized_objects.pop(0)
+            for x in range(self._next_scan, num_of_scans):
+                # skip turning arm on first scan
+                if self._next_scan != 0:
+                    rad = x * rad_per_step - 2.945
+                    print 'Turning arm ' + str(rad)
+                    utils.manipulation.turn_arm(rad)
+                    rospy.sleep(1)
 
-                # Might help with tf
-                rospy.sleep(4)
+                self._next_scan += 1
 
-                return 'objectFound'
+                # look for objects
+                print 'Colors: ' + str(colors)
+                self._recognized_objects = perception.recognize_objects_of_interest(colors)
+                print 'Found objects: ' + str(self._recognized_objects)
+                if self._recognized_objects:  # check if an object was recognized
+                    userdata.object_to_perceive = self._recognized_objects.pop(0)
+
+                    # Might help with tf
+                    rospy.sleep(3)
+
+                    return 'objectFound'
+
+            self._next_scan = 0
+            self._current_position += 1
 
         return 'noObjectsLeft'

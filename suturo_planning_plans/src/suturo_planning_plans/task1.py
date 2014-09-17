@@ -24,7 +24,7 @@ class Task1(smach.StateMachine):
                                                 'fail': 'GraspObject'})
             smach.StateMachine.add('PlaceObject', PlaceObject(),
                                    transitions={'success': 'CheckPlacement',
-                                                'fail': 'PerceiveObject'})
+                                                'fail': 'PlaceObject'})
             smach.StateMachine.add('CheckPlacement', CheckPlacement(),
                                    transitions={'onTarget': 'SearchObject',
                                                 'notOnTarget': 'GraspObject',
