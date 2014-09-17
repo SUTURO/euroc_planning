@@ -1,5 +1,4 @@
 import smach
-import time
 import rospy
 import utils
 from utils import hex_to_color_msg
@@ -34,7 +33,7 @@ class SearchObject(smach.State):
 
         if utils.manipulation is None:
             utils.manipulation = Manipulation()
-            time.sleep(2)
+            rospy.sleep(2)
 
         scan_pose = 'scan_pose2'
 
@@ -83,7 +82,7 @@ class SearchObject(smach.State):
                 userdata.object_to_perceive = self._recognized_objects.pop(0)
 
                 # Might help with tf
-                time.sleep(2)
+                rospy.sleep(4)
 
                 return 'objectFound'
 

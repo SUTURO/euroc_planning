@@ -16,6 +16,9 @@ class PlaceObject(smach.State):
         destination = PointStamped()
         destination.header.frame_id = '/odom_combined'
         destination.point = userdata.yaml.target_zones[0].target_position
-        utils.manipulation.place(destination)
+        placed = utils.manipulation.place(destination)
 
-        return 'success'
+        if placed:
+            return 'success'
+        else:
+            return 'fail'

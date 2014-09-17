@@ -194,8 +194,8 @@ class Manipulation(object):
         dest = self.transform_to(dest, "/odom_combined")
         place_pose = get_place_position(co, dest, self.__listener)
         if not self.__move_group_to(get_pre_place_position(place_pose), move_group):
-			print "Can't reach preplaceposition."
-			return False
+            print "Can't reach preplaceposition."
+            return False
         if not self.__move_group_to(place_pose, move_group):
 			print "Can't reach placeposition."
 			return False
@@ -206,10 +206,10 @@ class Manipulation(object):
         post_place_pose.header.frame_id = "/tcp"
         post_place_pose.pose.position = Point(0, 0, -post_place_length)
         if not self.__move_group_to(post_place_pose, move_group):
-			print "Can't reach postplaceposition."
-			return False
+            print "Can't reach postplaceposition."
+            return False
         rospy.sleep(0.25)
-		return True
+        return True
 
     def load_object(self, mass, cog):
         request = SetObjectLoadRequest()
