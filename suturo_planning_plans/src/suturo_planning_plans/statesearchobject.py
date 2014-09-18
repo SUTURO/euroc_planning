@@ -51,7 +51,7 @@ class SearchObject(smach.State):
 
         # take initial scan pose
         if self._next_scan == 0:
-            print 'Take ' + scan_pose
+            rospy.loginfo('Take ' + scan_pose)
             utils.manipulation.move_to(scan_pose)
 
         # get the colors of the missing objects, assuming for now that every object has its own color
@@ -76,31 +76,44 @@ class SearchObject(smach.State):
             pose_stamped.pose.position.y = search_positions[pos][1]
             pose_stamped.pose.position.z = search_positions[pos][2]
 
+            rospy.loginfo('Moving to %s'%str(pose_stamped))
             utils.manipulation.move_base(pose_stamped)
 
             for x in range(self._next_scan, num_of_scans):
                 # skip turning arm on first scan
                 if self._next_scan != 0:
                     rad = x * rad_per_step - 2.945
-                    print 'Turning arm ' + str(rad)
+                    rospy.loginfo('Turning arm %s' %str(rad))
                     utils.manipulation.turn_arm(rad)
-                    rospy.sleep(1)
 
+                rospy.sleep(1)
                 self._next_scan += 1
 
                 # look for objects
-                print 'Colors: ' + str(colors)
+                rospy.loginfo('Colors: ' + str(colors))
                 self._recognized_objects = perception.recognize_objects_of_interest(colors)
-                print 'Found objects: ' + str(self._recognized_objects)
+                rospy.loginfo('Found objects: ' + str(self._recognized_objects))
+
                 if self._recognized_objects:  # check if an object was recognized
                     userdata.object_to_perceive = self._recognized_objects.pop(0)
 
                     # Might help with tf
-                    rospy.sleep(3)
+                    rospy.loginfo('Sleep 1')
+                    rospy.sleep(1)
+                    rospy.loginfo('Sleep 2')
+                    rospy.sleep(1)
+                    rospy.loginfo('Sleep 3')
+                    rospy.sleep(1)
+                    rospy.loginfo('Sleep 4')
+                    rospy.sleep(1)
 
                     return 'objectFound'
 
             self._next_scan = 0
             self._current_position += 1
+
+            if pos != len(search_positions) - 1:
+               rospy.loginfo('Take ' + scan_pose)
+               utils.manipulation.move_to(scan_pose)
 
         return 'noObjectsLeft'

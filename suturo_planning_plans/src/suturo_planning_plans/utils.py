@@ -2,10 +2,21 @@ import rospy
 import struct
 from std_msgs.msg import ColorRGBA
 from moveit_msgs.msg import CollisionObject
+from suturo_perception_msgs.srv import Classifier
 
 
 # Holds the manipulation object
 manipulation = None
+
+
+def classify_object(object):
+    rospy.wait_for_service('suturo/Classifier')
+    try:
+        classifier = rospy.ServiceProxy('suturo/Classifier', Classifier)
+        return classifier(object).classifiedObject
+    except rospy.ServiceException, e:
+        print "Service call failed: %s" % e
+
 
 def hex_to_color_msg(hex_str):
     rgb = struct.unpack('BBB', hex_str.decode('hex'))

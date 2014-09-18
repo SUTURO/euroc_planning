@@ -1,7 +1,7 @@
 import smach
 import rospy
 from utils import get_valid_objects
-from utils import match_object
+from utils import classify_object
 from utils import publish_collision_objects
 from utils import get_object_to_move
 from suturo_planning_perception import perception
@@ -24,7 +24,7 @@ class PerceiveObject(smach.State):
         collision_objects = []
         for obj in perceived_objects:
             # obj.object.id = str(obj.c_centroid.x)
-            matched_obj = match_object(obj, userdata.yaml)
+            matched_obj = classify_object(obj)
             rospy.logdebug('Matched: ' + str(obj) + '\nwith: ' + str(matched_obj))
             collision_objects.append(obj.object)
             # obj.color = userdata.object_to_perceive.color
