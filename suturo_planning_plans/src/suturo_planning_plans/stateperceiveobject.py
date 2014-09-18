@@ -35,7 +35,7 @@ class PerceiveObject(smach.State):
         userdata.objects_found = matched_objects
 
         # check if it was an object
-        object_candidate = get_object_to_move(perceived_objects)
+        object_candidate = get_object_to_move(matched_objects)
         if object_candidate is not None:
             userdata.object_to_move = object_candidate
             return 'validObject'
