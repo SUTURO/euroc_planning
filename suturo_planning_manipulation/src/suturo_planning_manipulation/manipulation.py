@@ -35,7 +35,7 @@ class Manipulation(object):
         self.__base_group.set_planning_time(10)
         self.__arm_base_group = moveit_commander.MoveGroupCommander("arm_base")
         self.__arm_base_group.set_planning_time(10)
-        
+
         euroc_interface_node = '/euroc_interface_node/'
         self.__set_object_load_srv = rospy.ServiceProxy(euroc_interface_node + 'set_object_load', SetObjectLoad)
         # self.__gripper_max_pose = 0.03495

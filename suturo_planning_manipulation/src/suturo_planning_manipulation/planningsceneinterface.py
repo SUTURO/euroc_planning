@@ -34,11 +34,11 @@ class PlanningSceneInterface(object):
         pose.header.frame_id = "/odom_combined"
         pose.pose.position = Point(0, 0, -0.01)
         pose.pose.orientation = Quaternion(0, 0, 0, 1)
-        box = self.__make_box("ground", pose, [2, 2, 0.01])
+        box = self.make_box("ground", pose, [2, 2, 0.01])
         self.add_object(box)
 
     @staticmethod
-    def __make_box(name, pose, size):
+    def make_box(name, pose, size):
         co = CollisionObject()
         co.operation = CollisionObject.ADD
         co.id = name
@@ -82,6 +82,9 @@ class PlanningSceneInterface(object):
         collision_object.operation = moveit_msgs.msg.CollisionObject.ADD
         self.__collision_object_publisher.publish(collision_object)
         rospy.sleep(0.1)
+
+    def add_box(self, name, pose, size):
+        self.add_object(self.make_box(name, pose, size))
 
     def remove_object(self, name):
         co = moveit_msgs.msg.CollisionObject()
