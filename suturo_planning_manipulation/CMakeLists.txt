@@ -148,6 +148,9 @@ catkin_package(
 install(PROGRAMS bin/head_mover
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
+install(PROGRAMS bin/head_mover2
+        DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
 #############
 ## Testing ##
 #############

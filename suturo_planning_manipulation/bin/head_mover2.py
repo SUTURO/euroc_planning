@@ -82,7 +82,7 @@ if __name__ == '__main__':
     rospy.init_node('head_mover', anonymous=True)
 
     mani = Manipulation()
-    test_task1(mani)
+    test_task3(mani)
 
     # co = mani.get_planning_scene().get_collision_object("red_cube")
     # print mani.calc_object_weight(co, 2710)

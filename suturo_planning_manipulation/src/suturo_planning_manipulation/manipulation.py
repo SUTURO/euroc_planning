@@ -197,8 +197,8 @@ class Manipulation(object):
             print "Can't reach preplaceposition."
             return False
         if not self.__move_group_to(place_pose, move_group):
-			print "Can't reach placeposition."
-			return False
+            print "Can't reach placeposition."
+            return False
         self.open_gripper()
         rospy.sleep(0.25)
 
