@@ -10,7 +10,7 @@ from suturo_planning_perception import perception
 class PerceiveObject(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['noObject', 'validObject'],
-                             input_keys=['object_to_perceive', 'yaml'],
+                             input_keys=['object_to_perceive', 'yaml', 'placed_objects'],
                              output_keys=['object_to_move', 'pending_objects', 'objects_found'])
 
     def execute(self, userdata):
@@ -25,12 +25,15 @@ class PerceiveObject(smach.State):
         matched_objects = []
 
         for obj in perceived_objects:
-            # obj.object.id = str(obj.c_centroid.x)
+            # classify object
             matched_obj = classify_object(obj)
             rospy.logdebug('Matched: ' + str(obj) + '\n----------------------------------\nwith: ' + str(matched_obj))
-            matched_objects.append(matched_obj)
-            collision_objects.append(matched_obj.object)
-            # obj.color = userdata.object_to_perceive.color
+
+            # check if the object was already placed
+            if not matched_obj.object.id in userdata.placed_objects:
+                matched_objects.append(matched_obj)
+                collision_objects.append(matched_obj.object)
+
         publish_collision_objects(collision_objects)
         userdata.objects_found = matched_objects
 
