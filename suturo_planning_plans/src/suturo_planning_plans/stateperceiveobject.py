@@ -22,14 +22,17 @@ class PerceiveObject(smach.State):
             return 'noObject'
 
         collision_objects = []
+        matched_objects = []
+
         for obj in perceived_objects:
             # obj.object.id = str(obj.c_centroid.x)
             matched_obj = classify_object(obj)
-            rospy.logdebug('Matched: ' + str(obj) + '\nwith: ' + str(matched_obj))
-            collision_objects.append(obj.object)
+            rospy.logdebug('Matched: ' + str(obj) + '\n----------------------------------\nwith: ' + str(matched_obj))
+            matched_objects.append(matched_obj)
+            collision_objects.append(matched_obj.object)
             # obj.color = userdata.object_to_perceive.color
         publish_collision_objects(collision_objects)
-        userdata.objects_found = perceived_objects
+        userdata.objects_found = matched_objects
 
         # check if it was an object
         object_candidate = get_object_to_move(perceived_objects)

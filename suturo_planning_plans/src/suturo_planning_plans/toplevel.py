@@ -19,7 +19,7 @@ def toplevel_plan(init_sim, task_list):
     with toplevel:
         for task_name in task_list:
             rospy.logdebug('Adding task: %s', task_name)
-            smach.StateMachine.add('Execute' + task_name, EurocTask(init_sim, task_name),
+            smach.StateMachine.add('Execute%s'%task_name, EurocTask(init_sim, task_name),
                                    transitions={'success': 'success',
                                                 'fail': 'fail'})
 
@@ -50,9 +50,9 @@ class EurocTask(smach.StateMachine):
                  'task2': task1.Task1,
                  'task3': task1.Task1}
 
-        plan_args = {'task1': [False],
-                     'task2': [False],
-                     'task3': [True]}
+        plan_args = {'task1': [False, 'task1'],
+                     'task2': [False, 'task2'],
+                     'task3': [True, 'task3']}
 
         task = task_name.split('_')[0]
 
@@ -122,7 +122,7 @@ class GetYaml(smach.State):
             time.sleep(0.05)
             self._lock.acquire()
 
-        rospy.loginfo('Got yaml ' + str(self._yaml))
+        rospy.loginfo('Got yaml %s'%str(self._yaml))
         userdata.yaml = self._yaml
         self._lock.release()
 
@@ -131,6 +131,6 @@ class GetYaml(smach.State):
     def parse_yaml(self, msg):
         self._lock.acquire()
         self._yaml = msg
-        rospy.loginfo('Parsed yaml: ' + str(self._yaml))
+        rospy.loginfo('Parsed yaml: %s'%str(self._yaml))
         self._lock.release()
 

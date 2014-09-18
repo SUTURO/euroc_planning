@@ -7,7 +7,7 @@ from suturo_planning_plans.statecheckplacement import CheckPlacement
 
 
 class Task1(smach.StateMachine):
-    def __init__(self, enable_movement):
+    def __init__(self, enable_movement, task):
         smach.StateMachine.__init__(self, outcomes=['success', 'fail'],
                                     input_keys=['yaml'],
                                     output_keys=[])
@@ -34,3 +34,4 @@ class Task1(smach.StateMachine):
         self.userdata.pending_objects = []
         self.userdata.placed_objects = []
         self.userdata.enable_movement = enable_movement
+        self.userdata.task = task
