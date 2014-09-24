@@ -1,31 +1,50 @@
+import rospy
+import scipy
+from visualization_msgs.msg import Marker, MarkerArray
+from std_msgs.msg import ColorRGBA
+
+
 class SearchGrid:
 
-    field = []
+    field = None
 
     def __init__(self, num_of_fields_x, num_of_fields_y):
-        for x in range(0, num_of_fields_x):
-            row = []
-            for y in range(0, num_of_fields_y):
-                row.append(SearchField(x, y))
-            self.field.append(row)
+        self.field = scipy.zeros([num_of_fields_x, num_of_fields_y])
 
+    def to_marker_array(self):
 
-class SearchField:
+        markers = []
+        distance = 2.0 / len(self.field)
+        start_point = -1.0 + (distance / 2.0)
+        for x in range(0, len(self.field)):
+            for y in range(0, len(self.field[x])):
+                marker = Marker()
 
-    # True if the field is blocked by an obstacle
-    blocked = False
+                marker.header.stamp = rospy.get_rostime()
+                marker.header.frame_id = '/odom_combined'
+                marker.ns = 'search_grid'
+                marker.id = x + (y * len(self.field))
+                marker.action = Marker.ADD
+                marker.type = Marker.CUBE
+                marker.pose.position.x = start_point + (x * distance)
+                marker.pose.position.y = start_point + (y * distance)
+                marker.pose.position.z = 0
+                marker.pose.orientation.w = 1
+                marker.scale.x = distance
+                marker.scale.y = distance
+                marker.scale.z = 0.01
+                marker.color = SearchGrid._get_color_for_value(self.field[x][y])
+                marker.lifetime = rospy.Time(0)
 
-    # Value of the field. Increases if the field gets seen.
-    value = 0
+                markers.append(marker)
 
-    # x position
-    x = 0
+        return MarkerArray(markers)
 
-    # y position
-    y = 0
+    @staticmethod
+    def _get_color_for_value(value):
+        # If there is an obstacle
+        if value < 0:
+            return ColorRGBA(0, 0, 0, 1)
 
-    def __init__(self, x, y, blocked=False, value=0):
-        self.x = x
-        self.y = y
-        self.blocked = blocked
-        self.value = value
+        # Color depending on how often it was seen
+        return ColorRGBA(255, 255 - (value * 20), 255 - (value * 20), 1)

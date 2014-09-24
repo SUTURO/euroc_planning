@@ -7,7 +7,6 @@ import task1
 import task4
 import start_nodes
 from suturo_msgs.msg import Task
-from suturo_planning_yaml_pars0r.yaml_pars0r import YamlPars0r
 
 
 def toplevel_plan(init_sim, task_list):
