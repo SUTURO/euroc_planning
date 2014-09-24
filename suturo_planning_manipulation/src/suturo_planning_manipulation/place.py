@@ -10,9 +10,7 @@ from calc_grasp_position import finger_length, hand_length, pre_grasp_length
 
 __author__ = 'ichumuh'
 
-pre_place_length = 0.05
-post_place_length = 0.1
-safe_place = 0.005
+from manipulation_constants import *
 
 
 def get_place_position(collision_object, dest, tf_listener):
@@ -38,13 +36,13 @@ def get_place_position_cube(collision_object, dest, tf_listener):
     (p, q) = tf_listener.lookupTransform("/tcp", "/" + collision_object.id, now)
 
     a = max(p)
-    print "p ", p
+    # print "p ", p
 
-    print "dimensions: ", collision_object.primitives[0].dimensions
+    # print "dimensions: ", collision_object.primitives[0].dimensions
     place_pose.pose.position.z = a + collision_object.primitives[0].dimensions[
                                          shape_msgs.msg.SolidPrimitive.BOX_X] / 2 + safe_place
 
-    print "dest: ", place_pose.pose.position
+    # print "dest: ", place_pose.pose.position
     # place_pose.pose.position.z = finger_length + hand_length \
     # + collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.BOX_X] / 2
     return place_pose
@@ -66,7 +64,7 @@ def get_place_position_cylinder(collision_object, dest, tf_listener):
 
     place_pose.pose.position.z = a + collision_object.primitives[0].dimensions[
                                          shape_msgs.msg.SolidPrimitive.CYLINDER_HEIGHT] / 2 + safe_place
-    print place_pose.pose.position
+    # print place_pose.pose.position
     # place_pose.pose.position.z = finger_length + hand_length \
     # + collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.CYLINDER_HEIGHT] / 2
     return place_pose
@@ -92,7 +90,7 @@ def get_place_position_handle(collision_object, dest, tf_listener):
                                          shape_msgs.msg.SolidPrimitive.CYLINDER_HEIGHT] / 2 + \
                                  collision_object.primitives[1].dimensions[
                                      shape_msgs.msg.SolidPrimitive.BOX_X] + safe_place
-    print place_pose.pose.position
+    # print place_pose.pose.position
     # place_pose.pose.position.z = finger_length + hand_length \
     # + collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.CYLINDER_HEIGHT] / 2
     return place_pose

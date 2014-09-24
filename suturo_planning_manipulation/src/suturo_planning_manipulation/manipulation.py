@@ -19,33 +19,33 @@ import geometry_msgs.msg
 from calc_grasp_position import *
 from place import get_place_position, get_pre_place_position, pre_place_length, post_place_length
 from planningsceneinterface import *
-
-gripper_max_pose = 0.03495
-
+from manipulation_constants import *
 
 class Manipulation(object):
     def __init__(self):
         self.__listener = tf.TransformListener()
+
         moveit_commander.roscpp_initialize(sys.argv)
         self.__arm_group = moveit_commander.MoveGroupCommander("arm")
-        self.__arm_group.set_planning_time(10)
+        self.__arm_group.set_planning_time(15)
+
         self.__gripper_group = moveit_commander.MoveGroupCommander("gripper")
-        self.__planning_scene_interface = PlanningSceneInterface()
+
         self.__base_group = moveit_commander.MoveGroupCommander("base")
-        self.__base_group.set_planning_time(10)
+        self.__base_group.set_planning_time(15)
+
         self.__arm_base_group = moveit_commander.MoveGroupCommander("arm_base")
-        self.__arm_base_group.set_planning_time(10)
+        self.__arm_base_group.set_planning_time(15)
+
+        self.__planning_scene_interface = PlanningSceneInterface()
 
         euroc_interface_node = '/euroc_interface_node/'
         self.__set_object_load_srv = rospy.ServiceProxy(euroc_interface_node + 'set_object_load', SetObjectLoad)
-        # self.__gripper_max_pose = 0.03495
+
         rospy.sleep(1)
         self.__planning_scene_interface.add_ground()
-        print "manipulation started"
-        # self.__arm_group.set_path_constraints()
-        # self.set_constraint()
-        # self.__arm_group.set_planner_id("RRTConnectkConfigDefault")
-
+        self.set_height_constraint(True)
+        print "Manipulation started."
 
     def __del__(self):
         moveit_commander.roscpp_shutdown()
@@ -78,6 +78,7 @@ class Manipulation(object):
             goal.pose.orientation = geometry_msgs.msg.Quaternion(*no)
 
             goal = self.transform_to(goal)
+
             move_group.set_pose_target(goal)
 
         return move_group.go()
@@ -87,6 +88,14 @@ class Manipulation(object):
         i = 0
         while odom_pose is None and i < 5:
             try:
+                if type(pose_target) is CollisionObject:
+                    if len(pose_target.primitives) > 1:
+                        print "only works for collision objects with one primitive"
+                        return None
+                    tmp_pose = PoseStamped()
+                    tmp_pose.header = pose_target.header
+                    tmp_pose.pose = pose_target.primitive_poses[0]
+                    pose_target = tmp_pose
                 if type(pose_target) is PoseStamped:
                     odom_pose = self.__listener.transformPose(target_frame, pose_target)
                     break
@@ -129,17 +138,23 @@ class Manipulation(object):
         self.__gripper_group.go()
 
     def grasp(self, collision_object, object_density=1):
-        return self.__grasp_with_group(collision_object, self.__arm_group)
+        return self.__grasp_with_group(collision_object, self.__arm_group, object_density)
 
-    def grasp_and_move(self, collision_object):
-        return self.__grasp_with_group(collision_object, self.__arm_base_group)
+    def grasp_and_move(self, collision_object, object_density=1):
+        return self.__grasp_with_group(collision_object, self.__arm_base_group, object_density)
 
-    def __grasp_with_group(self, collision_object, move_group):
+    def __grasp_with_group(self, collision_object, move_group, object_density):
         if type(collision_object) is str:
             collision_object = self.__planning_scene_interface.get_collision_object(collision_object)
-        grasp_positions = calculate_grasp_position(collision_object)
-        self.sort_grasps(grasp_positions)
-        print len(grasp_positions)
+        grasp_positions = calculate_grasp_position(collision_object, self.transform_to)
+
+        grasp_positions = self.__filter_invalid_grasps(grasp_positions)
+
+        # grasp_positions.sort(key=lambda x : -self.transform_to(x).pose.position.z)
+        grasp_positions.sort(cmp=lambda x, y: self.cmp_pose_stamped(collision_object, x, y))
+        # print len(grasp_positions)
+        # visualize_pose(grasp_positions)
+
         self.open_gripper()
         for grasp in grasp_positions:
             if self.__move_group_to(get_pre_grasp(grasp), move_group):
@@ -149,16 +164,45 @@ class Manipulation(object):
                 rospy.sleep(1)
                 self.close_gripper(collision_object)
 
-                self.load_object(1, self.get_center_of_mass(collision_object))
-                print "grasped"
+                com = self.get_center_of_mass(collision_object)
+                com = self.transform_to(com, "/tcp")
+                self.load_object(self.calc_object_weight(collision_object, object_density), Vector3(com.point.x, com.point.y, com.point.z))
+
+                print "grasped " + collision_object.id
                 # rospy.sleep(1)
                 return True
         return None
 
+
+    def cmp_pose_stamped(self, collision_object, pose1, pose2):
+        center = self.get_center_of_mass(collision_object)
+        odom_pose1 = self.transform_to(pose1)
+        odom_pose2 = self.transform_to(pose2)
+        d1 = magnitude(subtract_point(center.point, odom_pose1.pose.position))
+        d2 = magnitude(subtract_point(center.point, odom_pose2.pose.position))
+        diff = d1 - d2
+        if 0.0 < abs(diff) < 0.01:
+            # grasp_positions.sort(key=lambda x : -self.transform_to(x).pose.position.z)
+            z1 = odom_pose1.pose.position.z
+            z2 = odom_pose2.pose.position.z
+            diff = z2 - z1
+            # return diff * abs
+        # else:
+        return 0 if diff == 0 else int(diff * abs(1.0 / diff))
+
+    def __filter_invalid_grasps(self, list_of_grasps):
+        if len(list_of_grasps) == 0:
+            return list_of_grasps
+
+        #transform grasps into odom_combined
+        # list_of_grasps = map(self.transform_to, list_of_grasps)
+
+        return filter(lambda x : self.transform_to(x).pose.position.z > min_grasp_hight, list_of_grasps)
+
     def calc_object_weight(self, collision_object, density):
         weight = 0
         for i in range(0, len(collision_object.primitives)):
-            print i
+            # print i
             if collision_object.primitives[i].type == shape_msgs.msg.SolidPrimitive().BOX:
                 x = collision_object.primitives[i].dimensions[shape_msgs.msg.SolidPrimitive.BOX_X]
                 y = collision_object.primitives[i].dimensions[shape_msgs.msg.SolidPrimitive.BOX_Y]
@@ -171,11 +215,24 @@ class Manipulation(object):
         return weight
 
     def get_center_of_mass(self, collision_object):
-        now = rospy.Time.now()
-        self.__listener.waitForTransform("/tcp", "/" + collision_object.id, now, rospy.Duration(5))
-        (p, q) = self.__listener.lookupTransform("/tcp", "/" + collision_object.id, now)
+        # if type(collision_object) is CollisionObject:
+        p = PointStamped()
+        p.header.frame_id = "/odom_combined"
+        for pose in collision_object.primitive_poses:
+            p.point = add_point(p.point, pose.position)
+        p.point = multiply_point(1.0 / len(collision_object.primitive_poses), p.point)
+        # elif type(collision_object) is PoseStamped:
+        #     p = PointStamped()
+        #     p.header.frame_id = "/odom_combined"
+        #     for pose in collision_object.primitive_poses:
+        #         p.point = add_point(p.point, pose.position)
+        #     p.point
+        #     p.point = multiply_point(1.0 / len(collision_object.primitive_poses), p.point)
+        # now = rospy.Time.now()
+        # self.__listener.waitForTransform("/tcp", "/" + collision_object.id, now, rospy.Duration(5))
+        # (p, q) = self.__listener.lookupTransform("/tcp", "/" + collision_object.id, now)
 
-        return Vector3(p[0], p[1], p[2])
+        return p
 
     def stop(self):
         self.__arm_group.stop()
@@ -191,7 +248,11 @@ class Manipulation(object):
     def __place_with_group(self, destination, move_group):
         """ destination of type pose-stamped """
         dest = deepcopy(destination)
-        co = self.__planning_scene_interface.get_attached_object().object
+        co = self.__planning_scene_interface.get_attached_object()
+        if co is None :
+            return False
+        else:
+            co = co.object
         dest = self.transform_to(dest, "/odom_combined")
         place_pose = get_place_position(co, dest, self.__listener)
         if not self.__move_group_to(get_pre_place_position(place_pose), move_group):
@@ -200,16 +261,23 @@ class Manipulation(object):
         if not self.__move_group_to(place_pose, move_group):
             print "Can't reach placeposition."
             return False
+
         self.open_gripper()
         rospy.sleep(0.25)
 
         post_place_pose = PoseStamped()
         post_place_pose.header.frame_id = "/tcp"
         post_place_pose.pose.position = Point(0, 0, -post_place_length)
+
+        # post_place_pose = self.__arm_group.get_current_pose()
+        # post_place_pose.pose.position.z += post_place_length
+        # print post_place_pose
+
         if not self.__move_group_to(post_place_pose, move_group):
             print "Can't reach postplaceposition."
             return False
         rospy.sleep(0.25)
+        print "placed " + co.id
         return True
 
     def load_object(self, mass, cog):
@@ -220,11 +288,11 @@ class Manipulation(object):
         print resp.error_message
         return resp
 
-    def sort_grasps(self, grasps):
-        grasps.sort(key=self.__grasp_value)
-
-    def __grasp_value(self, grasp):
-        return -self.transform_to(grasp).pose.position.z
+    # def sort_grasps(self, grasps):
+    #     grasps.sort(key=self.__grasp_value)
+    #
+    # def __grasp_value(self, grasp):
+    #     return -self.transform_to(grasp).pose.position.z
 
     def get_planning_scene(self):
         return self.__planning_scene_interface
@@ -241,6 +309,12 @@ class Manipulation(object):
 
     def get_arm_move_group(self):
         return self.__arm_group
+
+    def set_height_constraint(self, t=True):
+        if t:
+            self.__planning_scene_interface.add_ground(0.95)
+        else:
+            self.__planning_scene_interface.remove_object("ground0.9")
 
     # def set_constraint(self, pose):
     #     c = Constraints()
@@ -271,3 +345,5 @@ class Manipulation(object):
     #     c.orientation_constraints.append(oc)
     #     print c
     #     self.__arm_group.set_path_constraints(c)
+
+

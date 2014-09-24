@@ -29,12 +29,12 @@ class PlanningSceneInterface(object):
     def __del__(self):
         pass
 
-    def add_ground(self):
+    def add_ground(self, height=-0.01):
         pose = PoseStamped()
         pose.header.frame_id = "/odom_combined"
-        pose.pose.position = Point(0, 0, -0.01)
+        pose.pose.position = Point(0, 0, height)
         pose.pose.orientation = Quaternion(0, 0, 0, 1)
-        box = self.make_box("ground", pose, [2, 2, 0.01])
+        box = self.make_box("ground" + str(height), pose, [3, 3, 0.01])
         self.add_object(box)
 
     @staticmethod

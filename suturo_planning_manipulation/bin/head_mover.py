@@ -5,6 +5,7 @@ import numpy
 import sys
 import copy
 from math import sqrt
+from datetime import time
 from geometry_msgs.msg._PointStamped import PointStamped
 from moveit_msgs.msg._CollisionObject import CollisionObject
 import rospy
@@ -25,15 +26,20 @@ from suturo_planning_manipulation.planningsceneinterface import PlanningSceneInt
 
 
 def test_task1(mani):
+    pose = PoseStamped()
+    pose.header.frame_id = "/tcp"
+    pose.pose.position = Point(0, 0, -post_place_length)
+
     mani.grasp("red_cube")
+    mani.move_to(pose)
 
     dest = PointStamped()
     dest.header.frame_id = "/odom_combined"
-    # dest.point = Point(-0.3, -0.4, 0.03)
     dest.point = Point(0.5, 0.5, 0.00)
     mani.place(dest)
 
     mani.grasp("green_cylinder")
+    mani.move_to(pose)
 
     dest = PointStamped()
     dest.header.frame_id = "/odom_combined"
@@ -41,6 +47,7 @@ def test_task1(mani):
     mani.place(dest)
 
     mani.grasp("blue_handle")
+    mani.move_to(pose)
 
     dest = PointStamped()
     dest.header.frame_id = "/odom_combined"
@@ -49,10 +56,8 @@ def test_task1(mani):
 
 def test_task3(mani):
     pose = PoseStamped()
-    pose.header.frame_id = "/odom_combined"
-    pose.pose.position = Point(0.1858, -0.772, 0.04)
-    pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, -0.1))
-    mani.get_planning_scene().add_box("red_cube", pose, [0.05, 0.05, 0.05])
+    pose.header.frame_id = "/tcp"
+    pose.pose.position = Point(0, 0, -post_place_length)
 
     mani.grasp_and_move("blue_handle")
 
@@ -60,13 +65,13 @@ def test_task3(mani):
     dest.header.frame_id = "/odom_combined"
     dest.point = Point(0.85, -0.85, 0)
     mani.place_and_move(dest)
-
+    mani.move_to(pose)
     mani.grasp_and_move("red_cube")
 
     dest = PointStamped()
     dest.header.frame_id = "/odom_combined"
-    # dest.point = Point(-0.3, -0.4, 0.03)
     dest.point = Point( -0.85, 0.85, 0.00)
+    mani.move_to(pose)
     mani.place_and_move(dest)
 
     mani.grasp_and_move("green_cylinder")
@@ -74,19 +79,25 @@ def test_task3(mani):
     dest = PointStamped()
     dest.header.frame_id = "/odom_combined"
     dest.point = Point(-0.85, -0.85, 0)
+    mani.move_to(pose)
     mani.place_and_move(dest)
 
-
-
 if __name__ == '__main__':
+    # print (lambda x: a(2, x))(3)
     rospy.init_node('head_mover', anonymous=True)
-
+    #
     mani = Manipulation()
-    test_task1(mani)
+    # mani.open_gripper()
+    # mani.grasp("blue_handle")
+    test_task3(mani)
+    # test_task1(mani)
+
+    # co = mani.get_planning_scene().get_collision_object("part4")
+    # visualize_point(mani.get_center_of_mass(co))
 
     # co = mani.get_planning_scene().get_collision_object("red_cube")
     # print mani.calc_object_weight(co, 2710)
-    # print mani.get_arm_move_group().get_current_joint_values()
+    # print mani.get_arm_move_group().get_current_pose()
     #
     # mani = Manipulation()
     # ogog = geometry_msgs.msg.PoseStamped()
