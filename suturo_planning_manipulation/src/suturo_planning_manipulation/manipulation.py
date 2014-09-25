@@ -44,7 +44,7 @@ class Manipulation(object):
 
         rospy.sleep(1)
         self.__planning_scene_interface.add_ground()
-        self.set_height_constraint(True)
+        # self.set_height_constraint(True)
         print "Manipulation started."
 
     def __del__(self):
@@ -52,9 +52,7 @@ class Manipulation(object):
         moveit_commander.os._exit(0)
 
     def move_base(self, goal_pose):
-        print self.__base_group.get_current_pose()
         goal = deepcopy(goal_pose)
-
         self.__base_group.set_joint_value_target([goal.pose.position.x, goal.pose.position.y])
         print goal
         return self.__base_group.go()
@@ -150,9 +148,7 @@ class Manipulation(object):
 
         grasp_positions = self.__filter_invalid_grasps(grasp_positions)
 
-        # grasp_positions.sort(key=lambda x : -self.transform_to(x).pose.position.z)
         grasp_positions.sort(cmp=lambda x, y: self.cmp_pose_stamped(collision_object, x, y))
-        # print len(grasp_positions)
         # visualize_pose(grasp_positions)
 
         self.open_gripper()
@@ -182,27 +178,20 @@ class Manipulation(object):
         d2 = magnitude(subtract_point(center.point, odom_pose2.pose.position))
         diff = d1 - d2
         if 0.0 < abs(diff) < 0.01:
-            # grasp_positions.sort(key=lambda x : -self.transform_to(x).pose.position.z)
             z1 = odom_pose1.pose.position.z
             z2 = odom_pose2.pose.position.z
             diff = z2 - z1
-            # return diff * abs
-        # else:
         return 0 if diff == 0 else int(diff * abs(1.0 / diff))
 
     def __filter_invalid_grasps(self, list_of_grasps):
         if len(list_of_grasps) == 0:
             return list_of_grasps
 
-        #transform grasps into odom_combined
-        # list_of_grasps = map(self.transform_to, list_of_grasps)
-
         return filter(lambda x : self.transform_to(x).pose.position.z > min_grasp_hight, list_of_grasps)
 
     def calc_object_weight(self, collision_object, density):
         weight = 0
         for i in range(0, len(collision_object.primitives)):
-            # print i
             if collision_object.primitives[i].type == shape_msgs.msg.SolidPrimitive().BOX:
                 x = collision_object.primitives[i].dimensions[shape_msgs.msg.SolidPrimitive.BOX_X]
                 y = collision_object.primitives[i].dimensions[shape_msgs.msg.SolidPrimitive.BOX_Y]
@@ -215,22 +204,11 @@ class Manipulation(object):
         return weight
 
     def get_center_of_mass(self, collision_object):
-        # if type(collision_object) is CollisionObject:
         p = PointStamped()
         p.header.frame_id = "/odom_combined"
         for pose in collision_object.primitive_poses:
             p.point = add_point(p.point, pose.position)
         p.point = multiply_point(1.0 / len(collision_object.primitive_poses), p.point)
-        # elif type(collision_object) is PoseStamped:
-        #     p = PointStamped()
-        #     p.header.frame_id = "/odom_combined"
-        #     for pose in collision_object.primitive_poses:
-        #         p.point = add_point(p.point, pose.position)
-        #     p.point
-        #     p.point = multiply_point(1.0 / len(collision_object.primitive_poses), p.point)
-        # now = rospy.Time.now()
-        # self.__listener.waitForTransform("/tcp", "/" + collision_object.id, now, rospy.Duration(5))
-        # (p, q) = self.__listener.lookupTransform("/tcp", "/" + collision_object.id, now)
 
         return p
 
@@ -269,10 +247,6 @@ class Manipulation(object):
         post_place_pose.header.frame_id = "/tcp"
         post_place_pose.pose.position = Point(0, 0, -post_place_length)
 
-        # post_place_pose = self.__arm_group.get_current_pose()
-        # post_place_pose.pose.position.z += post_place_length
-        # print post_place_pose
-
         if not self.__move_group_to(post_place_pose, move_group):
             print "Can't reach postplaceposition."
             return False
@@ -287,12 +261,6 @@ class Manipulation(object):
         resp = self.__set_object_load_srv(request)
         print resp.error_message
         return resp
-
-    # def sort_grasps(self, grasps):
-    #     grasps.sort(key=self.__grasp_value)
-    #
-    # def __grasp_value(self, grasp):
-    #     return -self.transform_to(grasp).pose.position.z
 
     def get_planning_scene(self):
         return self.__planning_scene_interface
@@ -314,36 +282,6 @@ class Manipulation(object):
         if t:
             self.__planning_scene_interface.add_ground(0.95)
         else:
-            self.__planning_scene_interface.remove_object("ground0.9")
-
-    # def set_constraint(self, pose):
-    #     c = Constraints()
-    #     # c.name = ""
-    #     # pc = PositionConstraint()
-    #     # pc.header.frame_id = "/odom_combined"
-    #     # pc.link_name = "gp"
-    #     # box = SolidPrimitive()
-    #     # box.type = SolidPrimitive.SPHERE
-    #     # box.dimensions.append(2.0)
-    #     # pc.constraint_region.primitives.append(box)
-    #     # box_pose = Pose()
-    #     # box_pose.position = Point(0.0, 0.0, 1.0)
-    #     # box_pose.orientation = Quaternion(0.0, 0.0, 0.0, 1.0)
-    #     # pc.constraint_region.primitive_poses.append(box_pose)
-    #     # pc.weight = 1.0
-    #     # c.position_constraints.append(pc)
-    #
-    #     oc = OrientationConstraint()
-    #     oc.link_name = "link7"
-    #     oc.weight = 1.0
-    #     oc.header = pose.header
-    #     oc.orientation = pose.pose.orientation
-    #     # oc.orientation = Quaternion(0, 0, 0, 1)
-    #     oc.absolute_x_axis_tolerance = pi
-    #     oc.absolute_y_axis_tolerance = pi
-    #     oc.absolute_z_axis_tolerance = 0.1  # pi
-    #     c.orientation_constraints.append(oc)
-    #     print c
-    #     self.__arm_group.set_path_constraints(c)
+            self.__planning_scene_interface.remove_object("ground0.95")
 
 

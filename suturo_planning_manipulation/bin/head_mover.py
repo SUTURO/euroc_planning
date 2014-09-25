@@ -88,9 +88,12 @@ if __name__ == '__main__':
     #
     mani = Manipulation()
     # mani.open_gripper()
-    # mani.grasp("blue_handle")
-    test_task3(mani)
+    # mani.grasp("part2")
+    # mani.open_gripper()
+    # test_task3(mani)
     # test_task1(mani)
+    mani.move_to("scan_pose1")
+    mani.move_to("scan_pose1")
 
     # co = mani.get_planning_scene().get_collision_object("part4")
     # visualize_point(mani.get_center_of_mass(co))
