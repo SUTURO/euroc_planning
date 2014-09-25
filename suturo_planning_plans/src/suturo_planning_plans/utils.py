@@ -49,8 +49,11 @@ def get_valid_objects(objects):
 
     valid_objects = []
     for obj in objects:
-        if obj.object.primitives[0].dimensions != (-1.0, -1.0, -1.0):
+        if obj.mpe_success:
             valid_objects.append(obj)
+        else:
+            if obj.c_cuboid_success and (obj.object.primitives[0].dimensions != (-1.0, -1.0, -1.0)):
+                valid_objects.append(obj)
     return valid_objects
 
 

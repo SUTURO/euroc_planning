@@ -31,9 +31,9 @@ class PlaceObject(smach.State):
             return 'fail'
         else:
             if userdata.enable_movement:
-                placed = utils.manipulation.place(destination)
-            else:
                 placed = utils.manipulation.place_and_move(destination)
+            else:
+                placed = utils.manipulation.place(destination)
 
         if placed:
             return 'success'

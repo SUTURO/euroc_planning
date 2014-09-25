@@ -81,6 +81,7 @@ class SearchObject(smach.State):
 
             rospy.loginfo('Moving to %s'%str(pose_stamped))
             utils.manipulation.move_base(pose_stamped)
+            rospy.logdebug('Moved')
 
             for x in range(self._next_scan, num_of_scans):
                 # skip turning arm on first scan
