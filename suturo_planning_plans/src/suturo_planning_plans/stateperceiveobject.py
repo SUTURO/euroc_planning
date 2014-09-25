@@ -16,7 +16,9 @@ class PerceiveObject(smach.State):
     def execute(self, userdata):
         rospy.loginfo('Executing state PerceiveObject')
 
-        perceived_objects = get_valid_objects(perception.get_gripper_perception())
+        get_gripper = perception.get_gripper_perception()
+        perceived_objects = get_valid_objects(get_gripper)
+        rospy.logdebug('Found ' + str(len(get_gripper)) + ' objects, ' + str(len(perceived_objects)) + ' are valid.')
         if not perceived_objects:
             userdata.objects_found = []
             return 'noObject'
@@ -28,6 +30,9 @@ class PerceiveObject(smach.State):
             # classify object
             matched_obj = classify_object(obj)
             rospy.logdebug('Matched: ' + str(obj) + '\n----------------------------------\nwith: ' + str(matched_obj))
+
+            if matched_obj is None:
+                continue
 
             # check if the object was already placed
             if not matched_obj.object.id in userdata.placed_objects:
