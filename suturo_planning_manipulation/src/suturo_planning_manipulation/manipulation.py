@@ -104,9 +104,11 @@ class Manipulation(object):
                 if type(pose_target) is PointStamped:
                     odom_pose = self.__listener.transformPoint(target_frame, pose_target)
                     break
-            except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-                print "tf error"
+            except Exception, e:
+                print "tf error:", e
             rospy.sleep(0.5)
+            pose_target.header.stamp = rospy.Time.now()
+            self.__listener.waitForTransform(target_frame, pose_target.header.frame_id, pose_target.header.stamp, rospy.Duration(4.0))
             i += 1
             print "tf fail nr. ", i
 
