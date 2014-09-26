@@ -59,5 +59,6 @@ atexit.register(exit_handler)
 
 if __name__ == '__main__':
     if '--save' in sys.argv:
-        save_log = True
+        global _save_log
+        _save_log = True
     main(sys.argv[1], '--plan' in sys.argv, '--init' in sys.argv)
