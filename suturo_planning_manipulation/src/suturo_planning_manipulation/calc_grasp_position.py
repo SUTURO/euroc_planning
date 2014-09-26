@@ -75,17 +75,28 @@ def calculate_grasp_position_box(collision_object):
     grasp_positions.append(make_grasp_pose(depth, points[0], points[1], collision_object.id))
     grasp_positions.append(make_grasp_pose(depth, points[0], points[2], collision_object.id))
 
-    grasp_positions.append(make_grasp_pose(depth, points[1], points[0], collision_object.id))
-    grasp_positions.append(make_grasp_pose(depth, points[1], points[2], collision_object.id))
-
-    grasp_positions.append(make_grasp_pose(depth, points[2], points[0], collision_object.id))
-    grasp_positions.append(make_grasp_pose(depth, points[2], points[1], collision_object.id))
-
     grasp_positions.append(make_grasp_pose(depth, points[3], points[4], collision_object.id))
     grasp_positions.append(make_grasp_pose(depth, points[3], points[5], collision_object.id))
 
+
+    depth = finger_length
+    if finger_length < collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.BOX_Y]:
+        depth = collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.BOX_Y]
+    depth += hand_length
+
+    grasp_positions.append(make_grasp_pose(depth, points[1], points[0], collision_object.id))
+    grasp_positions.append(make_grasp_pose(depth, points[1], points[2], collision_object.id))
+
     grasp_positions.append(make_grasp_pose(depth, points[4], points[3], collision_object.id))
     grasp_positions.append(make_grasp_pose(depth, points[4], points[5], collision_object.id))
+
+    depth = finger_length
+    if finger_length < collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.BOX_Z]:
+        depth = collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.BOX_Z]
+    depth += hand_length
+
+    grasp_positions.append(make_grasp_pose(depth, points[2], points[0], collision_object.id))
+    grasp_positions.append(make_grasp_pose(depth, points[2], points[1], collision_object.id))
 
     grasp_positions.append(make_grasp_pose(depth, points[5], points[3], collision_object.id))
     grasp_positions.append(make_grasp_pose(depth, points[5], points[4], collision_object.id))

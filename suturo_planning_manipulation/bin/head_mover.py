@@ -60,26 +60,27 @@ def test_task3(mani):
     pose.pose.position = Point(0, 0, -post_place_length)
 
     mani.grasp_and_move("blue_handle")
+    mani.move_to(pose)
 
     dest = PointStamped()
     dest.header.frame_id = "/odom_combined"
     dest.point = Point(0.85, -0.85, 0)
     mani.place_and_move(dest)
-    mani.move_to(pose)
+
     mani.grasp_and_move("red_cube")
+    mani.move_to(pose)
 
     dest = PointStamped()
     dest.header.frame_id = "/odom_combined"
     dest.point = Point( -0.85, 0.85, 0.00)
-    mani.move_to(pose)
     mani.place_and_move(dest)
 
     mani.grasp_and_move("green_cylinder")
+    mani.move_to(pose)
 
     dest = PointStamped()
     dest.header.frame_id = "/odom_combined"
     dest.point = Point(-0.85, -0.85, 0)
-    mani.move_to(pose)
     mani.place_and_move(dest)
 
 if __name__ == '__main__':
@@ -88,7 +89,10 @@ if __name__ == '__main__':
     #
     mani = Manipulation()
     # mani.open_gripper()
-    mani.grasp("blue_handle")
+    dest = PointStamped()
+    dest.header.frame_id = "/odom_combined"
+    dest.point = Point(-0.85, -0.85, 0)
+    mani.place_and_move(dest)
     # mani.open_gripper()
     # test_task3(mani)
     # test_task1(mani)

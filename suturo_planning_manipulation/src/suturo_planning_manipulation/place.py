@@ -32,15 +32,24 @@ def get_place_position_cube(collision_object, dest, tf_listener):
     place_pose.pose.position.y = dest.point.y
 
     now = rospy.Time.now()
-    tf_listener.waitForTransform("/tcp", "/" + collision_object.id, now, rospy.Duration(4))
-    (p, q) = tf_listener.lookupTransform("/tcp", "/" + collision_object.id, now)
+    tf_listener.waitForTransform("/" + collision_object.id, "/tcp", now, rospy.Duration(4))
+    (p, q) = tf_listener.lookupTransform("/" + collision_object.id, "/tcp", now)
 
-    a = max(p)
-    # print "p ", p
+    a = abs(p[0])
+    b = collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.BOX_X]
+    print abs(p[1])
+    if abs(p[1]) >= abs(p[0]) and abs(p[1]) >= abs(p[2]):
+        a = abs(p[1])
+        b = collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.BOX_Y]
+    elif abs(p[2]) >= abs(p[0]) and abs(p[2]) >= abs(p[1]):
+        a = abs(p[2])
+        b = collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.BOX_Z]
 
+    print "p ", p
+    print collision_object.primitives[0].dimensions
+    print b
     # print "dimensions: ", collision_object.primitives[0].dimensions
-    place_pose.pose.position.z = a + collision_object.primitives[0].dimensions[
-                                         shape_msgs.msg.SolidPrimitive.BOX_X] / 2 + safe_place
+    place_pose.pose.position.z = a + b / 2 + safe_place
 
     # print "dest: ", place_pose.pose.position
     # place_pose.pose.position.z = finger_length + hand_length \
