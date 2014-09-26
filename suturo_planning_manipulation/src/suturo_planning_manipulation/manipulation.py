@@ -111,6 +111,7 @@ class Manipulation(object):
             pose_target.header.stamp = rospy.Time.now()
             self.__listener.waitForTransform(target_frame, pose_target.header.frame_id, pose_target.header.stamp, rospy.Duration(4.0))
             i += 1
+            print pose_target
             print "tf fail nr. ", i
 
         if odom_pose is None:
@@ -166,6 +167,9 @@ class Manipulation(object):
 
                 com = self.get_center_of_mass(collision_object)
                 com = self.transform_to(com, "/tcp")
+                if com is None:
+                    print "TF failed"
+                    return False
                 self.load_object(self.calc_object_weight(collision_object, object_density), Vector3(com.point.x, com.point.y, com.point.z))
 
                 print "grasped " + collision_object.id
@@ -181,7 +185,7 @@ class Manipulation(object):
         d1 = magnitude(subtract_point(center.point, odom_pose1.pose.position))
         d2 = magnitude(subtract_point(center.point, odom_pose2.pose.position))
         diff = d1 - d2
-        if 0.0 < abs(diff) < 0.01:
+        if 0.0 < abs(diff) < 0.02:
             z1 = odom_pose1.pose.position.z
             z2 = odom_pose2.pose.position.z
             diff = z2 - z1

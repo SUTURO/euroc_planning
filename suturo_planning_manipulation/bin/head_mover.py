@@ -13,6 +13,7 @@ import moveit_commander
 import moveit_msgs.msg
 import geometry_msgs.msg
 import shape_msgs.msg
+from suturo_perception_msgs.msg._EurocObject import EurocObject
 import tf
 from tf.transformations import quaternion_from_matrix, rotation_matrix
 import suturo_planning_manipulation.calc_grasp_position
@@ -22,6 +23,8 @@ from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_pos
 from suturo_planning_manipulation.calc_grasp_position import get_pre_grasp
 from suturo_planning_manipulation.planningsceneinterface import *
 from suturo_planning_manipulation.planningsceneinterface import PlanningSceneInterface
+from suturo_planning_perception.perception import *
+# from suturo_planning_perception.src.suturo_planning_perception.perception import get_gripper_perception
 
 
 def test_task1(mani):
@@ -87,7 +90,25 @@ if __name__ == '__main__':
     rospy.init_node('head_mover', anonymous=True)
     #
     mani = Manipulation()
+    mani.move_to("scan_pose3")
+    # mani.turn_arm(0.5*pi)
+    mani.get_planning_scene().remove_object("blue_handle")
+    rospy.sleep(1)
+    a = get_gripper_perception(pose_estimation=True)
+    # print a
+    mani.get_planning_scene().add_object(a[0].mpe_object)
+    mani.grasp("blue_handle")
     # mani.open_gripper()
+
+    pose = PoseStamped()
+    pose.header.frame_id = "/tcp"
+    pose.pose.position = Point(0, 0, -post_place_length)
+
+    mani.move_to(pose)
+    mani.open_gripper()
+
+
+
     # dest = PointStamped()
     # dest.header.frame_id = "/odom_combined"
     # dest.point = Point(-0.85, -0.85, 0)
@@ -97,22 +118,22 @@ if __name__ == '__main__':
     # test_task1(mani)
     # mani.open_gripper()
 
-    t_point = geometry_msgs.msg.PoseStamped()
-    t_point.header.frame_id = "/odom_combined"
-    t_point.pose.position = geometry_msgs.msg.Point(-0.3, -0.4, 0.03)
-    t_point.pose.orientation = geometry_msgs.msg.Quaternion(0, 0, 0, 1)
-
-    dist = 1
-
-    angle = pi/4
-
-    pose = mani.object_cam_pose(t_point, dist, angle)
-
-    visualize_pose([pose])
-
-    mani.move_to(pose)
-
-    print pose
+    # t_point = geometry_msgs.msg.PoseStamped()
+    # t_point.header.frame_id = "/odom_combined"
+    # t_point.pose.position = geometry_msgs.msg.Point(-0.3, -0.4, 0.03)
+    # t_point.pose.orientation = geometry_msgs.msg.Quaternion(0, 0, 0, 1)
+    #
+    # dist = 1
+    #
+    # angle = pi/4
+    #
+    # pose = mani.object_cam_pose(t_point, dist, angle)
+    #
+    # visualize_pose([pose])
+    #
+    # mani.move_to(pose)
+    #
+    # print pose
 
     # co = mani.get_planning_scene().get_collision_object("part4")
     # visualize_point(mani.get_center_of_mass(co))
