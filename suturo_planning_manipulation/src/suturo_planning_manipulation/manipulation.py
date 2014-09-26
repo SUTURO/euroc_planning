@@ -340,4 +340,6 @@ class Manipulation(object):
 
         cam_pose.pose.orientation = quaternion
 
+        self.move_to(cam_pose)
+        
         return cam_pose
