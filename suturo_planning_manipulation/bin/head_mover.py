@@ -88,14 +88,29 @@ if __name__ == '__main__':
     #
     mani = Manipulation()
     # mani.open_gripper()
-    dest = PointStamped()
-    dest.header.frame_id = "/odom_combined"
-    dest.point = Point(-0.85, -0.85, 0)
-    mani.place_and_move(dest)
+    # dest = PointStamped()
+    # dest.header.frame_id = "/odom_combined"
+    # dest.point = Point(-0.85, -0.85, 0)
+    # mani.place_and_move(dest)
     # mani.open_gripper()
     # test_task3(mani)
     # test_task1(mani)
     # mani.open_gripper()
+
+    t_point = geometry_msgs.msg.PoseStamped()
+    t_point.header.frame_id = "/odom_combined"
+    t_point.pose.position = geometry_msgs.msg.Point(0, 1, 0)
+    t_point.pose.orientation = geometry_msgs.msg.Quaternion(0,0,0,1)
+
+    dist = 0.2
+
+    angle = pi/2
+
+    pose = mani.object_cam_pose(t_point, dist, angle)
+
+    visualize_pose([pose])
+
+    print pose
 
     # co = mani.get_planning_scene().get_collision_object("part4")
     # visualize_point(mani.get_center_of_mass(co))
