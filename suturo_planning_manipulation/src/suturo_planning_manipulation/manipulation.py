@@ -20,6 +20,7 @@ from calc_grasp_position import *
 from place import get_place_position, get_pre_place_position, pre_place_length, post_place_length
 from planningsceneinterface import *
 from manipulation_constants import *
+import math
 
 class Manipulation(object):
     def __init__(self):
@@ -284,4 +285,42 @@ class Manipulation(object):
         else:
             self.__planning_scene_interface.remove_object("ground0.95")
 
+    # Arguments: geometry_msgs/PointStamped, double distance from point to camera, double camera angle
+    def object_cam_pose(self, point, distance, angle):
+        # Get the data!
+        alpha = angle
+        dist = distance
+        object = point
 
+        # Get x and y point from object
+        point_x = point.pose.position.x
+        point_y = point.pose.position.y
+        # get sin_beta
+        sin_beta = point_x / point_y
+        # get diagonal from the middle of the table to the object
+        v=math.sqrt(point_x^2 + point_y^2)
+        # initialize cam_pose and roll objects
+        cam_pose = geometry_msgs.msg.PoseStamped()
+        roll = geometry_msgs.msg.PoseStamped()
+
+        cam_pose.header.frame_id = point.header.frame_id
+        cam_pose.pose.orientation = point.pose.orientation
+
+        # calculate the distance from the object to the desired cam_pose
+        w = math.cos(alpha) * dist
+        beta = math.asin(sin_beta)
+        # calculate x, y and z value from the cam pose
+        cam_x = (v-w) * math.cos(beta)
+        cam_y = (v-w) * sin_beta
+        cam_z = dist * math.sin(alpha)
+        # set this values...
+        cam_pose.pose.position.x = cam_x
+        cam_pose.pose.position.y = cam_y
+        cam_pose.pose.position.z = cam_z
+
+        # calculate the quaternion
+        # quat = calculate_grasp_position.three_points_to_quaternion(cam_pose, object, roll)
+
+        # cam_pose.pose.orientation = quat
+
+        return cam_pose

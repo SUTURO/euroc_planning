@@ -14,7 +14,6 @@ import geometry_msgs.msg
 import shape_msgs.msg
 import tf
 from tf.transformations import quaternion_from_matrix, rotation_matrix
-import planningsceneinterface
 import suturo_planning_manipulation.calc_grasp_position
 from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_position_box, visualize_pose, calculate_grasp_position
 from suturo_planning_manipulation.manipulation import Manipulation
