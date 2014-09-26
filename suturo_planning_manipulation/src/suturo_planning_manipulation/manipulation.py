@@ -296,9 +296,9 @@ class Manipulation(object):
         point_x = point.pose.position.x
         point_y = point.pose.position.y
         # get sin_beta
-        sin_beta = point_x / point_y
+        sin_beta = (point_y / point_x)
         # get diagonal from the middle of the table to the object
-        v=math.sqrt(point_x^2 + point_y^2)
+        v = math.sqrt((point_x**2) + (point_y**2))
         # initialize cam_pose and roll objects
         cam_pose = geometry_msgs.msg.PoseStamped()
         roll = geometry_msgs.msg.PoseStamped()
@@ -308,10 +308,10 @@ class Manipulation(object):
 
         # calculate the distance from the object to the desired cam_pose
         w = math.cos(alpha) * dist
-        beta = math.asin(sin_beta)
+        beta = math.atan(point_y / point_x)
         # calculate x, y and z value from the cam pose
-        cam_x = (v-w) * math.cos(beta)
-        cam_y = (v-w) * sin_beta
+        cam_x = (v - w) * math.cos(beta)
+        cam_y = cam_x * sin_beta
         cam_z = dist * math.sin(alpha)
         # set this values...
         cam_pose.pose.position.x = cam_x
@@ -319,8 +319,8 @@ class Manipulation(object):
         cam_pose.pose.position.z = cam_z
 
         # calculate the quaternion
-        # quat = calculate_grasp_position.three_points_to_quaternion(cam_pose, object, roll)
+        #quat = calculate_grasp_position.three_points_to_quaternion(cam_pose.pose.position, object.pose.position, roll)
 
-        # cam_pose.pose.orientation = quat
+        #cam_pose.pose.orientation = quat
 
         return cam_pose
