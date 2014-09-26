@@ -1,9 +1,6 @@
 import smach
 import rospy
-from utils import get_valid_objects
-from utils import classify_object
-from utils import publish_collision_objects
-from utils import get_object_to_move
+from utils import *
 from suturo_planning_perception import perception
 
 
@@ -38,14 +35,23 @@ class PerceiveObject(smach.State):
             # check if the object was already placed
             if not matched_obj.object.id in userdata.placed_objects:
                 rospy.loginfo('Using pose estimation.')
-                pose_estimated = perception.get_gripper_perception(pose_estimation=True)[0]
+                ids = get_yaml_objects_nrs(userdata.yaml, matched_obj.object.id)
+                pose_estimated = perception.get_gripper_perception(pose_estimation=True, object_ids=ids)[0]
                 if pose_estimated.mpe_success:
                     rospy.logdebug('Pose estimation success:%s'%str(pose_estimated))
                     pose_estimated.object.id = pose_estimated.mpe_object.id
                     matched_objects.append(pose_estimated)
                     collision_objects.append(pose_estimated.mpe_object)
                 else:
-                    rospy.logdebug('Pose estimation failed for matched object.')
+                    rospy.logdebug('Pose estimation failed for matched object. Try with all.')
+                    pose_estimated = perception.get_gripper_perception(pose_estimation=True)[0]
+                    if pose_estimated.mpe_success:
+                        rospy.logdebug('Pose estimation success:%s'%str(pose_estimated))
+                        pose_estimated.object.id = pose_estimated.mpe_object.id
+                        matched_objects.append(pose_estimated)
+                        collision_objects.append(pose_estimated.mpe_object)
+                    else:
+                        rospy.logdebug('Pose estimation failed for matched object.')
 
         publish_collision_objects(collision_objects)
         userdata.objects_found = matched_objects

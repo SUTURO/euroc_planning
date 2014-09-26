@@ -9,11 +9,11 @@ from suturo_perception_msgs.srv import Classifier
 manipulation = None
 
 
-def classify_object(object):
+def classify_object(obj):
     rospy.wait_for_service('suturo/Classifier')
     try:
         classifier = rospy.ServiceProxy('suturo/Classifier', Classifier)
-        return classifier(object).classifiedObject
+        return classifier(obj).classifiedObject
     except rospy.ServiceException, e:
         print "Service call failed: %s" % e
 
@@ -54,55 +54,10 @@ def get_valid_objects(objects):
     return valid_objects
 
 
-def match_object(obj, yaml):
-    description = get_yaml_for_object(obj, yaml)
-    obj.color = hex_to_color_msg(description.color)
-    obj.object.id = description.name
-    return description
-
-
-def get_yaml_for_object(obj, yaml):
-    diff = 9999  # a high value
-    best_fit = None
-    object_volume = get_volume_euroc_object(obj)
-    for yaml_object in yaml.objects:
-        new_diff = abs(object_volume - get_volume_yaml_object(yaml_object))
-        if new_diff < diff:
-            diff = new_diff
-            best_fit = yaml_object
-    return best_fit
-
-
-def get_volume_euroc_object(obj):
-    volume = 0
-    for primitive in obj.object.primitives:
-        volume += get_volume_primitive(primitive, primitive.type)
-    return volume
-
-
-def get_volume_yaml_object(obj):
-    volume = 0
-    for shape in obj.primitives:
-        volume += get_volume_primitive(shape, shape.type)
-    return volume
-
-
-def get_volume_primitive(primitive, primitive_type):
-    get_volume = {1: volume_box, 2: volume_sphere, 3: volume_cylinder, 3: volume_cone}
-    return get_volume.get(primitive_type)(primitive)
-
-
-def volume_box(primitive):
-    return primitive.dimensions[0] * primitive.dimensions[1] * primitive.dimensions[2]
-
-
-def volume_sphere(primitive):
-    return primitive.dimensions[0] ** 3
-
-
-def volume_cylinder(primitive):
-    return primitive.dimensions[0] * ((primitive.dimensions[1] * 2) ** 2)
-
-
-def volume_cone(primitive):
-    return primitive.dimensions[0] * ((primitive.dimensions[1] * 2) ** 2)
+def get_yaml_objects_nrs(yaml, object_id):
+    nrs = []
+    for i in range(0, len(yaml.objects)):
+        if yaml.objects[i].name == object_id:
+            nrs.append(i)
+    rospy.logdebug('Object Nr for ' + object_id + ' ' + str(nrs))
+    return nrs
