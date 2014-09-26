@@ -1,14 +1,14 @@
 import smach
 import rospy
+from geometry_msgs.msg import PoseStamped
+
 import utils
 from utils import hex_to_color_msg
 from suturo_planning_manipulation.manipulation import Manipulation
 from suturo_planning_perception import perception
-from geometry_msgs.msg import PoseStamped
 
 
 class SearchObject(smach.State):
-
     _next_scan = 0
     _current_position = 0
     _found_objects = []
@@ -30,7 +30,7 @@ class SearchObject(smach.State):
         # TODO find a way to take last pose
         # First check previously recognized objects
         # if self._recognized_objects:
-        #     userdata.object_to_perceive = self._recognized_objects.pop(0)
+        # userdata.object_to_perceive = self._recognized_objects.pop(0)
         #     return 'objectFound'
 
         if utils.manipulation is None:
@@ -51,7 +51,7 @@ class SearchObject(smach.State):
 
         # take initial scan pose
         if self._next_scan == 0:
-            rospy.loginfo('Take %s'%scan_pose)
+            rospy.loginfo('Take %s' % scan_pose)
             utils.manipulation.move_to(scan_pose)
 
         # get the colors of the missing objects, assuming for now that every object has its own color
@@ -79,7 +79,7 @@ class SearchObject(smach.State):
             pose_stamped.pose.position.y = search_positions[pos][1]
             pose_stamped.pose.position.z = search_positions[pos][2]
 
-            rospy.loginfo('Moving to %s'%str(pose_stamped))
+            rospy.loginfo('Moving to %s' % str(pose_stamped))
             utils.manipulation.move_base(pose_stamped)
             rospy.logdebug('Moved')
 
@@ -87,16 +87,16 @@ class SearchObject(smach.State):
                 # skip turning arm on first scan
                 if self._next_scan != 0:
                     rad = x * rad_per_step - 2.945
-                    rospy.loginfo('Turning arm %s' %str(rad))
+                    rospy.loginfo('Turning arm %s' % str(rad))
                     utils.manipulation.turn_arm(rad)
 
                 rospy.sleep(1)
                 self._next_scan += 1
 
                 # look for objects
-                rospy.loginfo('Colors: %s'%str(colors))
+                rospy.loginfo('Colors: %s' % str(colors))
                 self._recognized_objects = perception.recognize_objects_of_interest(colors)
-                rospy.loginfo('Found objects: %s'%str(self._recognized_objects))
+                rospy.loginfo('Found objects: %s' % str(self._recognized_objects))
 
                 if self._recognized_objects:  # check if an object was recognized
                     userdata.object_to_perceive = self._recognized_objects.pop(0)
@@ -111,7 +111,7 @@ class SearchObject(smach.State):
             self._current_position += 1
 
             if pos != len(search_positions) - 1:
-               rospy.loginfo('Take %s'%scan_pose)
-               utils.manipulation.move_to(scan_pose)
+                rospy.loginfo('Take %s' % scan_pose)
+                utils.manipulation.move_to(scan_pose)
 
         return 'noObjectsLeft'
