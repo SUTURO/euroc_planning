@@ -85,8 +85,9 @@ class Manipulation(object):
     def transform_to(self, pose_target, target_frame="/odom_combined"):
         odom_pose = None
         i = 0
-        while odom_pose is None and i < 5:
+        while odom_pose is None and i < 10:
             try:
+                # self.__listener.waitForTransform()
                 if type(pose_target) is CollisionObject:
                     if len(pose_target.primitives) > 1:
                         print "only works for collision objects with one primitive"
