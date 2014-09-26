@@ -41,6 +41,7 @@ class PerceiveObject(smach.State):
                 pose_estimated = perception.get_gripper_perception(pose_estimation=True)[0]
                 if pose_estimated.mpe_success:
                     rospy.logdebug('Pose estimation success:%s'%str(pose_estimated))
+                    pose_estimated.object.id = pose_estimated.mpe_object.id
                     matched_objects.append(pose_estimated)
                     collision_objects.append(pose_estimated.mpe_object)
                 else:
