@@ -99,16 +99,18 @@ if __name__ == '__main__':
 
     t_point = geometry_msgs.msg.PoseStamped()
     t_point.header.frame_id = "/odom_combined"
-    t_point.pose.position = geometry_msgs.msg.Point(1, 1, 0)
-    t_point.pose.orientation = geometry_msgs.msg.Quaternion(0,0,0,1)
+    t_point.pose.position = geometry_msgs.msg.Point(-0.3, -0.4, 0.03)
+    t_point.pose.orientation = geometry_msgs.msg.Quaternion(0, 0, 0, 1)
 
-    dist = 0.2
+    dist = 1
 
     angle = pi/4
 
     pose = mani.object_cam_pose(t_point, dist, angle)
 
     visualize_pose([pose])
+
+    mani.move_to(pose)
 
     print pose
 
