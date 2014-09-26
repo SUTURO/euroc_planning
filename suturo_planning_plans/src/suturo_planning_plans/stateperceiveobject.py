@@ -16,6 +16,7 @@ class PerceiveObject(smach.State):
     def execute(self, userdata):
         rospy.loginfo('Executing state PerceiveObject')
 
+        rospy.loginfo('Using simple perception.')
         get_gripper = perception.get_gripper_perception()
         perceived_objects = get_valid_objects(get_gripper)
         rospy.logdebug('Found ' + str(len(get_gripper)) + ' objects, ' + str(len(perceived_objects)) + ' are valid.')
@@ -36,8 +37,14 @@ class PerceiveObject(smach.State):
 
             # check if the object was already placed
             if not matched_obj.object.id in userdata.placed_objects:
-                matched_objects.append(matched_obj)
-                collision_objects.append(matched_obj.object)
+                rospy.loginfo('Using pose estimation.')
+                pose_estimated = perception.get_gripper_perception(pose_estimation=True)[0]
+                if pose_estimated.mpe_success:
+                    rospy.logdebug('Pose estimation success:%s'%str(pose_estimated))
+                    matched_objects.append(pose_estimated)
+                    collision_objects.append(pose_estimated.mpe_object)
+                else:
+                    rospy.logdebug('Pose estimation failed for matched object.')
 
         publish_collision_objects(collision_objects)
         userdata.objects_found = matched_objects

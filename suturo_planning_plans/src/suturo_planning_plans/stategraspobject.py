@@ -12,11 +12,11 @@ class GraspObject(smach.State):
     def execute(self, userdata):
         rospy.loginfo('Executing state GraspObject')
 
-        print 'Trying to grasp:\n' + str(userdata.object_to_move.object.id)
+        print 'Trying to grasp:\n' + str(userdata.object_to_move.mpe_object.id)
         if userdata.enable_movement:
-            grasp_result = utils.manipulation.grasp_and_move(userdata.object_to_move.object)
+            grasp_result = utils.manipulation.grasp_and_move(userdata.object_to_move.mpe_object)
         else:
-            grasp_result = utils.manipulation.grasp(userdata.object_to_move.object)
+            grasp_result = utils.manipulation.grasp(userdata.object_to_move.mpe_object)
         print 'Grasp result:' + str(grasp_result)
 
         if grasp_result:

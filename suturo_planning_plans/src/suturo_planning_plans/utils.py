@@ -37,7 +37,7 @@ def publish_collision_objects(objects):
 def get_object_to_move(objects):
     for obj in objects:
         # if obj.c_id == EurocObject.OBJECT:
-        if obj.object.primitives[0].dimensions != (-1.0, -1.0, -1.0):
+        if obj.mpe_success:
             return obj
 
     return None

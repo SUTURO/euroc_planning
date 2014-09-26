@@ -11,10 +11,13 @@ def recognize_objects_of_interest(colors):
         print "Service call failed: %s" % e
 
 
-def get_gripper_perception(pose_estimation=False):
-    s = 'get'
-    if not pose_estimation:
-        s = 'cuboid,height,centroid,shape,color'
+def get_gripper_perception(cuboid=True, pose_estimation=False):
+    s = 'height,centroid,shape,color'
+    if cuboid:
+        s += ',cuboid'
+    if pose_estimation:
+        s += ',ModelPoseEstimation'
+
     rospy.wait_for_service('suturo/GetGripper')
     try:
         perceived_objects = rospy.ServiceProxy('suturo/GetGripper', GetGripper)

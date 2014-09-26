@@ -74,7 +74,7 @@ class SearchObject(smach.State):
         for pos in range(self._current_position, len(search_positions)):
             pose_stamped = PoseStamped()
             pose_stamped.header.frame_id = '/odom_combined'
-            pose_stamped.header.stamp = rospy.get_rostime
+            pose_stamped.header.stamp = rospy.get_rostime()
             pose_stamped.pose.position.x = search_positions[pos][0]
             pose_stamped.pose.position.y = search_positions[pos][1]
             pose_stamped.pose.position.z = search_positions[pos][2]
