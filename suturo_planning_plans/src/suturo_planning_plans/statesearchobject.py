@@ -37,7 +37,7 @@ class SearchObject(smach.State):
             utils.manipulation = Manipulation()
             rospy.sleep(2)
 
-        scan_pose = 'scan_pose1'
+        scan_pose = 'scan_pose3'
 
         # Add the found objects
         if userdata.objects_found:
