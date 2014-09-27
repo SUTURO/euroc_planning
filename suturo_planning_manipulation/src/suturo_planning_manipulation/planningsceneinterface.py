@@ -81,7 +81,7 @@ class PlanningSceneInterface(object):
     def add_object(self, collision_object):
         collision_object.operation = moveit_msgs.msg.CollisionObject.ADD
         self.__collision_object_publisher.publish(collision_object)
-        rospy.sleep(0.1)
+        rospy.sleep(0.25)
 
     def add_box(self, name, pose, size):
         self.add_object(self.make_box(name, pose, size))

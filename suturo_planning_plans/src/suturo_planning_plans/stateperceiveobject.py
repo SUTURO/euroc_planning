@@ -1,5 +1,6 @@
 import smach
 import rospy
+import utils
 from utils import *
 from suturo_planning_perception import perception
 

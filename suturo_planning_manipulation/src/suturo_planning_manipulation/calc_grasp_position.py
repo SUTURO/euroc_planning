@@ -254,8 +254,8 @@ def visualize_pose(grasps):
     marker.color.g = 0.0
     marker.color.b = 0.0
 
-    marker.scale.z = 0.01
-    marker.scale.y = 0.02
+    marker.scale.z = 0.02
+    marker.scale.y = 0.01
     marker.scale.x = 0.03
 
     i = 0

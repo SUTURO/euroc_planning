@@ -46,7 +46,7 @@ class Manipulation(object):
         rospy.sleep(1)
         self.__planning_scene_interface.add_ground()
         # self.set_height_constraint(True)
-        print "Manipulation started."
+        rospy.loginfo( "Manipulation started.")
 
     def __del__(self):
         moveit_commander.roscpp_shutdown()
@@ -90,7 +90,7 @@ class Manipulation(object):
                 # self.__listener.waitForTransform()
                 if type(pose_target) is CollisionObject:
                     if len(pose_target.primitives) > 1:
-                        print "only works for collision objects with one primitive"
+                        rospy.logwarn("only works for collision objects with one primitive")
                         return None
                     tmp_pose = PoseStamped()
                     tmp_pose.header = pose_target.header
@@ -112,10 +112,10 @@ class Manipulation(object):
             self.__listener.waitForTransform(target_frame, pose_target.header.frame_id, pose_target.header.stamp, rospy.Duration(4.0))
             i += 1
             print pose_target
-            print "tf fail nr. ", i
+            rospy.logdebug("tf fail nr. ", i)
 
         if odom_pose is None:
-            print "FUUUUUUUUUUUUUU!!!! fucking tf shit!!!!"
+            rospy.logerr("FUUUUUUUUUUUUUU!!!! fucking tf shit!!!!")
         return odom_pose
 
     def open_gripper(self, position=gripper_max_pose):
@@ -146,15 +146,26 @@ class Manipulation(object):
     def grasp_and_move(self, collision_object, object_density=1):
         return self.__grasp_with_group(collision_object, self.__arm_base_group, object_density)
 
-    def __grasp_with_group(self, collision_object, move_group, object_density):
-        if type(collision_object) is str:
-            collision_object = self.__planning_scene_interface.get_collision_object(collision_object)
+    def __grasp_with_group(self, collision_object_name, move_group, object_density):
+        if type(collision_object_name) is CollisionObject:
+            collision_object_name = collision_object_name.id
+
+        collision_object = self.__planning_scene_interface.get_collision_object(collision_object_name)
+        if collision_object is None:
+            rospy.logwarn("Collision Object " + collision_object_name + " is not in planningscene.")
+            return False
+
         grasp_positions = calculate_grasp_position(collision_object, self.transform_to)
+
 
         grasp_positions = self.__filter_invalid_grasps(grasp_positions)
 
+        if len(grasp_positions) == 0:
+            rospy.logwarn("No grasppositions found for " + collision_object_name)
+
         grasp_positions.sort(cmp=lambda x, y: self.cmp_pose_stamped(collision_object, x, y))
         # visualize_pose(grasp_positions)
+        # print grasp_positions
 
         self.open_gripper()
         for grasp in grasp_positions:
@@ -168,14 +179,14 @@ class Manipulation(object):
                 com = self.get_center_of_mass(collision_object)
                 com = self.transform_to(com, "/tcp")
                 if com is None:
-                    print "TF failed"
+                    rospy.logwarn("TF failed")
                     return False
                 self.load_object(self.calc_object_weight(collision_object, object_density), Vector3(com.point.x, com.point.y, com.point.z))
 
-                print "grasped " + collision_object.id
-                # rospy.sleep(1)
+                rospy.loginfo("grasped " + collision_object_name)
                 return True
-        return None
+        rospy.logwarn("Grapsing failed.")
+        return False
 
 
     def cmp_pose_stamped(self, collision_object, pose1, pose2):
@@ -185,11 +196,13 @@ class Manipulation(object):
         d1 = magnitude(subtract_point(center.point, odom_pose1.pose.position))
         d2 = magnitude(subtract_point(center.point, odom_pose2.pose.position))
         diff = d1 - d2
-        if 0.0 < abs(diff) < 0.02:
+        if 0.0 < abs(diff) < 0.015:
             z1 = odom_pose1.pose.position.z
             z2 = odom_pose2.pose.position.z
             diff = z2 - z1
-        return 0 if diff == 0 else int(diff * abs(1.0 / diff))
+        # return 1 if diff is positiv and -1 if it is negativ
+        # return 0 if diff == 0 else int(diff * abs(1.0 / diff))
+        return 1 if diff > 0 else -1 if diff < 0 else 0
 
     def __filter_invalid_grasps(self, list_of_grasps):
         if len(list_of_grasps) == 0:
