@@ -89,23 +89,25 @@ if __name__ == '__main__':
     # print (lambda x: a(2, x))(3)
     rospy.init_node('head_mover', anonymous=True)
     #
-    mani = Manipulation()
-    mani.move_to("scan_pose3")
-    # mani.turn_arm(0.5*pi)
-    mani.get_planning_scene().remove_object("blue_handle")
-    rospy.sleep(1)
-    a = get_gripper_perception(pose_estimation=True)
-    # print a
-    mani.get_planning_scene().add_object(a[0].mpe_object)
-    mani.grasp("blue_handle")
+    # mani = Manipulation()
+    # mani.move_to("scan_pose3")
+    # # mani.turn_arm(0.5*pi)
+    # mani.get_planning_scene().remove_object("blue_handle")
+    # rospy.sleep(1)
+    # a = get_gripper_perception(pose_estimation=True)
+    # # print a
+    # mani.get_planning_scene().add_object(a[0].mpe_object)
+    # mani.grasp("blue_handle")
+    # # mani.open_gripper()
+    #
+    # pose = PoseStamped()
+    # pose.header.frame_id = "/tcp"
+    # pose.pose.position = Point(0, 0, -post_place_length)
+    #
+    # mani.move_to(pose)
     # mani.open_gripper()
-
-    pose = PoseStamped()
-    pose.header.frame_id = "/tcp"
-    pose.pose.position = Point(0, 0, -post_place_length)
-
-    mani.move_to(pose)
-    mani.open_gripper()
+    i = 3
+    rospy.loginfo("asd" +str(i))
 
 
 

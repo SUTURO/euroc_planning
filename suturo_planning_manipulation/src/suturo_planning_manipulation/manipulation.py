@@ -112,7 +112,7 @@ class Manipulation(object):
             self.__listener.waitForTransform(target_frame, pose_target.header.frame_id, pose_target.header.stamp, rospy.Duration(4))
             i += 1
             print pose_target
-            rospy.logdebug("tf fail nr. " + i)
+            rospy.logdebug("tf fail nr. " + str(i))
 
         if odom_pose is None:
             rospy.logerr("FUUUUUUUUUUUUUU!!!! fucking tf shit!!!!")
