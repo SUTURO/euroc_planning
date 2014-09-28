@@ -65,8 +65,21 @@ def get_yaml_objects_nrs(yaml, object_id):
 
 # Check the centroids of obj against every object in objects
 # Get the one that has the minimum euclidean distance to obj
-# If the distance is below treshold, return the idx.
+# If the distance is below treshold, return the idx (beginning at 0).
 # Otherwise, return None
 def get_nearest_object_idx(obj,objects,treshold):
     # TODO PM
+    min_distance = float("inf")
+    i = 0
+    min_distance_idx = None
+
+    for o in objects:
+        dist = abs(obj.c_centroid - o.c_centroid)
+        if dist < min_distance:
+            min_distance = dist
+            min_distance_idx = i
+        i += 1
+    if min_distance < treshold:
+        rospy.logdebug('Best distance is ' + str(min_distance) + 'for idx' + str(min_distance_idx))
+        return min_distance_idx
     return None

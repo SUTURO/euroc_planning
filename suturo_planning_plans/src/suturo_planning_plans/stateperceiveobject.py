@@ -38,6 +38,9 @@ class PerceiveObject(smach.State):
                 rospy.loginfo('Using pose estimation.')
                 # Get the ID of the classified object from the YAML file
                 ids = get_yaml_objects_nrs(userdata.yaml, matched_obj.object.id)
+                # TODO Investigate the result for the object that's closest to the original object we were interested in
+                #get_nearest_object_idx(obj,perce,treshold)
+
                 pose_estimated = perception.get_gripper_perception(pose_estimation=True, object_ids=ids)[0]
                 if pose_estimated.mpe_success:
                     rospy.logdebug('Pose estimation success:%s'%str(pose_estimated))
