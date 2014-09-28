@@ -88,13 +88,13 @@ class StopNodes(smach.State):
 
 
 def exit_handler():
-    time.sleep(2)
-    print 'Killing perception and manipulation'
     global manipulation_process
     if manipulation_process != 0:
+        print 'Killing manipulation'
         os.killpg(manipulation_process.pid, signal.SIGTERM)
     global perception_process
     if perception_process != 0:
+        print 'Killing perception'
         os.killpg(perception_process.pid, signal.SIGTERM)
 
 

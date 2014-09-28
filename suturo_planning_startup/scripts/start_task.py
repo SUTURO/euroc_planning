@@ -29,7 +29,7 @@ def main(task, with_plan, init_sim):
     #If plans should be started start the state machine
     if with_plan:
         rospy.init_node('suturo_planning_execution', log_level=rospy.DEBUG)
-        print 'Started plan'
+        rospy.loginfo('Started plan')
         toplevel_plan(init_sim, [task])
     else:
         rospy.init_node('suturo_planning_start_task', log_level=rospy.DEBUG)
@@ -40,25 +40,38 @@ def main(task, with_plan, init_sim):
         rospy.spin()
 
 
-def exit_handler():
+def rospy_exit_handler():
+    atexit.register(exit_handler)
+    global _save_log
+    print 'Exithandler: save_log = ' + str(_save_log) + ', rospy.is_shutdown() = ' + str(rospy.is_shutdown())
     if not rospy.is_shutdown():
-        global _save_log
         if _save_log:
+            rospy.loginfo('Saving log')
             save_task()
         stop_task()
         rospy.sleep(2)
+    else:
+        rospy.init_node('exit_handler')
+        if _save_log:
+            rospy.loginfo('Saving log')
+            save_task()
+        stop_task()
+        rospy.sleep(2)
+
+
+def exit_handler():
+    print 'Stopping TaskSelector'
     global _pro_task_selector
     if _pro_task_selector is not None:
         print 'Stopping gazebo'
         _pro_task_selector.terminate()
-        os.killpg(_pro_task_selector.pid, signal.SIGTERM)
+        os.killpg(_pro_task_selector.pid, signal.SIGKILL)
 
 
-atexit.register(exit_handler)
+rospy.on_shutdown(rospy_exit_handler)
 
 
 if __name__ == '__main__':
     if '--save' in sys.argv:
-        global _save_log
         _save_log = True
     main(sys.argv[1], '--plan' in sys.argv, '--init' in sys.argv)
