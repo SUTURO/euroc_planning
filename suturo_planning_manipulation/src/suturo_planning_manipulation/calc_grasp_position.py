@@ -63,9 +63,16 @@ def get_pre_grasp(grasp):
     return pre_grasp
 
 
-def calculate_grasp_position_box(collision_object):
+def calculate_grasp_position_box(collision_object, n=8):
     points = make_points_around_box()
     grasp_positions = []
+
+    # for i in range(0, n):
+    #     a = 2 * pi * ((i+0.0) / (n+0.0))
+    #     # print ((i+0.0) /(n+0.0))
+    #     # print Point(cos(a), sin(a), 0)
+    #     grasp_positions.append(make_grasp_pose(depth_side, Point(cos(a), sin(a), 0), Point(0, 0, 1),
+    #                                            collision_object.id))
 
     depth = finger_length
     if finger_length < collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.BOX_X]:

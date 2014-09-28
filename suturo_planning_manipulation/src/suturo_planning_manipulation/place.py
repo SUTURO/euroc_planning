@@ -45,9 +45,9 @@ def get_place_position_cube(collision_object, dest, tf_listener):
         a = abs(p[2])
         b = collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.BOX_Z]
 
-    print "p ", p
+    # print "p ", p
     print collision_object.primitives[0].dimensions
-    print b
+    # print b
     # print "dimensions: ", collision_object.primitives[0].dimensions
     place_pose.pose.position.z = a + b / 2 + safe_place
 
@@ -93,7 +93,10 @@ def get_place_position_handle(collision_object, dest, tf_listener):
 
     a = max(p)
 
+    #TODO: besser machen
     place_pose.pose.position.x = dest.point.x - a
+
+    # box1 = tf_listener()
 
     place_pose.pose.position.z = collision_object.primitives[0].dimensions[
                                          shape_msgs.msg.SolidPrimitive.CYLINDER_HEIGHT] / 2 + \
