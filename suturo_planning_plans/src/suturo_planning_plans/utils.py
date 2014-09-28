@@ -50,11 +50,11 @@ def get_valid_objects(objects):
 
     rospy.logdebug('Perceived: %s' % objects)
 
-    valid_objects = []
-    for obj in objects:
-        if obj.c_cuboid_success and (obj.object.primitives[0].dimensions != (-1.0, -1.0, -1.0)):
-            valid_objects.append(obj)
-    return valid_objects
+    # valid_objects = []
+    # for obj in objects:
+    #     if obj.c_cuboid_success and (obj.object.primitives[0].dimensions != (-1.0, -1.0, -1.0)):
+    #         valid_objects.append(obj)
+    return objects
 
 
 def get_yaml_objects_nrs(yaml, object_id):
