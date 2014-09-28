@@ -36,38 +36,19 @@ class PerceiveObject(smach.State):
             # check if the object was already placed
             if not matched_obj.object.id in userdata.placed_objects:
                 rospy.loginfo('Using pose estimation.')
-                # Get the ID of the classified object from the YAML file
-                ids = get_yaml_objects_nrs(userdata.yaml, matched_obj.object.id)
 
-                # pose_estimated = perception.get_gripper_perception(pose_estimation=True, object_ids=ids)[0] # OLD
-                pose_estimated_objects = perception.get_gripper_perception(pose_estimation=True, object_ids=ids)
+                pose_estimated = get_pose_estimation(userdata, matched_obj)
 
-                # TODO Investigate the result for the object that's closest to the original object we were interested in
-                # TODO find proper treshold
-                corresponding_object_idx = get_nearest_object_idx(matched_obj,pose_estimated_objects,0.1)
-                # TODO Call the perception again
-                if corresponding_object_idx == None:
-                    rospy.logdebug('Couldnt find the desired object on the next lookup again')
+                if (pose_estimated is None) or (not pose_estimated.mpe_success):
+                    pose_estimated = get_pose_estimation(userdata, matched_obj)
+
+                if pose_estimated is None:
                     continue
 
-                pose_estimated = pose_estimated_objects[corresponding_object_idx]
-                rospy.logdebug('Use Result from Object :%s'%str(pose_estimated))
-
                 if pose_estimated.mpe_success:
-                    rospy.logdebug('Pose estimation success:%s'%str(pose_estimated))
                     pose_estimated.object.id = pose_estimated.mpe_object.id
                     matched_objects.append(pose_estimated)
                     collision_objects.append(pose_estimated.mpe_object)
-                else:
-                    rospy.logdebug('Pose estimation failed for matched object. Try with all.')
-                    pose_estimated = perception.get_gripper_perception(pose_estimation=True)[0]
-                    if pose_estimated.mpe_success:
-                        rospy.logdebug('Pose estimation success:%s'%str(pose_estimated))
-                        pose_estimated.object.id = pose_estimated.mpe_object.id
-                        matched_objects.append(pose_estimated)
-                        collision_objects.append(pose_estimated.mpe_object)
-                    else:
-                        rospy.logdebug('Pose estimation failed for matched object.')
 
         publish_collision_objects(collision_objects)
         userdata.objects_found = matched_objects
@@ -79,3 +60,24 @@ class PerceiveObject(smach.State):
             return 'validObject'
         else:
             return 'noObject'
+
+
+def get_pose_estimation(userdata, obj):
+    # Get the ID of the classified object from the YAML file
+    ids = get_yaml_objects_nrs(userdata.yaml, obj.object.id)
+
+    # pose_estimated = perception.get_gripper_perception(pose_estimation=True, object_ids=ids)[0] # OLD
+    pose_estimated_objects = perception.get_gripper_perception(pose_estimation=True, object_ids=ids)
+
+    # TODO Investigate the result for the object that's closest to the original object we were interested in
+    # TODO find proper threshold
+    corresponding_object_idx = get_nearest_object_idx(obj, pose_estimated_objects, 0.1)
+    # TODO Call the perception again
+    if corresponding_object_idx is None:
+        rospy.logdebug('Couldnt find the desired object on the next lookup again')
+        return None
+
+    pose_estimated = pose_estimated_objects[corresponding_object_idx]
+    rospy.logdebug('Use Result from Object :%s' % str(pose_estimated))
+
+    return pose_estimated

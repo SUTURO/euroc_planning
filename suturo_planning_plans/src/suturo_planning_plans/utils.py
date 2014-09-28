@@ -2,7 +2,6 @@ import rospy
 import struct
 import math
 from std_msgs.msg import ColorRGBA
-from moveit_msgs.msg import CollisionObject
 from suturo_perception_msgs.srv import Classifier
 
 
@@ -66,11 +65,12 @@ def get_yaml_objects_nrs(yaml, object_id):
     rospy.logdebug('Object Nr for ' + object_id + ' ' + str(nrs))
     return nrs
 
+
 # Check the centroids of obj against every object in objects
 # Get the one that has the minimum euclidean distance to obj
 # If the distance is below treshold, return the idx (beginning at 0).
 # Otherwise, return None
-def get_nearest_object_idx(obj,objects,treshold):
+def get_nearest_object_idx(obj, objects, treshold):
     # TODO PM
     min_distance = float("inf")
     i = 0
@@ -78,11 +78,10 @@ def get_nearest_object_idx(obj,objects,treshold):
 
     for o in objects:
         # Calculate Euclidean distance on geometry_msgs/Point
-        dist = math.sqrt( math.pow(obj.c_centroid.x - o.c_centroid.x,2) +
-                          math.pow(obj.c_centroid.y - o.c_centroid.y,2) +
-                          math.pow(obj.c_centroid.z - o.c_centroid.z,2)
-                        )
-        rospy.logdebug('Distance is ' + str(dist) + 'for idx' + str(i))
+        dist = math.sqrt(math.pow(obj.c_centroid.x - o.c_centroid.x, 2) +
+                         math.pow(obj.c_centroid.y - o.c_centroid.y, 2) +
+                         math.pow(obj.c_centroid.z - o.c_centroid.z, 2))
+        rospy.logdebug('Distance is ' + str(dist) + ' for idx ' + str(i))
         if dist < min_distance:
             min_distance = dist
             min_distance_idx = i
