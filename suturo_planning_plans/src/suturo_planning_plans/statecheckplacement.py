@@ -12,7 +12,7 @@ class CheckPlacement(smach.State):
 
     def execute(self, userdata):
 
-        self._placed_objects.append(userdata.object_to_move)
+        self._placed_objects.append(userdata.object_to_move.mpe_object.id)
         userdata.placed_objects = self._placed_objects
 
         if userdata.pending_objects:

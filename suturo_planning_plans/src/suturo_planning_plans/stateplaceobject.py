@@ -7,12 +7,10 @@ import utils
 
 class PlaceObject(smach.State):
 
-    _placed_objects = []
-
     def __init__(self):
         smach.State.__init__(self, outcomes=['success', 'fail'],
                              input_keys=['yaml', 'object_to_move', 'enable_movement'],
-                             output_keys=['placed_objects'])
+                             output_keys=[])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state PlaceObject')
@@ -27,8 +25,6 @@ class PlaceObject(smach.State):
 
         if destination.point is None:
             rospy.logdebug('No target zone found.')
-            self._placed_objects.append(userdata.object_to_move.mpe_object.id)
-            userdata.placed_objects = self._placed_objects
             return 'fail'
         else:
             if userdata.enable_movement:
