@@ -1,5 +1,6 @@
 import rospy
 import struct
+import math
 from std_msgs.msg import ColorRGBA
 from moveit_msgs.msg import CollisionObject
 from suturo_perception_msgs.srv import Classifier
@@ -76,7 +77,12 @@ def get_nearest_object_idx(obj,objects,treshold):
     min_distance_idx = None
 
     for o in objects:
-        dist = abs(obj.c_centroid - o.c_centroid)
+        # Calculate Euclidean distance on geometry_msgs/Point
+        dist = math.sqrt( math.pow(obj.c_centroid.x - o.c_centroid.x,2) +
+                          math.pow(obj.c_centroid.y - o.c_centroid.y,2) +
+                          math.pow(obj.c_centroid.z - o.c_centroid.z,2)
+                        )
+        rospy.logdebug('Distance is ' + str(dist) + 'for idx' + str(i))
         if dist < min_distance:
             min_distance = dist
             min_distance_idx = i
