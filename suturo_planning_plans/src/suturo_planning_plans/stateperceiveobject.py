@@ -36,6 +36,7 @@ class PerceiveObject(smach.State):
             # check if the object was already placed
             if not matched_obj.object.id in userdata.placed_objects:
                 rospy.loginfo('Using pose estimation.')
+                # Get the ID of the classified object from the YAML file
                 ids = get_yaml_objects_nrs(userdata.yaml, matched_obj.object.id)
                 pose_estimated = perception.get_gripper_perception(pose_estimation=True, object_ids=ids)[0]
                 if pose_estimated.mpe_success:

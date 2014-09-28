@@ -62,3 +62,11 @@ def get_yaml_objects_nrs(yaml, object_id):
             nrs.append(i)
     rospy.logdebug('Object Nr for ' + object_id + ' ' + str(nrs))
     return nrs
+
+# Check the centroids of obj against every object in objects
+# Get the one that has the minimum euclidean distance to obj
+# If the distance is below treshold, return the idx.
+# Otherwise, return None
+def get_nearest_object_idx(obj,objects,treshold):
+    # TODO PM
+    return None
