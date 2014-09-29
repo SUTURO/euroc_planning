@@ -14,14 +14,22 @@ class SearchObject(smach.State):
     _found_objects = []
     _recognized_objects = []
     _obj_colors = []
+    _objs_to_search = None
 
     def __init__(self):
         smach.State.__init__(self, outcomes=['objectFound', 'noObjectsLeft'],
-                             input_keys=['yaml', 'objects_found', 'task'],
+                             input_keys=['yaml', 'objects_found', 'task', 'placed_objects'],
                              output_keys=['object_to_perceive'])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state SearchObject')
+
+        if self._objs_to_search is None:
+            self._objs_to_search = map(lambda obj: obj.name, userdata.yaml.objects)
+        else:
+            self._objs_to_search = filter(lambda name: not name in userdata.placed_objects, self._objs_to_search)
+            if not self._objs_to_search:
+                return 'noObjectsLeft'
 
         if not self._obj_colors:
             for obj in userdata.yaml.objects:

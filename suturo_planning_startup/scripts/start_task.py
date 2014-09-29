@@ -68,7 +68,8 @@ def exit_handler():
         os.killpg(_pro_task_selector.pid, signal.SIGKILL)
 
 
-rospy.on_shutdown(rospy_exit_handler)
+if '--init' in sys.argv:
+    rospy.on_shutdown(rospy_exit_handler)
 
 
 if __name__ == '__main__':
