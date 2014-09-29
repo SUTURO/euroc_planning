@@ -28,28 +28,25 @@ from suturo_planning_perception.perception import *
 
 
 def test_task1(mani):
-    pose = PoseStamped()
-    pose.header.frame_id = "/tcp"
-    pose.pose.position = Point(0, 0, -post_place_length)
+    # pose = PoseStamped()
+    # pose.header.frame_id = "/tcp"
+    # pose.pose.position = Point(0, 0, -post_place_length)
 
-    mani.grasp("red_cube")
-    mani.move_to(pose)
+    # mani.grasp("red_cube")
+    #
+    # dest = PointStamped()
+    # dest.header.frame_id = "/odom_combined"
+    # dest.point = Point(0.5, 0.5, 0.00)
+    # mani.place(dest)
 
-    dest = PointStamped()
-    dest.header.frame_id = "/odom_combined"
-    dest.point = Point(0.5, 0.5, 0.00)
-    mani.place(dest)
-
-    mani.grasp("green_cylinder")
-    mani.move_to(pose)
-
-    dest = PointStamped()
-    dest.header.frame_id = "/odom_combined"
-    dest.point = Point(0.5, 0, 0)
-    mani.place(dest)
+    # mani.grasp("green_cylinder")
+    #
+    # dest = PointStamped()
+    # dest.header.frame_id = "/odom_combined"
+    # dest.point = Point(0.5, 0, 0)
+    # mani.place(dest)
 
     mani.grasp("blue_handle")
-    mani.move_to(pose)
 
     dest = PointStamped()
     dest.header.frame_id = "/odom_combined"
@@ -89,7 +86,18 @@ if __name__ == '__main__':
     # print (lambda x: a(2, x))(3)
     rospy.init_node('head_mover', anonymous=True)
     #
-    # mani = Manipulation()
+    mani = Manipulation()
+    # pose = PoseStamped()
+    # pose.header.frame_id = "/odom_combined"
+    # pose.pose.position = Point(0.5, 0, 0.5)
+    # q = quaternion_from_euler(0, pi /4, pi /4)
+    # pose.pose.orientation = Quaternion(*q)
+    # mani.move_to(pose)
+    mani.open_gripper()
+    test_task1(mani)
+    # print mani.get_arm_move_group().get_current_pose()
+
+
     # mani.move_to("scan_pose3")
     # # mani.turn_arm(0.5*pi)
     # mani.get_planning_scene().remove_object("blue_handle")
@@ -97,7 +105,21 @@ if __name__ == '__main__':
     # a = get_gripper_perception(pose_estimation=True)
     # # print a
     # mani.get_planning_scene().add_object(a[0].mpe_object)
+
+    # pose = PoseStamped()
+    # pose.header.frame_id = "/odom_combined"
+    # pose.pose.position = Point(0.5, 0, 0.2)
+    # pose.pose.orientation = Quaternion(0, 0, 0, 1)
+    # obj = mani.get_planning_scene().make_box("muh", pose, [0.05, 0.2, 0.1])
+    # mani.get_planning_scene().add_object(obj)
     # mani.grasp("blue_handle")
+    # mani.open_gripper()
+
+    # dest = PointStamped()
+    # dest.header.frame_id = "/odom_combined"
+    # dest.point = Point(0.5, 0.5, 0.00)
+    # mani.place(dest)
+
     # # mani.open_gripper()
     #
     # pose = PoseStamped()
@@ -106,8 +128,8 @@ if __name__ == '__main__':
     #
     # mani.move_to(pose)
     # mani.open_gripper()
-    i = 3
-    rospy.loginfo("asd" +str(i))
+    # i = 3
+    # rospy.loginfo("asd" +str(i))
 
 
 

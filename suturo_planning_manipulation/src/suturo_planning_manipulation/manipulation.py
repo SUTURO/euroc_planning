@@ -28,7 +28,7 @@ class Manipulation(object):
 
         moveit_commander.roscpp_initialize(sys.argv)
         self.__arm_group = moveit_commander.MoveGroupCommander("arm")
-        self.__arm_group.set_planning_time(15)
+        self.__arm_group.set_planning_time(5)
 
         self.__gripper_group = moveit_commander.MoveGroupCommander("gripper")
 
@@ -46,6 +46,8 @@ class Manipulation(object):
         rospy.sleep(1)
         self.__planning_scene_interface.add_ground()
         # self.set_height_constraint(True)
+
+        self.__grasp = None
         rospy.loginfo( "Manipulation started.")
 
     def __del__(self):
@@ -71,10 +73,8 @@ class Manipulation(object):
             move_group.set_named_target(goal)
         else:
             visualize_pose([goal])
-            angle = quaternion_from_euler(0, pi / 2, 0)
-            o = goal.pose.orientation
-            no = quaternion_multiply([o.x, o.y, o.z, o.w], angle)
-            goal.pose.orientation = geometry_msgs.msg.Quaternion(*no)
+
+            goal.pose.orientation = rotate_quaternion(goal.pose.orientation, pi/2, 0, pi/2)
 
             goal = self.transform_to(goal)
 
@@ -87,15 +87,22 @@ class Manipulation(object):
         i = 0
         while odom_pose is None and i < 10:
             try:
-                # self.__listener.waitForTransform()
                 if type(pose_target) is CollisionObject:
-                    if len(pose_target.primitives) > 1:
-                        rospy.logwarn("only works for collision objects with one primitive")
-                        return None
-                    tmp_pose = PoseStamped()
-                    tmp_pose.header = pose_target.header
-                    tmp_pose.pose = pose_target.primitive_poses[0]
-                    pose_target = tmp_pose
+                    i = 0
+                    new_co = deepcopy(pose_target)
+                    for cop in pose_target.primitive_poses:
+                        p = PoseStamped()
+                        p.header = pose_target.header
+                        p.pose.orientation = cop.orientation
+                        p.pose.position = cop.position
+                        p = self.transform_to(p, target_frame)
+                        if p is None:
+                            return None
+                        new_co.primitive_poses[i].position = p.pose.position
+                        new_co.primitive_poses[i].orientation = p.pose.orientation
+                        i += 1
+                    new_co.header.frame_id = target_frame
+                    return new_co
                 if type(pose_target) is PoseStamped:
                     odom_pose = self.__listener.transformPose(target_frame, pose_target)
                     break
@@ -106,10 +113,10 @@ class Manipulation(object):
                     odom_pose = self.__listener.transformPoint(target_frame, pose_target)
                     break
             except Exception, e:
-                print "tf error:", e
+                print "tf error:::", e
             rospy.sleep(0.5)
-            pose_target.header.stamp = rospy.Time.now()
-            self.__listener.waitForTransform(target_frame, pose_target.header.frame_id, pose_target.header.stamp, rospy.Duration(4))
+            # pose_target.header.stamp = rospy.Time.now()
+            # self.__listener.waitForTransform(target_frame, pose_target.header.frame_id, pose_target.header.stamp, rospy.Duration(4))
             i += 1
             print pose_target
             rospy.logdebug("tf fail nr. " + str(i))
@@ -118,6 +125,28 @@ class Manipulation(object):
             rospy.logerr("FUUUUUUUUUUUUUU!!!! fucking tf shit!!!!")
         return odom_pose
 
+    # def tf_lookup(self, frame1, frame2):
+    #
+    #     i = 0
+    #     while i < 10:
+    #         try:
+    #             now = rospy.Time.now()
+    #
+    #             self.__listener.waitForTransform("/odom_combined", "/tcp", now, rospy.Duration(4))
+    #             (p, q) = self.__listener.lookupTransform("/odom_combined", "/tcp", now)
+    #
+    #             self.__listener.waitForTransform("/odom_combined", "/" + object_name, now, rospy.Duration(4))
+    #             (p2, q2) = self.__listener.lookupTransform("/odom_combined", "/" + object_name, now)
+    #
+    #         except Exception, e:
+    #             print "tf error:::", e
+    #         rospy.sleep(0.5)
+    #         i += 1
+    #         rospy.logdebug("tf fail nr. " + str(i))
+    #
+    #     return odom_pose
+
+
     def open_gripper(self, position=gripper_max_pose):
         self.__gripper_group.set_joint_value_target([-position, position])
         self.__gripper_group.go()
@@ -125,7 +154,8 @@ class Manipulation(object):
 
         self.load_object(0, Vector3(0, 0, 0))
 
-    def close_gripper(self, object=""):
+    def close_gripper(self, object=None):
+        #TODO:fix sonderfall bei komposition
         if type(object) is CollisionObject:
             if object.id != "":
                 self.__gripper_group.attach_object(object.id, "gp", ["gp", "finger1", "finger2"])
@@ -184,31 +214,43 @@ class Manipulation(object):
                 self.load_object(self.calc_object_weight(collision_object, object_density), Vector3(com.point.x, com.point.y, com.point.z))
 
                 rospy.loginfo("grasped " + collision_object_name)
+                self.__grasp = self.make_grasp_vector(collision_object_name)
                 return True
         rospy.logwarn("Grapsing failed.")
         return False
 
+    def make_grasp_vector(self, object_name):
+        now = rospy.Time.now()
+
+        self.__listener.waitForTransform("/odom_combined", "/tcp", now, rospy.Duration(4))
+        (p, q) = self.__listener.lookupTransform("/odom_combined", "/tcp", now)
+
+        self.__listener.waitForTransform("/odom_combined", "/" + object_name, now, rospy.Duration(4))
+        (p2, q2) = self.__listener.lookupTransform("/odom_combined", "/" + object_name, now)
+
+        g = subtract_point(Point(*p2), Point(*p))
+        # print g
+        return g
 
     def cmp_pose_stamped(self, collision_object, pose1, pose2):
+        #TODO:richtigen abstand zum center berechnen
         center = self.get_center_of_mass(collision_object)
         odom_pose1 = self.transform_to(pose1)
         odom_pose2 = self.transform_to(pose2)
         d1 = magnitude(subtract_point(center.point, odom_pose1.pose.position))
         d2 = magnitude(subtract_point(center.point, odom_pose2.pose.position))
         diff = d1 - d2
-        if 0.0 < abs(diff) < 0.015:
+        if 0.0 <= abs(diff) <= 0.015 or len(collision_object.primitives) == 1:
             z1 = odom_pose1.pose.position.z
             z2 = odom_pose2.pose.position.z
             diff = z2 - z1
-        # return 1 if diff is positiv and -1 if it is negativ
-        # return 0 if diff == 0 else int(diff * abs(1.0 / diff))
         return 1 if diff > 0 else -1 if diff < 0 else 0
 
     def __filter_invalid_grasps(self, list_of_grasps):
         if len(list_of_grasps) == 0:
             return list_of_grasps
 
-        return filter(lambda x : self.transform_to(x).pose.position.z > min_grasp_hight, list_of_grasps)
+        return filter(lambda x : self.transform_to(x).pose.position.z > min_grasp_height, list_of_grasps)
 
     def calc_object_weight(self, collision_object, density):
         weight = 0
@@ -233,9 +275,6 @@ class Manipulation(object):
 
         return p
 
-    def stop(self):
-        self.__arm_group.stop()
-
     def place(self, destination):
         """ destination of type pose-stamped """
         return self.__place_with_group(destination, self.__arm_group)
@@ -252,13 +291,13 @@ class Manipulation(object):
             return False
         else:
             co = co.object
-        dest = self.transform_to(dest, "/odom_combined")
-        place_pose = get_place_position(co, dest, self.__listener)
+        dest = self.transform_to(dest)
+        place_pose = get_place_position(co, dest, self.__listener, self.transform_to, self.__grasp)
         if not self.__move_group_to(get_pre_place_position(place_pose), move_group):
-            print "Can't reach preplaceposition."
+            rospy.logwarn("Can't reach preplaceposition.")
             return False
         if not self.__move_group_to(place_pose, move_group):
-            print "Can't reach placeposition."
+            rospy.logwarn("Can't reach placeposition.")
             return False
 
         self.open_gripper()
@@ -269,10 +308,10 @@ class Manipulation(object):
         post_place_pose.pose.position = Point(0, 0, -post_place_length)
 
         if not self.__move_group_to(post_place_pose, move_group):
-            print "Can't reach postplaceposition."
+            rospy.logwarn("Can't reach postplaceposition.")
             return False
         rospy.sleep(0.25)
-        print "placed " + co.id
+        rospy.loginfo("placed " + co.id)
         return True
 
     def load_object(self, mass, cog):
