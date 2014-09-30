@@ -18,8 +18,8 @@ def intersection_line_plane(l0, l1, p0, p1, p2):
 
 
 def fov_vectors(fov_h, fov_v):
-    h_diff = scipy.tan(fov_h)
-    v_diff = scipy.tan(fov_v)
+    h_diff = scipy.tan(fov_h / 2.0)
+    v_diff = scipy.tan(fov_v / 2.0)
 
     return [scipy.array([1, h_diff, v_diff]), scipy.array([1, h_diff, -v_diff]),
             scipy.array([1, -h_diff, v_diff]), scipy.array([1, -h_diff, -v_diff])]

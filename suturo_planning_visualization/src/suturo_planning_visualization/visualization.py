@@ -41,6 +41,29 @@ def publish_pose_stamped(pose_stamped):
     publish_marker(marker)
 
 
+def publish_vector(vector, name):
+    marker = Marker()
+    marker.id = name
+    marker.type = Marker.SPHERE
+    marker.action = Marker.ADD
+    marker.ns = 'search_grid'
+    marker.header.stamp = rospy.Time(0)
+    marker.header.frame_id = '/odom_combined'
+    marker.pose.position.x = vector[0]
+    marker.pose.position.y = vector[1]
+    marker.pose.position.z = vector[2]
+    marker.scale.x = 0.05
+    marker.scale.y = 0.05
+    marker.scale.z = 0.05
+    marker.color.r = 0
+    marker.color.g = 0
+    marker.color.b = 255
+    marker.color.a = 1
+    marker.lifetime = rospy.Time(0)
+
+    publish_marker(marker)
+
+
 def publish_lines(from_point, to_points):
     markers = []
 
