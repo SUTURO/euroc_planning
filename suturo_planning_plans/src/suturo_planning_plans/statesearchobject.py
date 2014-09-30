@@ -18,7 +18,7 @@ class SearchObject(smach.State):
 
     def __init__(self):
         smach.State.__init__(self, outcomes=['objectFound', 'noObjectsLeft'],
-                             input_keys=['yaml', 'objects_found', 'task', 'placed_objects'],
+                             input_keys=['yaml', 'objects_found', 'task', 'placed_objects', 'enable_movement'],
                              output_keys=['object_to_perceive'])
 
     def execute(self, userdata):
@@ -80,16 +80,18 @@ class SearchObject(smach.State):
         rad_per_step = max_rad / num_of_scans
 
         for pos in range(self._current_position, len(search_positions)):
-            pose_stamped = PoseStamped()
-            pose_stamped.header.frame_id = '/odom_combined'
-            pose_stamped.header.stamp = rospy.get_rostime()
-            pose_stamped.pose.position.x = search_positions[pos][0]
-            pose_stamped.pose.position.y = search_positions[pos][1]
-            pose_stamped.pose.position.z = search_positions[pos][2]
 
-            rospy.loginfo('Moving to %s' % str(pose_stamped))
-            utils.manipulation.move_base(pose_stamped)
-            rospy.logdebug('Moved')
+            if userdata.enable_movement:
+                pose_stamped = PoseStamped()
+                pose_stamped.header.frame_id = '/odom_combined'
+                pose_stamped.header.stamp = rospy.get_rostime()
+                pose_stamped.pose.position.x = search_positions[pos][0]
+                pose_stamped.pose.position.y = search_positions[pos][1]
+                pose_stamped.pose.position.z = search_positions[pos][2]
+
+                rospy.loginfo('Moving to %s' % str(pose_stamped))
+                utils.manipulation.move_base(pose_stamped)
+                rospy.logdebug('Moved')
 
             for x in range(self._next_scan, num_of_scans):
                 # skip turning arm on first scan
