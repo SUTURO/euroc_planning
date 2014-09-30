@@ -220,6 +220,10 @@ class Manipulation(object):
 
                 rospy.loginfo("grasped " + collision_object_name)
                 self.__grasp = self.make_grasp_vector(collision_object_name)
+
+                rospy.logdebug("lift object")
+                if not self.__move_group_to(get_pre_grasp(grasp), move_group):
+                    rospy.logdebug("couldnt lift object")
                 return True
         rospy.logwarn("Grapsing failed.")
         return False

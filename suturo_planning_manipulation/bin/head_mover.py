@@ -54,12 +54,11 @@ def test_task1(mani):
     # mani.place(dest)
 
 def test_task3(mani):
-    pose = PoseStamped()
-    pose.header.frame_id = "/tcp"
-    pose.pose.position = Point(0, 0, -post_place_length)
+    # pose = PoseStamped()
+    # pose.header.frame_id = "/tcp"
+    # pose.pose.position = Point(0, 0, -post_place_length)
 
     mani.grasp_and_move("blue_handle")
-    mani.move_to(pose)
 
     dest = PointStamped()
     dest.header.frame_id = "/odom_combined"
@@ -67,7 +66,6 @@ def test_task3(mani):
     mani.place_and_move(dest)
 
     mani.grasp_and_move("red_cube")
-    mani.move_to(pose)
 
     dest = PointStamped()
     dest.header.frame_id = "/odom_combined"
@@ -75,7 +73,6 @@ def test_task3(mani):
     mani.place_and_move(dest)
 
     mani.grasp_and_move("green_cylinder")
-    mani.move_to(pose)
 
     dest = PointStamped()
     dest.header.frame_id = "/odom_combined"
@@ -94,7 +91,7 @@ if __name__ == '__main__':
     # pose.pose.orientation = Quaternion(*q)
     # mani.move_to(pose)
     mani.open_gripper()
-    # test_task1(mani)
+    test_task3(mani)
     # print mani.get_arm_move_group().get_current_pose()
 
 
