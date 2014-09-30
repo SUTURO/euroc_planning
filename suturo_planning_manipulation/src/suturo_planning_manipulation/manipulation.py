@@ -57,8 +57,10 @@ class Manipulation(object):
     def move_base(self, goal_pose):
         goal = deepcopy(goal_pose)
         self.__base_group.set_joint_value_target([goal.pose.position.x, goal.pose.position.y])
-        print goal
-        return self.__base_group.go()
+        # print goal
+        r = self.__base_group.go()
+        rospy.loginfo("moved base")
+        return r
 
     def move_to(self, goal_pose):
         return self.__move_group_to(goal_pose, self.__arm_group)
@@ -149,10 +151,13 @@ class Manipulation(object):
 
     def open_gripper(self, position=gripper_max_pose):
         self.__gripper_group.set_joint_value_target([-position, position])
-        self.__gripper_group.go()
+        if not self.__gripper_group.go():
+            rospy.logwarn("Failed to open gripper.")
+            return False
         self.__gripper_group.detach_object()
 
         self.load_object(0, Vector3(0, 0, 0))
+        return True
 
     def close_gripper(self, object=None):
         #TODO:fix sonderfall bei komposition
@@ -286,8 +291,9 @@ class Manipulation(object):
     def __place_with_group(self, destination, move_group):
         """ destination of type pose-stamped """
         dest = deepcopy(destination)
+        print dest
         co = self.__planning_scene_interface.get_attached_object()
-        if co is None :
+        if co is None:
             return False
         else:
             co = co.object
@@ -300,8 +306,10 @@ class Manipulation(object):
             rospy.logwarn("Can't reach placeposition.")
             return False
 
-        self.open_gripper()
-        rospy.sleep(0.25)
+        rospy.sleep(1)
+        if not self.open_gripper():
+            return False
+        rospy.sleep(1)
 
         post_place_pose = PoseStamped()
         post_place_pose.header.frame_id = "/tcp"

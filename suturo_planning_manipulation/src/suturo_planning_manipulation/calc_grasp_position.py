@@ -130,10 +130,10 @@ def calculate_grasp_position_cylinder(collision_object, n=8):
     depth_side += hand_length
     # print depth
 
-    grasp_positions.append(make_grasp_pose(depth, Point(0, 0, 1), Point(1, 0, 0), collision_object.id))
+    grasp_positions.append(make_grasp_pose(depth, Point(0, 0, 1), Point(0, 1, 0), collision_object.id))
     # grasp_positions.append(make_grasp_pose(depth, points[2], points[1], collision_object.id))
 
-    grasp_positions.append(make_grasp_pose(depth, Point(0, 0, -1), Point(1, 0, 0), collision_object.id))
+    grasp_positions.append(make_grasp_pose(depth, Point(0, 0, -1), Point(0, 1, 0), collision_object.id))
     # grasp_positions.append(make_grasp_pose(depth, points[5], points[4], collision_object.id))
 
     for i in range(0, n):
