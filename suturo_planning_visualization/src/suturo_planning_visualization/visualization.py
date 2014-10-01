@@ -20,6 +20,10 @@ def publish_marker_array(marker_array):
 
     pub_marker_array.publish(marker_array)
 
+    #for marker in marker_array.markers:
+    #    publish_marker(marker)
+    #    rospy.sleep(0.05)
+
 
 def publish_pose_stamped(pose_stamped):
     marker = Marker()
@@ -32,8 +36,8 @@ def publish_pose_stamped(pose_stamped):
     marker.scale.x = 0.05
     marker.scale.y = 0.05
     marker.scale.z = 0.1
-    marker.color.r = 255
-    marker.color.g = 255
+    marker.color.r = 1
+    marker.color.g = 1
     marker.color.b = 0
     marker.color.a = 1
     marker.lifetime = rospy.Time(0)
@@ -46,7 +50,7 @@ def publish_vector(vector, name):
     marker.id = name
     marker.type = Marker.SPHERE
     marker.action = Marker.ADD
-    marker.ns = 'search_grid'
+    marker.ns = 'suturo_planning/search'
     marker.header.stamp = rospy.Time(0)
     marker.header.frame_id = '/odom_combined'
     marker.pose.position.x = vector[0]
@@ -57,7 +61,7 @@ def publish_vector(vector, name):
     marker.scale.z = 0.05
     marker.color.r = 0
     marker.color.g = 0
-    marker.color.b = 255
+    marker.color.b = 1
     marker.color.a = 1
     marker.lifetime = rospy.Time(0)
 
@@ -78,14 +82,14 @@ def make_line(point1, point2, marker_id):
     marker.id = marker_id
     marker.type = Marker.ARROW
     marker.action = Marker.ADD
-    marker.ns = 'suturo_planning'
+    marker.ns = 'suturo_planning/search'
     marker.header.stamp = rospy.get_rostime()
     marker.header.frame_id = '/odom_combined'
     marker.scale.x = 0.02
     marker.scale.y = 0.02
     marker.scale.z = 0.02
-    marker.color.r = 255
-    marker.color.g = 255
+    marker.color.r = 1
+    marker.color.g = 1
     marker.color.b = 0
     marker.color.a = 1
     marker.points = [point1, point2]

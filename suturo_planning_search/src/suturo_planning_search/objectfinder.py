@@ -1,7 +1,7 @@
 import rospy
 import scipy
+import matplotlib.path as mplPath
 import tf
-import rospy
 from suturo_planning_visualization import visualization
 from searchgrid import SearchGrid
 from geometry import *
@@ -21,7 +21,7 @@ class ObjectFinder:
 
     def __init__(self, yaml):
         self._tf_listener = tf.TransformListener()
-        self._grid = SearchGrid(10, 10)
+        self._grid = SearchGrid(10, 10, 2.0, 2.0)
         camera = yaml.sensors[0].camera
         self._fov_h = camera.horizontal_fov
         self._fov_v = 2.0 * scipy.arctan(scipy.tan(self._fov_h / 2.0) * (camera.image_height / camera.image_width))
@@ -47,6 +47,12 @@ class ObjectFinder:
                                                                             *table_points),
                                   fov_points)
         rospy.logdebug('Intersection points fov lines with table: %s' % str(intersection_points))
+
+        # Update visible fields
+        visible_fields = self._get_visible_fields(intersection_points)
+        for pos in visible_fields:
+            self._grid.field[pos[0], pos[1]] += 1
+        rospy.loginfo('Visible fields: %s' % str(visible_fields))
 
         # Visualize search grid
         visualization.publish_marker_array(self._grid.to_marker_array())
@@ -93,6 +99,23 @@ class ObjectFinder:
                 continue
 
         return fov_points
+
+    def _get_visible_fields(self, intersection_points):
+        points = map(lambda point: [point[0], point[1]], intersection_points)
+        polygon = scipy.array([points[0], points[1], points[3], points[2]])
+
+        visible_fields = []
+        for x in range(0, len(self._grid.field)):
+            for y in range(0, len(self._grid.field[0])):
+                if self._in_polygon(polygon, (self._grid.coordinates[x][y][0], self._grid.coordinates[x][y][1])):
+                    visible_fields.append([x, y])
+
+        return visible_fields
+
+    @staticmethod
+    def _in_polygon(polygon, point):
+        path = mplPath.Path(polygon)
+        return path.contains_point(point)
 
     def _update_collision_objects(self):
         self
