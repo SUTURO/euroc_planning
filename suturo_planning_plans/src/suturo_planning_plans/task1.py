@@ -21,10 +21,15 @@ class Task1(smach.StateMachine):
                                                 'noObject': 'SearchObject'})
             smach.StateMachine.add('GraspObject', GraspObject(),
                                    transitions={'success': 'PlaceObject',
-                                                'fail': 'GraspObject'})
+                                                'objectNotInPlanningscene': 'PerceiveObject',
+                                                'noGraspPosition': 'SearchObject',
+                                                'fail': 'SearchObject'})
             smach.StateMachine.add('PlaceObject', PlaceObject(),
                                    transitions={'success': 'CheckPlacement',
-                                                'fail': 'PlaceObject'})
+                                                'fail': 'SearchObject',
+                                                'noObjectAttached': 'GraspObject',
+                                                'noPlacePosition': 'PlaceObject'},
+                                   remapping = {'target_position': 'place_position'})
             smach.StateMachine.add('CheckPlacement', CheckPlacement(),
                                    transitions={'onTarget': 'SearchObject',
                                                 'notOnTarget': 'GraspObject',

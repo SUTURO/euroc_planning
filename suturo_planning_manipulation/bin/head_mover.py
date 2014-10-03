@@ -17,7 +17,7 @@ from suturo_perception_msgs.msg._EurocObject import EurocObject
 import tf
 from tf.transformations import quaternion_from_matrix, rotation_matrix
 import suturo_planning_manipulation.calc_grasp_position
-from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_position_box, visualize_pose, calculate_grasp_position
+from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_position_box, calculate_grasp_position
 from suturo_planning_manipulation.manipulation import Manipulation
 from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_position_cylinder
 from suturo_planning_manipulation.calc_grasp_position import get_pre_grasp
@@ -28,23 +28,20 @@ from suturo_planning_perception.perception import *
 
 
 def test_task1(mani):
-    # pose = PoseStamped()
-    # pose.header.frame_id = "/tcp"
-    # pose.pose.position = Point(0, 0, -post_place_length)
 
-    # mani.grasp("red_cube")
-    #
-    # dest = PointStamped()
-    # dest.header.frame_id = "/odom_combined"
-    # dest.point = Point(0.5, 0.5, 0.00)
-    # mani.place(dest)
-
-    mani.grasp("green_cylinder")
+    mani.grasp("red_cube")
 
     dest = PointStamped()
     dest.header.frame_id = "/odom_combined"
-    dest.point = Point(0.5, 0, 0)
+    dest.point = Point(0.5, 0.5, 0.00)
     mani.place(dest)
+
+    # mani.grasp("green_cylinder")
+    #
+    # dest = PointStamped()
+    # dest.header.frame_id = "/odom_combined"
+    # dest.point = Point(0.5, 0, 0)
+    # mani.place(dest)
 
     # mani.grasp("blue_handle")
     #
@@ -54,10 +51,6 @@ def test_task1(mani):
     # mani.place(dest)
 
 def test_task3(mani):
-    # pose = PoseStamped()
-    # pose.header.frame_id = "/tcp"
-    # pose.pose.position = Point(0, 0, -post_place_length)
-
     mani.grasp_and_move("blue_handle")
 
     dest = PointStamped()
@@ -65,19 +58,19 @@ def test_task3(mani):
     dest.point = Point(0.85, -0.85, 0)
     mani.place_and_move(dest)
 
-    mani.grasp_and_move("red_cube")
+    # mani.grasp_and_move("red_cube")
+    #
+    # dest = PointStamped()
+    # dest.header.frame_id = "/odom_combined"
+    # dest.point = Point( -0.85, 0.85, 0.00)
+    # mani.place_and_move(dest)
 
-    dest = PointStamped()
-    dest.header.frame_id = "/odom_combined"
-    dest.point = Point( -0.85, 0.85, 0.00)
-    mani.place_and_move(dest)
-
-    mani.grasp_and_move("green_cylinder")
-
-    dest = PointStamped()
-    dest.header.frame_id = "/odom_combined"
-    dest.point = Point(-0.85, -0.85, 0)
-    mani.place_and_move(dest)
+    # mani.grasp_and_move("green_cylinder")
+    #
+    # dest = PointStamped()
+    # dest.header.frame_id = "/odom_combined"
+    # dest.point = Point(-0.85, -0.85, 0)
+    # mani.place_and_move(dest)
 
 if __name__ == '__main__':
     # print (lambda x: a(2, x))(3)
@@ -93,6 +86,12 @@ if __name__ == '__main__':
     mani.open_gripper()
     test_task3(mani)
     # print mani.get_arm_move_group().get_current_pose()
+    # mani.grasp("red_cube")
+    # p = PoseStamped()
+    # p.header.frame_id = "/odom_combined"
+    # p.pose.position = Point(0, 0, 0)
+    # p.pose.position = Point(0.5 , -0.8, 0)
+    # mani.move_base(p)
 
 
     # mani.move_to("scan_pose3")

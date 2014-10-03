@@ -17,10 +17,12 @@ import moveit_commander
 import moveit_msgs.msg
 import geometry_msgs.msg
 from calc_grasp_position import *
-from place import get_place_position, get_pre_place_position, pre_place_length, post_place_length
+from place import get_place_position, get_pre_place_position, pre_place_length, post_place_length, get_grasped_part
 from planningsceneinterface import *
 from manipulation_constants import *
 import math
+from suturo_planning_plans.visualization import visualize_poses
+
 
 class Manipulation(object):
     def __init__(self):
@@ -73,16 +75,21 @@ class Manipulation(object):
         goal = deepcopy(goal_pose)
         if type(goal) is str:
             move_group.set_named_target(goal)
-        else:
-            visualize_pose([goal])
+        elif type(goal) is PoseStamped:
+            visualize_poses([goal])
 
             goal.pose.orientation = rotate_quaternion(goal.pose.orientation, pi/2, 0, pi/2)
 
             goal = self.transform_to(goal)
 
             move_group.set_pose_target(goal)
+        else:
+            move_group.set_joint_value_target(goal)
 
         return move_group.go()
+
+    def get_current_joint_state(self):
+        return self.__arm_base_group.get_current_joint_values()
 
     def transform_to(self, pose_target, target_frame="/odom_combined"):
         odom_pose = None
@@ -127,28 +134,6 @@ class Manipulation(object):
             rospy.logerr("FUUUUUUUUUUUUUU!!!! fucking tf shit!!!!")
         return odom_pose
 
-    # def tf_lookup(self, frame1, frame2):
-    #
-    #     i = 0
-    #     while i < 10:
-    #         try:
-    #             now = rospy.Time.now()
-    #
-    #             self.__listener.waitForTransform("/odom_combined", "/tcp", now, rospy.Duration(4))
-    #             (p, q) = self.__listener.lookupTransform("/odom_combined", "/tcp", now)
-    #
-    #             self.__listener.waitForTransform("/odom_combined", "/" + object_name, now, rospy.Duration(4))
-    #             (p2, q2) = self.__listener.lookupTransform("/odom_combined", "/" + object_name, now)
-    #
-    #         except Exception, e:
-    #             print "tf error:::", e
-    #         rospy.sleep(0.5)
-    #         i += 1
-    #         rospy.logdebug("tf fail nr. " + str(i))
-    #
-    #     return odom_pose
-
-
     def open_gripper(self, position=gripper_max_pose):
         self.__gripper_group.set_joint_value_target([-position, position])
         if not self.__gripper_group.go():
@@ -160,16 +145,15 @@ class Manipulation(object):
         return True
 
     def close_gripper(self, object=None):
-        #TODO:fix sonderfall bei komposition
         if type(object) is CollisionObject:
-            if object.id != "":
-                self.__gripper_group.attach_object(object.id, "gp", ["gp", "finger1", "finger2"])
-                rospy.sleep(0.5)
-            if object.primitives[0].type == 1:
-                length = object.primitives[0].dimensions[0]
+            self.__gripper_group.attach_object(object.id, "gp", ["gp", "finger1", "finger2"])
+            rospy.sleep(0.5)
+            (egal, id) = get_grasped_part(object, self.transform_to)
+            if object.primitives[id].type == shape_msgs.msg.SolidPrimitive.BOX:
+                length = min(object.primitives[id].dimensions)
                 self.__gripper_group.set_joint_value_target([-(length/2), length/2])
-            elif object.primitives[0].type == 3:
-                radius = object.primitives[0].dimensions[1]
+            elif object.primitives[id].type == shape_msgs.msg.SolidPrimitive.CYLINDER:
+                radius = object.primitives[id].dimensions[shape_msgs.msg.SolidPrimitive.CYLINDER_RADIUS]
                 self.__gripper_group.set_joint_value_target([-radius+0.005, radius-0.005])
         else:
             self.__gripper_group.set_joint_value_target([0.0, 0.0])
@@ -193,13 +177,13 @@ class Manipulation(object):
         grasp_positions = calculate_grasp_position(collision_object, self.transform_to)
 
 
-        grasp_positions = self.__filter_invalid_grasps(grasp_positions)
+        grasp_positions = self.filter_invalid_grasps(grasp_positions)
 
         if len(grasp_positions) == 0:
             rospy.logwarn("No grasppositions found for " + collision_object_name)
 
         grasp_positions.sort(cmp=lambda x, y: self.cmp_pose_stamped(collision_object, x, y))
-        # visualize_pose(grasp_positions)
+        # visualize_poses(grasp_positions)
         # print grasp_positions
 
         self.open_gripper()
@@ -255,7 +239,10 @@ class Manipulation(object):
             diff = z2 - z1
         return 1 if diff > 0 else -1 if diff < 0 else 0
 
-    def __filter_invalid_grasps(self, list_of_grasps):
+    def tf_listener(self):
+        return self.__listener
+
+    def filter_invalid_grasps(self, list_of_grasps):
         if len(list_of_grasps) == 0:
             return list_of_grasps
 
@@ -295,7 +282,7 @@ class Manipulation(object):
     def __place_with_group(self, destination, move_group):
         """ destination of type pose-stamped """
         dest = deepcopy(destination)
-        print dest
+        # print dest
         co = self.__planning_scene_interface.get_attached_object()
         if co is None:
             return False
@@ -315,11 +302,11 @@ class Manipulation(object):
             return False
         rospy.sleep(1)
 
-        post_place_pose = PoseStamped()
-        post_place_pose.header.frame_id = "/tcp"
-        post_place_pose.pose.position = Point(0, 0, -post_place_length)
+        post_place_pose = self.transform_to(place_pose, co.id)
+        # post_place_pose.header.frame_id = "/tcp"
+        # post_place_pose.pose.position = Point(0, 0, -post_place_length)
 
-        if not self.__move_group_to(post_place_pose, move_group):
+        if not self.__move_group_to(get_pre_grasp(post_place_pose), move_group):
             rospy.logwarn("Can't reach postplaceposition.")
             return False
         rospy.sleep(0.25)

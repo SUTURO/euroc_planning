@@ -15,6 +15,7 @@ class SearchObject(smach.State):
     _recognized_objects = []
     _obj_colors = []
     _objs_to_search = None
+    _last_joint_state = None
 
     def __init__(self):
         smach.State.__init__(self, outcomes=['objectFound', 'noObjectsLeft'],
@@ -55,7 +56,10 @@ class SearchObject(smach.State):
                 return 'noObjectsLeft'
 
             # After placing an object go back into the scan_pose1
-            utils.manipulation.move_to(scan_pose)
+            if self._last_joint_state is None:
+                utils.manipulation.move_to(scan_pose)
+            else:
+                utils.manipulation.move_arm_and_base_to(self._last_joint_state)
 
         # take initial scan pose
         if self._next_scan == 0:
@@ -114,7 +118,7 @@ class SearchObject(smach.State):
                     # Might help with tf
                     rospy.logdebug('Wait for tf')
                     rospy.sleep(3)
-
+                    self._last_joint_state = utils.manipulation.get_current_joint_state()
                     return 'objectFound'
 
             self._next_scan = 0
