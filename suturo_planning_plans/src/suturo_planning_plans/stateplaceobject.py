@@ -33,20 +33,28 @@ class PlaceObject(smach.State):
         place_pose = get_place_position(co, destination, utils.manipulation.tf_listener(), utils.manipulation.transform_to, userdata.grasp)
 
         if place_pose is None:
-            #TODO:hier abstellen
+            # try to place the object at the current position
+            current_pose = utils.manipulation.get_arm_move_group().get_current_pose()
+            destination.pose = PointStamped()
+            destination.header.frame_id = current_pose.header.frame_id
+            destination.point = current_pose.pose.position
+            destination.point.z = 0
+            userdata.place_position = destination
+
             return 'noPlacePosition'
 
         if not move_to_func(get_pre_place_position(place_pose)):
             rospy.logwarn("Can't reach preplaceposition.")
-            return False
+            return 'fail'
+
         if not move_to_func(place_pose):
             rospy.logwarn("Can't reach placeposition.")
-            return False
+            return 'fail'
 
         rospy.sleep(1)
         if not utils.manipulation.open_gripper():
             #cant happen
-            return False
+            return 'fail'
         rospy.sleep(1)
 
         post_place_pose = utils.manipulation.transform_to(place_pose, co.id)
