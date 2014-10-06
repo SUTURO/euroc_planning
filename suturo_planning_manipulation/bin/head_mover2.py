@@ -15,7 +15,7 @@ import shape_msgs.msg
 import tf
 from tf.transformations import quaternion_from_matrix, rotation_matrix
 import suturo_planning_manipulation.calc_grasp_position
-from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_position_box, visualize_pose, calculate_grasp_position
+from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_position_box, calculate_grasp_position
 from suturo_planning_manipulation.manipulation import Manipulation
 from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_position_cylinder
 from suturo_planning_manipulation.calc_grasp_position import get_pre_grasp
@@ -23,57 +23,57 @@ from suturo_planning_manipulation.planningsceneinterface import *
 from suturo_planning_manipulation.planningsceneinterface import PlanningSceneInterface
 
 
-def test_task1(mani):
-    mani.grasp("red_cube")
-
-    dest = PointStamped()
-    dest.header.frame_id = "/odom_combined"
-    # dest.point = Point(-0.3, -0.4, 0.03)
-    dest.point = Point(0.5, 0.5, 0.00)
-    mani.place(dest)
-
-    mani.grasp("green_cylinder")
-
-    dest = PointStamped()
-    dest.header.frame_id = "/odom_combined"
-    dest.point = Point(0.5, 0, 0)
-    mani.place(dest)
-
-    mani.grasp("blue_handle")
-
-    dest = PointStamped()
-    dest.header.frame_id = "/odom_combined"
-    dest.point = Point(0.5, -0.5, 0)
-    mani.place(dest)
-
-def test_task3(mani):
-    pose = PoseStamped()
-    pose.header.frame_id = "/odom_combined"
-    pose.pose.position = Point(0.1858, -0.772, 0.04)
-    pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, -0.1))
-    mani.get_planning_scene().add_box("red_cube", pose, [0.05, 0.05, 0.05])
-
-    mani.grasp_and_move("blue_handle")
-
-    dest = PointStamped()
-    dest.header.frame_id = "/odom_combined"
-    dest.point = Point(0.85, -0.85, 0)
-    mani.place_and_move(dest)
-
-    mani.grasp_and_move("red_cube")
-
-    dest = PointStamped()
-    dest.header.frame_id = "/odom_combined"
-    # dest.point = Point(-0.3, -0.4, 0.03)
-    dest.point = Point( -0.85, 0.85, 0.00)
-    mani.place_and_move(dest)
-
-    mani.grasp_and_move("green_cylinder")
-
-    dest = PointStamped()
-    dest.header.frame_id = "/odom_combined"
-    dest.point = Point(-0.85, -0.85, 0)
-    mani.place_and_move(dest)
+# def test_task1(mani):
+#     mani.grasp("red_cube")
+#
+#     dest = PointStamped()
+#     dest.header.frame_id = "/odom_combined"
+#     # dest.point = Point(-0.3, -0.4, 0.03)
+#     dest.point = Point(0.5, 0.5, 0.00)
+#     mani.place(dest)
+#
+#     mani.grasp("green_cylinder")
+#
+#     dest = PointStamped()
+#     dest.header.frame_id = "/odom_combined"
+#     dest.point = Point(0.5, 0, 0)
+#     mani.place(dest)
+#
+#     mani.grasp("blue_handle")
+#
+#     dest = PointStamped()
+#     dest.header.frame_id = "/odom_combined"
+#     dest.point = Point(0.5, -0.5, 0)
+#     mani.place(dest)
+#
+# def test_task3(mani):
+#     pose = PoseStamped()
+#     pose.header.frame_id = "/odom_combined"
+#     pose.pose.position = Point(0.1858, -0.772, 0.04)
+#     pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, -0.1))
+#     mani.get_planning_scene().add_box("red_cube", pose, [0.05, 0.05, 0.05])
+#
+#     mani.grasp_and_move("blue_handle")
+#
+#     dest = PointStamped()
+#     dest.header.frame_id = "/odom_combined"
+#     dest.point = Point(0.85, -0.85, 0)
+#     mani.place_and_move(dest)
+#
+#     mani.grasp_and_move("red_cube")
+#
+#     dest = PointStamped()
+#     dest.header.frame_id = "/odom_combined"
+#     # dest.point = Point(-0.3, -0.4, 0.03)
+#     dest.point = Point( -0.85, 0.85, 0.00)
+#     mani.place_and_move(dest)
+#
+#     mani.grasp_and_move("green_cylinder")
+#
+#     dest = PointStamped()
+#     dest.header.frame_id = "/odom_combined"
+#     dest.point = Point(-0.85, -0.85, 0)
+#     mani.place_and_move(dest)
 
 
 
@@ -81,7 +81,17 @@ if __name__ == '__main__':
     rospy.init_node('head_mover', anonymous=True)
 
     mani = Manipulation()
-    test_task3(mani)
+    # test_task3(mani)
+
+    num_of_scans = 12
+    max_rad = 5.9
+    rad_per_step = max_rad / num_of_scans
+
+    #x is zwischen 0 und num_of_scans
+    x = 5
+    rad = x * rad_per_step - 2.945
+    rospy.loginfo('Turning arm %s' % str(rad))
+    mani.turn_arm(rad)
 
     # co = mani.get_planning_scene().get_collision_object("red_cube")
     # print mani.calc_object_weight(co, 2710)
