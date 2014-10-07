@@ -7,11 +7,10 @@ from searchgrid import SearchGrid
 from geometry import *
 from moveit_msgs.srv import GetPlanningScene
 from moveit_msgs.msg import PlanningSceneComponents
-from geometry_msgs.msg import PoseStamped, PointStamped
+from geometry_msgs.msg import PoseStamped, PointStamped, Point
 
 
 class ObjectFinder:
-
     _grid = None
     _collision_objects = []
     _fov_h = 0
@@ -65,7 +64,44 @@ class ObjectFinder:
         map(lambda vec, name: visualization.publish_vector(vec, name), intersection_points, [5000, 6000, 7000, 8000])
 
     def get_place_to_search(self):
-        self
+        focused_field = self._get_focused_field()
+        x_s = focused_field[0]
+        y_s = focused_field[1]
+        lowest_value = 100
+        best_field = None
+
+        for i in range(1, len(self._grid.field)):
+            for x_diff in range(-i, i):
+                y_diff = i - abs(x_diff)
+                x1 = x_s + x_diff
+                y1 = y_s + y_diff
+                x2 = x_s - x_diff
+                y2 = y_s - y_diff
+                if x1 < len(self._grid.field) and y1 < len(self._grid.field[0]) and \
+                   self._grid.field[x1][y1] < lowest_value:
+                    best_field = [x1, y1]
+                    lowest_value = self._grid.field[x1][y1]
+                if x2 < len(self._grid.field) and y2 < len(self._grid.field[0]) and \
+                   self._grid.field[x2][y2] < lowest_value:
+                    best_field = [x2, y2]
+                    lowest_value = self._grid.field[x2][y2]
+                if lowest_value == 0:
+                    break
+            # ends both loops if inner loop breaks, kinda hacky but should work
+            else:
+                continue
+            break
+
+        rospy.logdebug('Focused field: %s Field to search: %s' % (str(focused_field), str(best_field)))
+
+        place_to_search = PointStamped()
+        place_to_search.point = Point(best_field[0], best_field[1], 0)
+        place_to_search.header.frame_id = '/odom_combined'
+        rospy.logdebug('Place to search %s' % str(place_to_search))
+
+        visualization.publish_vector(self._grid.coordinates[best_field[0], best_field[1]], 9999)
+
+        return place_to_search
 
     def _get_camera_pose(self):
         camera_pose_tdepth = PoseStamped()
@@ -104,13 +140,15 @@ class ObjectFinder:
         points = map(lambda point: [point[0], point[1]], intersection_points)
         polygon = scipy.array([points[0], points[1], points[3], points[2]])
 
-        visible_fields = []
+        return self._get_fields_in_polygon(polygon)
+
+    def _get_fields_in_polygon(self, polygon):
+        fields = []
         for x in range(0, len(self._grid.field)):
             for y in range(0, len(self._grid.field[0])):
                 if self._in_polygon(polygon, (self._grid.coordinates[x][y][0], self._grid.coordinates[x][y][1])):
-                    visible_fields.append([x, y])
-
-        return visible_fields
+                    fields.append([x, y])
+        return fields
 
     @staticmethod
     def _in_polygon(polygon, point):
@@ -133,3 +171,18 @@ class ObjectFinder:
             return scene(comp).scene.world.collision_objects
         except rospy.ServiceException, e:
             print "Service call failed: %s" % e
+
+    def _get_focused_field(self):
+        camera_pose = self._get_camera_pose()
+        x = camera_pose.pose.position.x
+        y = camera_pose.pose.position.y
+        offset_x = self._grid.field_size_x / 2.0
+        offset_y = self._grid.field_size_y / 2.0
+        polygon = scipy.array([[x - offset_x, y - offset_y], [x - offset_x, y + offset_y],
+                               [x + offset_x, y + offset_y], [x + offset_x, y - offset_y]])
+
+        fields = self._get_fields_in_polygon(polygon)
+        if fields:
+            return fields[0]
+        else:
+            return None

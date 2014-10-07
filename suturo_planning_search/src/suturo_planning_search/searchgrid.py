@@ -8,23 +8,24 @@ class SearchGrid:
 
     field = None
     coordinates = None
+    field_size_x = 0
+    field_size_y = 0
 
     def __init__(self, num_of_fields_x, num_of_fields_y, size_x, size_y):
         self.field = scipy.zeros([num_of_fields_x, num_of_fields_y])
+        self.field_size_x = 1.0 * size_x / len(self.field)
+        self.field_size_y = 1.0 * size_y / len(self.field[0])
         self.coordinates = self._get_real_coordinates(size_x, size_y)
 
     def _get_real_coordinates(self, size_x, size_y):
-        field_size_x = 1.0 * size_x / len(self.field)
-        start_x = (-size_x / 2.0) + (field_size_x / 2)
-
-        field_size_y = 1.0 * size_y / len(self.field[0])
-        start_y = (-size_y / 2.0) + (field_size_y / 2)
+        start_x = (-size_x / 2.0) + (self.field_size_x / 2)
+        start_y = (-size_y / 2.0) + (self.field_size_y / 2)
 
         grid_coordinates = scipy.zeros([len(self.field), len(self.field[0]), 3])
         for x in range(0, len(grid_coordinates)):
             for y in range(0, len(grid_coordinates[0])):
-                x_coord = start_x + (x * field_size_x)
-                y_coord = start_y + (y * field_size_y)
+                x_coord = start_x + (x * self.field_size_x)
+                y_coord = start_y + (y * self.field_size_y)
                 grid_coordinates[x][y] = [x_coord, y_coord, 0]
 
         return grid_coordinates
