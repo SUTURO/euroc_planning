@@ -37,6 +37,19 @@ class PlanningSceneInterface(object):
         box = self.make_box("ground" + str(height), pose, [3, 3, 0.01])
         self.add_object(box)
 
+    def add_cam_mast(self):
+        pose = PoseStamped()
+        pose.header.frame_id = "/odom_combined"
+        pose.pose.position = Point(0.92, 0.92, 0.55)
+        pose.pose.orientation = Quaternion(0, 0, 0, 1)
+        c1 = self.make_cylinder("cm1", pose, [1.1, 0.05])
+        self.add_object(c1)
+
+        # pose.pose.position = Point(0.92, 0.92, 0.55)
+        # pose.pose.orientation = Quaternion(0, 0, 0, 1)
+        # c1 = self.make_cylinder("cm1", pose, [0.05, 1.1])
+        # self.add_object(c1)
+
     @staticmethod
     def make_box(name, pose, size):
         co = CollisionObject()
@@ -47,6 +60,19 @@ class PlanningSceneInterface(object):
         box.type = SolidPrimitive.BOX
         box.dimensions = list(size)
         co.primitives = [box]
+        co.primitive_poses = [pose.pose]
+        return co
+
+    @staticmethod
+    def make_cylinder(name, pose, size):
+        co = CollisionObject()
+        co.operation = CollisionObject.ADD
+        co.id = name
+        co.header = pose.header
+        cylinder = SolidPrimitive()
+        cylinder.type = SolidPrimitive.CYLINDER
+        cylinder.dimensions = list(size)
+        co.primitives = [cylinder]
         co.primitive_poses = [pose.pose]
         return co
 

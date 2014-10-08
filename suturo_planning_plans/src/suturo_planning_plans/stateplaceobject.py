@@ -1,3 +1,4 @@
+from geometry_msgs.msg._PoseStamped import PoseStamped
 import smach
 import rospy
 from geometry_msgs.msg import PointStamped
@@ -34,22 +35,30 @@ class PlaceObject(smach.State):
 
         if place_pose is None:
             # try to place the object at the current position
-            current_pose = utils.manipulation.get_arm_move_group().get_current_pose()
-            destination.pose = PointStamped()
-            destination.header.frame_id = current_pose.header.frame_id
-            destination.point = current_pose.pose.position
-            destination.point.z = 0
-            userdata.place_position = destination
+            # current_pose = utils.manipulation.get_arm_move_group().get_current_pose()
+            # destination = PointStamped()
+            # destination.header.frame_id = current_pose.header.frame_id
+            # destination.point = current_pose.pose.position
+            # destination.point.z = 0
+            userdata.place_position = self.new_place_position()
 
             return 'noPlacePosition'
 
         if not move_to_func(get_pre_place_position(place_pose)):
             rospy.logwarn("Can't reach preplaceposition.")
-            return 'fail'
+            userdata.place_position = self.new_place_position()
+
+            return 'noPlacePosition'
+        else:
+            rospy.logdebug("preplaceposition taken")
 
         if not move_to_func(place_pose):
             rospy.logwarn("Can't reach placeposition.")
-            return 'fail'
+            userdata.place_position = self.new_place_position()
+
+            return 'noPlacePosition'
+        else:
+            rospy.logdebug("placeposition taken")
 
         rospy.sleep(1)
         if not utils.manipulation.open_gripper():
@@ -64,6 +73,9 @@ class PlaceObject(smach.State):
         if not move_to_func(get_pre_grasp(post_place_pose)):
             rospy.logwarn("Can't reach postplaceposition. Continue anyway")
             return 'success'
+        else:
+            rospy.logdebug("postplaceposition taken")
+
         rospy.sleep(0.25)
         rospy.loginfo("placed " + co.id)
         return 'success'
@@ -90,3 +102,11 @@ class PlaceObject(smach.State):
         #     return 'success'
         # else:
         #     return 'fail'
+
+    def new_place_position(self):
+        current_pose = utils.manipulation.get_arm_move_group().get_current_pose()
+        destination = PointStamped()
+        destination.header.frame_id = current_pose.header.frame_id
+        destination.point = current_pose.pose.position
+        destination.point.z = 0
+        return destination

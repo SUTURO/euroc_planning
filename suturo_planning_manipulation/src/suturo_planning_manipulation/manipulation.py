@@ -47,6 +47,7 @@ class Manipulation(object):
 
         rospy.sleep(1)
         self.__planning_scene_interface.add_ground()
+        self.__planning_scene_interface.add_cam_mast()
         # self.set_height_constraint(True)
 
         self.__grasp = None
@@ -79,6 +80,7 @@ class Manipulation(object):
     def __move_group_to(self, goal_pose, move_group):
         move_group.set_start_state_to_current_state()
         goal = deepcopy(goal_pose)
+        cjv = move_group.get_current_joint_values()
         if type(goal) is str:
             move_group.set_named_target(goal)
         elif type(goal) is PoseStamped:
@@ -92,7 +94,11 @@ class Manipulation(object):
         else:
             move_group.set_joint_value_target(goal)
 
-        return move_group.go()
+        result = move_group.go()
+        cjv2 = move_group.get_current_joint_values()
+        if cjv == cjv2:
+            rospy.logwarn("Y U NO MOVE?!?!?!")
+        return result
 
     def get_current_joint_state(self):
         return self.__arm_base_group.get_current_joint_values()
@@ -127,11 +133,12 @@ class Manipulation(object):
                 if type(pose_target) is PointStamped:
                     odom_pose = self.__listener.transformPoint(target_frame, pose_target)
                     break
+                pose_target.header.stamp = rospy.Time.now()
+                self.__listener.waitForTransform(target_frame, pose_target.header.frame_id, pose_target.header.stamp, rospy.Duration(4))
             except Exception, e:
                 print "tf error:::", e
             rospy.sleep(0.5)
-            # pose_target.header.stamp = rospy.Time.now()
-            # self.__listener.waitForTransform(target_frame, pose_target.header.frame_id, pose_target.header.stamp, rospy.Duration(4))
+
             i += 1
             print pose_target
             rospy.logdebug("tf fail nr. " + str(i))

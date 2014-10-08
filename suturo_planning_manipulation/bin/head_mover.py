@@ -83,7 +83,7 @@ if __name__ == '__main__':
     # q = quaternion_from_euler(0, pi /4, pi /4)
     # pose.pose.orientation = Quaternion(*q)
     # mani.move_to(pose)
-    mani.open_gripper()
+    # mani.open_gripper()
     # test_task3(mani)
     # print mani.get_arm_move_group().get_current_pose()
     # mani.grasp("red_cube")
