@@ -99,7 +99,6 @@ class SearchObject(smach.State):
                 rospy.loginfo('Turning arm %s' % str(rad))
                 utils.manipulation.turn_arm(rad)
 
-                rospy.sleep(2)
                 self._next_scan += 1
 
                 # look for objects
