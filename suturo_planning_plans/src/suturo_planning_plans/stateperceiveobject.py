@@ -16,6 +16,9 @@ class PerceiveObject(smach.State):
 
         rospy.loginfo('Using simple perception.')
         get_gripper = perception.get_gripper_perception()
+        if get_gripper is None:
+            rospy.logwarn("ger_gripper is None!!!?!?")
+            get_gripper = []
         perceived_objects = get_valid_objects(get_gripper)
         rospy.logdebug('Found ' + str(len(get_gripper)) + ' objects, ' + str(len(perceived_objects)) + ' are valid.')
         if not perceived_objects:

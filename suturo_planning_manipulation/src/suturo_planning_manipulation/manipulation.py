@@ -57,8 +57,14 @@ class Manipulation(object):
         moveit_commander.os._exit(0)
 
     def move_base(self, goal_pose):
-        goal = deepcopy(goal_pose)
-        self.__base_group.set_joint_value_target([goal.pose.position.x, goal.pose.position.y])
+        goal = [goal_pose.pose.position.x, goal_pose.pose.position.y]
+        m = self.__base_group.get_current_joint_values()
+        d1 = goal[0] - m[0]
+        d2 = goal[1] - m[1]
+        if 0 <= abs(d1) <= 0.01 and 0 <= abs(d2) <= 0.01:
+            rospy.loginfo("No movement required.")
+            return True
+        self.__base_group.set_joint_value_target(goal)
         # print goal
         r = self.__base_group.go()
         rospy.loginfo("moved base")
@@ -335,6 +341,9 @@ class Manipulation(object):
         return self.__arm_group.go()
 
     def get_arm_move_group(self):
+        return self.__arm_group
+
+    def get_arm_base_move_group(self):
         return self.__arm_group
 
     def set_height_constraint(self, t=True):

@@ -59,7 +59,10 @@ class SearchObject(smach.State):
             if self._last_joint_state is None:
                 utils.manipulation.move_to(scan_pose)
             else:
-                utils.manipulation.move_arm_and_base_to(self._last_joint_state)
+                if userdata.enable_movement:
+                    utils.manipulation.move_arm_and_base_to(self._last_joint_state)
+                else:
+                    utils.manipulation.move_to(self._last_joint_state)
 
         # take initial scan pose
         if self._next_scan == 0:
@@ -118,7 +121,11 @@ class SearchObject(smach.State):
                     # Might help with tf
                     rospy.logdebug('Wait for tf')
                     rospy.sleep(3)
-                    self._last_joint_state = utils.manipulation.get_current_joint_state()
+                    if userdata.enable_movement:
+                        self._last_joint_state = utils.manipulation.get_arm_base_move_group().get_current_joint_values()
+                    else:
+                        self._last_joint_state = utils.manipulation.get_arm_move_group().get_current_joint_values()
+
                     return 'objectFound'
 
             self._next_scan = 0
