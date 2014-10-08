@@ -344,7 +344,7 @@ class Manipulation(object):
         return self.__arm_group
 
     def get_arm_base_move_group(self):
-        return self.__arm_group
+        return self.__arm_base_group
 
     def set_height_constraint(self, t=True):
         if t:
