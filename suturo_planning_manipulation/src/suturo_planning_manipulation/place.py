@@ -95,7 +95,8 @@ def get_place_position_handle(collision_object, dest, tf_listener, grasp, transf
 
 
 def get_grasped_part(collision_object, transform_func):
-    co = transform_func(collision_object, "/tcp")
+    print collision_object
+    co = transform_func(collision_object, "/link7")
     print co
     b = -1
     posi = Point()

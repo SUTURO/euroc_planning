@@ -1,3 +1,4 @@
+from geometry_msgs.msg._Point import Point
 import rospy
 from visualization_msgs.msg import Marker
 
@@ -56,14 +57,20 @@ def visualize_poses(poses):
         rospy.sleep(0.25)
 
 def visualize_point(p):
+    marker = Marker()
+    if type(p) is Point:
+        marker.pose.position = p
+        marker.header.frame_id = "/odom_combined"
+    else:
+        marker.pose.position = p.point
+        marker.header.frame_id = p.header.frame_id
     global pub
     if pub is None:
-        rospy.Publisher('visualization_marker', Marker, queue_size=10)
+        pub = rospy.Publisher('visualization_marker', Marker, queue_size=10)
     # pub = rospy.Publisher('visualization_marker', Marker, queue_size=10)
         rospy.sleep(0.5)
 
-    marker = Marker()
-    marker.header.frame_id = p.header.frame_id
+
     marker.header.stamp = rospy.get_rostime()
     marker.ns = "mani"
     marker.type = Marker.SPHERE
@@ -77,8 +84,7 @@ def visualize_point(p):
     marker.scale.y = 0.03
     marker.scale.x = 0.03
 
-    marker.id = 0
-    marker.pose.position = p.point
+    marker.id = 500
     marker.pose.orientation.w = 1
     pub.publish(marker)
     rospy.sleep(0.1)

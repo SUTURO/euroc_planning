@@ -25,6 +25,7 @@ from suturo_planning_manipulation.planningsceneinterface import *
 from suturo_planning_manipulation.planningsceneinterface import PlanningSceneInterface
 from suturo_planning_perception.perception import *
 # from suturo_planning_perception.src.suturo_planning_perception.perception import get_gripper_perception
+from suturo_planning_plans.visualization import visualize_poses
 
 
 def test_task1(mani):
@@ -76,16 +77,19 @@ if __name__ == '__main__':
     # print (lambda x: a(2, x))(3)
     rospy.init_node('head_mover', anonymous=True)
     #
+
     mani = Manipulation()
 
+    visualize_poses(mani.move_to_object_cam_pose_in_cool(Point(1, -1, 0.5), 0.4, pi/4.5))
+
     # redcube task1_v2
-    t_point = geometry_msgs.msg.PoseStamped()
-    t_point.header.frame_id = "/odom_combined"
-    t_point.pose.position = geometry_msgs.msg.Point(0.3, -0.3, 0.015)
-    t_point.pose.orientation = geometry_msgs.msg.Quaternion(0, 0, 0, 1)
-    dist = 0.1
-    angle = pi/4
-    mani.object_cam_pose(t_point, dist, angle)
+    # t_point = geometry_msgs.msg.PoseStamped()
+    # t_point.header.frame_id = "/odom_combined"
+    # t_point.pose.position = geometry_msgs.msg.Point(0.3, -0.3, 0.015)
+    # t_point.pose.orientation = geometry_msgs.msg.Quaternion(0, 0, 0, 1)
+    # dist = 0.1
+    # angle = pi/4
+    # mani.object_cam_pose(t_point, dist, angle)
 
     #pose = PoseStamped()
     #pose.header.frame_id = "/odom_combined"

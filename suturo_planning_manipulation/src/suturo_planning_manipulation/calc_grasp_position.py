@@ -8,6 +8,7 @@ import sys
 import copy
 import geometry_msgs.msg
 from geometry_msgs.msg._Point import Point
+from geometry_msgs.msg._PoseStamped import PoseStamped
 from geometry_msgs.msg._Quaternion import Quaternion
 from moveit_msgs.msg._CollisionObject import CollisionObject
 import rospy
@@ -110,7 +111,7 @@ def calculate_grasp_position_box(collision_object, n=8):
 
 
 def make_grasp_pose(depth, p1, p2, frame_id):
-    grasp = geometry_msgs.msg.PoseStamped()
+    grasp = PoseStamped()
     grasp.header.frame_id = frame_id
     grasp.pose.orientation = three_points_to_quaternion(p1, geometry_msgs.msg.Point(0, 0, 0), p2)
     grasp.pose.position = multiply_point(depth, p1)
