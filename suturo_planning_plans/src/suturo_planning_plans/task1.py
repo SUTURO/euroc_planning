@@ -29,7 +29,7 @@ class Task1(smach.StateMachine):
                                                 'fail': 'SearchObject',
                                                 'noObjectAttached': 'GraspObject',
                                                 'noPlacePosition': 'PlaceObject'},
-                                   remapping = {'target_position': 'place_position'})
+                                   remapping={'target_position': 'place_position'})
             smach.StateMachine.add('CheckPlacement', CheckPlacement(),
                                    transitions={'onTarget': 'SearchObject',
                                                 'notOnTarget': 'GraspObject',

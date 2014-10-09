@@ -87,7 +87,7 @@ class GraspObject(smach.State):
                         userdata.place_position = destination
                 return 'success'
         rospy.logwarn("Grapsing failed.")
-        return 'Fail'
+        return 'fail'
 
 
 
