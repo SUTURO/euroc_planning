@@ -64,7 +64,8 @@ def exit_handler():
     global _pro_task_selector
     if _pro_task_selector is not None:
         print 'Stopping gazebo'
-        _pro_task_selector.terminate()
+        os.killpg(_pro_task_selector.pid, signal.SIGTERM)
+        rospy.sleep(0.5)
         os.killpg(_pro_task_selector.pid, signal.SIGKILL)
 
 
