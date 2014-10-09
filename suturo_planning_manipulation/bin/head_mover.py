@@ -30,21 +30,44 @@ from suturo_planning_plans.visualization import visualize_poses
 
 def test_task1(mani):
 
-    mani.grasp("red_cube")
-
-    dest = PointStamped()
-    dest.header.frame_id = "/odom_combined"
-    dest.point = Point(0.5, 0.5, 0.00)
-    mani.place(dest)
-
-    # mani.grasp("green_cylinder")
+    # mani.grasp("red_cube")
     #
     # dest = PointStamped()
     # dest.header.frame_id = "/odom_combined"
-    # dest.point = Point(0.5, 0, 0)
+    # dest.point = Point(0.5, 0.5, 0.00)
     # mani.place(dest)
 
+    mani.grasp("green_cylinder")
+
+    dest = PointStamped()
+    dest.header.frame_id = "/odom_combined"
+    dest.point = Point(0.5, 0, 0)
+    mani.place(dest)
+
     # mani.grasp("blue_handle")
+    #
+    # dest = PointStamped()
+    # dest.header.frame_id = "/odom_combined"
+    # dest.point = Point(0.5, -0.5, 0)
+    # mani.place(dest)
+
+def test_task1_v2(mani):
+
+    # mani.grasp("red_cube")
+    #
+    # dest = PointStamped()
+    # dest.header.frame_id = "/odom_combined"
+    # dest.point = Point(-0.5, -0.5, 0.00)
+    # mani.place(dest)
+
+    mani.grasp("cyan_cylinder")
+
+    dest = PointStamped()
+    dest.header.frame_id = "/odom_combined"
+    dest.point = Point(-0.5, 0, 0)
+    mani.place(dest)
+
+    # mani.grasp("yellow_handle")
     #
     # dest = PointStamped()
     # dest.header.frame_id = "/odom_combined"
@@ -80,7 +103,7 @@ if __name__ == '__main__':
 
     mani = Manipulation()
 
-    visualize_poses(mani.move_to_object_cam_pose_in_cool(Point(1, -1, 0.5), 0.4, pi/4.5))
+    # visualize_poses(mani.move_to_object_cam_pose_in_cool(Point(1, -1, 0.5), 0.4, pi/4.5))
 
     # redcube task1_v2
     # t_point = geometry_msgs.msg.PoseStamped()
@@ -98,7 +121,7 @@ if __name__ == '__main__':
     # pose.pose.orientation = Quaternion(*q)
     # mani.move_to(pose)
     # mani.open_gripper()
-    # test_task3(mani)
+    test_task1(mani)
     # print mani.get_arm_move_group().get_current_pose()
     # mani.grasp("red_cube")
     # p = PoseStamped()

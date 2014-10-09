@@ -162,7 +162,8 @@ class Manipulation(object):
         if type(object) is CollisionObject:
             self.__gripper_group.attach_object(object.id, "gp", ["gp", "finger1", "finger2"])
             rospy.sleep(1.0)
-            (egal, id) = get_grasped_part(object, self.transform_to)
+            # (egal, id) = get_grasped_part(object, self.transform_to)
+            id = 0
             if object.primitives[id].type == shape_msgs.msg.SolidPrimitive.BOX:
                 length = min(object.primitives[id].dimensions)
                 self.__gripper_group.set_joint_value_target([-(length/2), length/2])
@@ -360,34 +361,7 @@ class Manipulation(object):
         else:
             self.__planning_scene_interface.remove_object("ground0.95")
 
-    def move_to_object_cam_pose_in_cool(self, point, distance, angle, n=8):
-        look_positions = []
 
-        alpha = pi/2 - angle
-        r = sin(alpha) * distance
-        h = cos(alpha) * distance
-        h_vector = Point()
-        h_vector.z = h
-        muh = add_point(point, h_vector)
-        for i in range(0, n):
-            a = 2 * pi * ((i + 0.0) / (n + 0.0))
-            b = a + (pi / 2)
-
-            look_point = Point(cos(a), sin(a), 0)
-            look_point = set_vector_length(r, look_point)
-            look_point = add_point(look_point, muh)
-
-            roll_point = Point(cos(b), sin(b), 0)
-            roll_point = add_point(roll_point, point)
-            look_pose = PoseStamped()
-            look_pose.header.frame_id = "/odom_combined"
-            look_pose.pose.orientation = three_points_to_quaternion(look_point, point, roll_point)
-
-            look_pose.pose.position = look_point
-            look_positions.append(look_pose)
-
-        look_positions.sort(key=lambda x: magnitude(x.pose.position))
-        return look_positions
 
     # Arguments: geometry_msgs/PointStamped, double distance from point to camera, double camera angle
     def move_to_object_cam_pose(self, point, distance, angle):

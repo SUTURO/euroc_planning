@@ -51,7 +51,7 @@ class PlaceObject(smach.State):
             return 'noPlacePosition'
         else:
             rospy.logdebug("preplaceposition taken")
-
+        rospy.sleep(1)
         if not move_to_func(place_pose):
             rospy.logwarn("Can't reach placeposition.")
             userdata.place_position = self.new_place_position()
