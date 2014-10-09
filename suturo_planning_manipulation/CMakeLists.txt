@@ -151,6 +151,9 @@ install(PROGRAMS bin/head_mover
 install(PROGRAMS bin/head_mover2
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
+install(PROGRAMS bin/print_joint_values
+        DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
 #############
 ## Testing ##
 #############
