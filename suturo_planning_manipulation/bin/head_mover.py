@@ -77,9 +77,19 @@ if __name__ == '__main__':
     rospy.init_node('head_mover', anonymous=True)
     #
     mani = Manipulation()
-    # pose = PoseStamped()
-    # pose.header.frame_id = "/odom_combined"
-    # pose.pose.position = Point(0.5, 0, 0.5)
+
+    # redcube task1_v2
+    t_point = geometry_msgs.msg.PoseStamped()
+    t_point.header.frame_id = "/odom_combined"
+    t_point.pose.position = geometry_msgs.msg.Point(0.3, -0.3, 0.015)
+    t_point.pose.orientation = geometry_msgs.msg.Quaternion(0, 0, 0, 1)
+    dist = 0.1
+    angle = pi/4
+    mani.object_cam_pose(t_point, dist, angle)
+
+    #pose = PoseStamped()
+    #pose.header.frame_id = "/odom_combined"
+    #pose.pose.position = Point(0.5, 0, 0.5)
     # q = quaternion_from_euler(0, pi /4, pi /4)
     # pose.pose.orientation = Quaternion(*q)
     # mani.move_to(pose)

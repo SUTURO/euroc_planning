@@ -360,7 +360,7 @@ class Manipulation(object):
             self.__planning_scene_interface.remove_object("ground0.95")
 
     # Arguments: geometry_msgs/PointStamped, double distance from point to camera, double camera angle
-    def object_cam_pose(self, point, distance, angle):
+    def move_to_object_cam_pose(self, point, distance, angle):
         # Get the data!
         alpha = angle
         dist = distance
@@ -412,6 +412,6 @@ class Manipulation(object):
 
         cam_pose.pose.orientation = quaternion
 
-        self.move_to(cam_pose)
+        self.move_arm_and_base_to(cam_pose)
         
         return cam_pose
