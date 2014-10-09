@@ -107,7 +107,7 @@ class SearchObject(smach.State):
                     rospy.loginfo('Turning arm %s' % str(rad))
                     utils.manipulation.turn_arm(rad)
 
-                rospy.sleep(4)
+                rospy.sleep(2)
                 self._next_scan += 1
 
                 # look for objects
@@ -119,8 +119,8 @@ class SearchObject(smach.State):
                     userdata.object_to_perceive = self._recognized_objects.pop(0)
 
                     # Might help with tf
-                    # rospy.logdebug('Wait for tf')
-                    # rospy.sleep(3)
+                    rospy.logdebug('Wait for tf')
+                    rospy.sleep(5)
                     if userdata.enable_movement:
                         self._last_joint_state = utils.manipulation.get_arm_base_move_group().get_current_joint_values()
                     else:

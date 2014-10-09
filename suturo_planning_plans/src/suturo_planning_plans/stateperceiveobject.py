@@ -3,6 +3,7 @@ import rospy
 import utils
 from utils import *
 from suturo_planning_perception import perception
+from suturo_perception_msgs.msg import EurocObject
 
 
 class PerceiveObject(smach.State):
@@ -31,27 +32,35 @@ class PerceiveObject(smach.State):
         for obj in perceived_objects:
             # classify object
             matched_obj = classify_object(obj)
-            rospy.logdebug('Matched: ' + str(obj) + '\n----------------------------------\nwith: ' + str(matched_obj))
+            rospy.logdebug('Matched: \n' + str(obj) + '\n----------------------------------\nwith: ' + str(matched_obj))
 
-            if matched_obj is None:
+            if matched_obj.c_type == EurocObject.OBSTACLE:
+                collision_objects.append(matched_obj.object)
                 continue
 
-            # check if the object was already placed
-            if not matched_obj.object.id in userdata.placed_objects:
-                rospy.loginfo('Using pose estimation.')
+            if matched_obj.c_type == EurocObject.UNKNOWN or matched_obj.c_type == EurocObject.TABLE:
+                # TODO something better than ignoring the problem
+                rospy.logwarn('Unknown object perceived or table. Ignoring it for now.')
+                continue
 
-                pose_estimated = get_pose_estimation(userdata, matched_obj)
+            if matched_obj.c_type == EurocObject.OBJECT:
+                # check if the object was already placed
+                if not matched_obj.object.id in userdata.placed_objects:
+                    rospy.loginfo('Using pose estimation.')
 
-                if (pose_estimated is None) or (not pose_estimated.mpe_success):
                     pose_estimated = get_pose_estimation(userdata, matched_obj)
 
-                if pose_estimated is None:
-                    continue
+                    if (pose_estimated is None) or (not pose_estimated.mpe_success):
+                        pose_estimated = get_pose_estimation(userdata, matched_obj)
 
-                if pose_estimated.mpe_success:
-                    pose_estimated.object.id = pose_estimated.mpe_object.id
-                    matched_objects.append(pose_estimated)
-                    collision_objects.append(pose_estimated.mpe_object)
+                    if pose_estimated is None:
+                        rospy.logwarn('Couldn\'t poseestimate object after two tries, continuing.')
+                        continue
+
+                    if pose_estimated.mpe_success:
+                        pose_estimated.object.id = pose_estimated.mpe_object.id
+                        matched_objects.append(pose_estimated)
+                        collision_objects.append(pose_estimated.mpe_object)
 
         publish_collision_objects(collision_objects)
         userdata.objects_found = matched_objects
