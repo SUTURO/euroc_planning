@@ -48,7 +48,6 @@ class Manipulation(object):
         rospy.sleep(1)
         self.__planning_scene_interface.add_ground()
         self.__planning_scene_interface.add_cam_mast()
-        # self.set_height_constraint(True)
 
         self.__grasp = None
         rospy.loginfo( "Manipulation started.")
