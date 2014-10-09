@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from asyncore import dispatcher
 from math import pi
 from pdb import post_mortem
 
@@ -159,7 +160,7 @@ class Manipulation(object):
     def close_gripper(self, object=None):
         if type(object) is CollisionObject:
             self.__gripper_group.attach_object(object.id, "gp", ["gp", "finger1", "finger2"])
-            rospy.sleep(0.5)
+            rospy.sleep(1.0)
             (egal, id) = get_grasped_part(object, self.transform_to)
             if object.primitives[id].type == shape_msgs.msg.SolidPrimitive.BOX:
                 length = min(object.primitives[id].dimensions)
@@ -357,6 +358,25 @@ class Manipulation(object):
             self.__planning_scene_interface.add_ground(0.95)
         else:
             self.__planning_scene_interface.remove_object("ground0.95")
+
+    def move_to_object_cam_pose_in_cool(self, point, distance, angle, n=8):
+        look_positions = []
+
+        alpha = pi/2 - angle
+        r = sin(alpha) * distance
+        h = cos(alpha) * distance
+        h_vector = Point
+        h_vector.z = h
+        muh = add_point(point, h_vector)
+        for i in range(0, n):
+            a = 2 * pi * ((i + 0.0) / (n + 0.0))
+            b = a + (pi / 4)
+
+            look_point = Point(cos(a), sin(a), 0)
+
+            look_positions.append(make_grasp_pose(distance, look_point, Point(cos(b), sin(b), 0),
+                                               "/odom_combined"))
+        pass
 
     # Arguments: geometry_msgs/PointStamped, double distance from point to camera, double camera angle
     def move_to_object_cam_pose(self, point, distance, angle):

@@ -96,17 +96,19 @@ def get_place_position_handle(collision_object, dest, tf_listener, grasp, transf
 
 def get_grasped_part(collision_object, transform_func):
     co = transform_func(collision_object, "/tcp")
+    print co
     b = -1
     posi = Point()
     i = 0
     id = 0
     for cop in co.primitive_poses:
-        a = abs(cop.position.x) + abs(cop.position.y) / 2
+        a = (abs(cop.position.x) + abs(cop.position.y)) / 2
         if b < 0 or a < b:
             b = a
             posi = cop.position
             id = i
         i += 1
+    print id , " pose ", posi , " co ", collision_object.primitives[id].type
     return (posi, id)
 
 

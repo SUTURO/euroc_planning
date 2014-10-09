@@ -2,7 +2,6 @@
 import rospy
 
 from suturo_planning_manipulation.manipulation import Manipulation
-from suturo_planning_perception.perception import *
 
 
 if __name__ == '__main__':
