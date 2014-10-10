@@ -8,9 +8,9 @@ from suturo_perception_msgs.msg import EurocObject
 
 class PerceiveObject(smach.State):
     def __init__(self):
-        smach.State.__init__(self, outcomes=['noObject', 'validObject'],
+        smach.State.__init__(self, outcomes=['noObject', 'objectsPerceived'],
                              input_keys=['object_to_perceive', 'yaml', 'placed_objects'],
-                             output_keys=['object_to_move', 'pending_objects', 'objects_found'])
+                             output_keys=['pending_objects', 'objects_found'])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state PerceiveObject')
@@ -66,10 +66,8 @@ class PerceiveObject(smach.State):
         userdata.objects_found = matched_objects
 
         # check if it was an object
-        object_candidate = get_object_to_move(matched_objects)
-        if object_candidate is not None:
-            userdata.object_to_move = object_candidate
-            return 'validObject'
+        if matched_objects:
+            return 'objectsPerceived'
         else:
             return 'noObject'
 
