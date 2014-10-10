@@ -81,11 +81,9 @@ if __name__ == '__main__':
     # redcube task1_v2
     t_point = geometry_msgs.msg.PoseStamped()
     t_point.header.frame_id = "/odom_combined"
-    t_point.pose.position = geometry_msgs.msg.Point(0.3, -0.3, 0.015)
+    t_point.pose.position = geometry_msgs.msg.Point(0.3, -0.3, 0.5)
     t_point.pose.orientation = geometry_msgs.msg.Quaternion(0, 0, 0, 1)
-    dist = 0.1
-    angle = pi/4
-    mani.object_cam_pose(t_point, dist, angle)
+    mani.move_to(t_point)
 
     #pose = PoseStamped()
     #pose.header.frame_id = "/odom_combined"

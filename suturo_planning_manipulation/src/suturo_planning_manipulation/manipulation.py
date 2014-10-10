@@ -20,6 +20,7 @@ from calc_grasp_position import *
 from place import get_place_position, get_pre_place_position, pre_place_length, post_place_length, get_grasped_part
 from planningsceneinterface import *
 from manipulation_constants import *
+from manipulation_service import *
 import math
 from suturo_planning_plans.visualization import visualize_poses
 
@@ -51,6 +52,9 @@ class Manipulation(object):
         # self.set_height_constraint(True)
 
         self.__grasp = None
+
+        self.__manService = ManipulationService()
+
         rospy.loginfo( "Manipulation started.")
 
     def __del__(self):
@@ -94,11 +98,9 @@ class Manipulation(object):
         else:
             move_group.set_joint_value_target(goal)
 
-        result = move_group.go()
-        cjv2 = move_group.get_current_joint_values()
-        if cjv == cjv2:
-            rospy.logwarn("Y U NO MOVE?!?!?!")
-        return result
+        path = move_group.plan()
+
+        self.__manService.move(path, "arm")
 
     def get_current_joint_state(self):
         return self.__arm_base_group.get_current_joint_values()
