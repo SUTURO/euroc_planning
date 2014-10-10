@@ -12,7 +12,7 @@ def recognize_objects_of_interest(colors):
 
 
 def get_gripper_perception(cuboid=True, pose_estimation=False, object_ids=[]):
-    s = 'height,centroid,shape,color'
+    s = 'height,centroid,color'
     if cuboid:
         s += ',cuboid'
     if pose_estimation:
@@ -23,7 +23,7 @@ def get_gripper_perception(cuboid=True, pose_estimation=False, object_ids=[]):
                 s_ids += str(object_id) + ','
             s_ids = '(' + s_ids[:-1] + ')'
             s += s_ids
-    rospy.logdebug('Perception param: %s'%s)
+    rospy.logdebug('Perception param: %s' % s)
 
     rospy.wait_for_service('suturo/GetGripper')
     try:
