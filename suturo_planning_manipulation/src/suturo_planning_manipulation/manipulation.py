@@ -220,19 +220,16 @@ class Manipulation(object):
                 rospy.loginfo("grasped " + collision_object_name)
 
 
-                # d =  hand_length + finger_length
-                        # magnitude(grasp.pose.position)
-
                 self.__grasp = self.transform_to(grasp)
-                angle = get_pitch(self.__grasp)
                 v1 = deepcopy(self.__grasp.pose.position)
                 v1.z = 0
                 v2 = deepcopy(collision_object.primitive_poses[0].position)
                 v2.z = 0
-                v2 = subtract_point(v1, v2)
-                d = magnitude(v2) / cos(angle)
-                self.__d = abs(d)
-                print d
+                a = magnitude(subtract_point(v1, v2))
+                b = abs(self.__grasp.pose.position.z - collision_object.primitive_poses[0].position.z)
+                c = sqrt(a**2 + b**2)
+                self.__d = abs(c)
+                print c
 
                 rospy.logdebug("lift object")
                 if not self.__move_group_to(get_pre_grasp(grasp), move_group):

@@ -1,6 +1,6 @@
 __author__ = 'ichumuh'
 
-finger_length = 0.055
+finger_length = 0.065
 hand_length = 0.1535
 pre_grasp_length = 0.08
 

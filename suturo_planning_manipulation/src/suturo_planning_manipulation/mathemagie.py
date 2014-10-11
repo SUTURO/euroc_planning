@@ -169,21 +169,9 @@ def qv_mult(q1, v1):
     if type(v1) is Point:
         v = [[v1.x, v1.y, v1.z, 0]]
 
-    # print quaternion_matrix(q)
-    # print v
     r = dot(v,quaternion_matrix(q))
     return Point(r[0][0], r[0][1], r[0][2])
 
+def orientation_to_vector(orientation):
+    return qv_mult(orientation, Point(1, 0, 0))
 
-    # q = q1
-    # v = v1
-    # if type(q1) is Quaternion:
-    #     q = (q1.x, q1.y, q1.z, q1.w)
-    # if type(v1) is Point:
-    #     v = (v1.x, v1.y, v1.z)
-    # v = normalize2(v)
-    # q2 = (0.0,) + v
-    # # transformPoint()
-    # return Point(*quaternion_multiply(quaternion_multiply(q, q2), quaternion_conjugate(q))[1:])
-
-# def
