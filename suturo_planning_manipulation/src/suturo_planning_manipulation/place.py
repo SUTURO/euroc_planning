@@ -1,4 +1,6 @@
 from copy import deepcopy
+from numpy.lib.function_base import place
+from scipy.stats.distributions import planck_gen
 from geometry_msgs.msg._Point import Point
 from geometry_msgs.msg._PoseStamped import PoseStamped
 from geometry_msgs.msg._Quaternion import Quaternion
@@ -8,20 +10,20 @@ from shape_msgs.msg._SolidPrimitive import SolidPrimitive
 from tf.transformations import quaternion_from_euler
 from math import sqrt, pi, cos, sin, acos
 from calc_grasp_position import finger_length, hand_length, pre_grasp_length, get_angle, magnitude, rotate_quaternion, \
-    subtract_point, multiply_point, set_vector_length
+    subtract_point, multiply_point, set_vector_length, make_scan_pose
 from mathemagie import *
 from manipulation_constants import *
 
 __author__ = 'ichumuh'
 
 
-def get_place_position(collision_object, dest, tf_listener, transform_func, grasp=None):
-    dest2 = set_place_pose_x_y(dest, collision_object, transform_func, tf_listener, grasp)
+def get_place_position(collision_object, dest, tf_listener, transform_func, d, grasp=None):
+    # dest2 = set_place_pose_x_y(dest, collision_object, transform_func, tf_listener, grasp)
     if len(collision_object.primitives) == 1:
         if collision_object.primitives[0].type == SolidPrimitive.BOX:
-            return get_place_position_cube(collision_object, dest2, grasp, tf_listener)
+            return get_place_position_cube(collision_object, dest, grasp,d)
         else:
-            return get_place_position_cylinder(collision_object, dest2, grasp, tf_listener)
+            return get_place_position_cube(collision_object, dest, grasp,d)
     else:
         return get_place_position_handle(collision_object, dest, tf_listener, grasp, transform_func)
 
@@ -40,17 +42,37 @@ def set_place_pose_x_y(dest, collision_object, transform_func, tf_listener, gras
     return place_pose
 
 
-def get_place_position_cube(collision_object, dest, grasp, tf_listener):
-    place_pose = dest
-    b = max(collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.BOX_X],
-            collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.BOX_Y],
-            collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.BOX_Z])
-    place_pose.pose.position.z = abs(grasp.z) + b / 2 + safe_place
+def get_place_position_cube(collision_object, dest, grasp,d):
 
-    return place_pose
+    angle = get_pitch(grasp)
+    # d =  hand_length + finger_length
+            # magnitude(grasp.pose.position)
+
+    # v1 = deepcopy(grasp)
+    # v1.z = 0
+    # v2 = subtract_point(v1, dest.point)
+
+    z_o = abs(grasp.pose.position.z) - (sin(angle) * d)
 
 
-def get_place_position_cylinder(collision_object, dest, grasp, tf_listener):
+    place_pose = PoseStamped()
+    place_pose.pose.position = dest.point
+    b = max(collision_object.primitives[0].dimensions)
+    place_pose.pose.position.z = z_o + safe_place
+
+    # q = quaternion_from_euler(0, angle, 0)
+    # place_pose.pose.orientation = Quaternion(*q)
+    # print grasp
+    # print "angle ", angle
+    diff = abs(pi/2 - angle)
+    if 0 <= diff <= 0.1:
+        return make_scan_pose(place_pose.pose.position, d, angle, n=1)
+    else:
+        return make_scan_pose(place_pose.pose.position, d, angle)
+    # return place_pose
+
+
+def get_place_position_cylinder(collision_object, dest, grasp):
     place_pose = dest
 
     place_pose.pose.position.z = abs(grasp.z) + collision_object.primitives[0].dimensions[

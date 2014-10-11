@@ -218,7 +218,21 @@ class Manipulation(object):
                 self.load_object(self.calc_object_weight(collision_object, object_density), Vector3(com.point.x, com.point.y, com.point.z))
 
                 rospy.loginfo("grasped " + collision_object_name)
-                self.__grasp = self.make_grasp_vector(collision_object_name)
+
+
+                # d =  hand_length + finger_length
+                        # magnitude(grasp.pose.position)
+
+                self.__grasp = self.transform_to(grasp)
+                angle = get_pitch(self.__grasp)
+                v1 = deepcopy(self.__grasp.pose.position)
+                v1.z = 0
+                v2 = deepcopy(collision_object.primitive_poses[0].position)
+                v2.z = 0
+                v2 = subtract_point(v1, v2)
+                d = magnitude(v2) / cos(angle)
+                self.__d = abs(d)
+                print d
 
                 rospy.logdebug("lift object")
                 if not self.__move_group_to(get_pre_grasp(grasp), move_group):
@@ -304,29 +318,32 @@ class Manipulation(object):
         else:
             co = co.object
         dest = self.transform_to(dest)
-        place_pose = get_place_position(co, dest, self.__listener, self.transform_to, self.__grasp)
-        if not self.__move_group_to(get_pre_place_position(place_pose), move_group):
-            rospy.logwarn("Can't reach preplaceposition.")
-            return False
-        if not self.__move_group_to(place_pose, move_group):
-            rospy.logwarn("Can't reach placeposition.")
-            return False
+        place_poses = get_place_position(co, dest, self.__listener, self.transform_to, self.__d, self.__grasp)
+        visualize_poses(place_poses)
+        for place_pose in place_poses:
+            if not self.__move_group_to(get_pre_place_position(place_pose), move_group):
+                rospy.logwarn("Can't reach preplaceposition.")
+                continue
+            if not self.__move_group_to(place_pose, move_group):
+                rospy.logwarn("Can't reach placeposition.")
+                continue
 
-        rospy.sleep(1)
-        if not self.open_gripper():
-            return False
-        rospy.sleep(1)
+            rospy.sleep(1)
+            if not self.open_gripper():
+                return False
+            rospy.sleep(1)
 
-        post_place_pose = self.transform_to(place_pose, co.id)
-        # post_place_pose.header.frame_id = "/tcp"
-        # post_place_pose.pose.position = Point(0, 0, -post_place_length)
+            post_place_pose = self.transform_to(place_pose, co.id)
+            # post_place_pose.header.frame_id = "/tcp"
+            # post_place_pose.pose.position = Point(0, 0, -post_place_length)
 
-        if not self.__move_group_to(get_pre_grasp(post_place_pose), move_group):
-            rospy.logwarn("Can't reach postplaceposition.")
-            return False
-        rospy.sleep(0.25)
-        rospy.loginfo("placed " + co.id)
-        return True
+            if not self.__move_group_to(get_pre_grasp(post_place_pose), move_group):
+                rospy.logwarn("Can't reach postplaceposition.")
+                return True
+            rospy.sleep(0.25)
+            rospy.loginfo("placed " + co.id)
+            return True
+        return False
 
     def load_object(self, mass, cog):
         request = SetObjectLoadRequest()

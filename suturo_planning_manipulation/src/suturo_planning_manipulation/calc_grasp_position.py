@@ -122,8 +122,9 @@ def calculate_grasp_position_cylinder(collision_object, n=4):
     grasp_positions = []
 
     depth = finger_length
-    if finger_length < collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.CYLINDER_HEIGHT]:
-        depth = collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.CYLINDER_HEIGHT]
+    h = collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.CYLINDER_HEIGHT]
+    if finger_length < h:
+        depth = h
     depth += hand_length
 
     depth_side = finger_length
@@ -163,9 +164,12 @@ def calculate_grasp_position_cylinder(collision_object, n=4):
 
     grasp_positions.append(make_grasp_pose(depth, Point(0, 0, -1), Point(0, 1, 0), collision_object.id))
     # grasp_positions.append(make_grasp_pose(depth, points[5], points[4], collision_object.id))
+
+    grasp_positions.extend(make_scan_pose(Point(0,0,0), depth_side, 0, collision_object.id, 4))
+
     # depth_side += 0.02
-    grasp_positions.extend(move_to_object_cam_pose_in_cool(Point(0,0,0), depth_side, 0, collision_object.id, 4))
-    # grasp_positions.extend(move_to_object_cam_pose_in_cool(Point(0,0,0), depth_side, -pi/4, collision_object.id, 4))
+    grasp_positions.extend(make_scan_pose(Point(0,0,h/2-0.01), depth_side, 0, collision_object.id, 4))
+    grasp_positions.extend(make_scan_pose(Point(0,0,-(h/2-0.01)), depth_side, 0, collision_object.id, 4))
 
     # for i in range(0, n):
     #     a = 2 * pi * ((i + 0.0) / (n + 0.0))
@@ -174,15 +178,16 @@ def calculate_grasp_position_cylinder(collision_object, n=4):
     #     # print Point(cos(a), sin(a), 0)
     #     grasp_positions.append(make_grasp_pose(depth_side, Point(cos(a), sin(a), 0), Point(cos(b), sin(b), 0),
     #                                            collision_object.id))
-    grasp_positions.sort()
+    # grasp_positions.sort()
     return grasp_positions
 
-def move_to_object_cam_pose_in_cool(point, distance, angle, frame="/odom_combined", n=8):
+def make_scan_pose(point, distance, angle, frame="/odom_combined", n=8):
     look_positions = []
 
     alpha = pi/2 - angle
     r = sin(alpha) * distance
     h = cos(alpha) * distance
+    # print "h ", h
     h_vector = Point()
     h_vector.z = h
     muh = add_point(point, h_vector)
