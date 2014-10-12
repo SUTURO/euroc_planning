@@ -19,7 +19,7 @@ def toplevel_plan(init_sim, task_list):
     with toplevel:
         for task_name in task_list:
             rospy.logdebug('Adding task: %s', task_name)
-            smach.StateMachine.add('Execute%s'%task_name, EurocTask(init_sim, task_name),
+            smach.StateMachine.add('Execute%s' % task_name, EurocTask(init_sim, task_name),
                                    transitions={'success': 'success',
                                                 'fail': 'fail'})
 

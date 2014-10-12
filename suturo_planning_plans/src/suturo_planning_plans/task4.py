@@ -4,7 +4,7 @@ from suturo_planning_plans.statesearchobject import SearchObject
 from suturo_planning_plans.stategraspobject import GraspObject
 from suturo_planning_plans.stateplaceobject import PlaceObject
 from suturo_planning_plans.statecheckplacement import CheckPlacement
-from suturo_planning_plans.statechooseobjects import ChooseObject
+from suturo_planning_plans.statechooseobject import ChooseObject
 
 
 class Task4(smach.StateMachine):
