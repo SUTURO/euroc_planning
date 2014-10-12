@@ -9,8 +9,8 @@ from suturo_perception_msgs.msg import EurocObject
 class PerceiveObject(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['noObject', 'objectsPerceived'],
-                             input_keys=['object_to_perceive', 'yaml', 'placed_objects'],
-                             output_keys=['pending_objects', 'perceived_objects'])
+                             input_keys=['object_to_perceive', 'yaml', 'placed_objects', 'objects_found'],
+                             output_keys=['perceived_objects'])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state PerceiveObject')
@@ -23,11 +23,11 @@ class PerceiveObject(smach.State):
         perceived_objects = get_valid_objects(get_gripper)
         rospy.logdebug('Found ' + str(len(get_gripper)) + ' objects, ' + str(len(perceived_objects)) + ' are valid.')
         if not perceived_objects:
-            userdata.objects_found = []
             return 'noObject'
 
         collision_objects = []
         matched_objects = []
+        found_object_names = map(lambda obj: obj.mpe_object.id, userdata.objects_found)
 
         for obj in perceived_objects:
             # classify object
@@ -45,7 +45,7 @@ class PerceiveObject(smach.State):
 
             if matched_obj.c_type == EurocObject.OBJECT:
                 # check if the object was already placed
-                if not matched_obj.object.id in userdata.placed_objects:
+                if not matched_obj.object.id in found_object_names:
                     rospy.loginfo('Using pose estimation.')
 
                     pose_estimated = get_pose_estimation(userdata, matched_obj)
@@ -62,8 +62,9 @@ class PerceiveObject(smach.State):
                         matched_objects.append(pose_estimated)
                         collision_objects.append(pose_estimated.mpe_object)
 
+        rospy.loginfo('Publishing objects into planning scene.')
         publish_collision_objects(collision_objects)
-        userdata.objects_found = matched_objects
+        userdata.perceived_objects = matched_objects
 
         # check if it was an object
         if matched_objects:

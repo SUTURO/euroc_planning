@@ -13,15 +13,17 @@ class TidyUpObject(smach.StateMachine):
         with self:
             smach.StateMachine.add('GraspObject', GraspObject(),
                                    transitions={'success': 'PlaceObject',
-                                                'objectNotInPlanningscene': 'ChooseObject',
-                                                'noGraspPosition': 'ChooseObject',
-                                                'fail': 'ChooseObject'})
+                                                'objectNotInPlanningscene': 'fail',
+                                                'noGraspPosition': 'fail',
+                                                'fail': 'fail'})
             smach.StateMachine.add('PlaceObject', PlaceObject(),
                                    transitions={'success': 'CheckPlacement',
-                                                'fail': 'ChooseObject',
+                                                'fail': 'fail',
                                                 'noObjectAttached': 'GraspObject',
                                                 'noPlacePosition': 'PlaceObject'},
                                    remapping={'target_position': 'place_position'})
             smach.StateMachine.add('CheckPlacement', CheckPlacement(),
-                                   transitions={'onTarget': 'ChooseObject',
-                                                'notOnTarget': 'ChooseObject'})
+                                   transitions={'onTarget': 'success',
+                                                'notOnTarget': 'fail'})
+
+        self.userdata.placed_object = None

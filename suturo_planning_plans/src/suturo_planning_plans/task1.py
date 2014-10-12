@@ -27,6 +27,5 @@ class Task1(smach.StateMachine):
 
         self.userdata.objects_found = []
         self.userdata.perceived_objects = []
-        self.userdata.placed_objects = []
         self.userdata.enable_movement = enable_movement
         self.userdata.task = task

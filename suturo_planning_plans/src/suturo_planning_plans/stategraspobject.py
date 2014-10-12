@@ -11,7 +11,7 @@ class GraspObject(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['success', 'fail', 'objectNotInPlanningscene', 'noGraspPosition'],
                              input_keys=['yaml', 'object_to_move', 'enable_movement'],
-                             output_keys=['place_position', 'grasp'])
+                             output_keys=['grasp'])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state GraspObject')
