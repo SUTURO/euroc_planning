@@ -10,7 +10,7 @@ class PerceiveObject(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['noObject', 'objectsPerceived'],
                              input_keys=['object_to_perceive', 'yaml', 'placed_objects'],
-                             output_keys=['pending_objects', 'objects_found'])
+                             output_keys=['pending_objects', 'perceived_objects'])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state PerceiveObject')

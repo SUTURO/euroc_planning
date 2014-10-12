@@ -76,15 +76,6 @@ class GraspObject(smach.State):
                 if not move_to_func(get_pre_grasp(grasp)):
                     rospy.logwarn("couldnt lift object. continue anyway")
 
-                #set the place destination
-                destination = PointStamped()
-                destination.header.frame_id = '/odom_combined'
-                destination.point = None
-                for target_zone in userdata.yaml.target_zones:
-                    if target_zone.expected_object == userdata.object_to_move.mpe_object.id:
-                        rospy.loginfo('Placing object on location %s' % target_zone.name)
-                        destination.point = target_zone.target_position
-                        userdata.place_position = destination
                 return 'success'
         rospy.logwarn("Grapsing failed.")
         return 'fail'

@@ -36,12 +36,6 @@ class SearchObject(smach.State):
             for obj in userdata.yaml.objects:
                 self._obj_colors.append(hex_to_color_msg(obj.color))
 
-        # TODO find a way to take last pose
-        # First check previously recognized objects
-        # if self._recognized_objects:
-        # userdata.object_to_perceive = self._recognized_objects.pop(0)
-        #     return 'objectFound'
-
         if utils.manipulation is None:
             utils.manipulation = Manipulation()
             rospy.sleep(2)
@@ -69,13 +63,7 @@ class SearchObject(smach.State):
             rospy.loginfo('Take %s' % scan_pose)
             utils.manipulation.move_to(scan_pose)
 
-        # get the colors of the missing objects, assuming for now that every object has its own color
         colors = self._obj_colors
-        for obj in self._found_objects:
-            try:
-                colors.remove(obj.color)
-            except ValueError:
-                pass
 
         # search for objects
         if userdata.task == 'task3':

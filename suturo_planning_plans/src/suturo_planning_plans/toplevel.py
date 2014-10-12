@@ -92,7 +92,6 @@ class EurocTask(smach.StateMachine):
                                                 'fail': task_name})
 
 
-
 class InitSimulation(smach.StateMachine):
     def __init__(self, task_name):
         smach.StateMachine.__init__(self, outcomes=['success', 'fail'],
