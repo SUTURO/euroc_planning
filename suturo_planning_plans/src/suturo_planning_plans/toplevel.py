@@ -4,7 +4,7 @@ import smach_ros
 import threading
 import time
 import task1
-import task3
+import task4
 import start_nodes
 from suturo_msgs.msg import Task
 from suturo_planning_yaml_pars0r.yaml_pars0r import YamlPars0r
@@ -46,14 +46,23 @@ class EurocTask(smach.StateMachine):
     def __init__(self, init_sim, task_name):
         smach.StateMachine.__init__(self, outcomes=['success', 'fail'])
 
+        # Associate the task name with a state machine
         plans = {'task1': task1.Task1,
                  'task2': task1.Task1,
-                 'task3': task1.Task1}
+                 'task3': task1.Task1,
+                 'task4': task4.Task4,
+                 'task5': task4.Task4,
+                 'task6': task4.Task4}
 
+        # Associate the task name with the parameter for the state machine
         plan_args = {'task1': [False, 'task1'],
                      'task2': [False, 'task2'],
-                     'task3': [True, 'task3']}
+                     'task3': [True, 'task3'],
+                     'task4': ['task4'],
+                     'task5': ['task5'],
+                     'task6': ['task6']}
 
+        # Parses the task name
         task = task_name.split('_')[0]
 
         with self:
