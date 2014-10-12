@@ -103,52 +103,59 @@ if __name__ == '__main__':
     rospy.init_node('head_mover', anonymous=True)
     # x_axis_unit = Point(1, 0, 0)
     #
-    g = PoseStamped()
-    g.header.frame_id = "/odom_combined"
-    # g.pose.orientation = Quaternion(-0.651200263129, -0.275437965779, 0.651368941659, -0.275301010077)
-    g.pose.orientation = euler_to_quaternion(1.1, pi/3, 1.3)
-    # print g.pose.orientation
-    g.pose.position = Point(0, 0, 0)
-    visualize_poses([g])
-    # print quaternion_matrix(quaternion_from_euler(0, pi, 0))
-    # print dot([[1, 0, 0,0]],quaternion_matrix(quaternion_from_euler(pi/2, pi/2, 0)))
-    # a = [[1, 0, 1]]
-    # b = [[4], [2], [2]]
-    # print dot(b,a)
-    # print euler_from_quaternion(quaternion_from_euler(0, pi, 0))
-    # print qv_mult(g.pose.orientation, x_axis_unit)
-    print get_pitch(g)
-
+    # x = 0.5
+    # y = 0.5
+    # z = 0.707106781187
+    # print get_angle(Point(x,y,z), Point(x,y,0))
+    # print get_angle(Point(x,0,z), Point(1,0,0))
+    # g = PoseStamped()
+    # g.header.frame_id = "/odom_combined"
+    # # g.pose.orientation = Quaternion(-0.651200263129, -0.275437965779, 0.651368941659, -0.275301010077)
+    # g.pose.orientation = euler_to_quaternion(pi/4, pi/4, 0)
+    # # g.pose.orientation = euler_to_quaternion(0, pi/4, pi/4)
+    # # print g.pose.orientation
+    # g.pose.position = Point(0, 0, 0)
+    # # g.pose.orientation = rotate_quaternion(g.pose.orientation, pi/2, 0, 0)
+    # visualize_poses([g])
+    # # print quaternion_matrix(quaternion_from_euler(0, pi, 0))
+    # # print dot([[1, 0, 0,0]],quaternion_matrix(quaternion_from_euler(pi/2, pi/2, 0)))
+    # # a = [[1, 0, 1]]
+    # # b = [[4], [2], [2]]
+    # # print dot(b,a)
+    # q = (g.pose.orientation.x, g.pose.orientation.y, g.pose.orientation.z, g.pose.orientation.w)
+    # print euler_from_quaternion(q)
+    # # print qv_mult(g.pose.orientation, x_axis_unit)
+    # print quaternion_to_rpy(g.pose.orientation)
 
 
     # print (lambda x: a(2, x))(3)
     #
     # #
     #
-    # mani = Manipulation()
+    mani = Manipulation()
     #
     # # visualize_poses(move_to_object_cam_pose_in_cool(Point(1, -1, 0), 0.3, pi/2))
     #
-    # # redcube task1_v2
-    # # t_point = geometry_msgs.msg.PoseStamped()
-    # # t_point.header.frame_id = "/odom_combined"
-    # # t_point.pose.position = geometry_msgs.msg.Point(0.3, -0.3, 0.015)
-    # # t_point.pose.orientation = geometry_msgs.msg.Quaternion(0, 0, 0, 1)
+    # redcube task1_v2
+    # t_point = geometry_msgs.msg.PoseStamped()
+    # t_point.header.frame_id = "/odom_combined"
+    # t_point.pose.position = geometry_msgs.msg.Point(0.3, -0.3, 0.015)
+    # t_point.pose.orientation = geometry_msgs.msg.Quaternion(0, 0, 0, 1)
     # # dist = 0.1
     # # angle = pi/4
     # # mani.object_cam_pose(t_point, dist, angle)
     #
-    # #pose = PoseStamped()
-    # #pose.header.frame_id = "/odom_combined"
-    # #pose.pose.position = Point(0.5, 0, 0.5)
-    # # q = quaternion_from_euler(0, pi /4, pi /4)
-    # # pose.pose.orientation = Quaternion(*q)
-    # # mani.move_to(pose)
-    # mani.open_gripper()
+    # pose = PoseStamped()
+    # pose.header.frame_id = "/odom_combined"
+    # pose.pose.position = Point(0.5, 0, 0.5)
+    # q = quaternion_from_euler(0, 0, 0)
+    # pose.pose.orientation = Quaternion(*q)
+    # mani.move_to(pose)
+    mani.open_gripper()
     #
     #
     # test_task1(mani)
-    # test_task1_v2(mani)
+    test_task1_v2(mani)
 
 
     # print mani.get_arm_move_group().get_current_pose()

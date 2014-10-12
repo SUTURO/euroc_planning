@@ -120,44 +120,43 @@ def rotate_quaternion(q, r, p, y):
 def euler_to_quaternion(r, p, y):
     return Quaternion(*quaternion_from_euler(r, p, y))
 
-def get_pitch(g):
-    gripper_direction = qv_mult(g.pose.orientation, Point(1, 0, 0))
-    # visualize_point(gripper_direction)
+def get_pitch(q):
+    gripper_direction = qv_mult(q, Point(1, 0, 0))
     # print gripper_direction
     v = deepcopy(gripper_direction)
+
+    # visualize_point(v)
+    # print v
+    # print magnitude(gripper_direction)
     v.z = 0
     # b =  Point(1, 0, 0)
     # print b
     # gripper_direction.y = 0
-    if magnitude(v) == 0:
+    if 0 <= magnitude(v) <= 0.001:
         v = Point(1, 0, 0)
-    pitch = get_angle(gripper_direction, v)
+    pitch = get_angle(v, gripper_direction)
     return pitch
 
-    # if type(g) is PoseStamped:
-    #     pitch = 0
-    #     qv_mult
-    #     return pitch
-    # v1 = Point()
-    # v1.x = g.x
-    # v1.y = g.y
-    # if magnitude(v1) == 0:
-    #     return pi / 2
-    # pitch = get_angle(v1, g)
+    # v = deepcopy(gripper_direction)
+    # v.x = sqrt(v.x**2 + v.y**2) * 1 if v.x > 0 else -1
+    # v.y = 0
+    #
+    # if 0 <= magnitude(v) <= 0.001:
+    #     v = Point(1, 0, 0)
+    # v2 = Point(1, 0, 0)
+    # pitch = get_angle(v, v2)
     # return pitch
-    # pass
 
-
-def get_yaw(dest):
-    x = Point(1, 0, 0)
-
-    d = dest
-    d.z = 0
-
-    alpha = get_angle(x, d)
-    if d.y < 0:
-        alpha = -alpha
-    return alpha
+# def get_yaw(dest):
+#     x = Point(1, 0, 0)
+#
+#     d = dest
+#     d.z = 0
+#
+#     alpha = get_angle(x, d)
+#     if d.y < 0:
+#         alpha = -alpha
+#     return alpha
 
 
 def normalize2(v, tolerance=0.00001):
@@ -176,8 +175,6 @@ def qv_mult(q1, v1):
     if type(v1) is Point:
         v = (v1.x, v1.y, v1.z, 0)
 
-    # r = dot(v,quaternion_matrix(q))
-    # return Point(r[0][0], r[0][1], r[0][2])
     r = quaternion_multiply(quaternion_multiply(q, v), quaternion_conjugate(q))
     return Point(r[0], r[1], r[2])
 

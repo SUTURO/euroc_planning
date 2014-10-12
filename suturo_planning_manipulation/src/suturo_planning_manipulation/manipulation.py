@@ -87,8 +87,7 @@ class Manipulation(object):
         elif type(goal) is PoseStamped:
             visualize_poses([goal])
 
-            goal.pose.orientation = rotate_quaternion(goal.pose.orientation, pi/2, 0, pi/2)
-
+            goal.pose.orientation = rotate_quaternion(goal.pose.orientation, pi/2, pi, pi/2)
             goal = self.transform_to(goal)
 
             move_group.set_pose_target(goal)
@@ -316,7 +315,7 @@ class Manipulation(object):
         else:
             co = co.object
         dest = self.transform_to(dest)
-        place_poses = get_place_position(co, dest, self.__listener, self.transform_to, self.__d, self.__grasp)
+        place_poses = get_place_position(co, dest, self.transform_to, self.__d, self.__grasp)
         visualize_poses(place_poses)
         for place_pose in place_poses:
             if not self.__move_group_to(get_pre_place_position(place_pose), move_group):

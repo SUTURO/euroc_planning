@@ -31,7 +31,7 @@ class PlaceObject(smach.State):
         co = co.object
 
         destination = utils.manipulation.transform_to(destination)
-        place_poses = get_place_position(co, destination, utils.manipulation.tf_listener(), utils.manipulation.transform_to, userdata.dist_to_obj, userdata.grasp)
+        place_poses = get_place_position(co, destination, utils.manipulation.transform_to, userdata.dist_to_obj, userdata.grasp)
         if len(place_poses) == 0:
             # try to place the object at the current position
             userdata.place_position = self.new_place_position()
