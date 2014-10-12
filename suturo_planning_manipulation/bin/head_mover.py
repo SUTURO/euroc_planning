@@ -100,29 +100,32 @@ def test_task3(mani):
     # mani.place_and_move(dest)
 
 if __name__ == '__main__':
+    rospy.init_node('head_mover', anonymous=True)
     # x_axis_unit = Point(1, 0, 0)
     #
-    # g = PoseStamped()
-    # # g.pose.orientation = Quaternion(-0.651200263129, -0.275437965779, 0.651368941659, -0.275301010077)
-    # g.pose.orientation = euler_to_quaternion(0, pi/2, 0)
-    # # print g.pose.orientation
-    # g.pose.position = Point(1, 1, 1)
-    # # print quaternion_matrix(quaternion_from_euler(0, pi, 0))
-    # # print dot([[1, 0, 0,0]],quaternion_matrix(quaternion_from_euler(pi/2, pi/2, 0)))
-    # # a = [[1, 0, 1]]
-    # # b = [[4], [2], [2]]
-    # # print dot(b,a)
-    # # print euler_from_quaternion(quaternion_from_euler(0, pi, 0))
-    # # print qv_mult(g.pose.orientation, x_axis_unit)
-    # print get_pitch(g)
+    g = PoseStamped()
+    g.header.frame_id = "/odom_combined"
+    # g.pose.orientation = Quaternion(-0.651200263129, -0.275437965779, 0.651368941659, -0.275301010077)
+    g.pose.orientation = euler_to_quaternion(1.1, pi/3, 1.3)
+    # print g.pose.orientation
+    g.pose.position = Point(0, 0, 0)
+    visualize_poses([g])
+    # print quaternion_matrix(quaternion_from_euler(0, pi, 0))
+    # print dot([[1, 0, 0,0]],quaternion_matrix(quaternion_from_euler(pi/2, pi/2, 0)))
+    # a = [[1, 0, 1]]
+    # b = [[4], [2], [2]]
+    # print dot(b,a)
+    # print euler_from_quaternion(quaternion_from_euler(0, pi, 0))
+    # print qv_mult(g.pose.orientation, x_axis_unit)
+    print get_pitch(g)
 
 
 
     # print (lambda x: a(2, x))(3)
-    rospy.init_node('head_mover', anonymous=True)
+    #
     # #
     #
-    mani = Manipulation()
+    # mani = Manipulation()
     #
     # # visualize_poses(move_to_object_cam_pose_in_cool(Point(1, -1, 0), 0.3, pi/2))
     #
@@ -141,11 +144,11 @@ if __name__ == '__main__':
     # # q = quaternion_from_euler(0, pi /4, pi /4)
     # # pose.pose.orientation = Quaternion(*q)
     # # mani.move_to(pose)
-    mani.open_gripper()
+    # mani.open_gripper()
     #
     #
     # test_task1(mani)
-    test_task1_v2(mani)
+    # test_task1_v2(mani)
 
 
     # print mani.get_arm_move_group().get_current_pose()

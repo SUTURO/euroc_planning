@@ -1,4 +1,5 @@
 from numpy.core.multiarray import dot
+from suturo_planning_plans.visualization import visualize_point
 
 __author__ = 'ichumuh'
 
@@ -121,10 +122,16 @@ def euler_to_quaternion(r, p, y):
 
 def get_pitch(g):
     gripper_direction = qv_mult(g.pose.orientation, Point(1, 0, 0))
+    # visualize_point(gripper_direction)
+    # print gripper_direction
+    v = deepcopy(gripper_direction)
+    v.z = 0
     # b =  Point(1, 0, 0)
     # print b
-    gripper_direction.y = 0
-    pitch = get_angle(gripper_direction, Point(1, 0, 0))
+    # gripper_direction.y = 0
+    if magnitude(v) == 0:
+        v = Point(1, 0, 0)
+    pitch = get_angle(gripper_direction, v)
     return pitch
 
     # if type(g) is PoseStamped:
@@ -167,10 +174,13 @@ def qv_mult(q1, v1):
     if type(q1) is Quaternion:
         q = (q1.x, q1.y, q1.z, q1.w)
     if type(v1) is Point:
-        v = [[v1.x, v1.y, v1.z, 0]]
+        v = (v1.x, v1.y, v1.z, 0)
 
-    r = dot(v,quaternion_matrix(q))
-    return Point(r[0][0], r[0][1], r[0][2])
+    # r = dot(v,quaternion_matrix(q))
+    # return Point(r[0][0], r[0][1], r[0][2])
+    r = quaternion_multiply(quaternion_multiply(q, v), quaternion_conjugate(q))
+    return Point(r[0], r[1], r[2])
+
 
 def orientation_to_vector(orientation):
     return qv_mult(orientation, Point(1, 0, 0))

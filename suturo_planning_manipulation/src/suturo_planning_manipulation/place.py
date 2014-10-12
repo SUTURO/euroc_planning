@@ -29,7 +29,7 @@ def get_place_position(collision_object, dest, tf_listener, transform_func, d, g
 
 def get_place_position_cube(collision_object, dest, grasp,d):
     angle = get_pitch(grasp)
-
+    print "angle", angle
     z_o = abs(grasp.pose.position.z) - (sin(angle) * d)
 
     place_pose = dest.point

@@ -109,6 +109,8 @@ class Manipulation(object):
         i = 0
         while odom_pose is None and i < 10:
             try:
+                now = rospy.Time.now()
+                self.__listener.waitForTransform(target_frame, pose_target.header.frame_id, now, rospy.Duration(4))
                 if type(pose_target) is CollisionObject:
                     i = 0
                     new_co = deepcopy(pose_target)
@@ -134,8 +136,7 @@ class Manipulation(object):
                 if type(pose_target) is PointStamped:
                     odom_pose = self.__listener.transformPoint(target_frame, pose_target)
                     break
-                pose_target.header.stamp = rospy.Time.now()
-                self.__listener.waitForTransform(target_frame, pose_target.header.frame_id, pose_target.header.stamp, rospy.Duration(4))
+
             except Exception, e:
                 print "tf error:::", e
             rospy.sleep(0.5)
