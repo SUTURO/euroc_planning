@@ -61,18 +61,19 @@ def get_place_position_handle(collision_object, dest, grasp, transform_func, d):
     p2.header.frame_id = collision_object.id
     p2 = transform_func(p2, "tcp")
 
-    if 0 <= abs(p2.point.y) < 0.01:
-        place_pose.z = collision_object.primitives[0].dimensions[
+    place_pose.z = collision_object.primitives[0].dimensions[
                                          shape_msgs.msg.SolidPrimitive.CYLINDER_HEIGHT] / 2 + \
                                      collision_object.primitives[1].dimensions[
                                          shape_msgs.msg.SolidPrimitive.BOX_X] + safe_place
-    else:
-        place_pose.z = collision_object.primitives[0].dimensions[
-                                     shape_msgs.msg.SolidPrimitive.CYLINDER_HEIGHT] + \
-                                 collision_object.primitives[1].dimensions[
-                                     shape_msgs.msg.SolidPrimitive.BOX_X] + \
-                                 collision_object.primitives[2].dimensions[
-                                     shape_msgs.msg.SolidPrimitive.BOX_X] / 2 + safe_place
+    # if not 0 <= abs(p2.point.y) < 0.01:
+        # place_pose.z = collision_object.primitives[0].dimensions[
+        #                                  shape_msgs.msg.SolidPrimitive.CYLINDER_HEIGHT] / 2 + \
+        #                              collision_object.primitives[1].dimensions[
+        #                                  shape_msgs.msg.SolidPrimitive.BOX_X] + safe_place
+    # else:
+    place_pose.z += abs(p2.point.y)
+            # collision_object.primitives[2].dimensions[
+            #                          shape_msgs.msg.SolidPrimitive.BOX_X] / 2 + safe_place
 
     place_poses = make_scan_pose(place_pose, d, angle)
     if p2.point.y > 0:

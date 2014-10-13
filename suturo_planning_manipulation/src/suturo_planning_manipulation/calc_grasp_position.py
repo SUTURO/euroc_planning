@@ -168,8 +168,8 @@ def calculate_grasp_position_cylinder(collision_object, n=4):
     grasp_positions.extend(make_scan_pose(Point(0,0,0), depth_side, 0, collision_object.id, 4))
 
     # depth_side += 0.02
-    grasp_positions.extend(make_scan_pose(Point(0,0,h/2-0.01), depth_side, 0, collision_object.id, 4))
-    grasp_positions.extend(make_scan_pose(Point(0,0,-(h/2-0.01)), depth_side, 0, collision_object.id, 4))
+    grasp_positions.extend(make_scan_pose(Point(0,0,h/2-0.02), depth_side, 0, collision_object.id, 4))
+    grasp_positions.extend(make_scan_pose(Point(0,0,-(h/2-0.02)), depth_side, 0, collision_object.id, 4))
 
     # for i in range(0, n):
     #     a = 2 * pi * ((i + 0.0) / (n + 0.0))

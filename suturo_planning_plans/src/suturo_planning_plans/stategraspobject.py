@@ -93,18 +93,3 @@ class GraspObject(smach.State):
                 return 'success'
         rospy.logwarn("Grapsing failed.")
         return 'fail'
-
-
-
-        # print 'Trying to grasp:\n' + str(userdata.object_to_move.mpe_object.id)
-        # if userdata.enable_movement:
-        #     grasp_result = utils.manipulation.grasp_and_move(userdata.object_to_move.mpe_object)
-        # else:
-        #     grasp_result = utils.manipulation.grasp(userdata.object_to_move.mpe_object)
-        # print 'Grasp result:' + str(grasp_result)
-        #
-        # if grasp_result:
-        #     #TODO:set place position
-        #     return 'success'
-        # else:
-        #     return 'fail'

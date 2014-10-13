@@ -41,9 +41,6 @@ class PlaceObject(smach.State):
         for place_pose in place_poses:
             if not move_to_func(get_pre_place_position(place_pose)):
                 rospy.logwarn("Can't reach preplaceposition.")
-                # userdata.place_position = self.new_place_position()
-
-                # return 'noPlacePosition'
                 continue
             else:
                 rospy.logdebug("preplaceposition taken")
@@ -51,9 +48,6 @@ class PlaceObject(smach.State):
             rospy.sleep(1)
             if not move_to_func(place_pose):
                 rospy.logwarn("Can't reach placeposition.")
-                # userdata.place_position = self.new_place_position()
-
-                # return 'noPlacePosition'
                 continue
             else:
                 rospy.logdebug("placeposition taken")
@@ -77,28 +71,6 @@ class PlaceObject(smach.State):
             rospy.loginfo("placed " + co.id)
 
             return 'success'
-
-        # destination = PointStamped()
-        # destination.header.frame_id = '/odom_combined'
-        # destination.point = None
-        # for target_zone in userdata.yaml.target_zones:
-        #     if target_zone.expected_object == userdata.object_to_move.mpe_object.id:
-        #         rospy.loginfo('Placing object on location %s' % target_zone.name)
-        #         destination.point = target_zone.target_position
-        #
-        # if destination.point is None:
-        #     rospy.logdebug('No target zone found.')
-        #     return 'fail'
-        # else:
-        #     if userdata.enable_movement:
-        #         placed = utils.manipulation.place_and_move(destination)
-        #     else:
-        #         placed = utils.manipulation.place(destination)
-        #
-        # if placed:
-        #     return 'success'
-        # else:
-        #     return 'fail'
 
     def new_place_position(self):
         current_pose = utils.manipulation.get_arm_move_group().get_current_pose()
