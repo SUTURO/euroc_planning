@@ -73,12 +73,8 @@ def test_task3(mani):
     # mani.place_and_move(dest)
 
 if __name__ == '__main__':
-    # print (lambda x: a(2, x))(3)
     rospy.init_node('head_mover', anonymous=True)
-    #
     mani = Manipulation()
-
-    # redcube task1_v2
     t_point = geometry_msgs.msg.PoseStamped()
     t_point.header.frame_id = "/odom_combined"
     t_point.pose.position = geometry_msgs.msg.Point(0.3, -0.3, 0.5)
