@@ -193,7 +193,7 @@ def make_scan_pose(point, distance, angle, frame="/odom_combined", n=8):
     muh = add_point(point, h_vector)
     for i in range(0, n):
         a = 2 * pi * ((i + 0.0) / (n + 0.0))
-        b = a + (pi / 2)
+        b = a - (pi / 2)
 
         look_point = Point(cos(a), sin(a), 0)
         look_point = set_vector_length(r, look_point)

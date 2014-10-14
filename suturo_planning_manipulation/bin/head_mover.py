@@ -28,6 +28,7 @@ from suturo_planning_manipulation.planningsceneinterface import PlanningSceneInt
 from suturo_planning_perception.perception import *
 # from suturo_planning_perception.src.suturo_planning_perception.perception import get_gripper_perception
 from suturo_planning_plans.visualization import visualize_poses
+from suturo_planning_search.map import Map
 
 
 def test_task1(mani):
@@ -101,6 +102,13 @@ def test_task3(mani):
 
 if __name__ == '__main__':
     rospy.init_node('head_mover', anonymous=True)
+
+    # map = Map(100, 100, 2, 2)
+    # print map.get_cell(0.98, -1)
+    # map.set_cell(0.98, -1, map.OBSTACLE)
+    # print map.get_cell(0.98, -1)
+
+
     # x_axis_unit = Point(1, 0, 0)
     #
     # x = 0.5
@@ -133,6 +141,8 @@ if __name__ == '__main__':
     # #
     #
     mani = Manipulation()
+    poses = make_scan_pose(Point(0.5, 0.5, 0.3), 0.1, pi/4)
+    mani.move_arm_and_base_to(poses[0])
     #
     # # visualize_poses(move_to_object_cam_pose_in_cool(Point(1, -1, 0), 0.3, pi/2))
     #
@@ -151,10 +161,10 @@ if __name__ == '__main__':
     # q = quaternion_from_euler(0, 0, 0)
     # pose.pose.orientation = Quaternion(*q)
     # mani.move_to(pose)
-    mani.open_gripper()
+    # mani.open_gripper()
     #
     #
-    test_task1(mani)
+    # test_task1(mani)
     # test_task1_v2(mani)
 
 
