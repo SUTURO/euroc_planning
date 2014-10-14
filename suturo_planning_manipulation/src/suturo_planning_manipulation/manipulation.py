@@ -81,7 +81,6 @@ class Manipulation(object):
     def __move_group_to(self, goal_pose, move_group):
         move_group.set_start_state_to_current_state()
         goal = deepcopy(goal_pose)
-        cjv = move_group.get_current_joint_values()
         if type(goal) is str:
             move_group.set_named_target(goal)
         elif type(goal) is PoseStamped:
@@ -95,9 +94,6 @@ class Manipulation(object):
             move_group.set_joint_value_target(goal)
 
         result = move_group.go()
-        cjv2 = move_group.get_current_joint_values()
-        if cjv == cjv2:
-            rospy.logwarn("Y U NO MOVE?!?!?!")
         return result
 
     def get_current_joint_state(self):

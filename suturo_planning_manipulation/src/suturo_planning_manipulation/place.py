@@ -52,7 +52,6 @@ def get_place_position_cube(collision_object, dest, transform_func,  grasp, d):
     return place_poses
 
 def get_place_position_handle(collision_object, dest, grasp, transform_func, d):
-    #TODO: fix
     angle = 0
 
     place_pose = dest.point
@@ -65,15 +64,7 @@ def get_place_position_handle(collision_object, dest, grasp, transform_func, d):
                                          shape_msgs.msg.SolidPrimitive.CYLINDER_HEIGHT] / 2 + \
                                      collision_object.primitives[1].dimensions[
                                          shape_msgs.msg.SolidPrimitive.BOX_X] + safe_place
-    # if not 0 <= abs(p2.point.y) < 0.01:
-        # place_pose.z = collision_object.primitives[0].dimensions[
-        #                                  shape_msgs.msg.SolidPrimitive.CYLINDER_HEIGHT] / 2 + \
-        #                              collision_object.primitives[1].dimensions[
-        #                                  shape_msgs.msg.SolidPrimitive.BOX_X] + safe_place
-    # else:
     place_pose.z += abs(p2.point.y)
-            # collision_object.primitives[2].dimensions[
-            #                          shape_msgs.msg.SolidPrimitive.BOX_X] / 2 + safe_place
 
     place_poses = make_scan_pose(place_pose, d, angle)
     if p2.point.y > 0:
