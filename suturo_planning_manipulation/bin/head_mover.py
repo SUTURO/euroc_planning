@@ -103,10 +103,11 @@ def test_task3(mani):
 if __name__ == '__main__':
     rospy.init_node('head_mover', anonymous=True)
 
-    # map = Map(100, 100, 2, 2)
+    map = Map(50, 50, 2, 2)
     # print map.get_cell(0.98, -1)
-    # map.set_cell(0.98, -1, map.OBSTACLE)
-    # print map.get_cell(0.98, -1)
+    map.set_cell(0.98, -1, map.OBSTACLE)
+    print map.get_cell(0, -1)
+    map.publish_as_marker()
 
 
     # x_axis_unit = Point(1, 0, 0)
@@ -140,9 +141,9 @@ if __name__ == '__main__':
     #
     # #
     #
-    mani = Manipulation()
-    poses = make_scan_pose(Point(0.5, 0.5, 0.3), 0.1, pi/4)
-    mani.move_arm_and_base_to(poses[0])
+    # mani = Manipulation()
+    # poses = make_scan_pose(Point(0.5, 0.5, 0.3), 0.1, pi/4)
+    # mani.move_arm_and_base_to(poses[0])
     #
     # # visualize_poses(move_to_object_cam_pose_in_cool(Point(1, -1, 0), 0.3, pi/2))
     #
