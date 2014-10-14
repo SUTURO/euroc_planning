@@ -1,8 +1,11 @@
+from copy import deepcopy
 from geometry_msgs.msg._PointStamped import PointStamped
 from geometry_msgs.msg._Vector3 import Vector3
+from math import sqrt
 from moveit_msgs.msg._CollisionObject import CollisionObject
 import smach
 import rospy
+from suturo_planning_manipulation.mathemagie import magnitude, subtract_point
 from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_position, get_pre_grasp
 import utils
 
@@ -11,7 +14,7 @@ class GraspObject(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['success', 'fail', 'objectNotInPlanningscene', 'noGraspPosition'],
                              input_keys=['yaml', 'object_to_move', 'enable_movement'],
-                             output_keys=['place_position', 'grasp'])
+                             output_keys=['place_position', 'grasp', 'dist_to_obj'])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state GraspObject')
@@ -69,37 +72,24 @@ class GraspObject(smach.State):
 
                 rospy.loginfo("grasped " + collision_object_name)
 
+                grasp_2 = utils.manipulation.transform_to(grasp)
+                userdata.grasp = grasp_2
+                v1 = deepcopy(grasp_2.pose.position)
+                v1.z = 0
+                v2 = deepcopy(collision_object.primitive_poses[0].position)
+                v2.z = 0
+                a = magnitude(subtract_point(v1, v2))
+                b = abs(grasp_2.pose.position.z - collision_object.primitive_poses[0].position.z)
+                c = sqrt(a**2 + b**2)
+                userdata.dist_to_obj = abs(c)
+                # print c
                 #save the grasp for placeposition calculation
-                userdata.grasp = utils.manipulation.make_grasp_vector(collision_object_name)
+                # userdata.grasp = utils.manipulation.make_grasp_vector(collision_object_name)
 
                 rospy.logdebug("lift object")
                 if not move_to_func(get_pre_grasp(grasp)):
                     rospy.logwarn("couldnt lift object. continue anyway")
 
-                #set the place destination
-                destination = PointStamped()
-                destination.header.frame_id = '/odom_combined'
-                destination.point = None
-                for target_zone in userdata.yaml.target_zones:
-                    if target_zone.expected_object == userdata.object_to_move.mpe_object.id:
-                        rospy.loginfo('Placing object on location %s' % target_zone.name)
-                        destination.point = target_zone.target_position
-                        userdata.place_position = destination
                 return 'success'
         rospy.logwarn("Grapsing failed.")
-        return 'Fail'
-
-
-
-        # print 'Trying to grasp:\n' + str(userdata.object_to_move.mpe_object.id)
-        # if userdata.enable_movement:
-        #     grasp_result = utils.manipulation.grasp_and_move(userdata.object_to_move.mpe_object)
-        # else:
-        #     grasp_result = utils.manipulation.grasp(userdata.object_to_move.mpe_object)
-        # print 'Grasp result:' + str(grasp_result)
-        #
-        # if grasp_result:
-        #     #TODO:set place position
-        #     return 'success'
-        # else:
-        #     return 'fail'
+        return 'fail'

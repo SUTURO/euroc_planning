@@ -7,7 +7,9 @@ import copy
 from math import sqrt
 from datetime import time
 from geometry_msgs.msg._PointStamped import PointStamped
+from geometry_msgs.msg._Quaternion import Quaternion
 from moveit_msgs.msg._CollisionObject import CollisionObject
+from numpy.core.multiarray import dot
 import rospy
 import moveit_commander
 import moveit_msgs.msg
@@ -15,7 +17,7 @@ import geometry_msgs.msg
 import shape_msgs.msg
 from suturo_perception_msgs.msg._EurocObject import EurocObject
 import tf
-from tf.transformations import quaternion_from_matrix, rotation_matrix
+from tf.transformations import quaternion_from_matrix, rotation_matrix, euler_from_quaternion, quaternion_matrix
 import suturo_planning_manipulation.calc_grasp_position
 from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_position_box, calculate_grasp_position
 from suturo_planning_manipulation.manipulation import Manipulation
@@ -25,6 +27,8 @@ from suturo_planning_manipulation.planningsceneinterface import *
 from suturo_planning_manipulation.planningsceneinterface import PlanningSceneInterface
 from suturo_planning_perception.perception import *
 # from suturo_planning_perception.src.suturo_planning_perception.perception import get_gripper_perception
+from suturo_planning_plans.visualization import visualize_poses
+from suturo_planning_search.map import Map
 
 
 def test_task1(mani):
@@ -36,14 +40,38 @@ def test_task1(mani):
     dest.point = Point(0.5, 0.5, 0.00)
     mani.place(dest)
 
-    # mani.grasp("green_cylinder")
+    mani.grasp("green_cylinder")
+
+    dest = PointStamped()
+    dest.header.frame_id = "/odom_combined"
+    dest.point = Point(0.5, 0, 0)
+    mani.place(dest)
+
+    mani.grasp("blue_handle")
+
+    dest = PointStamped()
+    dest.header.frame_id = "/odom_combined"
+    dest.point = Point(0.5, -0.5, 0)
+    mani.place(dest)
+    pass
+
+def test_task1_v2(mani):
+
+    # mani.grasp("red_cube")
     #
     # dest = PointStamped()
     # dest.header.frame_id = "/odom_combined"
-    # dest.point = Point(0.5, 0, 0)
+    # dest.point = Point(-0.5, -0.5, 0.00)
     # mani.place(dest)
 
-    # mani.grasp("blue_handle")
+    mani.grasp("cyan_cylinder")
+
+    dest = PointStamped()
+    dest.header.frame_id = "/odom_combined"
+    dest.point = Point(-0.5, 0, 0)
+    mani.place(dest)
+
+    # mani.grasp("yellow_handle")
     #
     # dest = PointStamped()
     # dest.header.frame_id = "/odom_combined"
@@ -74,21 +102,73 @@ def test_task3(mani):
 
 if __name__ == '__main__':
     rospy.init_node('head_mover', anonymous=True)
-    mani = Manipulation()
-    t_point = geometry_msgs.msg.PoseStamped()
-    t_point.header.frame_id = "/odom_combined"
-    t_point.pose.position = geometry_msgs.msg.Point(0.3, -0.3, 0.5)
-    t_point.pose.orientation = geometry_msgs.msg.Quaternion(0, 0, 0, 1)
-    mani.move_to(t_point)
 
-    #pose = PoseStamped()
-    #pose.header.frame_id = "/odom_combined"
-    #pose.pose.position = Point(0.5, 0, 0.5)
-    # q = quaternion_from_euler(0, pi /4, pi /4)
+    map = Map(50, 50, 2, 2)
+    # print map.get_cell(0.98, -1)
+    map.set_cell(0.98, -1, map.OBSTACLE)
+    print map.get_cell(0, -1)
+    map.publish_as_marker()
+
+
+    # x_axis_unit = Point(1, 0, 0)
+    #
+    # x = 0.5
+    # y = 0.5
+    # z = 0.707106781187
+    # print get_angle(Point(x,y,z), Point(x,y,0))
+    # print get_angle(Point(x,0,z), Point(1,0,0))
+    # g = PoseStamped()
+    # g.header.frame_id = "/odom_combined"
+    # # g.pose.orientation = Quaternion(-0.651200263129, -0.275437965779, 0.651368941659, -0.275301010077)
+    # g.pose.orientation = euler_to_quaternion(pi/4, pi/4, 0)
+    # # g.pose.orientation = euler_to_quaternion(0, pi/4, pi/4)
+    # # print g.pose.orientation
+    # g.pose.position = Point(0, 0, 0)
+    # # g.pose.orientation = rotate_quaternion(g.pose.orientation, pi/2, 0, 0)
+    # visualize_poses([g])
+    # # print quaternion_matrix(quaternion_from_euler(0, pi, 0))
+    # # print dot([[1, 0, 0,0]],quaternion_matrix(quaternion_from_euler(pi/2, pi/2, 0)))
+    # # a = [[1, 0, 1]]
+    # # b = [[4], [2], [2]]
+    # # print dot(b,a)
+    # q = (g.pose.orientation.x, g.pose.orientation.y, g.pose.orientation.z, g.pose.orientation.w)
+    # print euler_from_quaternion(q)
+    # # print qv_mult(g.pose.orientation, x_axis_unit)
+    # print quaternion_to_rpy(g.pose.orientation)
+
+
+    # print (lambda x: a(2, x))(3)
+    #
+    # #
+    #
+    # mani = Manipulation()
+    # poses = make_scan_pose(Point(0.5, 0.5, 0.3), 0.1, pi/4)
+    # mani.move_arm_and_base_to(poses[0])
+    #
+    # # visualize_poses(move_to_object_cam_pose_in_cool(Point(1, -1, 0), 0.3, pi/2))
+    #
+    # redcube task1_v2
+    # t_point = geometry_msgs.msg.PoseStamped()
+    # t_point.header.frame_id = "/odom_combined"
+    # t_point.pose.position = geometry_msgs.msg.Point(0.3, -0.3, 0.015)
+    # t_point.pose.orientation = geometry_msgs.msg.Quaternion(0, 0, 0, 1)
+    # # dist = 0.1
+    # # angle = pi/4
+    # # mani.object_cam_pose(t_point, dist, angle)
+    #
+    # pose = PoseStamped()
+    # pose.header.frame_id = "/odom_combined"
+    # pose.pose.position = Point(0.5, 0, 0.5)
+    # q = quaternion_from_euler(0, 0, 0)
     # pose.pose.orientation = Quaternion(*q)
     # mani.move_to(pose)
     # mani.open_gripper()
-    # test_task3(mani)
+    #
+    #
+    # test_task1(mani)
+    # test_task1_v2(mani)
+
+
     # print mani.get_arm_move_group().get_current_pose()
     # mani.grasp("red_cube")
     # p = PoseStamped()

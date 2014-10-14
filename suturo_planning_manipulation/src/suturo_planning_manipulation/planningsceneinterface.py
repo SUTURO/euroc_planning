@@ -45,11 +45,6 @@ class PlanningSceneInterface(object):
         c1 = self.make_cylinder("cm1", pose, [1.1, 0.05])
         self.add_object(c1)
 
-        # pose.pose.position = Point(0.92, 0.92, 0.55)
-        # pose.pose.orientation = Quaternion(0, 0, 0, 1)
-        # c1 = self.make_cylinder("cm1", pose, [0.05, 1.1])
-        # self.add_object(c1)
-
     @staticmethod
     def make_box(name, pose, size):
         co = CollisionObject()

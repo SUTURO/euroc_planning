@@ -1,9 +1,8 @@
 import smach
 from suturo_planning_plans.stateperceiveobject import PerceiveObject
 from suturo_planning_plans.statesearchobject import SearchObject
-from suturo_planning_plans.stategraspobject import GraspObject
-from suturo_planning_plans.stateplaceobject import PlaceObject
-from suturo_planning_plans.statecheckplacement import CheckPlacement
+from suturo_planning_plans.statetidyupobject import TidyUpObject
+from suturo_planning_plans.statechooseobject import ChooseObject
 
 
 class Task1(smach.StateMachine):
@@ -15,28 +14,18 @@ class Task1(smach.StateMachine):
         with self:
             smach.StateMachine.add('SearchObject', SearchObject(),
                                    transitions={'objectFound': 'PerceiveObject',
-                                                'noObjectsLeft': 'success'})
+                                                'noObjectsLeft': 'ChooseObject'})
             smach.StateMachine.add('PerceiveObject', PerceiveObject(),
-                                   transitions={'validObject': 'GraspObject',
+                                   transitions={'objectsPerceived': 'SearchObject',
                                                 'noObject': 'SearchObject'})
-            smach.StateMachine.add('GraspObject', GraspObject(),
-                                   transitions={'success': 'PlaceObject',
-                                                'objectNotInPlanningscene': 'PerceiveObject',
-                                                'noGraspPosition': 'SearchObject',
-                                                'fail': 'SearchObject'})
-            smach.StateMachine.add('PlaceObject', PlaceObject(),
-                                   transitions={'success': 'CheckPlacement',
-                                                'fail': 'SearchObject',
-                                                'noObjectAttached': 'GraspObject',
-                                                'noPlacePosition': 'PlaceObject'},
-                                   remapping = {'target_position': 'place_position'})
-            smach.StateMachine.add('CheckPlacement', CheckPlacement(),
-                                   transitions={'onTarget': 'SearchObject',
-                                                'notOnTarget': 'GraspObject',
-                                                'nextObject': 'GraspObject'})
+            smach.StateMachine.add('ChooseObject', ChooseObject(),
+                                   transitions={'objectChosen': 'TidyUpObject',
+                                                'noObjectsLeft': 'success'})
+            smach.StateMachine.add('TidyUpObject', TidyUpObject(),
+                                   transitions={'success': 'ChooseObject',
+                                                'fail': 'ChooseObject'})
 
         self.userdata.objects_found = []
-        self.userdata.pending_objects = []
-        self.userdata.placed_objects = []
+        self.userdata.perceived_objects = []
         self.userdata.enable_movement = enable_movement
         self.userdata.task = task

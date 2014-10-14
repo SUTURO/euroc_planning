@@ -1,3 +1,6 @@
+from numpy.core.multiarray import dot
+from suturo_planning_plans.visualization import visualize_point
+
 __author__ = 'ichumuh'
 
 from array import array
@@ -17,9 +20,11 @@ import moveit_msgs.msg
 import geometry_msgs.msg
 import shape_msgs.msg
 import tf
-from tf.transformations import quaternion_from_matrix, rotation_matrix, quaternion_from_euler, quaternion_multiply
+from tf.transformations import quaternion_from_matrix, rotation_matrix, quaternion_from_euler, quaternion_multiply, \
+    quaternion_conjugate, quaternion_matrix
 import visualization_msgs.msg
 from manipulation_constants import *
+from geometry_msgs.msg._PoseStamped import PoseStamped
 
 def get_angle(p1, p2):
     return acos(scalar_product(p1, p2) / (sqrt(scalar_product(p1, p1)) * sqrt(scalar_product(p2, p2))))
@@ -112,23 +117,68 @@ def rotate_quaternion(q, r, p, y):
     no = quaternion_multiply([q.x, q.y, q.z, q.w], angle)
     return Quaternion(*no)
 
-def get_pitch(g):
-    v1 = Point()
-    v1.x = g.x
-    v1.y = g.y
-    if magnitude(v1) == 0:
-        return pi / 2
-    pitch = get_angle(v1, g)
+def euler_to_quaternion(r, p, y):
+    return Quaternion(*quaternion_from_euler(r, p, y))
+
+def get_pitch(q):
+    gripper_direction = qv_mult(q, Point(1, 0, 0))
+    # print gripper_direction
+    v = deepcopy(gripper_direction)
+
+    # visualize_point(v)
+    # print v
+    # print magnitude(gripper_direction)
+    v.z = 0
+    # b =  Point(1, 0, 0)
+    # print b
+    # gripper_direction.y = 0
+    if 0 <= magnitude(v) <= 0.001:
+        v = Point(1, 0, 0)
+    pitch = get_angle(v, gripper_direction)
     return pitch
 
+    # v = deepcopy(gripper_direction)
+    # v.x = sqrt(v.x**2 + v.y**2) * 1 if v.x > 0 else -1
+    # v.y = 0
+    #
+    # if 0 <= magnitude(v) <= 0.001:
+    #     v = Point(1, 0, 0)
+    # v2 = Point(1, 0, 0)
+    # pitch = get_angle(v, v2)
+    # return pitch
 
-def get_yaw(dest):
-    x = Point(1, 0, 0)
+# def get_yaw(dest):
+#     x = Point(1, 0, 0)
+#
+#     d = dest
+#     d.z = 0
+#
+#     alpha = get_angle(x, d)
+#     if d.y < 0:
+#         alpha = -alpha
+#     return alpha
 
-    d = dest
-    d.z = 0
 
-    alpha = get_angle(x, d)
-    if d.y < 0:
-        alpha = -alpha
-    return alpha
+def normalize2(v, tolerance=0.00001):
+    mag2 = sum(n * n for n in v)
+    if abs(mag2 - 1.0) > tolerance:
+        mag = sqrt(mag2)
+        v = tuple(n / mag for n in v)
+    return v
+
+
+def qv_mult(q1, v1):
+    q = q1
+    v = v1
+    if type(q1) is Quaternion:
+        q = (q1.x, q1.y, q1.z, q1.w)
+    if type(v1) is Point:
+        v = (v1.x, v1.y, v1.z, 0)
+
+    r = quaternion_multiply(quaternion_multiply(q, v), quaternion_conjugate(q))
+    return Point(r[0], r[1], r[2])
+
+
+def orientation_to_vector(orientation):
+    return qv_mult(orientation, Point(1, 0, 0))
+

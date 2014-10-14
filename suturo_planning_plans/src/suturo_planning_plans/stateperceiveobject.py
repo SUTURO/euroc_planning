@@ -3,13 +3,14 @@ import rospy
 import utils
 from utils import *
 from suturo_planning_perception import perception
+from suturo_perception_msgs.msg import EurocObject
 
 
 class PerceiveObject(smach.State):
     def __init__(self):
-        smach.State.__init__(self, outcomes=['noObject', 'validObject'],
-                             input_keys=['object_to_perceive', 'yaml', 'placed_objects'],
-                             output_keys=['object_to_move', 'pending_objects', 'objects_found'])
+        smach.State.__init__(self, outcomes=['noObject', 'objectsPerceived'],
+                             input_keys=['object_to_perceive', 'yaml', 'placed_objects', 'objects_found'],
+                             output_keys=['perceived_objects'])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state PerceiveObject')
@@ -22,45 +23,52 @@ class PerceiveObject(smach.State):
         perceived_objects = get_valid_objects(get_gripper)
         rospy.logdebug('Found ' + str(len(get_gripper)) + ' objects, ' + str(len(perceived_objects)) + ' are valid.')
         if not perceived_objects:
-            userdata.objects_found = []
             return 'noObject'
 
         collision_objects = []
         matched_objects = []
+        found_object_names = map(lambda obj: obj.mpe_object.id, userdata.objects_found)
 
         for obj in perceived_objects:
             # classify object
             matched_obj = classify_object(obj)
-            rospy.logdebug('Matched: ' + str(obj) + '\n----------------------------------\nwith: ' + str(matched_obj))
+            rospy.logdebug('Matched: \n' + str(obj) + '\n----------------------------------\nwith: ' + str(matched_obj))
 
-            if matched_obj is None:
+            if matched_obj.c_type == EurocObject.OBSTACLE:
+                collision_objects.append(matched_obj.object)
                 continue
 
-            # check if the object was already placed
-            if not matched_obj.object.id in userdata.placed_objects:
-                rospy.loginfo('Using pose estimation.')
+            if matched_obj.c_type == EurocObject.UNKNOWN or matched_obj.c_type == EurocObject.TABLE:
+                # TODO something better than ignoring the problem
+                rospy.logwarn('Unknown object perceived or table. Ignoring it for now.')
+                continue
 
-                pose_estimated = get_pose_estimation(userdata, matched_obj)
+            if matched_obj.c_type == EurocObject.OBJECT:
+                # check if the object was already placed
+                if not matched_obj.object.id in found_object_names:
+                    rospy.loginfo('Using pose estimation.')
 
-                if (pose_estimated is None) or (not pose_estimated.mpe_success):
                     pose_estimated = get_pose_estimation(userdata, matched_obj)
 
-                if pose_estimated is None:
-                    continue
+                    if (pose_estimated is None) or (not pose_estimated.mpe_success):
+                        pose_estimated = get_pose_estimation(userdata, matched_obj)
 
-                if pose_estimated.mpe_success:
-                    pose_estimated.object.id = pose_estimated.mpe_object.id
-                    matched_objects.append(pose_estimated)
-                    collision_objects.append(pose_estimated.mpe_object)
+                    if pose_estimated is None:
+                        rospy.logwarn('Couldn\'t poseestimate object after two tries, continuing.')
+                        continue
 
+                    if pose_estimated.mpe_success:
+                        pose_estimated.object.id = pose_estimated.mpe_object.id
+                        matched_objects.append(pose_estimated)
+                        collision_objects.append(pose_estimated.mpe_object)
+
+        rospy.loginfo('Publishing objects into planning scene.')
         publish_collision_objects(collision_objects)
-        userdata.objects_found = matched_objects
+        userdata.perceived_objects = matched_objects
 
         # check if it was an object
-        object_candidate = get_object_to_move(matched_objects)
-        if object_candidate is not None:
-            userdata.object_to_move = object_candidate
-            return 'validObject'
+        if matched_objects:
+            return 'objectsPerceived'
         else:
             return 'noObject'
 

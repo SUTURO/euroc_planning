@@ -12,7 +12,7 @@ class PlaceObject(smach.State):
 
     def __init__(self):
         smach.State.__init__(self, outcomes=['success', 'fail', 'noObjectAttached', 'noPlacePosition'],
-                             input_keys=['enable_movement', 'target_position', 'grasp'],
+                             input_keys=['enable_movement', 'target_position', 'grasp', 'dist_to_obj'],
                              output_keys=['place_position'])
 
     def execute(self, userdata):
@@ -31,77 +31,46 @@ class PlaceObject(smach.State):
         co = co.object
 
         destination = utils.manipulation.transform_to(destination)
-        place_pose = get_place_position(co, destination, utils.manipulation.tf_listener(), utils.manipulation.transform_to, userdata.grasp)
-
-        if place_pose is None:
+        place_poses = get_place_position(co, destination, utils.manipulation.transform_to, userdata.dist_to_obj, userdata.grasp)
+        if len(place_poses) == 0:
             # try to place the object at the current position
-            # current_pose = utils.manipulation.get_arm_move_group().get_current_pose()
-            # destination = PointStamped()
-            # destination.header.frame_id = current_pose.header.frame_id
-            # destination.point = current_pose.pose.position
-            # destination.point.z = 0
             userdata.place_position = self.new_place_position()
 
             return 'noPlacePosition'
 
-        if not move_to_func(get_pre_place_position(place_pose)):
-            rospy.logwarn("Can't reach preplaceposition.")
-            userdata.place_position = self.new_place_position()
+        for place_pose in place_poses:
+            if not move_to_func(get_pre_place_position(place_pose)):
+                rospy.logwarn("Can't reach preplaceposition.")
+                continue
+            else:
+                rospy.logdebug("preplaceposition taken")
 
-            return 'noPlacePosition'
-        else:
-            rospy.logdebug("preplaceposition taken")
+            rospy.sleep(1)
+            if not move_to_func(place_pose):
+                rospy.logwarn("Can't reach placeposition.")
+                continue
+            else:
+                rospy.logdebug("placeposition taken")
 
-        if not move_to_func(place_pose):
-            rospy.logwarn("Can't reach placeposition.")
-            userdata.place_position = self.new_place_position()
+            rospy.sleep(1)
+            if not utils.manipulation.open_gripper():
+                #cant happen
+                return 'fail'
+            rospy.sleep(1)
 
-            return 'noPlacePosition'
-        else:
-            rospy.logdebug("placeposition taken")
+            post_place_pose = utils.manipulation.transform_to(place_pose, co.id)
+            # post_place_pose.header.frame_id = "/tcp"
+            # post_place_pose.pose.position = Point(0, 0, -post_place_length)
 
-        rospy.sleep(1)
-        if not utils.manipulation.open_gripper():
-            #cant happen
-            return 'fail'
-        rospy.sleep(1)
+            if not move_to_func(get_pre_grasp(post_place_pose)):
+                rospy.logwarn("Can't reach postplaceposition. Continue anyway")
+                return 'success'
+            else:
+                rospy.logdebug("postplaceposition taken")
+            rospy.sleep(0.25)
+            rospy.loginfo("placed " + co.id)
 
-        post_place_pose = utils.manipulation.transform_to(place_pose, co.id)
-        # post_place_pose.header.frame_id = "/tcp"
-        # post_place_pose.pose.position = Point(0, 0, -post_place_length)
-
-        if not move_to_func(get_pre_grasp(post_place_pose)):
-            rospy.logwarn("Can't reach postplaceposition. Continue anyway")
             return 'success'
-        else:
-            rospy.logdebug("postplaceposition taken")
-
-        rospy.sleep(0.25)
-        rospy.loginfo("placed " + co.id)
-        return 'success'
-
-
-        # destination = PointStamped()
-        # destination.header.frame_id = '/odom_combined'
-        # destination.point = None
-        # for target_zone in userdata.yaml.target_zones:
-        #     if target_zone.expected_object == userdata.object_to_move.mpe_object.id:
-        #         rospy.loginfo('Placing object on location %s' % target_zone.name)
-        #         destination.point = target_zone.target_position
-        #
-        # if destination.point is None:
-        #     rospy.logdebug('No target zone found.')
-        #     return 'fail'
-        # else:
-        #     if userdata.enable_movement:
-        #         placed = utils.manipulation.place_and_move(destination)
-        #     else:
-        #         placed = utils.manipulation.place(destination)
-        #
-        # if placed:
-        #     return 'success'
-        # else:
-        #     return 'fail'
 
     def new_place_position(self):
         current_pose = utils.manipulation.get_arm_move_group().get_current_pose()
