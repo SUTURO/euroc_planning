@@ -6,65 +6,63 @@ import roslib; roslib.load_manifest('euroc_c2_demos')
 import rospy
 from euroc_c2_msgs.msg import *
 from euroc_c2_msgs.srv import *
-from trajectory_msgs import msg
-import trajectory_msgs
-from moveit_msgs.msg import RobotTrajectory
-from sensor_msgs.msg import Image
-from geometry_msgs.msg import Vector3
-from geometry_msgs.msg import PoseStamped
 from math import pi
-import copy
 
 
 class ManipulationService(object):
     def __init__(self):
-        # nodename = 'ManipulationService'
-        # rospy.init_node(nodename, anonymous=True)
         servicename = '/euroc_interface_node/move_along_joint_path'
         rospy.wait_for_service(servicename)
         self.__service = rospy.ServiceProxy(servicename, MoveAlongJointPath)
-        print 'nodename started'
 
-    def move(self, path, movegroup):
+    def move(self, path):
         joint_limits = []
 
-        p = SearchIkSolutionResponse()
-
-        #debug
-        print "joint names:"
-        print path.joint_trajectory.joint_names
-        print "points:"
-        print path.joint_trajectory.points[0].positions
+        cartesian_limits = CartesianLimits()
+        cartesian_limits.translational.max_velocity = 0.165
+        cartesian_limits.translational.max_acceleration = 4
+        cartesian_limits.rotational.max_velocity = 10 * pi / 180.0
+        cartesian_limits.rotational.max_acceleration = 100 * pi / 180.0
 
         for i in range(len(path.joint_trajectory.joint_names)):
-            limit = Limits();
+            limit = Limits()
             joint_name = path.joint_trajectory.joint_names[i]
-            # if movegroup == "arm":
-            cartesian_limits = CartesianLimits()
-            cartesian_limits.translational.max_velocity = 0.165
-            cartesian_limits.translational.max_acceleration = 4
-            cartesian_limits.rotational.max_velocity = 20 * pi / 180.0
-            cartesian_limits.rotational.max_acceleration = 100 * pi / 180.0
-            limit.max_velocity = 20 * pi / 180.0
-            limit.max_acceleration = 400 * pi / 180.0
-            # if joint_name[0:3] == "cam":
-            #     limit.max_velocity = 0.4
-            #     limit.max_acceleration = 2.0
-            # if joint_name == "gripper":
-            #     limit.max_velocity = gripper_vel
-            #     limit.max_acceleration = gripper_acc
+            if joint_name.startswith("lwr"):
+                limit.max_velocity = 20 * pi / 180.0
+                limit.max_acceleration = 400 * pi / 180.0
+            if joint_name.startswith("axis"):
+                limit.max_velocity = 0.165
+                limit.max_acceleration = 4
+            if joint_name.startswith("joint_before_finger1"):
+                limit.max_velocity = 0.5
+                limit.max_acceleration = 20
             joint_limits.append(limit)
 
         config = []
-        for i in range(len(path.joint_trajectory.points)):
-            blub = SearchIkSolutionResponse()
-            blub.solution.q = path.joint_trajectory.points[i].positions
-            config.append(blub.solution)
+        if path.joint_trajectory.joint_names[0].startswith("joint_before_finger"):
+            # rename jointname
+            path.joint_trajectory.joint_names = ["gripper"]
+            joint_limits.pop()
+            for i in range(len(path.joint_trajectory.points)):
+                blub = SearchIkSolutionResponse()
+                blub.solution.q = [2 * path.joint_trajectory.points[i].positions[1]]
+                config.append(blub.solution)
+        else:
+            for i in range(len(path.joint_trajectory.points)):
+                blub = SearchIkSolutionResponse()
+                blub.solution.q = path.joint_trajectory.points[i].positions
+                config.append(blub.solution)
 
         ros_start_time = rospy.Time()
         ros_start_time.from_seconds(0)
 
+        print path.joint_trajectory.joint_names
+
         resp = self.__service(path.joint_trajectory.joint_names, config, ros_start_time, joint_limits, cartesian_limits)
         if resp.error_message:
-            raise Exception(resp.error_message)
+            raise ManipulationServiceException(resp.error_message)
         return resp.stop_reason
+
+
+class ManipulationServiceException(Exception):
+    pass

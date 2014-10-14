@@ -70,10 +70,14 @@ class Manipulation(object):
             rospy.loginfo("No movement required.")
             return True
         self.__base_group.set_joint_value_target(goal)
-        # print goal
-        r = self.__base_group.go()
-        rospy.loginfo("moved base")
-        return r
+        path = self.__base_group.plan()
+        try:
+            self.__manService.move(path)
+        except ManipulationServiceException as e:
+            print "MOVE FAILED because: " + e.message
+            return False
+        else:
+            return True
 
     def move_to(self, goal_pose):
         return self.__move_group_to(goal_pose, self.__arm_group)
@@ -99,8 +103,13 @@ class Manipulation(object):
             move_group.set_joint_value_target(goal)
 
         path = move_group.plan()
-
-        self.__manService.move(path, "arm")
+        try:
+            self.__manService.move(path)
+        except ManipulationServiceException as e:
+            print "MOVE FAILED because: " + e.message
+            return False
+        else:
+            return True
 
     def get_current_joint_state(self):
         return self.__arm_base_group.get_current_joint_values()
@@ -151,13 +160,16 @@ class Manipulation(object):
 
     def open_gripper(self, position=gripper_max_pose):
         self.__gripper_group.set_joint_value_target([-position, position])
-        if not self.__gripper_group.go():
-            rospy.logwarn("Failed to open gripper.")
+        path = self.__gripper_group.plan()
+        try:
+            self.__manService.move(path)
+        except ManipulationServiceException as e:
+            print "MOVE FAILED because: " + e.message
             return False
-        self.__gripper_group.detach_object()
-
-        self.load_object(0, Vector3(0, 0, 0))
-        return True
+        else:
+            self.__gripper_group.detach_object()
+            self.load_object(0, Vector3(0, 0, 0))
+            return True
 
     def close_gripper(self, object=None):
         if type(object) is CollisionObject:
@@ -172,7 +184,14 @@ class Manipulation(object):
                 self.__gripper_group.set_joint_value_target([-radius+0.005, radius-0.005])
         else:
             self.__gripper_group.set_joint_value_target([0.0, 0.0])
-        self.__gripper_group.go()
+        path = self.__gripper_group.plan()
+        try:
+            self.__manService.move(path)
+        except ManipulationServiceException as e:
+            print "MOVE FAILED because: " + e.message
+            return False
+        else:
+            return True
 
     def grasp(self, collision_object, object_density=1):
         return self.__grasp_with_group(collision_object, self.__arm_group, object_density)
@@ -347,7 +366,14 @@ class Manipulation(object):
         current_joint_values = self.__arm_group.get_current_joint_values()
         current_joint_values[0] = joint_value
         self.__arm_group.set_joint_value_target(current_joint_values)
-        return self.__arm_group.go()
+        path = self.__arm_group.plan()
+        try:
+            self.__manService.move(path)
+        except ManipulationServiceException as e:
+            print "MOVE FAILED because: " + e.message
+            return False
+        else:
+            return True
 
     def get_arm_move_group(self):
         return self.__arm_group
