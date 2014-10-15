@@ -18,6 +18,7 @@ import shape_msgs.msg
 from suturo_perception_msgs.msg._EurocObject import EurocObject
 import tf
 from tf.transformations import quaternion_from_matrix, rotation_matrix, euler_from_quaternion, quaternion_matrix
+from cam_manipulation import CamManipulation
 import suturo_planning_manipulation.calc_grasp_position
 from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_position_box, calculate_grasp_position
 from suturo_planning_manipulation.manipulation import Manipulation
@@ -103,12 +104,40 @@ def test_task3(mani):
 if __name__ == '__main__':
     rospy.init_node('head_mover', anonymous=True)
 
-    map = Map(50, 50, 2, 2)
-    # print map.get_cell(0.98, -1)
-    map.set_cell(0.98, -1, map.OBSTACLE)
-    print map.get_cell(0, -1)
-    map.publish_as_marker()
+    map = Map(2, 2)
+    # map.set_cell(0.98, -1, map.OBSTACLE)
+    # map.get_cell(0,0).add_point(0)
+    # map.get_cell(0,0).add_point(0)
+    # map.get_cell(0,0).add_point(0)
+    # map.get_cell(0,0).add_point(0)
+    # map.get_cell(0,0).add_point(0)
+    # map.get_cell(0,0).add_point(0)
+    # map.get_cell(0,0).add_point(0)
+    # map.get_cell(0,0).add_point(0)
+    # map.get_cell(0,0).add_point(0)
+    # map.get_cell(0,0).add_point(0)
+    # map.get_cell(0,0).add_point(0)
+    # print map.get_cell(0, -1)
+    # now = rospy.Time.now()
+    muh = CamManipulation()
+    # map.add_point_cloud(scene_cam=True)
+    muh.pan(0.275)
+    muh.tilt(0.775)
+    rospy.sleep(5)
+    map.add_point_cloud(scene_cam=True)
 
+    muh.pan(-0.275)
+    rospy.sleep(5)
+    map.add_point_cloud(scene_cam=True)
+
+    muh.pan(0)
+    muh.tilt(1.1)
+    rospy.sleep(5)
+    map.add_point_cloud(scene_cam=True)
+    # print map.get_cell(0.55,0.55)
+    # print rospy.Time.now() - now
+    # print now
+    map.publish_as_marker()
 
     # x_axis_unit = Point(1, 0, 0)
     #
