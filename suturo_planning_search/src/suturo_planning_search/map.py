@@ -4,10 +4,13 @@ import struct
 import numpy
 # from datetime import time
 from geometry_msgs.msg._Point import Point
+from geometry_msgs.msg._Pose import Pose
+from moveit_msgs.msg._CollisionObject import CollisionObject
 import rospy
 import scipy
 from sensor_msgs.msg._PointCloud2 import PointCloud2
 from sensor_msgs.point_cloud2 import create_cloud_xyz32, _get_struct_fmt, read_points
+from shape_msgs.msg._SolidPrimitive import SolidPrimitive
 from suturo_perception_msgs.srv._GetPointArray import GetPointArray, GetPointArrayRequest
 import time
 from visualization_msgs.msg import Marker, MarkerArray
@@ -23,7 +26,7 @@ __author__ = 'ichumuh'
 
 class Map:
 
-    num_of_cells = 50
+    num_of_cells = 25
 
     def __init__(self, size_x, size_y):
         self.field = [[Cell() for i in range(self.num_of_cells)] for j in range(self.num_of_cells)]
@@ -69,17 +72,15 @@ class Map:
             z = points[i+2]
 
             if isnan(x) or isnan(y) or \
-                            x > self.max_x_coord or x < -self.max_x_coord or \
-                            y > self.max_y_coord or y < -self.max_y_coord:
+                    x > self.max_x_coord or x < -self.max_x_coord or \
+                    y > self.max_y_coord or y < -self.max_y_coord or \
+                    self.is_point_in_arm2(arm_origin, radius, x, y):
                 continue
 
             # if self.is_point_in_arm2(arm_origin, radius, x, y):
             #     self.get_cell(x,y).set_free()
             #     continue
 
-            if self.is_point_in_arm2(arm_origin, radius, x, y):
-                # self.get_cell(x,y).set_free()
-                continue
 
             self.get_cell(x,y).add_point(z)
 
@@ -101,16 +102,10 @@ class Map:
 
     def get_cell(self, x, y):
         (x_index, y_index) = self.coordinates_to_index(x, y)
-        # print x_index
-        # print y_index
         return self.get_cell_by_index(x_index, y_index)
 
     def get_cell_by_index(self, x, y):
         return self.field[x][y]
-
-    def set_cell(self, x, y, value):
-        (x_index, y_index) = self.coordinates_to_index(x, y)
-        self.set_cell_by_index(x_index, y_index, value)
 
     def set_cell_by_index(self, x, y, value):
         self.field[x][y] = value
@@ -128,13 +123,34 @@ class Map:
     def index_to_coordinates(self, x_index, y_index):
         x = x_index * self.cell_size_x - (self.size_x / 2) + (self.cell_size_x/2)
         y = y_index * self.cell_size_y - (self.size_y / 2) + (self.cell_size_y/2)
-        # print x_index, " to ", x
-        # print y_index, " to ", y
-        # print ""
         return (x, y)
 
     def publish_as_marker(self):
         visualization.publish_marker_array(self.to_marker_array())
+
+    def get_collision_objects(self):
+        cos = []
+        for x in range(0, len(self.field)):
+            for y in range(0, len(self.field[x])):
+                if self.field[x][y].is_free():
+                    continue
+                co = CollisionObject()
+                co.id = "block_" + str(x) + "_" + str(y)
+                co.header.frame_id = "/odom_combined"
+                primitive = SolidPrimitive()
+                primitive.type = SolidPrimitive.BOX
+                primitive.dimensions.append(self.cell_size_x)
+                primitive.dimensions.append(self.cell_size_y)
+                primitive.dimensions.append(2)
+                co.primitives.append(primitive)
+
+                pose = Pose()
+                (pose.position.x, pose.position.y) = self.index_to_coordinates(x,y)
+                pose.orientation.w = 1
+                co.primitive_poses.append(pose)
+                cos.append(co)
+
+        return cos
 
     def to_marker_array(self):
         markers = []

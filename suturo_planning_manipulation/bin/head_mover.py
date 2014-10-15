@@ -101,43 +101,45 @@ def test_task3(mani):
     # dest.point = Point(-0.85, -0.85, 0)
     # mani.place_and_move(dest)
 
+def muh():
+    # muh.pan(0.275)
+    # muh.tilt(0.775)
+    # rospy.sleep(5)
+    # map.add_point_cloud(scene_cam=True)
+    #
+    # muh.pan(-0.275)
+    # rospy.sleep(5)
+    # map.add_point_cloud(scene_cam=True)
+    #
+    # muh.pan(0)
+    pass
+
 if __name__ == '__main__':
     rospy.init_node('head_mover', anonymous=True)
 
+
+    mani = Manipulation()
     map = Map(2, 2)
-    # map.set_cell(0.98, -1, map.OBSTACLE)
-    # map.get_cell(0,0).add_point(0)
-    # map.get_cell(0,0).add_point(0)
-    # map.get_cell(0,0).add_point(0)
-    # map.get_cell(0,0).add_point(0)
-    # map.get_cell(0,0).add_point(0)
-    # map.get_cell(0,0).add_point(0)
-    # map.get_cell(0,0).add_point(0)
-    # map.get_cell(0,0).add_point(0)
-    # map.get_cell(0,0).add_point(0)
-    # map.get_cell(0,0).add_point(0)
-    # map.get_cell(0,0).add_point(0)
-    # print map.get_cell(0, -1)
-    # now = rospy.Time.now()
-    muh = CamManipulation()
+    # muh = CamManipulation()
+    # muh.pan(0)
+    # muh.tilt(pi/4)
+    # rospy.sleep(5)
+    map.add_point_cloud(scene_cam=True)
+    #
+    # muh.pan(-0.275)
+    # rospy.sleep(5)
     # map.add_point_cloud(scene_cam=True)
-    muh.pan(0.275)
-    muh.tilt(0.775)
-    rospy.sleep(5)
-    map.add_point_cloud(scene_cam=True)
-
-    muh.pan(-0.275)
-    rospy.sleep(5)
-    map.add_point_cloud(scene_cam=True)
-
-    muh.pan(0)
-    muh.tilt(1.1)
-    rospy.sleep(5)
-    map.add_point_cloud(scene_cam=True)
+    #
+    # muh.pan(0)
+    # muh.tilt(1.1)
+    # rospy.sleep(5)
+    # map.add_point_cloud(scene_cam=True)
     # print map.get_cell(0.55,0.55)
     # print rospy.Time.now() - now
     # print now
     map.publish_as_marker()
+    cos = map.get_collision_objects()
+    mani.get_planning_scene().add_objects(cos)
 
     # x_axis_unit = Point(1, 0, 0)
     #
