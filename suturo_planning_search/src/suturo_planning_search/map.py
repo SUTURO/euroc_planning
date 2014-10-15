@@ -1,12 +1,18 @@
 from copy import deepcopy
+from math import isnan
 import struct
 import numpy
+# from datetime import time
+from geometry_msgs.msg._Point import Point
 import rospy
 import scipy
 from sensor_msgs.msg._PointCloud2 import PointCloud2
 from sensor_msgs.point_cloud2 import create_cloud_xyz32, _get_struct_fmt, read_points
 from suturo_perception_msgs.srv._GetPointArray import GetPointArray, GetPointArrayRequest
+import time
 from visualization_msgs.msg import Marker, MarkerArray
+from mathemagie import magnitude
+from suturo_planning_search.Cell import Cell
 from suturo_planning_visualization import visualization
 from transformer import Transformer
 # from suturo_perception_msgs.msg import GetPointArray
@@ -14,36 +20,38 @@ from transformer import Transformer
 
 __author__ = 'ichumuh'
 
-fmt_full = ''
-
 
 class Map:
 
-    UNKNOWN = 0
-    FREE = 1
-    OBSTACLE = 2
+    num_of_cells = 50
 
-    def __init__(self, num_of_fields_x, num_of_fields_y, size_x, size_y):
-        self.field = scipy.zeros([num_of_fields_x, num_of_fields_y])
+    def __init__(self, size_x, size_y):
+        self.field = [[Cell() for i in range(self.num_of_cells)] for j in range(self.num_of_cells)]
+        # self.field = scipy.zeros([num_of_fields_x, num_of_fields_y])
         self.cell_size_x = 1.0 * size_x / len(self.field)
         self.cell_size_y = 1.0 * size_y / len(self.field[0])
         self.size_x = size_x
+        self.max_x_coord = self.size_x /2
         self.size_y = size_y
-        self.tf = Transformer()
-        self.tcp_cloud = None
+        self.max_y_coord = self.size_y /2
+        # self.tf = Transformer()
+        # self.tcp_cloud = None
 
         # rospy.Subscriber("/suturo/euroc_scene_cloud", PointCloud2, self.tcp_callback)
         # self.coordinates = self._get_real_coordinates(size_x, size_y)
-        self.__get_point_array = rospy.ServiceProxy('muh', GetPointArray)
+        self.__get_point_array = rospy.ServiceProxy('/suturo/GetPointArray', GetPointArray)
         rospy.sleep(1.0)
 
     def __del__(self):
         pass
 
+    def reset(self):
+        self.field = [[Cell() for i in range(self.num_of_cells)] for j in range(self.num_of_cells)]
+
     def tcp_callback(self, data):
         self.tcp_cloud = data
 
-    def add_point_cloud(self, scene_cam=True):
+    def add_point_cloud(self, arm_origin=Point(0, 0, 0), radius=0.1, scene_cam=True):
         request = GetPointArrayRequest()
         if scene_cam:
             request.pointCloudName = GetPointArrayRequest.SCENE
@@ -52,15 +60,44 @@ class Map:
 
         resp = self.__get_point_array(request)
         points = resp.pointArray
-        for i in range(0, len(points)/3, step=3):
+        print "start"
+        start = time.time()
+
+        for i in range(0, len(points), 3):
             x = points[i]
             y = points[i+1]
             z = points[i+2]
-            if 0 <= z <= 0.01:
-                self.set_cell(x,y, self.FREE)
-            else:
-                self.set_cell(x,y, self.OBSTACLE)
 
+            if isnan(x) or isnan(y) or \
+                            x > self.max_x_coord or x < -self.max_x_coord or \
+                            y > self.max_y_coord or y < -self.max_y_coord:
+                continue
+
+            # if self.is_point_in_arm2(arm_origin, radius, x, y):
+            #     self.get_cell(x,y).set_free()
+            #     continue
+
+            if self.is_point_in_arm2(arm_origin, radius, x, y):
+                # self.get_cell(x,y).set_free()
+                continue
+
+            self.get_cell(x,y).add_point(z)
+
+        for x in numpy.arange(arm_origin.x - radius, arm_origin.x + radius+0.01, self.cell_size_x):
+            for y in numpy.arange(arm_origin.y - radius, arm_origin.y + radius+0.01, self.cell_size_y):
+                self.get_cell(x,y).set_free()
+                # print x
+
+        print time.time() - start
+
+    def is_point_in_arm(self, arm_origin, radius, x, y):
+        dist_x = arm_origin.x - x
+        dist_y = arm_origin.y - y
+        return magnitude(Point(dist_x, dist_y, 0)) < radius
+
+    def is_point_in_arm2(self, arm_origin, radius, x, y):
+        return arm_origin.x - radius < x < arm_origin.x + radius and \
+               arm_origin.y - radius < y < arm_origin.y + radius
 
     def get_cell(self, x, y):
         (x_index, y_index) = self.coordinates_to_index(x, y)
@@ -120,11 +157,11 @@ class Map:
                 marker.scale.x = self.cell_size_x
                 marker.scale.y = self.cell_size_y
                 marker.scale.z = 0.01
-                if self.get_cell_by_index(x, y) == self.FREE:
+                if self.get_cell_by_index(x, y).is_free():
                     marker.color.r = 1
                     marker.color.g = 1
                     marker.color.b = 1
-                elif self.get_cell_by_index(x, y) == self.OBSTACLE:
+                elif self.get_cell_by_index(x, y).is_obstacle():
                     marker.color.r = 1
                     marker.color.g = 0
                     marker.color.b = 0
@@ -140,3 +177,4 @@ class Map:
                 markers.append(marker)
 
         return MarkerArray(markers)
+
