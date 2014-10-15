@@ -16,6 +16,9 @@ class ManipulationService(object):
         self.__service = rospy.ServiceProxy(servicename, MoveAlongJointPath)
 
     def move(self, path):
+        if len(path.joint_trajectory.points) == 0:
+            return False
+
         joint_limits = []
 
         # create Cartesian Limits
