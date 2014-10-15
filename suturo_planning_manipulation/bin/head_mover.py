@@ -27,8 +27,9 @@ from suturo_planning_manipulation.planningsceneinterface import *
 from suturo_planning_manipulation.planningsceneinterface import PlanningSceneInterface
 from suturo_planning_perception.perception import *
 # from suturo_planning_perception.src.suturo_planning_perception.perception import get_gripper_perception
-from suturo_planning_plans.visualization import visualize_poses
-from suturo_planning_search.map import Map
+# from suturo_planning_plans.visualization import visualize_poses
+# from suturo_planning_search.map import Map
+import suturo_planning_manipulation.mathemagie
 
 
 def test_task1(mani):
@@ -103,11 +104,13 @@ def test_task3(mani):
 if __name__ == '__main__':
     rospy.init_node('head_mover', anonymous=True)
 
-    map = Map(50, 50, 2, 2)
-    # print map.get_cell(0.98, -1)
-    map.set_cell(0.98, -1, map.OBSTACLE)
-    print map.get_cell(0, -1)
-    map.publish_as_marker()
+    m = Manipulation()
+    # m.close_gripper()
+    t_point = geometry_msgs.msg.PoseStamped()
+    t_point.header.frame_id = "/odom_combined"
+    t_point.pose.position = geometry_msgs.msg.Point(0.3, -0.3, 0.5)
+    t_point.pose.orientation = euler_to_quaternion(1, -pi/2, 1)
+    m.move_to(t_point)
 
 
     # x_axis_unit = Point(1, 0, 0)

@@ -16,6 +16,7 @@ class ManipulationService(object):
         self.__service = rospy.ServiceProxy(servicename, MoveAlongJointPath)
 
     def move(self, path):
+        # check if moveit generated a trajectory
         if len(path.joint_trajectory.points) == 0:
             return False
 
