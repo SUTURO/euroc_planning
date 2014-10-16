@@ -16,7 +16,8 @@ class Segment:
 
 
 class ClusterMap:
-    SEGMENT_MAP_NOT_COLORED = 0
+    SEGMENT_MAP_NOT_COLORED = 0 # cells that should not be grouped
+    SEGMENT_COLORED_FIELD = 1 # cells that should be grouped (for example obstacles)
 
     map_width = 25
 
@@ -48,7 +49,7 @@ class ClusterMap:
         '''color is a index for each region. should be >0'''
 
         # Return immediately, if we encounter a field that has been colored
-        if self.segmented_field[x][y] != 1:
+        if self.segmented_field[x][y] != self.SEGMENT_COLORED_FIELD:
             return
 
         # Color the field with the desired color
@@ -60,13 +61,13 @@ class ClusterMap:
         if (y < len(self.segmented_field[0]) - 1): self.fill_cell(x, y + 1, color)
 
     def convert_field_to_region_map(self):
-        ''' Turn the current self.field into a binary region map, where group regions can be performed '''
+        ''' Turn the current self.field into a binary region map, where self.group_regions() can be performed '''
         for x in xrange(len(self.field)):
             for y in xrange(len(self.field[0])):
                 if self.field[x][y] == 0:
-                    self.segmented_field[x][y] = 0
+                    self.segmented_field[x][y] = self.SEGMENT_MAP_NOT_COLORED
                 else:
-                    self.segmented_field[x][y] = 1
+                    self.segmented_field[x][y] = self.SEGMENT_COLORED_FIELD
 
     def group_regions(self):
         self.convert_field_to_region_map()
@@ -79,7 +80,7 @@ class ClusterMap:
         region_color = 2
         for x in xrange(len(field)):
             for y in xrange(len(field[0])):
-                if (field[x][y] == 1):
+                if (field[x][y] == self.SEGMENT_COLORED_FIELD):
                     self.fill_cell(x, y, region_color)
                     region_color += 1
 
