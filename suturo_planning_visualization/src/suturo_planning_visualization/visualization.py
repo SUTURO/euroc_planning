@@ -110,9 +110,9 @@ def visualize_point(p):
     else:
         marker.pose.position = p.point
         marker.header.frame_id = p.header.frame_id
-    global pub
-    if pub is None:
-        pub = rospy.Publisher('visualization_marker', Marker, queue_size=10)
+    global pub_marker
+    if pub_marker is None:
+        pub_marker = rospy.Publisher('visualization_marker', Marker, queue_size=10)
         rospy.sleep(0.5)
 
     marker.header.stamp = rospy.get_rostime()
@@ -130,13 +130,13 @@ def visualize_point(p):
 
     marker.id = 500
     marker.pose.orientation.w = 1
-    pub.publish(marker)
+    pub_marker.publish(marker)
     rospy.sleep(0.1)
 
 def visualize_poses(poses):
-    global pub
-    if pub is None:
-        pub = rospy.Publisher('visualization_marker', Marker, queue_size=10)
+    global pub_marker
+    if pub_marker is None:
+        pub_marker = rospy.Publisher('visualization_marker', Marker, queue_size=10)
         rospy.sleep(0.5)
     # r = rospy.Rate(1)  # 10hz
 
@@ -160,5 +160,5 @@ def visualize_poses(poses):
         marker.id = i
         marker.pose = grasp.pose
         i += 1
-        pub.publish(marker)
+        pub_marker.publish(marker)
         rospy.sleep(0.25)

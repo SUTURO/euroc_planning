@@ -22,8 +22,12 @@ from calc_grasp_position import *
 from place import get_place_position, get_pre_place_position, pre_place_length, post_place_length, get_grasped_part
 from planningsceneinterface import *
 from manipulation_constants import *
+from manipulation_service import *
 import math
+# from suturo_planning_visualization.visualization import visualize_poses
 from transformer import Transformer
+from euroc_c2_msgs.msg import *
+from euroc_c2_msgs.srv import *
 
 
 class Manipulation(object):
@@ -42,6 +46,9 @@ class Manipulation(object):
         self.__arm_base_group = moveit_commander.MoveGroupCommander("arm_base")
         self.__arm_base_group.set_planning_time(15)
 
+        rospy.wait_for_service('/euroc_interface_node/move_along_joint_path')
+        self.__service = rospy.ServiceProxy('/euroc_interface_node/move_along_joint_path', MoveAlongJointPath)
+
         self.__planning_scene_interface = PlanningSceneInterface()
 
         euroc_interface_node = '/euroc_interface_node/'
@@ -52,6 +59,9 @@ class Manipulation(object):
         self.__planning_scene_interface.add_cam_mast()
 
         self.__grasp = None
+
+        self.__manService = ManipulationService()
+
         rospy.loginfo( "Manipulation started.")
 
     def __del__(self):
@@ -67,10 +77,8 @@ class Manipulation(object):
             rospy.loginfo("No movement required.")
             return True
         self.__base_group.set_joint_value_target(goal)
-        # print goal
-        r = self.__base_group.go()
-        rospy.loginfo("moved base")
-        return r
+        path = self.__base_group.plan()
+        return self.__manService.move(path)
 
     def transform_to(self, pose_target, target_frame="/odom_combined"):
         return self.tf.transform_to(pose_target, target_frame)
@@ -81,13 +89,18 @@ class Manipulation(object):
     def move_arm_and_base_to(self, goal_pose):
         return self.__move_group_to(goal_pose, self.__arm_base_group)
 
+    def get_base_origin(self):
+        current_pose = self.__base_group.get_current_joint_values()
+        p = Point(current_pose[0], current_pose[1])
+        return p
+
     def __move_group_to(self, goal_pose, move_group):
         move_group.set_start_state_to_current_state()
         goal = deepcopy(goal_pose)
         if type(goal) is str:
             move_group.set_named_target(goal)
         elif type(goal) is PoseStamped:
-            visualize_poses([goal])
+            # visualize_poses([goal])
 
             goal.pose.orientation = rotate_quaternion(goal.pose.orientation, pi/2, pi, pi/2)
             goal = self.tf.transform_to(goal)
@@ -96,21 +109,21 @@ class Manipulation(object):
         else:
             move_group.set_joint_value_target(goal)
 
-        result = move_group.go()
-        return result
+        path = move_group.plan()
+        return self.__manService.move(path)
 
     def get_current_joint_state(self):
         return self.__arm_base_group.get_current_joint_values()
 
     def open_gripper(self, position=gripper_max_pose):
         self.__gripper_group.set_joint_value_target([-position, position])
-        if not self.__gripper_group.go():
-            rospy.logwarn("Failed to open gripper.")
+        path = self.__gripper_group.plan()
+        if self.__manService.move(path):
+            self.__gripper_group.detach_object()
+            self.load_object(0, Vector3(0, 0, 0))
+            return True
+        else:
             return False
-        self.__gripper_group.detach_object()
-
-        self.load_object(0, Vector3(0, 0, 0))
-        return True
 
     def close_gripper(self, object=None):
         if type(object) is CollisionObject:
@@ -126,7 +139,8 @@ class Manipulation(object):
                 self.__gripper_group.set_joint_value_target([-radius+0.005, radius-0.005])
         else:
             self.__gripper_group.set_joint_value_target([0.0, 0.0])
-        self.__gripper_group.go()
+        path = self.__gripper_group.plan()
+        return self.__manService.move(path)
 
     def grasp(self, collision_object, object_density=1):
         return self.__grasp_with_group(collision_object, self.__arm_group, object_density)
@@ -191,19 +205,6 @@ class Manipulation(object):
                 return True
         rospy.logwarn("Grapsing failed.")
         return False
-
-    # def make_grasp_vector(self, object_name):
-    #     now = rospy.Time.now()
-    #
-    #     self.__listener.waitForTransform("/odom_combined", "/tcp", now, rospy.Duration(4))
-    #     (p, q) = self.__listener.lookupTransform("/odom_combined", "/tcp", now)
-    #
-    #     self.__listener.waitForTransform("/odom_combined", "/" + object_name, now, rospy.Duration(4))
-    #     (p2, q2) = self.__listener.lookupTransform("/odom_combined", "/" + object_name, now)
-    #
-    #     g = subtract_point(Point(*p2), Point(*p))
-    #     # print g
-    #     return g
 
     def cmp_pose_stamped(self, collision_object, pose1, pose2):
         #TODO:richtigen abstand zum center berechnen
@@ -270,7 +271,7 @@ class Manipulation(object):
             co = co.object
         dest = self.tf.transform_to(dest)
         place_poses = get_place_position(co, dest, self.tf.transform_to, self.__d, self.__grasp)
-        visualize_poses(place_poses)
+        # visualize_poses(place_poses)
         for place_pose in place_poses:
             if not self.__move_group_to(get_pre_place_position(place_pose), move_group):
                 rospy.logwarn("Can't reach preplaceposition.")
@@ -315,7 +316,8 @@ class Manipulation(object):
         current_joint_values = self.__arm_group.get_current_joint_values()
         current_joint_values[0] = joint_value
         self.__arm_group.set_joint_value_target(current_joint_values)
-        return self.__arm_group.go()
+        path = self.__arm_group.plan()
+        return self.__manService.move(path)
 
     def get_arm_move_group(self):
         return self.__arm_group
@@ -329,61 +331,5 @@ class Manipulation(object):
         else:
             self.__planning_scene_interface.remove_object("ground0.95")
 
-
-
-    # Arguments: geometry_msgs/PointStamped, double distance from point to camera, double camera angle
-    def move_to_object_cam_pose(self, point, distance, angle):
-        # Get the data!
-        alpha = angle
-        dist = distance
-        object = point
-
-        # Get x and y point from object
-        point_x = object.pose.position.x
-        point_y = object.pose.position.y
-        # get sin_beta
-        #if point_x == 0:
-        #    sin_beta = 0
-        #else:
-        sin_beta = (point_y / point_x)
-        # get diagonal from the middle of the table to the object
-        v = math.sqrt((point_x**2) + (point_y**2))
-        # initialize cam_pose and roll objects
-        cam_pose = geometry_msgs.msg.PoseStamped()
-        roll = geometry_msgs.msg.PoseStamped()
-
-        cam_pose.header.frame_id = point.header.frame_id
-        cam_pose.pose.orientation = point.pose.orientation
-
-        # calculate the distance from the object to the desired cam_pose
-        w = math.cos(alpha) * dist
-        #if point_x == 0:
-        #    beta = 0
-        #else:
-        beta = math.atan(point_y / point_x)
-        # calculate x, y and z value from the cam pose
-        cam_x = (v - w) * math.cos(beta)
-        cam_y = cam_x * sin_beta
-        cam_z = dist * math.sin(alpha)
-        # set this values...
-        cam_pose.pose.position.x = cam_x
-        cam_pose.pose.position.y = cam_y
-        cam_pose.pose.position.z = cam_z
-
-        x1 = -point_x
-        y1 = -point_y
-        x2 = 1
-        y2 = -x1 / y1
-
-        roll.pose.position.x = x2
-        roll.pose.position.y = y2
-        roll.pose.position.z = object.pose.position.z
-
-        # calculate the quaternion
-        quaternion = three_points_to_quaternion(cam_pose.pose.position, object.pose.position, roll.pose.position)
-
-        cam_pose.pose.orientation = quaternion
-
-        self.move_arm_and_base_to(cam_pose)
-        
-        return cam_pose
+    def pan_tilt(self, pan, tilt):
+        return self.__manService.pan_tilt(pan, tilt)

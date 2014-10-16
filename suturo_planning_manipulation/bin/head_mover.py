@@ -18,7 +18,6 @@ import shape_msgs.msg
 from suturo_perception_msgs.msg._EurocObject import EurocObject
 import tf
 from tf.transformations import quaternion_from_matrix, rotation_matrix, euler_from_quaternion, quaternion_matrix
-from cam_manipulation import CamManipulation
 import suturo_planning_manipulation.calc_grasp_position
 from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_position_box, calculate_grasp_position
 from suturo_planning_manipulation.manipulation import Manipulation
@@ -28,7 +27,9 @@ from suturo_planning_manipulation.planningsceneinterface import *
 from suturo_planning_manipulation.planningsceneinterface import PlanningSceneInterface
 from suturo_planning_perception.perception import *
 # from suturo_planning_perception.src.suturo_planning_perception.perception import get_gripper_perception
-from suturo_planning_search.map import Map
+# from suturo_planning_plans.visualization import visualize_poses
+# from suturo_planning_search.map import Map
+import suturo_planning_manipulation.mathemagie
 
 
 def test_task1(mani):
@@ -100,45 +101,17 @@ def test_task3(mani):
     # dest.point = Point(-0.85, -0.85, 0)
     # mani.place_and_move(dest)
 
-def muh():
-    # muh.pan(0.275)
-    # muh.tilt(0.775)
-    # rospy.sleep(5)
-    # map.add_point_cloud(scene_cam=True)
-    #
-    # muh.pan(-0.275)
-    # rospy.sleep(5)
-    # map.add_point_cloud(scene_cam=True)
-    #
-    # muh.pan(0)
-    pass
-
 if __name__ == '__main__':
     rospy.init_node('head_mover', anonymous=True)
 
+    m = Manipulation()
+    # m.close_gripper()
+    t_point = geometry_msgs.msg.PoseStamped()
+    t_point.header.frame_id = "/odom_combined"
+    t_point.pose.position = geometry_msgs.msg.Point(0.3, -0.3, 0.5)
+    t_point.pose.orientation = euler_to_quaternion(1, -pi/2, 1)
+    m.move_to(t_point)
 
-    mani = Manipulation()
-    map = Map(2, 2)
-    # muh = CamManipulation()
-    # muh.pan(0)
-    # muh.tilt(pi/4)
-    # rospy.sleep(5)
-    map.add_point_cloud(scene_cam=True)
-    #
-    # muh.pan(-0.275)
-    # rospy.sleep(5)
-    # map.add_point_cloud(scene_cam=True)
-    #
-    # muh.pan(0)
-    # muh.tilt(1.1)
-    # rospy.sleep(5)
-    # map.add_point_cloud(scene_cam=True)
-    # print map.get_cell(0.55,0.55)
-    # print rospy.Time.now() - now
-    # print now
-    map.publish_as_marker()
-    cos = map.get_collision_objects()
-    mani.get_planning_scene().add_objects(cos)
 
     # x_axis_unit = Point(1, 0, 0)
     #
