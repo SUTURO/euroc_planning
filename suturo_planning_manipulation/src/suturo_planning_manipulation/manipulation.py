@@ -23,7 +23,6 @@ from place import get_place_position, get_pre_place_position, pre_place_length, 
 from planningsceneinterface import *
 from manipulation_constants import *
 import math
-from suturo_planning_plans.visualization import visualize_poses, visualize_point
 from transformer import Transformer
 
 
