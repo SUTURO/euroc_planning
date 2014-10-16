@@ -16,7 +16,8 @@ class Task1(smach.StateMachine):
         with self:
             smach.StateMachine.add('SearchObject', SearchObject(),
                                    transitions={'objectFound': 'ClassifyObjects',
-                                                'noObjectsLeft': 'ChooseObject'})
+                                                'noObjectsLeft': 'ChooseObject',
+                                                'simStopped': 'fail'})
             smach.StateMachine.add('ClassifyObjects', ClassifyObjects(),
                                    transitions={'objectsClassified': 'FocusObjects',
                                                 'noObject': 'SearchObject'})

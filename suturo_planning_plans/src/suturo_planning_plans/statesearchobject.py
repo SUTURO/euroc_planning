@@ -1,6 +1,7 @@
 import smach
 import rospy
 from geometry_msgs.msg import PoseStamped
+from suturo_planning_manipulation import manipulation_service
 
 import utils
 from utils import hex_to_color_msg
@@ -18,12 +19,17 @@ class SearchObject(smach.State):
     _last_joint_state = None
 
     def __init__(self):
-        smach.State.__init__(self, outcomes=['objectFound', 'noObjectsLeft'],
+        smach.State.__init__(self, outcomes=['objectFound', 'noObjectsLeft', 'simStopped'],
                              input_keys=['yaml', 'perceived_objects', 'task', 'fitted_object', 'enable_movement'],
                              output_keys=['object_to_perceive', 'objects_found'])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state SearchObject')
+
+        # try:
+        #     raise manipulation_service.ManipulationServiceException('asd')
+        # except manipulation_service.ManipulationServiceException:
+        #     return 'simStopped'
 
         if self._missing_objects is None:
             self._missing_objects = []
