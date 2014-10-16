@@ -1,6 +1,7 @@
 import smach
 import rospy
 from math import pi
+import time
 from suturo_planning_plans import utils
 from suturo_planning_manipulation import calc_grasp_position
 from geometry_msgs.msg import PointStamped
@@ -30,8 +31,26 @@ class FocusObjects(smach.State):
             if utils.manipulation.move_to(pose):
                 userdata.focused_object = userdata.objects_to_focus[0]
 
+                rospy.logdebug('Wait for clock')
+                time.sleep(1)
+
                 rospy.logdebug('Wait for tf again.')
-                rospy.sleep(5)
+                #start = time.time()
+                rospy.sleep(1)
+                rospy.logdebug('1: %s' % str(rospy.get_rostime()))
+                rospy.sleep(1)
+                rospy.logdebug('2: %s' % str(rospy.get_rostime()))
+                rospy.sleep(1)
+                rospy.logdebug('3: %s' % str(rospy.get_rostime()))
+                rospy.sleep(1)
+                rospy.logdebug('4: %s' % str(rospy.get_rostime()))
+                rospy.sleep(1)
+                rospy.logdebug('5: %s Continue.' % str(rospy.get_rostime()))
+
+
+
+                a = 12 - 45
+                a
 
                 return 'success'
 
