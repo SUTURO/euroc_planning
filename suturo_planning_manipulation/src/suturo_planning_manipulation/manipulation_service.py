@@ -73,7 +73,9 @@ class ManipulationService(object):
         resp = self.__service(path.joint_trajectory.joint_names, config, ros_start_time, joint_limits, cartesian_limits)
         if resp.error_message:
             raise ManipulationServiceException(resp.error_message)
-        return True
+        if resp.stop_reason == "path finished":
+            return True
+        raise ManipulationServiceException(resp.error_message)
 
     def pan_tilt(self, pan, tilt):
         cartesian_limits = CartesianLimits()
