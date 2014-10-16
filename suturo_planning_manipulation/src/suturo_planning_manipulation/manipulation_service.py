@@ -75,6 +75,29 @@ class ManipulationService(object):
             raise ManipulationServiceException(resp.error_message)
         return True
 
+    def pan_tilt(self, pan, tilt):
+        cartesian_limits = CartesianLimits()
+        cartesian_limits.translational.max_velocity = 0
+        cartesian_limits.translational.max_acceleration = 0
+        cartesian_limits.rotational.max_velocity = 0
+        cartesian_limits.rotational.max_acceleration = 0
+        joint_limits = []
+        for i in range(0, 2):
+            limit = Limits()
+            limit.max_velocity = 0.4
+            limit.max_acceleration = 2.0
+            joint_limits.append(limit)
+        config = []
+        p = SearchIkSolutionResponse()
+        p.solution.q = [pan, tilt]
+        config.append(p.solution)
+        ros_start_time = rospy.Time()
+        ros_start_time.from_seconds(0)
+        resp = self.__service(['cam_pan', 'cam_tilt'], config, ros_start_time, joint_limits, cartesian_limits)
+        if resp.error_message:
+            raise Exception(resp.error_message)
+        return resp.stop_reason
+
 
 # class for our own exception
 class ManipulationServiceException(Exception):
