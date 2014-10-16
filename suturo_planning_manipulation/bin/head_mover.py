@@ -28,7 +28,6 @@ from suturo_planning_manipulation.planningsceneinterface import *
 from suturo_planning_manipulation.planningsceneinterface import PlanningSceneInterface
 from suturo_planning_perception.perception import *
 # from suturo_planning_perception.src.suturo_planning_perception.perception import get_gripper_perception
-from suturo_planning_plans.visualization import visualize_poses
 from suturo_planning_search.map import Map
 
 
