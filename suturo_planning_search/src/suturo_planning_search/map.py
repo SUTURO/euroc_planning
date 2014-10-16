@@ -14,10 +14,10 @@ from shape_msgs.msg._SolidPrimitive import SolidPrimitive
 from suturo_perception_msgs.srv._GetPointArray import GetPointArray, GetPointArrayRequest
 import time
 from visualization_msgs.msg import Marker, MarkerArray
-from mathemagie import magnitude
+from suturo_planning_manipulation.mathemagie import magnitude
 from suturo_planning_search.Cell import Cell
 from suturo_planning_visualization import visualization
-from transformer import Transformer
+from suturo_planning_manipulation.transformer import Transformer
 # from suturo_perception_msgs.msg import GetPointArray
 # import pcl
 
@@ -55,6 +55,7 @@ class Map:
         self.tcp_cloud = data
 
     def add_point_cloud(self, arm_origin=Point(0, 0, 0), radius=0.1, scene_cam=True):
+        rospy.logdebug("scanning")
         request = GetPointArrayRequest()
         if scene_cam:
             request.pointCloudName = GetPointArrayRequest.SCENE
@@ -63,7 +64,7 @@ class Map:
 
         resp = self.__get_point_array(request)
         points = resp.pointArray
-        print "start"
+        # print "start"
         start = time.time()
 
         for i in range(0, len(points), 3):
@@ -89,7 +90,7 @@ class Map:
                 self.get_cell(x,y).set_free()
                 # print x
 
-        print time.time() - start
+        # print time.time() - start
 
     def is_point_in_arm(self, arm_origin, radius, x, y):
         dist_x = arm_origin.x - x
@@ -152,6 +153,21 @@ class Map:
 
         return cos
 
+    def get_nearest_unknown(self, arm_origin=Point(0, 0, 0)):
+        
+        pass
+
+    def get_free_names(self):
+        names = []
+        for x in range(0, len(self.field)):
+            for y in range(0, len(self.field[x])):
+                if not self.field[x][y].is_free():
+                    continue
+                name = "block_" + str(x) + "_" + str(y)
+                names.append(name)
+
+        return names
+
     def to_marker_array(self):
         markers = []
 
@@ -185,7 +201,6 @@ class Map:
                     marker.color.r = 0
                     marker.color.g = 0
                     marker.color.b = 0
-
 
                 marker.color.a = 1
                 marker.lifetime = rospy.Time(0)

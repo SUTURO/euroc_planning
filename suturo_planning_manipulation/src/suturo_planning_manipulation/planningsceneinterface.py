@@ -125,3 +125,17 @@ class PlanningSceneInterface(object):
         self.__attached_object_publisher.publish(aco)
 
         rospy.sleep(0.1)
+
+    def remove_objects(self, names):
+        for name in names:
+            co = moveit_msgs.msg.CollisionObject()
+            co.operation = moveit_msgs.msg.CollisionObject.REMOVE
+            co.id = name
+            self.__collision_object_publisher.publish(co)
+
+            aco = moveit_msgs.msg.AttachedCollisionObject()
+            aco.object = co
+            aco.link_name = "gp"
+            self.__attached_object_publisher.publish(aco)
+
+        rospy.sleep(0.1)

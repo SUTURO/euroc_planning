@@ -87,6 +87,11 @@ class Manipulation(object):
     def move_arm_and_base_to(self, goal_pose):
         return self.__move_group_to(goal_pose, self.__arm_base_group)
 
+    def get_base_origin(self):
+        current_pose = self.__base_group.get_current_joint_values()
+        p = Point(current_pose[0], current_pose[1])
+        return p
+
     def __move_group_to(self, goal_pose, move_group):
         move_group.set_start_state_to_current_state()
         goal = deepcopy(goal_pose)

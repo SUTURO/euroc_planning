@@ -12,7 +12,7 @@ from suturo_planning_perception import perception
 class ScanMapArmCam(smach.State):
 
     def __init__(self):
-        smach.State.__init__(self, outcomes=['objectFound', 'noObjectsLeft'],
+        smach.State.__init__(self, outcomes=['mapScanned'],
                              input_keys=['oldmap'],
                              output_keys=['map'])
 
