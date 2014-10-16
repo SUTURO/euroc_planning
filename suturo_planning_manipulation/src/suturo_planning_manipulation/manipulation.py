@@ -22,8 +22,9 @@ from calc_grasp_position import *
 from place import get_place_position, get_pre_place_position, pre_place_length, post_place_length, get_grasped_part
 from planningsceneinterface import *
 from manipulation_constants import *
+from manipulation_service import *
 import math
-from suturo_planning_visualization.visualization import visualize_poses
+# from suturo_planning_visualization.visualization import visualize_poses
 from transformer import Transformer
 from euroc_c2_msgs.msg import *
 from euroc_c2_msgs.srv import *
@@ -58,6 +59,9 @@ class Manipulation(object):
         self.__planning_scene_interface.add_cam_mast()
 
         self.__grasp = None
+
+        self.__manService = ManipulationService()
+
         rospy.loginfo( "Manipulation started.")
 
     def __del__(self):
@@ -73,10 +77,14 @@ class Manipulation(object):
             rospy.loginfo("No movement required.")
             return True
         self.__base_group.set_joint_value_target(goal)
-        # print goal
-        r = self.__base_group.go()
-        rospy.loginfo("moved base")
-        return r
+        path = self.__base_group.plan()
+        try:
+            self.__manService.move(path)
+        except ManipulationServiceException as e:
+            print "MOVE FAILED because: " + e.message
+            return False
+        else:
+            return True
 
     def transform_to(self, pose_target, target_frame="/odom_combined"):
         return self.tf.transform_to(pose_target, target_frame)
@@ -98,7 +106,7 @@ class Manipulation(object):
         if type(goal) is str:
             move_group.set_named_target(goal)
         elif type(goal) is PoseStamped:
-            visualize_poses([goal])
+            # visualize_poses([goal])
 
             goal.pose.orientation = rotate_quaternion(goal.pose.orientation, pi/2, pi, pi/2)
             goal = self.tf.transform_to(goal)
@@ -107,21 +115,30 @@ class Manipulation(object):
         else:
             move_group.set_joint_value_target(goal)
 
-        result = move_group.go()
-        return result
+        path = move_group.plan()
+        try:
+            self.__manService.move(path)
+        except ManipulationServiceException as e:
+            print "MOVE FAILED because: " + e.message
+            return False
+        else:
+            return True
 
     def get_current_joint_state(self):
         return self.__arm_base_group.get_current_joint_values()
 
     def open_gripper(self, position=gripper_max_pose):
         self.__gripper_group.set_joint_value_target([-position, position])
-        if not self.__gripper_group.go():
-            rospy.logwarn("Failed to open gripper.")
+        path = self.__gripper_group.plan()
+        try:
+            self.__manService.move(path)
+        except ManipulationServiceException as e:
+            print "MOVE FAILED because: " + e.message
             return False
-        self.__gripper_group.detach_object()
-
-        self.load_object(0, Vector3(0, 0, 0))
-        return True
+        else:
+            self.__gripper_group.detach_object()
+            self.load_object(0, Vector3(0, 0, 0))
+            return True
 
     def close_gripper(self, object=None):
         if type(object) is CollisionObject:
@@ -137,7 +154,14 @@ class Manipulation(object):
                 self.__gripper_group.set_joint_value_target([-radius+0.005, radius-0.005])
         else:
             self.__gripper_group.set_joint_value_target([0.0, 0.0])
-        self.__gripper_group.go()
+        path = self.__gripper_group.plan()
+        try:
+            self.__manService.move(path)
+        except ManipulationServiceException as e:
+            print "MOVE FAILED because: " + e.message
+            return False
+        else:
+            return True
 
     def grasp(self, collision_object, object_density=1):
         return self.__grasp_with_group(collision_object, self.__arm_group, object_density)
@@ -268,7 +292,7 @@ class Manipulation(object):
             co = co.object
         dest = self.tf.transform_to(dest)
         place_poses = get_place_position(co, dest, self.tf.transform_to, self.__d, self.__grasp)
-        visualize_poses(place_poses)
+        # visualize_poses(place_poses)
         for place_pose in place_poses:
             if not self.__move_group_to(get_pre_place_position(place_pose), move_group):
                 rospy.logwarn("Can't reach preplaceposition.")
@@ -313,7 +337,14 @@ class Manipulation(object):
         current_joint_values = self.__arm_group.get_current_joint_values()
         current_joint_values[0] = joint_value
         self.__arm_group.set_joint_value_target(current_joint_values)
-        return self.__arm_group.go()
+        path = self.__arm_group.plan()
+        try:
+            self.__manService.move(path)
+        except ManipulationServiceException as e:
+            print "MOVE FAILED because: " + e.message
+            return False
+        else:
+            return True
 
     def get_arm_move_group(self):
         return self.__arm_group
