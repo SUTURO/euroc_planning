@@ -181,6 +181,7 @@ def calculate_grasp_position_cylinder(collision_object, n=4):
     # grasp_positions.sort()
     return grasp_positions
 
+
 def make_scan_pose(point, distance, angle, frame="/odom_combined", n=8):
     look_positions = []
 

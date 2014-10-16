@@ -1,6 +1,7 @@
 import smach
 import rospy
 from geometry_msgs.msg import PoseStamped
+from suturo_planning_manipulation import manipulation_service
 
 import utils
 from utils import hex_to_color_msg
@@ -18,12 +19,17 @@ class SearchObject(smach.State):
     _last_joint_state = None
 
     def __init__(self):
-        smach.State.__init__(self, outcomes=['objectFound', 'noObjectsLeft'],
-                             input_keys=['yaml', 'perceived_objects', 'task', 'enable_movement'],
+        smach.State.__init__(self, outcomes=['objectFound', 'noObjectsLeft', 'simStopped'],
+                             input_keys=['yaml', 'perceived_objects', 'task', 'fitted_object', 'enable_movement'],
                              output_keys=['object_to_perceive', 'objects_found'])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state SearchObject')
+
+        # try:
+        #     raise manipulation_service.ManipulationServiceException('asd')
+        # except manipulation_service.ManipulationServiceException:
+        #     return 'simStopped'
 
         if self._missing_objects is None:
             self._missing_objects = []
@@ -41,32 +47,34 @@ class SearchObject(smach.State):
         scan_pose = 'scan_pose1'
 
         # Add the found objects
-        for obj in userdata.perceived_objects:
-            # Check if the object was already found
-            if [x for x in self._found_objects if x.mpe_object.id == obj.mpe_object.id]:
-                rospy.loginfo('Object %s was already found.' % obj.mpe_object.id)
-            else:
-                self._found_objects.append(obj)
-                self._missing_objects.remove(obj.mpe_object.id)
+        if not userdata.fitted_object is None:
+            for obj in [userdata.fitted_object]:
+                # Check if the object was already found
+                if [x for x in self._found_objects if x.mpe_object.id == obj.mpe_object.id]:
+                    rospy.loginfo('Object %s was already found.' % obj.mpe_object.id)
+                else:
+                    self._found_objects.append(obj)
+                    if obj.mpe_object.id in self._missing_objects:
+                        self._missing_objects.remove(obj.mpe_object.id)
         userdata.objects_found = self._found_objects
 
         # Check if all objects were found
         if not self._missing_objects:
             return 'noObjectsLeft'
 
-        # After placing an object go back into the scan_pose1
-        # if self._last_joint_state is None:
-        #     utils.manipulation.move_to(scan_pose)
-        # else:
-        #     if userdata.enable_movement:
-        #         utils.manipulation.move_arm_and_base_to(self._last_joint_state)
-        #     else:
-        #         utils.manipulation.move_to(self._last_joint_state)
+        # After focusing an object go back into the scan_pose1
+        if self._last_joint_state is None:
+            utils.manipulation.move_to(scan_pose)
+        else:
+            if userdata.enable_movement:
+                utils.manipulation.move_arm_and_base_to(self._last_joint_state)
+            else:
+                utils.manipulation.move_to(self._last_joint_state)
 
         # take initial scan pose
-        if self._next_scan == 0:
-            rospy.loginfo('Take %s' % scan_pose)
-            utils.manipulation.move_to(scan_pose)
+        # if self._next_scan == 0:
+        #     rospy.loginfo('Take %s' % scan_pose)
+        #     utils.manipulation.move_to(scan_pose)
 
         colors = self._obj_colors
 

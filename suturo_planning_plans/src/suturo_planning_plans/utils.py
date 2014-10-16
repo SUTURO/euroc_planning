@@ -3,6 +3,7 @@ import struct
 import math
 from std_msgs.msg import ColorRGBA
 from suturo_perception_msgs.srv import Classifier
+from geometry_msgs.msg import PointStamped
 
 
 # Holds the manipulation object
@@ -90,3 +91,12 @@ def get_nearest_object_idx(obj, objects, treshold):
         rospy.logdebug('Best distance is ' + str(min_distance) + 'for idx' + str(min_distance_idx))
         return min_distance_idx
     return None
+
+
+def centroid_to_odom_combined(euroc_object):
+    camera_point = PointStamped()
+    camera_point.header.stamp = rospy.Time(0)
+    camera_point.header.frame_id = '/tdepth_pcl'
+    camera_point.point = euroc_object.c_centroid
+    odom_point = manipulation.transform_to(camera_point, '/odom_combined')
+    euroc_object.c_centroid = odom_point.point

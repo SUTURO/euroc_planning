@@ -88,7 +88,7 @@ class EurocTask(smach.StateMachine):
 
             smach.StateMachine.add(task_name, plans[task](*plan_args[task]),
                                    transitions={'success': task_success,
-                                                'fail': task_name})
+                                                'fail': 'fail'})
 
 
 class InitSimulation(smach.StateMachine):

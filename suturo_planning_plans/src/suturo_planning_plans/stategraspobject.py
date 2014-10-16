@@ -19,6 +19,7 @@ class GraspObject(smach.State):
     def execute(self, userdata):
         rospy.loginfo('Executing state GraspObject')
         collision_object_name = userdata.object_to_move.mpe_object.id
+        rospy.loginfo('Trying to grasp %s' % collision_object_name)
 
         if userdata.enable_movement:
             move_to_func = utils.manipulation.move_arm_and_base_to
