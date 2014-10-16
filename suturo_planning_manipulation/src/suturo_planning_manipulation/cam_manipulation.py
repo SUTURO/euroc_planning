@@ -9,7 +9,7 @@ __author__ = 'benny'
 
 class CamManipulation(object):
     def __init__(self):
-        rospy.init_node('cam_manipulation')
+        # rospy.init_node('cam_manipulation')
         rospy.wait_for_service('/euroc_interface_node/move_along_joint_path')
         self.__service = rospy.ServiceProxy('/euroc_interface_node/move_along_joint_path', MoveAlongJointPath)
 
