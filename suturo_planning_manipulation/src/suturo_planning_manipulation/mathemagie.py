@@ -1,6 +1,4 @@
 from numpy.core.multiarray import dot
-from suturo_planning_plans.visualization import visualize_point
-
 __author__ = 'ichumuh'
 
 from array import array
