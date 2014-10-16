@@ -51,6 +51,7 @@ class ClassifyObjects(smach.State):
                 if matched_obj.object.id in found_object_names:
                     rospy.logdebug('Object %s was already seen.' % matched_obj.object.id)
                 else:
+                    utils.centroid_to_odom_combined(matched_obj)
                     matched_objects.append(matched_obj)
 
         rospy.loginfo('Publishing objects into planning scene.')

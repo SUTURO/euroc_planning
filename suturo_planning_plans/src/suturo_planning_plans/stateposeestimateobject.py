@@ -25,6 +25,10 @@ class PoseEstimateObject(smach.State):
             rospy.logwarn('Couldn\'t get gripper perception.')
             return 'fail'
 
+        if not pose_estimated_objects:
+            rospy.logdebug('No object found for pose estimation.')
+            return 'fail'
+
         # TODO Investigate the result for the object that's closest to the original object we were interested in
         # TODO find proper threshold
         # corresponding_object_idx = get_nearest_object_idx(userdata.focused_object, pose_estimated_objects, 0.1)

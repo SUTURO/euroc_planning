@@ -3,7 +3,7 @@ from suturo_planning_plans.stateclassifyobject import ClassifyObjects
 from suturo_planning_plans.statesearchobject import SearchObject
 from suturo_planning_plans.statetidyupobject import TidyUpObject
 from suturo_planning_plans.statechooseobject import ChooseObject
-from suturo_planning_plans.statefocusobjects import FocusObjects
+from suturo_planning_plans.statefocusobjects import FocusObjects, FocusObject
 from suturo_planning_plans.stateposeestimateobject import PoseEstimateObject
 
 
@@ -21,12 +21,17 @@ class Task1(smach.StateMachine):
                                    transitions={'objectsClassified': 'FocusObjects',
                                                 'noObject': 'SearchObject'})
             smach.StateMachine.add('FocusObjects', FocusObjects(),
-                                   transitions={'success': 'PoseEstimateObject',
+                                   transitions={'success': 'SearchObject',
+                                                'nextObject': 'FocusObject',
                                                 'fail': 'SearchObject'},
                                    remapping={'objects_to_focus': 'classified_objects'})
+            smach.StateMachine.add('FocusObject', FocusObject(),
+                                   transitions={'success': 'PoseEstimateObject',
+                                                'fail': 'FocusObjects'},
+                                   remapping={'objects_to_focus': 'classified_objects'})
             smach.StateMachine.add('PoseEstimateObject', PoseEstimateObject(),
-                                   transitions={'success': 'SearchObject',
-                                                'fail': 'SearchObject'})
+                                   transitions={'success': 'FocusObjects',
+                                                'fail': 'FocusObjects'})
             smach.StateMachine.add('ChooseObject', ChooseObject(),
                                    transitions={'objectChosen': 'TidyUpObject',
                                                 'noObjectsLeft': 'success'})
