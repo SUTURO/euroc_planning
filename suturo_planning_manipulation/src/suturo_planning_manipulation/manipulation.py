@@ -25,6 +25,7 @@ from manipulation_constants import *
 from manipulation_service import *
 import math
 # from suturo_planning_visualization.visualization import visualize_poses
+from suturo_planning_visualization.visualization import visualize_poses
 from transformer import Transformer
 from euroc_c2_msgs.msg import *
 from euroc_c2_msgs.srv import *
@@ -91,7 +92,7 @@ class Manipulation(object):
 
     def get_base_origin(self):
         current_pose = self.__base_group.get_current_joint_values()
-        p = Point(current_pose[0], current_pose[1])
+        p = Point(current_pose[0], current_pose[1], 0)
         return p
 
     def __move_group_to(self, goal_pose, move_group):
@@ -100,7 +101,7 @@ class Manipulation(object):
         if type(goal) is str:
             move_group.set_named_target(goal)
         elif type(goal) is PoseStamped:
-            # visualize_poses([goal])
+            visualize_poses([goal])
 
             goal.pose.orientation = rotate_quaternion(goal.pose.orientation, pi/2, pi, pi/2)
             goal = self.tf.transform_to(goal)

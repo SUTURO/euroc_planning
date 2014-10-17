@@ -14,7 +14,7 @@ class ScanMapMastCam(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['mapScanned'],
                              input_keys=[],
-                             output_keys=['map'])
+                             output_keys=[])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state ScanMapMastCam')
@@ -22,27 +22,26 @@ class ScanMapMastCam(smach.State):
             utils.manipulation = Manipulation()
             rospy.sleep(2)
 
-        map = Map(2,2)
+        utils.map = Map(2,2)
         arm_base = utils.manipulation.get_base_origin()
-        print arm_base
-        utils.manipulation.set_cam_pan(0.275)
-        utils.manipulation.set_cam_tilt(0.775)
-        rospy.sleep(3)
-        map.add_point_cloud(arm_origin=arm_base, scene_cam=True)
+        # print arm_base
+        # utils.manipulation.set_cam_pan(0.275)
+        # utils.manipulation.set_cam_tilt(0.775)
+        # rospy.sleep(3)
+        # map.add_point_cloud(arm_origin=arm_base, scene_cam=True)
+        #
+        # utils.manipulation.set_cam_pan(-0.275)
+        # rospy.sleep(3)
+        # map.add_point_cloud(arm_origin=arm_base, scene_cam=True)
+        #
+        # utils.manipulation.set_cam_pan(0)
+        # utils.manipulation.set_cam_tilt(1.1)
+        # rospy.sleep(3)
+        utils.map.add_point_cloud(arm_origin=arm_base, scene_cam=True)
 
-        utils.manipulation.set_cam_pan(-0.275)
-        rospy.sleep(3)
-        map.add_point_cloud(arm_origin=arm_base, scene_cam=True)
+        utils.map.publish_as_marker()
 
-        utils.manipulation.set_cam_pan(0)
-        utils.manipulation.set_cam_tilt(1.1)
-        rospy.sleep(3)
-        map.add_point_cloud(arm_origin=arm_base, scene_cam=True)
-
-        map.publish_as_marker()
-
-        userdata.map = map
-        cos = map.get_collision_objects()
-        utils.manipulation.get_planning_scene().add_objects(cos)
+        co = utils.map.to_collision_object()
+        utils.manipulation.get_planning_scene().add_object(co)
         return 'mapScanned'
 

@@ -8,6 +8,7 @@ from geometry_msgs.msg import PointStamped
 
 # Holds the manipulation object
 manipulation = None
+map = None
 
 
 def classify_object(obj):

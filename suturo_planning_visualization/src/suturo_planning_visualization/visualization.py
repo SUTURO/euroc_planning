@@ -161,4 +161,4 @@ def visualize_poses(poses):
         marker.pose = grasp.pose
         i += 1
         pub_marker.publish(marker)
-        rospy.sleep(0.25)
+        rospy.sleep(0.1)
