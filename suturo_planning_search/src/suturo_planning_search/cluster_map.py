@@ -1,12 +1,18 @@
 import sys
+from suturo_planning_search.Cell import Cell
 
 __author__ = 'pmania'
 
 
 def test_field1():
-    field = [[0 for x in xrange(15)] for x in xrange(15)]
-    field[0][6] = field[0][7] = field[0][8] = 1
-    field[2][6] = field[2][7] = field[2][8] = 1
+    c = Cell()
+    c.set_free()
+    field = [[c for x in xrange(15)] for x in xrange(15)]
+
+    unknown_cell = Cell()
+    unknown_cell.set_unknown()
+    field[0][6] = field[0][7] = field[0][8] = unknown_cell
+    field[2][6] = field[2][7] = field[2][8] = unknown_cell
     return field
 
 
@@ -15,14 +21,22 @@ class Segment:
     center_coords = [0, 0]
 
 
-class ClusterMap:
+class ClusterRegions:
+    ''' This class takes a field, which is represented as a 2D-array.
+        The method convert_field_to_region_map then converts this field to a region map
+        where you should label every cell with SEGMENT_MAP_NOT_COLORED or
+        SEGMENT_COLORED_FIELD, depending on which fields in your 2d array should be
+        grouped.
+    '''
     SEGMENT_MAP_NOT_COLORED = 0 # cells that should not be grouped
     SEGMENT_COLORED_FIELD = 1 # cells that should be grouped (for example obstacles)
 
     map_width = 25
 
     def init_field(self):
-        self.field = [[0 for x in xrange(self.map_width)] for x in xrange(self.map_width)]
+        c = Cell()
+        c.set_free()
+        self.field = [[c for x in xrange(self.map_width)] for x in xrange(self.map_width)]
         self.segmented_field = [[self.SEGMENT_MAP_NOT_COLORED for x in xrange(self.map_width)] for x in
                                 xrange(self.map_width)]
 
@@ -33,7 +47,12 @@ class ClusterMap:
         self.field = field
 
     def print_field(self):
-        self.print_2d_field(self.field)
+        for x in xrange(len(self.field)):
+            for y in xrange(len(self.field[0])):
+                if self.field[x][y].is_free(): sys.stdout.write(str("F"))
+                if self.field[x][y].is_obstacle(): sys.stdout.write(str("O"))
+                if self.field[x][y].is_unknown(): sys.stdout.write(str("U"))
+            print ""
 
     def print_segmented_field(self):
         self.print_2d_field(self.segmented_field)
@@ -64,7 +83,7 @@ class ClusterMap:
         ''' Turn the current self.field into a binary region map, where self.group_regions() can be performed '''
         for x in xrange(len(self.field)):
             for y in xrange(len(self.field[0])):
-                if self.field[x][y] == 0:
+                if self.field[x][y].is_free():
                     self.segmented_field[x][y] = self.SEGMENT_MAP_NOT_COLORED
                 else:
                     self.segmented_field[x][y] = self.SEGMENT_COLORED_FIELD
@@ -87,7 +106,7 @@ class ClusterMap:
         return region_color - start_color
 
 
-cm = ClusterMap()
+cm = ClusterRegions()
 cm.set_field(test_field1())
 cm.print_field()
 cm.group_regions()
