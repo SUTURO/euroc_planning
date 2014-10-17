@@ -22,22 +22,32 @@ class ScanMapMastCam(smach.State):
             utils.manipulation = Manipulation()
             rospy.sleep(2)
 
-        utils.map = Map(2,2)
-        arm_base = utils.manipulation.get_base_origin()
+        utils.map = Map(2, 2)
+        # arm_base = utils.manipulation.get_base_origin()
         # print arm_base
-        # utils.manipulation.set_cam_pan(0.275)
-        # utils.manipulation.set_cam_tilt(0.775)
-        # rospy.sleep(3)
-        # map.add_point_cloud(arm_origin=arm_base, scene_cam=True)
-        #
-        # utils.manipulation.set_cam_pan(-0.275)
-        # rospy.sleep(3)
-        # map.add_point_cloud(arm_origin=arm_base, scene_cam=True)
-        #
-        # utils.manipulation.set_cam_pan(0)
-        # utils.manipulation.set_cam_tilt(1.1)
-        # rospy.sleep(3)
-        utils.map.add_point_cloud(arm_origin=arm_base, scene_cam=True)
+        utils.manipulation.pan_tilt(0.2, 0.5)
+        rospy.sleep(3)
+        utils.map.add_point_cloud(scene_cam=True)
+
+        utils.manipulation.pan_tilt(0.275, 0.775)
+        rospy.sleep(3)
+        utils.map.add_point_cloud(scene_cam=True)
+
+        utils.manipulation.pan_tilt(0, 1.1)
+        rospy.sleep(3)
+        utils.map.add_point_cloud(scene_cam=True)
+
+        utils.manipulation.pan_tilt(-0.275, 0.775)
+        rospy.sleep(3)
+        utils.map.add_point_cloud(scene_cam=True)
+
+
+        utils.manipulation.pan_tilt(-0.2, 0.5)
+        rospy.sleep(3)
+        utils.map.add_point_cloud(scene_cam=True)
+
+        # utils.map.add_point_cloud(arm_origin=arm_base, scene_cam=True)
+        # utils.map.add_point_cloud(arm_origin=arm_base, scene_cam=True)
 
         utils.map.publish_as_marker()
 

@@ -15,7 +15,7 @@ from suturo_perception_msgs.srv._GetPointArray import GetPointArray, GetPointArr
 import time
 from visualization_msgs.msg import Marker, MarkerArray
 from suturo_planning_manipulation.mathemagie import *
-from suturo_planning_search.Cell import Cell
+from suturo_planning_search.cell import Cell
 from suturo_planning_visualization import visualization
 from suturo_planning_manipulation.transformer import Transformer
 # from suturo_perception_msgs.msg import GetPointArray
@@ -26,7 +26,7 @@ __author__ = 'ichumuh'
 
 class Map:
 
-    num_of_cells = 25
+    num_of_cells = 50
 
     def __init__(self, size_x, size_y):
         self.field = [[Cell() for i in range(self.num_of_cells)] for j in range(self.num_of_cells)]
@@ -70,6 +70,7 @@ class Map:
         else:
             request.pointCloudName = GetPointArrayRequest.TCP
 
+        request.publishToPlanningScene = True
         resp = self.__get_point_array(request)
         points = resp.pointArray
         # print "start"
@@ -92,13 +93,14 @@ class Map:
             #     continue
 
 
-            self.get_cell(x,y).add_point(z)
+            self.get_cell(x, y).add_point(z)
 
         for x in numpy.arange(arm_origin.x - radius, arm_origin.x + radius+0.01, self.cell_size_x):
             for y in numpy.arange(arm_origin.y - radius, arm_origin.y + radius+0.01, self.cell_size_y):
-                self.get_cell(x,y).set_free()
+                if not self.get_cell(x, y).is_obstacle():
+                    self.get_cell(x, y).set_free()
                 # print x
-
+        self.remove_unreachable_unknowns()
         # print time.time() - start
 
     def is_point_in_arm(self, arm_origin, radius, x, y):
@@ -123,10 +125,10 @@ class Map:
         if y < 0:
             rospy.logwarn("Index out auf range: " +str(x) +" "+str(y))
             y2 = 0
-        if x > len(self.field):
+        if x >= len(self.field):
             rospy.logwarn("Index out auf range: " +str(x) +" "+str(y))
             x2 = len(self.field)-1
-        if y > len(self.field):
+        if y >= len(self.field):
             rospy.logwarn("Index out auf range: " +str(x) +" "+str(y))
             y2 = len(self.field)-1
 
@@ -150,6 +152,27 @@ class Map:
     def publish_as_marker(self):
         visualization.publish_marker_array(self.to_marker_array())
 
+    def remove_unreachable_unknowns(self):
+        cell_changed = True
+        while cell_changed:
+            cell_changed = False
+            for x in range(0, len(self.field)):
+                for y in range(0, len(self.field[x])):
+                    if self.get_cell_by_index(x, y).is_unknown() and self.is_cell_surrounded_by_obstacles(x, y):
+                        self.get_cell_by_index(x, y).set_obstacle()
+                        cell_changed = True
+
+    def is_cell_surrounded_by_obstacles(self, x_index, y_index):
+        yes = x_index-1 < 0 or self.get_cell_by_index(x_index-1, y_index).is_obstacle()
+
+        yes = yes and (y_index-1 < 0 or self.get_cell_by_index(x_index, y_index-1).is_obstacle())
+
+        yes = yes and (x_index+1 >= self.num_of_cells or self.get_cell_by_index(x_index+1, y_index).is_obstacle())
+
+        yes = yes and (y_index+1 >= self.num_of_cells or self.get_cell_by_index(x_index, y_index+1).is_obstacle())
+
+        return yes
+
     def to_collision_object(self):
         co = CollisionObject()
         co.header.frame_id = "/odom_combined"
@@ -164,17 +187,21 @@ class Map:
             for y in range(0, len(self.field[x])):
                 if self.field[x][y].is_free():
                     continue
-                co.primitives.append(primitive)
-
+                if self.field[x][y].is_obstacle():
+                    primitive.dimensions[primitive.BOX_Z] = 0.05
+                    # print ":o"
+                else:
+                    primitive.dimensions[primitive.BOX_Z] = 2
+                co.primitives.append(deepcopy(primitive))
                 pose = Pose()
-                (pose.position.x, pose.position.y) = self.index_to_coordinates(x,y)
+                (pose.position.x, pose.position.y) = self.index_to_coordinates(x, y)
                 pose.orientation.w = 1
                 co.primitive_poses.append(pose)
 
         return co
 
     def get_closest_unknown(self, arm_origin=Point(0, 0, 0)):
-        closest_point = Point()
+        closest_points = []
         d = -1
         mx = 0
         my = 0
@@ -182,19 +209,21 @@ class Map:
             for y in range(0, len(self.field[x])):
                 p = Point()
                 (p.x, p.y) = self.index_to_coordinates(x, y)
-                v_to_arm = subtract_point(arm_origin, p)
-                dist = magnitude(v_to_arm)
-                if self.field[x][y].is_unknown() and (d < 0 or dist < d):
-                    closest_point = p
-                    d = dist
-                    mx = x
-                    my = y
+                # dist = magnitude(v_to_arm)
+                if self.field[x][y].is_unknown():
+                    closest_points.append(p)
+                #     closest_point = p
+                #     d = dist
+                #     mx = x
+                #     my = y
 
+        # v_to_arm = subtract_point(arm_origin, p)
+        closest_points.sort(key=lambda pointx: magnitude(subtract_point(arm_origin, pointx)))
         # print self.field[mx][my]
         # print mx
         # print my
 
-        return closest_point
+        return closest_points
 
     def get_free_names(self):
         names = []

@@ -79,10 +79,11 @@ def test_task1_v2(mani):
     # dest.point = Point(0.5, -0.5, 0)
     # mani.place(dest)
 
-def test_task3(mani):
     mani.grasp_and_move("blue_handle")
 
+def test_task3(mani):
     dest = PointStamped()
+
     dest.header.frame_id = "/odom_combined"
     dest.point = Point(0.85, -0.85, 0)
     mani.place_and_move(dest)
@@ -105,12 +106,13 @@ if __name__ == '__main__':
     rospy.init_node('head_mover', anonymous=True)
 
     m = Manipulation()
+    m.pan_tilt(-0.2, 0.5)
     # m.close_gripper()
-    t_point = geometry_msgs.msg.PoseStamped()
-    t_point.header.frame_id = "/odom_combined"
-    t_point.pose.position = geometry_msgs.msg.Point(0.3, -0.3, 0.5)
-    t_point.pose.orientation = euler_to_quaternion(1, -pi/2, 1)
-    m.move_to(t_point)
+    # t_point = geometry_msgs.msg.PoseStamped()
+    # t_point.header.frame_id = "/odom_combined"
+    # t_point.pose.position = geometry_msgs.msg.Point(0.3, -0.3, 0.5)
+    # t_point.pose.orientation = euler_to_quaternion(1, -pi/2, 1)
+    # m.move_to(t_point)
 
 
     # x_axis_unit = Point(1, 0, 0)

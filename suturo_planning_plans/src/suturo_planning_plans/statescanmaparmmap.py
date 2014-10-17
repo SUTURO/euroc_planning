@@ -23,24 +23,32 @@ class ScanMapArmCam(smach.State):
         rospy.loginfo('Executing state ScanMapMastCam')
 
         # print utils.map
-        arm_base = utils.manipulation.get_base_origin()
 
         next_point = utils.map.get_closest_unknown()
-        # while not next_point is None:
-            # print next_point
-        poses = make_scan_pose(next_point, 0.5, pi/6, n=16)
-        visualize_poses(poses)
-        i = 0
-        while i<len(poses) and not utils.manipulation.move_arm_and_base_to(poses[i]):
-            i += 1
-        rospy.sleep(3)
-        utils.map.add_point_cloud(arm_base, scene_cam=False)
-        utils.map.publish_as_marker()
-        rospy.logdebug("published")
-        utils.manipulation.get_planning_scene().remove_object("map")
-        co = utils.map.to_collision_object()
-        utils.manipulation.get_planning_scene().add_object(co)
+        while not len(next_point) == 0:
+            for i in range(0, len(next_point)):
+                print next_point[i]
+                next_point[i].z = 0.75
+                poses = make_scan_pose(next_point[i], 0.35, pi/6, n=16)
+                # visualize_poses(poses)
+                j = 0
+                move_successfull = False
+                while j < len(poses) and not move_successfull:
+                    move_successfull = utils.manipulation.move_arm_and_base_to(poses[j])
+                    j += 1
+                if move_successfull:
+                    break
 
-            # next_point = utils.map.get_closest_unknown()
+            rospy.sleep(3)
+            arm_base = utils.manipulation.get_base_origin()
+            utils.map.add_point_cloud(arm_base, scene_cam=False)
+            utils.map.publish_as_marker()
+            rospy.logdebug("published")
+            utils.manipulation.get_planning_scene().remove_object("map")
+            co = utils.map.to_collision_object()
+            utils.manipulation.get_planning_scene().add_object(co)
+
+            next_point = utils.map.get_closest_unknown()
+            print len(next_point)
 
         return 'mapScanned'

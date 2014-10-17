@@ -73,7 +73,7 @@ class Cell:
 
     def is_obstacle(self):
         return self.enough_points() and \
-            not 0 <= self.average_z <= 0.005
+            not 0 <= self.average_z <= 0.01
                # self.num_obstacle_points > self.threshold_obstacle * (self.get_num_points())
 
     def is_unknown(self):
