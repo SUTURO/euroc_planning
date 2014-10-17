@@ -1,5 +1,6 @@
+from copy import deepcopy
 import sys
-from suturo_planning_search.Cell import Cell
+from suturo_planning_search.cell import Cell
 
 __author__ = 'pmania'
 
@@ -67,7 +68,7 @@ class ClusterRegions:
         self.init_field()
 
     def set_field(self, field):
-        self.field = field
+        self.field = deepcopy(field)
 
     def print_field(self):
         for x in xrange(len(self.field)):
