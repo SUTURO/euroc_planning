@@ -28,8 +28,8 @@ class ScanMapArmCam(smach.State):
         while not len(next_point) == 0:
             for i in range(0, len(next_point)):
                 print next_point[i]
-                next_point[i].z = 0.75
-                poses = make_scan_pose(next_point[i], 0.35, pi/6, n=16)
+                next_point[i].z = 0.075
+                poses = make_scan_pose(next_point[i], 0.35, pi/5, n=16)
                 # visualize_poses(poses)
                 j = 0
                 move_successfull = False

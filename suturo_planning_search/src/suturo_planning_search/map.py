@@ -63,6 +63,7 @@ class Map:
         self.tcp_cloud = data
 
     def add_point_cloud(self, arm_origin=Point(0, 0, 0), radius=0.1, scene_cam=True):
+        oldmap = deepcopy(self.field)
         rospy.logdebug("scanning")
         request = GetPointArrayRequest()
         if scene_cam:
@@ -70,7 +71,7 @@ class Map:
         else:
             request.pointCloudName = GetPointArrayRequest.TCP
 
-        request.publishToPlanningScene = True
+        # request.publishToPlanningScene = True
         resp = self.__get_point_array(request)
         points = resp.pointArray
         # print "start"
@@ -101,7 +102,9 @@ class Map:
                     self.get_cell(x, y).set_free()
                 # print x
         self.remove_unreachable_unknowns()
+
         # print time.time() - start
+        return self.field == oldmap
 
     def is_point_in_arm(self, arm_origin, radius, x, y):
         dist_x = arm_origin.x - x
@@ -147,7 +150,7 @@ class Map:
     def index_to_coordinates(self, x_index, y_index):
         x = x_index * self.cell_size_x - (self.size_x / 2) + (self.cell_size_x/2)
         y = y_index * self.cell_size_y - (self.size_y / 2) + (self.cell_size_y/2)
-        return (x, y)
+        return x, y
 
     def publish_as_marker(self):
         visualization.publish_marker_array(self.to_marker_array())
@@ -188,10 +191,10 @@ class Map:
                 if self.field[x][y].is_free():
                     continue
                 if self.field[x][y].is_obstacle():
-                    primitive.dimensions[primitive.BOX_Z] = 0.05
+                    primitive.dimensions[primitive.BOX_Z] = self.get_cell_by_index(x, y).highest_z * 2
                     # print ":o"
                 else:
-                    primitive.dimensions[primitive.BOX_Z] = 2
+                    primitive.dimensions[primitive.BOX_Z] = self.get_average_z_of_surrounded_obstacles(x, y) * 2
                 co.primitives.append(deepcopy(primitive))
                 pose = Pose()
                 (pose.position.x, pose.position.y) = self.index_to_coordinates(x, y)
@@ -199,6 +202,30 @@ class Map:
                 co.primitive_poses.append(pose)
 
         return co
+
+    def get_average_z_of_surrounded_obstacles(self, x_index, y_index):
+        z = 0
+        n = 0
+        if not x_index-1 < 0 and self.get_cell_by_index(x_index-1, y_index).is_obstacle():
+            z += self.get_cell_by_index(x_index-1, y_index).highest_z
+            n += 1
+
+        if not y_index-1 < 0 and self.get_cell_by_index(x_index, y_index-1).is_obstacle():
+            z += self.get_cell_by_index(x_index, y_index-1).highest_z
+            n += 1
+
+        if not x_index+1 >= self.num_of_cells and self.get_cell_by_index(x_index+1, y_index).is_obstacle():
+            z += self.get_cell_by_index(x_index+1, y_index).highest_z
+            n += 1
+
+        if not y_index+1 >= self.num_of_cells and self.get_cell_by_index(x_index, y_index+1).is_obstacle():
+            z += self.get_cell_by_index(x_index, y_index+1).highest_z
+            n += 1
+
+        if z == 0:
+            return 1
+        else:
+            return z / n
 
     def get_closest_unknown(self, arm_origin=Point(0, 0, 0)):
         closest_points = []
@@ -225,16 +252,16 @@ class Map:
 
         return closest_points
 
-    def get_free_names(self):
-        names = []
-        for x in range(0, len(self.field)):
-            for y in range(0, len(self.field[x])):
-                if not self.field[x][y].is_free():
-                    continue
-                name = "block_" + str(x) + "_" + str(y)
-                names.append(name)
-
-        return names
+    # def get_free_names(self):
+    #     names = []
+    #     for x in range(0, len(self.field)):
+    #         for y in range(0, len(self.field[x])):
+    #             if not self.field[x][y].is_free():
+    #                 continue
+    #             name = "block_" + str(x) + "_" + str(y)
+    #             names.append(name)
+    #
+    #     return names
 
     def to_marker_array(self):
         markers = []

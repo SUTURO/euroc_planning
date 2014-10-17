@@ -23,6 +23,7 @@ class Cell:
     # threshold_obstacle = 0.25
     # threshold_free = 20
     average_z = 0
+    highest_z = 0
     points = 0
     segment_id = 0
 
@@ -47,6 +48,8 @@ class Cell:
         z2 = self.average_z * self.points
         self.points += 1
         self.average_z = (z2 + z) / self.points
+        if z > self.highest_z:
+            self.highest_z = z
         # if 0 <= z <= 0.03:
         #     self.num_free_points += 1
         # else:
@@ -85,3 +88,8 @@ class Cell:
 
     def get_num_points(self):
         return self.num_free_points + self.num_obstacle_points
+
+    def __eq__(self, other):
+        return other.is_obstacle() and self.is_obstacle() or \
+               other.is_free() and self.is_free() or \
+               other.is_unknown() and self.is_unknown()
