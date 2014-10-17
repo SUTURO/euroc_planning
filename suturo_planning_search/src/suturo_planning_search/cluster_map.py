@@ -77,12 +77,14 @@ class ClusterMap:
         '''
         :return: the number of assigned regions
         '''
-        region_color = 2
+        start_color = 2
+        region_color = start_color
         for x in xrange(len(field)):
             for y in xrange(len(field[0])):
                 if (field[x][y] == self.SEGMENT_COLORED_FIELD):
                     self.fill_cell(x, y, region_color)
                     region_color += 1
+        return region_color - start_color
 
 
 cm = ClusterMap()
