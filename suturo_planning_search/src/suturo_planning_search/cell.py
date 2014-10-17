@@ -24,6 +24,7 @@ class Cell:
     # threshold_free = 20
     average_z = 0
     points = 0
+    segment_id = 0
 
     threshold_min_points = 75
 
