@@ -17,30 +17,30 @@ __author__ = 'ichumuh'
 
 class Cell:
 
-    num_free_points = 0
-    num_obstacle_points = 0
 
-    # threshold_obstacle = 0.25
-    # threshold_free = 20
-    average_z = 0
-    highest_z = 0
-    points = 0
-    segment_id = 0
-
-    threshold_min_points = 75
 
     def __init__(self):
+
+        self.num_free_points = 0
+        self.num_obstacle_points = 0
+        self.average_z = 0
+        self.highest_z = 0
+        self.points = 0
+        self.segment_id = 0
+
+        self.threshold_min_points = 75
         pass
 
     def __del__(self):
         pass
 
     def __str__(self):
-        return "free: " + str(self.is_free()) +"\n" + \
-               "obstacle: " + str(self.is_obstacle()) +"\n" + \
-               "unknown: " + str(self.is_unknown()) +"\n" + \
-               "Points: " + str(self.points) + "\n" + \
-               "z: " +str(self.average_z)
+        return "free: " + str(self.is_free()) + \
+               " obstacle: " + str(self.is_obstacle()) + \
+               " unknown: " + str(self.is_unknown()) + \
+               " Points: " + str(self.points) + \
+               " segment_id: " + str(self.segment_id) + \
+               "z: " +str(self.average_z)+"\n"
                # "free points: " + str(self.num_free_points) + "\n" + \
                # "obstacle points: " + str(self.num_obstacle_points) + "\n"
 

@@ -1,29 +1,54 @@
 from copy import deepcopy
 import sys
 from suturo_planning_search.cell import Cell
+from math import sqrt
 
 __author__ = 'pmania'
 
 
-def test_field1():
-    c = Cell()
-    c.set_free()
-    field = [[c for x in xrange(15)] for x in xrange(15)]
+class Region:
+    def get_avg(self):
+        if self.avg[0] is None:
+            avg_x = 0
+            avg_y = 0
+            for c in self.cell_coords:
+                avg_x += c[0]
+                avg_y += c[1]
+            self.avg = [avg_x / len(self.cell_coords), avg_y / len(self.cell_coords)]
 
-    unknown_cell = Cell()
-    unknown_cell.set_unknown()
-    field[0][6] = field[0][7] = field[0][8] = unknown_cell
-    field[2][6] = field[2][7] = field[2][8] = unknown_cell
-    return field
+        return self.avg
 
+    def __init__(self, rid):
+        self.id = rid
+        self.cells = []
+        self.cell_coords = []
+        self.avg = [None, None]
 
-class Segment:
-    id = 0
+    def __str__(self):
+        s =  "Region id: " + str(self.id) + "\n" + "Cells ("+ str(len(self.cells)) +") : " + "\n"
+        for c in self.cells:
+            s += str(c)
+        for cc in self.cell_coords:
+            s += str(cc)
+        self.get_avg()
+        s += " Average: " + str(self.avg[0]) + " " + str(self.avg[1])
+        return s
+
+    def euclidean_distance_to_avg(self, x1, y1):
+        """
+        Calculate the euclidean distance from x1, y1 to the coords that are returned
+        by get_avg()"""
+        x2 = self.get_avg()[0]
+        y2 = self.get_avg()[1]
+        return sqrt((x2 - x1) ** 2 +
+                     (y2 - y1) ** 2)
+
 
 class RegionType:
     obstacles = 1
     unknown = 2
     free = 3
+
 
 class ClusterRegions:
     ''' This class takes a field, which is represented as a 2D-array.
@@ -37,13 +62,14 @@ class ClusterRegions:
         cm.set_field(YOUR_2D_ARRAY_WITH_CELL_INSTANCES)
         print "Region count: " + str(cm.group_regions())
         updated_map = cm.get_result_map()
+        regions = cm.get_result_regions()
     '''
     SEGMENT_MAP_NOT_COLORED = 0 # cells that should not be grouped
     SEGMENT_COLORED_FIELD = 1 # cells that should be grouped (for example obstacles)
 
     map_width = 25
-    segments = []
-    result_field = [[]]
+
+
 
     # Group unknown fields as default
     type = RegionType.unknown
@@ -55,9 +81,9 @@ class ClusterRegions:
         self.type = type
 
     def init_field(self):
-        c = Cell()
-        c.set_free()
-        self.field = [[c for x in xrange(self.map_width)] for x in xrange(self.map_width)]
+        ce = Cell()
+        ce.set_free()
+        self.field = [[ce for x in xrange(self.map_width)] for x in xrange(self.map_width)]
         self.segmented_field = [[self.SEGMENT_MAP_NOT_COLORED for x in xrange(self.map_width)] for x in
                                 xrange(self.map_width)]
 
@@ -66,6 +92,8 @@ class ClusterRegions:
 
     def __init__(self):
         self.init_field()
+        self.regions = []
+        self.result_field = [[]]
 
     def set_field(self, field):
         self.field = deepcopy(field)
@@ -88,8 +116,8 @@ class ClusterRegions:
                 sys.stdout.write(str(field[x][y]))
             print ""
 
-    def fill_cell(self, x, y, color):
-        '''color is a index for each region. should be >0'''
+    def fill_cell(self, x, y, color, region):
+        '''color is a index for each region. should be >1'''
 
         # Return immediately, if we encounter a field that has been colored
         if self.segmented_field[x][y] != self.SEGMENT_COLORED_FIELD:
@@ -99,12 +127,17 @@ class ClusterRegions:
         self.segmented_field[x][y] = color
         self.result_field = self.field
         self.result_field[x][y].segment_id = color
+        region.cells.append(self.result_field[x][y])
+        coords = []
+        coords.append(x)
+        coords.append(y)
+        region.cell_coords.append(coords)
 
         # Color the adjacent cells
-        if (x > 0): self.fill_cell(x - 1, y, color)
-        if (x < len(self.segmented_field) - 1): self.fill_cell(x + 1, y, color)
-        if (y > 0): self.fill_cell(x, y - 1, color)
-        if (y < len(self.segmented_field[0]) - 1): self.fill_cell(x, y + 1, color)
+        if (x > 0): self.fill_cell(x - 1, y, color, region)
+        if (x < len(self.segmented_field) - 1): self.fill_cell(x + 1, y, color,region)
+        if (y > 0): self.fill_cell(x, y - 1, color, region)
+        if (y < len(self.segmented_field[0]) - 1): self.fill_cell(x, y + 1, color, region)
 
     def convert_field_to_region_map(self):
         ''' Turn the current self.field into a binary region map, where self.group_regions() can be performed '''
@@ -136,20 +169,18 @@ class ClusterRegions:
         region_color = start_color
         for x in xrange(len(field)):
             for y in xrange(len(field[0])):
-                if (field[x][y] == self.SEGMENT_COLORED_FIELD):
-                    self.fill_cell(x, y, region_color)
+                if field[x][y] == self.SEGMENT_COLORED_FIELD:
+                    rx = Region(region_color)
+                    self.fill_cell(x, y, region_color, rx)
+                    self.regions.append(rx)
+                    print rx
                     region_color += 1
         return region_color - start_color
 
     def get_result_map(self):
         return self.result_field
 
+    def get_result_regions(self):
+        return self.regions
 
-cm = ClusterRegions()
-cm.set_field(test_field1())
-cm.print_field()
 
-print "Returned regions: " + str(cm.group_regions())
-print "Grouping done"
-cm.print_segmented_field()
-c = cm.get_result_map()
