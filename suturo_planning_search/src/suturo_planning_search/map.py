@@ -16,6 +16,7 @@ import time
 from visualization_msgs.msg import Marker, MarkerArray
 from suturo_planning_manipulation.mathemagie import *
 from suturo_planning_search.cell import Cell
+from suturo_planning_search.cluster_map import ClusterRegions
 from suturo_planning_visualization import visualization
 from suturo_planning_manipulation.transformer import Transformer
 # from suturo_perception_msgs.msg import GetPointArray
@@ -25,23 +26,16 @@ __author__ = 'ichumuh'
 
 
 class Map:
-
     num_of_cells = 50
 
     def __init__(self, size_x, size_y):
         self.field = [[Cell() for i in range(self.num_of_cells)] for j in range(self.num_of_cells)]
-        # self.field = scipy.zeros([num_of_fields_x, num_of_fields_y])
         self.cell_size_x = 1.0 * size_x / len(self.field)
         self.cell_size_y = 1.0 * size_y / len(self.field[0])
         self.size_x = size_x
-        self.max_x_coord = self.size_x /2
+        self.max_x_coord = self.size_x / 2
         self.size_y = size_y
-        self.max_y_coord = self.size_y /2
-        # self.tf = Transformer()
-        # self.tcp_cloud = None
-
-        # rospy.Subscriber("/suturo/euroc_scene_cloud", PointCloud2, self.tcp_callback)
-        # self.coordinates = self._get_real_coordinates(size_x, size_y)
+        self.max_y_coord = self.size_y / 2
         self.__get_point_array = rospy.ServiceProxy('/suturo/GetPointArray', GetPointArray)
         rospy.sleep(1.0)
 
@@ -59,10 +53,16 @@ class Map:
     def reset(self):
         self.field = [[Cell() for i in range(self.num_of_cells)] for j in range(self.num_of_cells)]
 
-    def tcp_callback(self, data):
-        self.tcp_cloud = data
-
     def add_point_cloud(self, arm_origin=Point(0, 0, 0), radius=0.1, scene_cam=True):
+        '''
+        This function requests a pointcloud from the scene/tcp cam and uses its data to update the map.
+        The area around the arms base will be set to free.
+        :param arm_origin: The centre of the arm
+        :param radius: The radius of the arms base
+        :param scene_cam: True for requesting a pointcloud from the scene cam, False for the tcp cam
+        :return: True if the map has changed
+        '''
+
         oldmap = deepcopy(self.field)
         rospy.logdebug("scanning")
         request = GetPointArrayRequest()
@@ -74,36 +74,29 @@ class Map:
         # request.publishToPlanningScene = True
         resp = self.__get_point_array(request)
         points = resp.pointArray
-        # print "start"
-        start = time.time()
 
         for i in range(0, len(points), 3):
             x = points[i]
-            y = points[i+1]
-            z = points[i+2]
+            y = points[i + 1]
+            z = points[i + 2]
 
             if isnan(x) or \
-                    x > self.max_x_coord or x < -self.max_x_coord or \
-                    y > self.max_y_coord or y < -self.max_y_coord or \
+                            x > self.max_x_coord or x < -self.max_x_coord or \
+                            y > self.max_y_coord or y < -self.max_y_coord or \
                     self.is_point_in_arm2(arm_origin, radius, x, y):
-                # print self.index_to_coordinates(x, y)
                 continue
-
-            # if self.is_point_in_arm2(arm_origin, radius, x, y):
-            #     self.get_cell(x,y).set_free()
-            #     continue
-
 
             self.get_cell(x, y).add_point(z)
 
-        for x in numpy.arange(arm_origin.x - radius, arm_origin.x + radius+0.01, self.cell_size_x):
-            for y in numpy.arange(arm_origin.y - radius, arm_origin.y + radius+0.01, self.cell_size_y):
+        #Set the area around the arms base free
+        for x in numpy.arange(arm_origin.x - radius, arm_origin.x + radius + 0.01, self.cell_size_x):
+            for y in numpy.arange(arm_origin.y - radius, arm_origin.y + radius + 0.01, self.cell_size_y):
                 if not self.get_cell(x, y).is_obstacle():
                     self.get_cell(x, y).set_free()
-                # print x
+
+        #remove unknown surrounded by obstacles (or the and of the map)
         self.remove_unreachable_unknowns()
 
-        # print time.time() - start
         return self.field == oldmap
 
     def is_point_in_arm(self, arm_origin, radius, x, y):
@@ -123,23 +116,23 @@ class Map:
         x2 = x
         y2 = y
         if x < 0:
-            rospy.logwarn("Index out auf range: " +str(x) +" "+str(y))
+            rospy.logwarn("Index out auf range: " + str(x) + " " + str(y))
             x2 = 0
         if y < 0:
-            rospy.logwarn("Index out auf range: " +str(x) +" "+str(y))
+            rospy.logwarn("Index out auf range: " + str(x) + " " + str(y))
             y2 = 0
         if x >= len(self.field):
-            rospy.logwarn("Index out auf range: " +str(x) +" "+str(y))
-            x2 = len(self.field)-1
+            rospy.logwarn("Index out auf range: " + str(x) + " " + str(y))
+            x2 = len(self.field) - 1
         if y >= len(self.field):
-            rospy.logwarn("Index out auf range: " +str(x) +" "+str(y))
-            y2 = len(self.field)-1
+            rospy.logwarn("Index out auf range: " + str(x) + " " + str(y))
+            y2 = len(self.field) - 1
 
         return self.field[x2][y2]
 
     def coordinates_to_index(self, x, y):
-        x_index = int((x + (self.size_x/2)) / self.cell_size_x)
-        y_index = int((y + (self.size_y/2)) / self.cell_size_y)
+        x_index = int((x + (self.size_x / 2)) / self.cell_size_x)
+        y_index = int((y + (self.size_y / 2)) / self.cell_size_y)
         if x_index == 100:
             x_index = 99
 
@@ -148,9 +141,9 @@ class Map:
         return (x_index, y_index)
 
     def index_to_coordinates(self, x_index, y_index):
-        x = x_index * self.cell_size_x - (self.size_x / 2) + (self.cell_size_x/2)
-        y = y_index * self.cell_size_y - (self.size_y / 2) + (self.cell_size_y/2)
-        return x, y
+        x = x_index * self.cell_size_x - (self.size_x / 2) + (self.cell_size_x / 2)
+        y = y_index * self.cell_size_y - (self.size_y / 2) + (self.cell_size_y / 2)
+        return (x, y)
 
     def publish_as_marker(self):
         visualization.publish_marker_array(self.to_marker_array())
@@ -166,17 +159,20 @@ class Map:
                         cell_changed = True
 
     def is_cell_surrounded_by_obstacles(self, x_index, y_index):
-        yes = x_index-1 < 0 or self.get_cell_by_index(x_index-1, y_index).is_obstacle()
+        yes = x_index - 1 < 0 or self.get_cell_by_index(x_index - 1, y_index).is_obstacle()
 
-        yes = yes and (y_index-1 < 0 or self.get_cell_by_index(x_index, y_index-1).is_obstacle())
+        yes = yes and (y_index - 1 < 0 or self.get_cell_by_index(x_index, y_index - 1).is_obstacle())
 
-        yes = yes and (x_index+1 >= self.num_of_cells or self.get_cell_by_index(x_index+1, y_index).is_obstacle())
+        yes = yes and (x_index + 1 >= self.num_of_cells or self.get_cell_by_index(x_index + 1, y_index).is_obstacle())
 
-        yes = yes and (y_index+1 >= self.num_of_cells or self.get_cell_by_index(x_index, y_index+1).is_obstacle())
+        yes = yes and (y_index + 1 >= self.num_of_cells or self.get_cell_by_index(x_index, y_index + 1).is_obstacle())
 
         return yes
 
     def to_collision_object(self):
+        '''
+        :return: the map as a Collisionobject
+        '''
         co = CollisionObject()
         co.header.frame_id = "/odom_combined"
         co.id = "map"
@@ -192,7 +188,6 @@ class Map:
                     continue
                 if self.field[x][y].is_obstacle():
                     primitive.dimensions[primitive.BOX_Z] = self.get_cell_by_index(x, y).highest_z * 2
-                    # print ":o"
                 else:
                     primitive.dimensions[primitive.BOX_Z] = self.get_average_z_of_surrounded_obstacles(x, y) * 2
                 co.primitives.append(deepcopy(primitive))
@@ -206,20 +201,20 @@ class Map:
     def get_average_z_of_surrounded_obstacles(self, x_index, y_index):
         z = 0
         n = 0
-        if not x_index-1 < 0 and self.get_cell_by_index(x_index-1, y_index).is_obstacle():
-            z += self.get_cell_by_index(x_index-1, y_index).highest_z
+        if not x_index - 1 < 0 and self.get_cell_by_index(x_index - 1, y_index).is_obstacle():
+            z += self.get_cell_by_index(x_index - 1, y_index).highest_z
             n += 1
 
-        if not y_index-1 < 0 and self.get_cell_by_index(x_index, y_index-1).is_obstacle():
-            z += self.get_cell_by_index(x_index, y_index-1).highest_z
+        if not y_index - 1 < 0 and self.get_cell_by_index(x_index, y_index - 1).is_obstacle():
+            z += self.get_cell_by_index(x_index, y_index - 1).highest_z
             n += 1
 
-        if not x_index+1 >= self.num_of_cells and self.get_cell_by_index(x_index+1, y_index).is_obstacle():
-            z += self.get_cell_by_index(x_index+1, y_index).highest_z
+        if not x_index + 1 >= self.num_of_cells and self.get_cell_by_index(x_index + 1, y_index).is_obstacle():
+            z += self.get_cell_by_index(x_index + 1, y_index).highest_z
             n += 1
 
-        if not y_index+1 >= self.num_of_cells and self.get_cell_by_index(x_index, y_index+1).is_obstacle():
-            z += self.get_cell_by_index(x_index, y_index+1).highest_z
+        if not y_index + 1 >= self.num_of_cells and self.get_cell_by_index(x_index, y_index + 1).is_obstacle():
+            z += self.get_cell_by_index(x_index, y_index + 1).highest_z
             n += 1
 
         if z == 0:
@@ -229,39 +224,22 @@ class Map:
 
     def get_closest_unknown(self, arm_origin=Point(0, 0, 0)):
         closest_points = []
-        d = -1
-        mx = 0
-        my = 0
         for x in range(0, len(self.field)):
             for y in range(0, len(self.field[x])):
                 p = Point()
                 (p.x, p.y) = self.index_to_coordinates(x, y)
-                # dist = magnitude(v_to_arm)
                 if self.field[x][y].is_unknown():
                     closest_points.append(p)
-                #     closest_point = p
-                #     d = dist
-                #     mx = x
-                #     my = y
 
-        # v_to_arm = subtract_point(arm_origin, p)
         closest_points.sort(key=lambda pointx: magnitude(subtract_point(arm_origin, pointx)))
-        # print self.field[mx][my]
-        # print mx
-        # print my
 
         return closest_points
 
-    # def get_free_names(self):
-    #     names = []
-    #     for x in range(0, len(self.field)):
-    #         for y in range(0, len(self.field[x])):
-    #             if not self.field[x][y].is_free():
-    #                 continue
-    #             name = "block_" + str(x) + "_" + str(y)
-    #             names.append(name)
-    #
-    #     return names
+    def get_next_point(self):
+        cm = ClusterRegions()
+        cm.set_field(self.field)
+        cm.group_regions()
+        regions = cm.get_result_regions()
 
     def to_marker_array(self):
         markers = []

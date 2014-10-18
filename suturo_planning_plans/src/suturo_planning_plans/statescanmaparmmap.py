@@ -41,7 +41,7 @@ class ScanMapArmCam(smach.State):
 
             rospy.sleep(3)
             arm_base = utils.manipulation.get_base_origin()
-            utils.map.add_point_cloud(arm_base, scene_cam=False)
+            utils.map.add_point_cloud(arm_base.point, scene_cam=False)
             utils.map.publish_as_marker()
             rospy.logdebug("published")
             utils.manipulation.get_planning_scene().remove_object("map")

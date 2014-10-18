@@ -24,6 +24,13 @@ from mathemagie import *
 
 
 def calculate_grasp_position(collision_object, transform_func, n=8):
+    '''
+    Calculates grasp positions for the given collision object
+    :param collision_object: CollisionObject
+    :param transform_func(object, frame_id): a function to transform objects to different frame_ids. (use Manipulation.transform_to)
+    :param n: number of grasps around the side if it is a cylinder or every side ob the box
+    :return: list of PoseStamped
+    '''
     if len(collision_object.primitives) > 1:
         return calculate_grasp_position_list(collision_object, transform_func)
     if collision_object.primitives[0].type == shape_msgs.msg.SolidPrimitive().BOX:
@@ -34,6 +41,12 @@ def calculate_grasp_position(collision_object, transform_func, n=8):
 
 
 def calculate_grasp_position_list(collision_object, transform_func):
+    '''
+    Calculates grasp positions for a composition of collision objects
+    :param collision_object: CollisionObject
+    :param transform_func(object, frame_id): transform function
+    :return: list of PoseStamped
+    '''
     grasp_positions = []
     for i in range(0, len(collision_object.primitives)):
         co = CollisionObject()
@@ -58,16 +71,27 @@ def calculate_grasp_position_list(collision_object, transform_func):
 
 
 def get_pre_grasp(grasp):
+    '''
+    Returns a position that should be taken before grasping.
+    :param grasp: PoseStamped
+    :return: PoseStamped that is further behind
+    '''
     #TODO: nur z beachten
     pre_grasp = deepcopy(grasp)
     depth = magnitude(pre_grasp.pose.position)
-    normalize(pre_grasp.pose.position)
+    pre_grasp.pose.position = normalize(pre_grasp.pose.position)
     depth += pre_grasp_length
     pre_grasp.pose.position = multiply_point(depth, pre_grasp.pose.position)
     return pre_grasp
 
 
 def calculate_grasp_position_box(collision_object, n=8):
+    '''
+    Calculates grasp positions for a Box.
+    :param collision_object: CollisionObject
+    :param n: number of grasps around each side
+    :return: list of PoseStamped
+    '''
     grasp_positions = []
 
     depth = finger_length
@@ -85,6 +109,7 @@ def calculate_grasp_position_box(collision_object, n=8):
 
 
     #TODO: abfangen wenn eine Seite zu gross ist
+    #TODO: cooler machen
     for i in range(0, n):
         a = 2 * pi * ((i + 0.0) / (n + 0.0))
 
@@ -110,15 +135,28 @@ def calculate_grasp_position_box(collision_object, n=8):
     return grasp_positions
 
 
-def make_grasp_pose(depth, p1, p2, frame_id):
+def make_grasp_pose(depth, gripper_origin, direction, frame_id):
+    '''
+    Calculates a Pose pointing from gripper_origin to direction.
+    :param depth: desired distance between gripper_origin and direction
+    :param gripper_origin: PoseStamped
+    :param direction: PoseStamped
+    :param frame_id: str
+    :return: PoseStamped
+    '''
     grasp = PoseStamped()
     grasp.header.frame_id = frame_id
-    grasp.pose.orientation = three_points_to_quaternion(p1, geometry_msgs.msg.Point(0, 0, 0), p2)
-    grasp.pose.position = multiply_point(depth, p1)
+    grasp.pose.orientation = three_points_to_quaternion(gripper_origin, geometry_msgs.msg.Point(0, 0, 0), direction)
+    grasp.pose.position = multiply_point(depth, gripper_origin)
     return grasp
 
 def calculate_grasp_position_cylinder(collision_object, n=4):
-    # points = make_points_around_box()
+    '''
+    Calculates grasp positions for a Cylinder.
+    :param collision_object: CollisionObject
+    :param n: number of grasp around the side
+    :return: list of PoseStamped
+    '''
     grasp_positions = []
 
     depth = finger_length
@@ -131,58 +169,33 @@ def calculate_grasp_position_cylinder(collision_object, n=4):
     if finger_length < collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.CYLINDER_RADIUS]:
         depth_side = collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.CYLINDER_RADIUS]
     depth_side += hand_length
-    # print depth
-    #
-    # depth = finger_length
-    # if finger_length < collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.BOX_X]:
-    #     depth = collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.BOX_X]
-    # depth_x = depth + hand_length
-    #
-    # if finger_length < collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.BOX_Y]:
-    #     depth = collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.BOX_Y]
-    # depth_y = depth + hand_length
-    #
-    # if finger_length < collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.BOX_Z]:
-    #     depth = collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.BOX_Z]
-    # depth_z = depth + hand_length
 
-
-    # #TODO: abfangen wenn eine Seite zu gross ist
-    # for i in range(0, n):
-    #     a = 2 * pi * ((i + 0.0) / (n + 0.0))
-    #
-    #     grasp_point = Point(cos(a), sin(a), 0)
-    #     d = (abs(grasp_point.x) * depth_x + abs(grasp_point.y) * depth_y + abs(grasp_point.z) * depth_z) / (abs(
-    #         grasp_point.x) + abs(grasp_point.y) + abs(grasp_point.z))
-    #
-    #
-    # look_point = Point(1, 0, 0)
-    # look_point = set_vector_length(r, look_point)
-    # look_point = add_point(look_point, muh)
+    #TODO: abfangen wenn eine Seite zu gross ist
+    #Points above and below the cylinder
     grasp_positions.append(make_grasp_pose(depth, Point(0, 0, 1), Point(0, 1, 0), collision_object.id))
-    # grasp_positions.append(make_grasp_pose(depth, points[2], points[1], collision_object.id))
 
     grasp_positions.append(make_grasp_pose(depth, Point(0, 0, -1), Point(0, 1, 0), collision_object.id))
-    # grasp_positions.append(make_grasp_pose(depth, points[5], points[4], collision_object.id))
 
+    #Points around the side of the cylinder
     grasp_positions.extend(make_scan_pose(Point(0,0,0), depth_side, 0, collision_object.id, 4))
 
-    # depth_side += 0.02
     grasp_positions.extend(make_scan_pose(Point(0,0,h/2-0.02), depth_side, 0, collision_object.id, 4))
     grasp_positions.extend(make_scan_pose(Point(0,0,-(h/2-0.02)), depth_side, 0, collision_object.id, 4))
 
-    # for i in range(0, n):
-    #     a = 2 * pi * ((i + 0.0) / (n + 0.0))
-    #     b = a + (pi / 2)
-    #     # print ((i+0.0) /(n+0.0))
-    #     # print Point(cos(a), sin(a), 0)
-    #     grasp_positions.append(make_grasp_pose(depth_side, Point(cos(a), sin(a), 0), Point(cos(b), sin(b), 0),
-    #                                            collision_object.id))
-    # grasp_positions.sort()
     return grasp_positions
 
 
 def make_scan_pose(point, distance, angle, frame="/odom_combined", n=8):
+    '''
+    Calculates "n" positions around and pointing to "point" with "distance" in an "angle"
+    :param point: Point the positions will be pointing to
+    :param distance: float
+    :param angle: float, 0 = horizontally, pi/2 = downwards
+    :param frame: str, the frame that the positions will have
+    :param n: float, number of positions
+    :return: list of PoseStamped
+    '''
+    #TODO: assumes odom_combined
     look_positions = []
 
     alpha = pi/2 - angle

@@ -18,6 +18,12 @@ class Transformer:
         pass
 
     def transform_to(self, pose_target, target_frame="/odom_combined"):
+        '''
+        Transforms the pose_target into the target_frame.
+        :param pose_target: object to transform as PoseStamped/PointStamped/Vector3Stamped/CollisionObject/PointCloud2
+        :param target_frame: goal frame id
+        :return: transformed object
+        '''
         odom_pose = None
         i = 0
         while odom_pose is None and i < 10:

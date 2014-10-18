@@ -18,22 +18,36 @@ from manipulation_constants import *
 __author__ = 'ichumuh'
 
 
-def get_place_position(collision_object, dest, transform_func, d, grasp=None):
+def get_place_position(collision_object, destination, transform_func, d, grasp):
+    '''
+    Calculates place position for a "collision_object" at "dest".
+    :param collision_object: CollisionObject
+    :param destination: PointStamped
+    :param transform_func(object, frame_id): a function to transform objects to different frame_ids. (use Manipulation.transform_to)
+    :param d: dist from the grasped point to the tcp frame
+    :param grasp: PoseStamped
+    :return: list of PoseStamped
+    '''
     if len(collision_object.primitives) == 1:
-        if collision_object.primitives[0].type == SolidPrimitive.BOX:
-            return get_place_position_cube(collision_object, dest, transform_func, grasp,d)
-        else:
-            return get_place_position_cube(collision_object, dest, transform_func, grasp,d)
+        return get_place_position_for_single_object(collision_object, destination, transform_func, grasp,d)
     else:
-        return get_place_position_handle(collision_object, dest, grasp, transform_func, d)
+        return get_place_position_handle(collision_object, destination, grasp, transform_func, d)
 
 
-def get_place_position_cube(collision_object, dest, transform_func,  grasp, d):
+def get_place_position_for_single_object(collision_object, destination, transform_func,  grasp, d):
+    '''
+    Calculates place positions for a non composition of collision objects.
+    :param collision_object: CollisionObject
+    :param destination: PointStamped
+    :param transform_func(object, frame_id): a function to transform objects to different frame_ids. (use Manipulation.transform_to)
+    :param grasp: PoseStamped
+    :param d: dist from the grasped point to the tcp frame
+    :return: list of PoseStamped
+    '''
     angle = get_pitch(grasp.pose.orientation)
-    print "angle", angle
     z_o = abs(grasp.pose.position.z) - (sin(angle) * d)
 
-    place_pose = dest.point
+    place_pose = destination.point
     place_pose.z = z_o + safe_place
     diff = abs(pi/2 - angle)
     if 0 <= diff <= 0.1:
@@ -51,10 +65,18 @@ def get_place_position_cube(collision_object, dest, transform_func,  grasp, d):
 
     return place_poses
 
-def get_place_position_handle(collision_object, dest, grasp, transform_func, d):
+def get_place_position_handle(collision_object, destination, transform_func, d):
+    '''
+    Calculates place positions for a composition of collision objects.
+    :param collision_object: CollisionObject
+    :param destination: PointStamped
+    :param transform_func(object, frame_id): a function to transform objects to different frame_ids. (use Manipulation.transform_to)
+    :param d: dist from the grasped point to the tcp frame
+    :return: list of PoseStamped
+    '''
     angle = 0
 
-    place_pose = dest.point
+    place_pose = destination.point
 
     p2 = PointStamped()
     p2.header.frame_id = collision_object.id
@@ -75,6 +97,13 @@ def get_place_position_handle(collision_object, dest, grasp, transform_func, d):
 
 
 def get_grasped_part(collision_object, transform_func):
+    '''
+    Returns the grasped part of a collision object
+    :param collision_object: CollisionObject
+    :param transform_func(object, frame_id): a function to transform objects to different frame_ids. (use Manipulation.transform_to)
+    :return: (Point, float), grasped point and id of the grasped part
+    '''
+    #TODO: probably buggy
     print collision_object
     co = transform_func(collision_object, "/link7")
     print co
@@ -94,6 +123,11 @@ def get_grasped_part(collision_object, transform_func):
 
 
 def get_pre_place_position(place_pose):
+    '''
+    Returns a position that is higher than the place position, should be taken before placing.
+    :param place_pose: PoseStamped
+    :return: PoseStamped
+    '''
     pre_place_pose = deepcopy(place_pose)
     pre_place_pose.pose.position.z += pre_place_length
     return pre_place_pose

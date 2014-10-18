@@ -15,21 +15,16 @@ from suturo_planning_manipulation.transformer import Transformer
 
 __author__ = 'ichumuh'
 
+
 class Cell:
-
-
-
     def __init__(self):
-
         self.num_free_points = 0
         self.num_obstacle_points = 0
         self.average_z = 0
         self.highest_z = 0
         self.points = 0
         self.segment_id = 0
-
         self.threshold_min_points = 75
-        pass
 
     def __del__(self):
         pass
@@ -40,9 +35,9 @@ class Cell:
                " unknown: " + str(self.is_unknown()) + \
                " Points: " + str(self.points) + \
                " segment_id: " + str(self.segment_id) + \
-               "z: " +str(self.average_z)+"\n"
-               # "free points: " + str(self.num_free_points) + "\n" + \
-               # "obstacle points: " + str(self.num_obstacle_points) + "\n"
+               "z: " + str(self.average_z) + "\n"
+        # "free points: " + str(self.num_free_points) + "\n" + \
+        # "obstacle points: " + str(self.num_obstacle_points) + "\n"
 
     def add_point(self, z):
         z2 = self.average_z * self.points
@@ -50,19 +45,13 @@ class Cell:
         self.average_z = (z2 + z) / self.points
         if z > self.highest_z:
             self.highest_z = z
-        # if 0 <= z <= 0.03:
-        #     self.num_free_points += 1
-        # else:
-        #     self.num_obstacle_points += 1
 
     def set_free(self):
         self.average_z = 0
-        self.points = self.threshold_min_points +1
-        # self.num_free_points = self.threshold_min_points+1
-        # self.num_obstacle_points = 0
+        self.points = self.threshold_min_points + 1
 
     def set_obstacle(self):
-        self.num_obstacle_points = self.threshold_min_points +1
+        self.num_obstacle_points = self.threshold_min_points + 1
         self.num_free_points = 0
 
     def set_unknown(self):
@@ -71,14 +60,10 @@ class Cell:
 
     def is_free(self):
         return self.enough_points() and not self.is_obstacle()
-        # return self.enough_points() and \
-        #        not self.is_obstacle() \
-        #        and self.num_free_points > (1-self.threshold_obstacle) * (self.get_num_points())
 
     def is_obstacle(self):
         return self.enough_points() and \
-            not 0 <= self.average_z <= 0.01
-               # self.num_obstacle_points > self.threshold_obstacle * (self.get_num_points())
+               not 0 <= self.average_z <= 0.01
 
     def is_unknown(self):
         return not self.is_obstacle() and not self.is_free()
