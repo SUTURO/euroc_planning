@@ -22,6 +22,15 @@ def test_field1():
     field[2][8].set_unknown()
     return field
 
+def test_field2():
+    size = 50
+    field = [[Cell() for x in xrange(size)] for x in xrange(size)]
+
+    for row in field:
+        for c in row:
+            c.set_unknown()
+    return field
+
 
 
 cm = ClusterRegions()

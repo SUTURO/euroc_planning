@@ -77,6 +77,8 @@ def subtract_point(p1, p2):
     result.z = p1.z - p2.z
     return result
 
+def euclidean_distance(p1, p2):
+    return magnitude(subtract_point(p1, p2))
 
 def add_point(p1, p2):
     '''

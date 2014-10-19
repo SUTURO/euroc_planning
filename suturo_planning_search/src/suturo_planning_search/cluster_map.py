@@ -96,7 +96,10 @@ class ClusterRegions:
         self.result_field = [[]]
 
     def set_field(self, field):
+        self.map_width = len(field)
         self.field = deepcopy(field)
+        self.segmented_field = [[self.SEGMENT_MAP_NOT_COLORED for x in xrange(self.map_width)] for x in
+                                xrange(self.map_width)]
 
     def print_field(self):
         for x in xrange(len(self.field)):
@@ -121,23 +124,24 @@ class ClusterRegions:
 
         # Return immediately, if we encounter a field that has been colored
         if self.segmented_field[x][y] != self.SEGMENT_COLORED_FIELD:
-            return
+            return False
 
         # Color the field with the desired color
         self.segmented_field[x][y] = color
         self.result_field = self.field
         self.result_field[x][y].segment_id = color
         region.cells.append(self.result_field[x][y])
-        coords = []
-        coords.append(x)
-        coords.append(y)
-        region.cell_coords.append(coords)
+        # coords = []
+        # coords.append(x)
+        # coords.append(y)
+        region.cell_coords.append([x, y])
+        return True
 
         # Color the adjacent cells
-        if (x > 0): self.fill_cell(x - 1, y, color, region)
-        if (x < len(self.segmented_field) - 1): self.fill_cell(x + 1, y, color,region)
-        if (y > 0): self.fill_cell(x, y - 1, color, region)
-        if (y < len(self.segmented_field[0]) - 1): self.fill_cell(x, y + 1, color, region)
+        # if (x > 0): self.fill_cell(x - 1, y, color, region)
+        # if (x < len(self.segmented_field) - 1): self.fill_cell(x + 1, y, color,region)
+        # if (y > 0): self.fill_cell(x, y - 1, color, region)
+        # if (y < len(self.segmented_field[0]) - 1): self.fill_cell(x, y + 1, color, region)
 
     def convert_field_to_region_map(self):
         ''' Turn the current self.field into a binary region map, where self.group_regions() can be performed '''
@@ -171,9 +175,16 @@ class ClusterRegions:
             for y in xrange(len(field[0])):
                 if field[x][y] == self.SEGMENT_COLORED_FIELD:
                     rx = Region(region_color)
-                    self.fill_cell(x, y, region_color, rx)
+                    maybe_cells = []
+                    maybe_cells.append((x, y))
+                    while len(maybe_cells) != 0:
+                        (x2, y2) = maybe_cells.pop(0)
+                        if self.fill_cell(x2, y2, region_color, rx):
+                            maybe_cells.extend(filter(lambda (x1, y1): self.segmented_field[x1][y1] == self.SEGMENT_COLORED_FIELD,
+                                                  self.get_surrounding_cells(x2, y2)))
+
                     self.regions.append(rx)
-                    print rx
+                    # print rx
                     region_color += 1
         return region_color - start_color
 
@@ -183,4 +194,18 @@ class ClusterRegions:
     def get_result_regions(self):
         return self.regions
 
+    def get_surrounding_cells(self, x_index, y_index):
+        cells = []
+        if x_index - 1 >= 0:
+            cells.append((x_index-1, y_index))
+
+        if y_index - 1 >= 0:
+            cells.append((x_index, y_index-1))
+
+        if x_index + 1 < self.map_width:
+            cells.append((x_index+1, y_index))
+
+        if y_index + 1 < self.map_width:
+            cells.append((x_index, y_index+1))
+        return cells
 

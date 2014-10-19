@@ -26,7 +26,7 @@ __author__ = 'ichumuh'
 
 
 class Map:
-    num_of_cells = 50
+    num_of_cells = 25
 
     def __init__(self, size_x, size_y):
         self.field = [[Cell() for i in range(self.num_of_cells)] for j in range(self.num_of_cells)]
@@ -115,17 +115,18 @@ class Map:
     def get_cell_by_index(self, x, y):
         x2 = x
         y2 = y
+        warn = lambda : rospy.logwarn("Index out auf range: " + str(x) + " " + str(y))
         if x < 0:
-            rospy.logwarn("Index out auf range: " + str(x) + " " + str(y))
+            warn()
             x2 = 0
         if y < 0:
-            rospy.logwarn("Index out auf range: " + str(x) + " " + str(y))
+            warn()
             y2 = 0
         if x >= len(self.field):
-            rospy.logwarn("Index out auf range: " + str(x) + " " + str(y))
+            warn()
             x2 = len(self.field) - 1
         if y >= len(self.field):
-            rospy.logwarn("Index out auf range: " + str(x) + " " + str(y))
+            warn()
             y2 = len(self.field) - 1
 
         return self.field[x2][y2]
@@ -133,11 +134,11 @@ class Map:
     def coordinates_to_index(self, x, y):
         x_index = int((x + (self.size_x / 2)) / self.cell_size_x)
         y_index = int((y + (self.size_y / 2)) / self.cell_size_y)
-        if x_index == 100:
-            x_index = 99
+        if x_index >= self.num_of_cells:
+            x_index = self.num_of_cells -1
 
-        if y_index == 100:
-            y_index = 99
+        if y_index >= self.num_of_cells:
+            y_index = self.num_of_cells -1
         return (x_index, y_index)
 
     def index_to_coordinates(self, x_index, y_index):
@@ -171,7 +172,7 @@ class Map:
 
     def to_collision_object(self):
         '''
-        :return: the map as a Collisionobject
+        :return: the map as a CollisionObject
         '''
         co = CollisionObject()
         co.header.frame_id = "/odom_combined"
@@ -235,11 +236,47 @@ class Map:
 
         return closest_points
 
-    def get_next_point(self):
+    def get_next_point(self, arm_x = 0, arm_y = 0):
         cm = ClusterRegions()
         cm.set_field(self.field)
         cm.group_regions()
         regions = cm.get_result_regions()
+        if len(regions) == 0:
+            return None
+        (ax, ay) = self.coordinates_to_index(arm_x, arm_y)
+        next_r = min(regions, key=lambda r: r.euclidean_distance_to_avg(ax, ay))
+
+        boarder_cells = []
+        for i in range(len(next_r.cells)):
+            sc = self.get_surrounding_cells(*next_r.cell_coords[i])
+            # sc = map(lambda (c, x, y): c.is_free(), sc)
+            if reduce(lambda free, (c, x, y): free or c.is_free, sc, False):
+                boarder_cells.append((next_r.cells, next_r.cell_coords[i][0], next_r.cell_coords[i][1]))
+
+        boarder_cells = map(lambda  (c, x, y): self.index_to_coordinates(x, y), boarder_cells)
+        return map(lambda (x, y): Point(x, y, 0), boarder_cells)
+        # (closest_boarder_cell, cx, cy) = min(boarder_cells, key=lambda (c, x, y): euclidean_distance(Point(ax, ay, 0), Point(x, y, 0)))
+        # p = Point()
+        # (p.x, p.y) = self.index_to_coordinates(cx, cy)
+        # return p
+
+
+
+    def get_surrounding_cells(self, x_index, y_index):
+        cells = []
+        if not x_index - 1 < 0:
+            cells.append((self.field[x_index-1][y_index], x_index-1, y_index))
+
+        if not y_index - 1 < 0:
+            cells.append((self.field[x_index][y_index-1], x_index, y_index-1))
+
+        if not x_index + 1 >= self.num_of_cells:
+            cells.append((self.field[x_index+1][y_index], x_index+1, y_index))
+
+        if not y_index + 1 >= self.num_of_cells:
+            cells.append((self.field[x_index][y_index+1], x_index, y_index+1))
+
+        return cells
 
     def to_marker_array(self):
         markers = []
