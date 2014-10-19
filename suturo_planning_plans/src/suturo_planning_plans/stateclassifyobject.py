@@ -13,7 +13,7 @@ class ClassifyObjects(smach.State):
                              output_keys=['classified_objects'])
 
     def execute(self, userdata):
-        rospy.loginfo('Executing state PerceiveObject')
+        rospy.loginfo('Executing state ClassifyObject')
 
         rospy.loginfo('Using simple perception.')
         get_gripper = perception.get_gripper_perception()
@@ -27,7 +27,9 @@ class ClassifyObjects(smach.State):
 
         collision_objects = []
         matched_objects = []
-        found_object_names = map(lambda obj: obj.mpe_object.id, userdata.objects_found)
+        found_object_names = [] # map(lambda obj1: obj1.mpe_object.id, userdata.objects_found)
+        for obj in userdata.objects_found:
+            found_object_names.append(obj.moe_object.id)
 
         for obj in perceived_objects:
             # classify object
