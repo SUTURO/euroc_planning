@@ -44,6 +44,22 @@ class StartPerception(smach.State):
         return 'success'
 
 
+class StartPerceptionTask6(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['success', 'fail'],
+                             input_keys=[],
+                             output_keys=['perception_process', 'test'])
+
+    def execute(self, userdata):
+        rospy.loginfo('Executing state StartPerceptionTask6')
+        global perception_process
+        perception_process = subprocess.Popen('roslaunch euroc_launch perception_task6.launch',
+                                              stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
+        userdata.perception_process = perception_process
+        time.sleep(8)
+        return 'success'
+
+
 class StartSimulation(smach.State):
     task_name = ''
 

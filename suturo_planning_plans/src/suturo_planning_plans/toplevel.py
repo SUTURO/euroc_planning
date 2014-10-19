@@ -5,6 +5,7 @@ import threading
 import time
 import task1
 import task4
+import task6
 import start_nodes
 from suturo_msgs.msg import Task
 
@@ -51,7 +52,7 @@ class EurocTask(smach.StateMachine):
                  'task3': task1.Task1,
                  'task4': task4.Task4,
                  'task5': task4.Task4,
-                 'task6': task4.Task4}
+                 'task6': task6.Task6}
 
         # Associate the task name with the parameter for the state machine
         plan_args = {'task1': [False, 'task1'],
@@ -97,6 +98,14 @@ class InitSimulation(smach.StateMachine):
                                     input_keys=[],
                                     output_keys=['objects_found', 'yaml', 'perception_process', 'manipulation_process'])
         with self:
+            # if task_name.split('_')[0] == 'task6':
+            #    rospy.loginfo("Task 6 Perception started")
+            #    smach.StateMachine.add('StartPerceptionTask6', start_nodes.StartPerceptionTask6(),
+            #                           transitions={'success': 'StartSimulation',
+            #                                        'fail': 'StartPerception'})
+            # else:
+            # rospy.loginfo("Normal Perception started")
+
             smach.StateMachine.add('StartPerception', start_nodes.StartPerception(),
                                    transitions={'success': 'StartSimulation',
                                                 'fail': 'StartPerception'})
