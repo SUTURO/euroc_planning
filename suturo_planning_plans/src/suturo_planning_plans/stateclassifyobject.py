@@ -29,7 +29,7 @@ class ClassifyObjects(smach.State):
         matched_objects = []
         found_object_names = [] # map(lambda obj1: obj1.mpe_object.id, userdata.objects_found)
         for obj in userdata.objects_found:
-            found_object_names.append(obj.moe_object.id)
+            found_object_names.append(obj.mpe_object.id)
 
         for obj in perceived_objects:
             # classify object
