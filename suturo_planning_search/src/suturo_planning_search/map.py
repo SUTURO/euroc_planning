@@ -94,10 +94,15 @@ class Map:
                 if not self.get_cell(x, y).is_obstacle():
                     self.get_cell(x, y).set_free()
 
+        for x in numpy.arange(0.92 - radius, 0.92 + radius + 0.01, self.cell_size_x):
+            for y in numpy.arange(0.92 - radius, 0.92 + radius + 0.01, self.cell_size_y):
+                if not self.get_cell(x, y).is_obstacle():
+                    self.get_cell(x, y).set_free()
+
         #remove unknown surrounded by obstacles (or the and of the map)
         self.remove_unreachable_unknowns()
 
-        return self.field == oldmap
+        return not self.field == oldmap
 
     def is_point_in_arm(self, arm_origin, radius, x, y):
         dist_x = arm_origin.x - x
@@ -230,7 +235,9 @@ class Map:
                 p = Point()
                 (p.x, p.y) = self.index_to_coordinates(x, y)
                 if self.field[x][y].is_unknown():
-                    closest_points.append(p)
+                    sc = self.get_surrounding_cells(x, y)
+                    if reduce(lambda free, c: free or c[0].is_free(), sc, False):
+                        closest_points.append(p)
 
         closest_points.sort(key=lambda pointx: magnitude(subtract_point(arm_origin, pointx)))
 
@@ -253,8 +260,8 @@ class Map:
             if reduce(lambda free, (c, x, y): free or c.is_free, sc, False):
                 boarder_cells.append((next_r.cells, next_r.cell_coords[i][0], next_r.cell_coords[i][1]))
 
-        boarder_cells = map(lambda  (c, x, y): self.index_to_coordinates(x, y), boarder_cells)
-        return map(lambda (x, y): Point(x, y, 0), boarder_cells)
+        # boarder_cells = map(lambda  (c, x, y): self.index_to_coordinates(x, y), boarder_cells)
+        return map(lambda bc: Point(*self.index_to_coordinates(*bc[1:3])+(0,)), boarder_cells), Point(*self.index_to_coordinates(*tuple(next_r.get_avg()))+(0,))
         # (closest_boarder_cell, cx, cy) = min(boarder_cells, key=lambda (c, x, y): euclidean_distance(Point(ax, ay, 0), Point(x, y, 0)))
         # p = Point()
         # (p.x, p.y) = self.index_to_coordinates(cx, cy)

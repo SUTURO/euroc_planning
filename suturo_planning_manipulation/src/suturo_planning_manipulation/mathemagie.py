@@ -1,27 +1,16 @@
 from numpy.core.multiarray import dot
 __author__ = 'ichumuh'
 
-from array import array
 from copy import deepcopy
 from math import sqrt, pi, cos, sin, acos
 import numpy
 
-import sys
-import copy
 import geometry_msgs.msg
 from geometry_msgs.msg._Point import Point
 from geometry_msgs.msg._Quaternion import Quaternion
-from moveit_msgs.msg._CollisionObject import CollisionObject
-import rospy
-import moveit_commander
-import moveit_msgs.msg
 import geometry_msgs.msg
-import shape_msgs.msg
-import tf
 from tf.transformations import quaternion_from_matrix, rotation_matrix, quaternion_from_euler, quaternion_multiply, \
     quaternion_conjugate, quaternion_matrix
-import visualization_msgs.msg
-from manipulation_constants import *
 from geometry_msgs.msg._PoseStamped import PoseStamped
 
 def get_angle(p1, p2):
@@ -34,7 +23,7 @@ def get_angle(p1, p2):
     return acos(scalar_product(p1, p2) / (sqrt(scalar_product(p1, p1)) * sqrt(scalar_product(p2, p2))))
 
 
-def three_points_to_quaternion(origin, to, roll):
+def three_points_to_quaternion(origin, to, roll=None):
     '''
     Calculates a quaternion that points from "origin" to "to" and lies in the plane defined by "origin", "to" and "roll".
     :param origin: Point
@@ -42,6 +31,10 @@ def three_points_to_quaternion(origin, to, roll):
     :param roll: Point
     :return: Quaternion
     '''
+    muh = False
+    if roll is None:
+        roll = Point(0,0,origin.z+1.000001)
+        muh = True
     n_1 = subtract_point(to, origin)
     n_1 = normalize(n_1)
 
@@ -60,8 +53,10 @@ def three_points_to_quaternion(origin, to, roll):
                       (0, 0, 0, 1)), dtype=numpy.float64)
 
     q = quaternion_from_matrix(rm)
-
-    return geometry_msgs.msg.Quaternion(*q)
+    q = Quaternion(*q)
+    if muh :
+        q = rotate_quaternion(q, pi/2, 0, 0)
+    return q
 
 
 def subtract_point(p1, p2):

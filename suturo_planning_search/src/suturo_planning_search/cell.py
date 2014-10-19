@@ -51,19 +51,19 @@ class Cell:
         self.points = self.threshold_min_points + 1
 
     def set_obstacle(self):
-        self.num_obstacle_points = self.threshold_min_points + 1
-        self.num_free_points = 0
+        self.points = self.threshold_min_points + 1
+        self.average_z = 1
 
     def set_unknown(self):
-        self.num_free_points = 0
-        self.num_obstacle_points = 0
+        self.average_z = 0
+        self.points = 0
 
     def is_free(self):
         return self.enough_points() and not self.is_obstacle()
 
     def is_obstacle(self):
         return self.enough_points() and \
-               not 0 <= self.average_z <= 0.01
+               not 0 <= self.average_z <= 0.0125
 
     def is_unknown(self):
         return not self.is_obstacle() and not self.is_free()

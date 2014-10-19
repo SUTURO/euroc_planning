@@ -42,10 +42,10 @@ class Manipulation(object):
         self.__gripper_group = moveit_commander.MoveGroupCommander("gripper")
 
         self.__base_group = moveit_commander.MoveGroupCommander("base")
-        self.__base_group.set_planning_time(15)
+        self.__base_group.set_planning_time(10)
 
         self.__arm_base_group = moveit_commander.MoveGroupCommander("arm_base")
-        self.__arm_base_group.set_planning_time(15)
+        self.__arm_base_group.set_planning_time(10)
 
         rospy.wait_for_service('/euroc_interface_node/move_along_joint_path')
         self.__service = rospy.ServiceProxy('/euroc_interface_node/move_along_joint_path', MoveAlongJointPath)

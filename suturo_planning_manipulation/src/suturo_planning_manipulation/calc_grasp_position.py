@@ -135,18 +135,18 @@ def calculate_grasp_position_box(collision_object, n=8):
     return grasp_positions
 
 
-def make_grasp_pose(depth, gripper_origin, direction, frame_id):
+def make_grasp_pose(depth, gripper_origin, roll, frame_id):
     '''
     Calculates a Pose pointing from gripper_origin to direction.
     :param depth: desired distance between gripper_origin and direction
     :param gripper_origin: PoseStamped
-    :param direction: PoseStamped
+    :param roll: PoseStamped
     :param frame_id: str
     :return: PoseStamped
     '''
     grasp = PoseStamped()
     grasp.header.frame_id = frame_id
-    grasp.pose.orientation = three_points_to_quaternion(gripper_origin, geometry_msgs.msg.Point(0, 0, 0), direction)
+    grasp.pose.orientation = three_points_to_quaternion(gripper_origin, geometry_msgs.msg.Point(0, 0, 0), roll)
     grasp.pose.position = multiply_point(depth, gripper_origin)
     return grasp
 
