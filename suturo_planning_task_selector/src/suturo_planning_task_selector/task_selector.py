@@ -1,7 +1,10 @@
 import rospy
+import subprocess
 from euroc_c2_msgs.srv import *
-import signal
 from suturo_planning_yaml_pars0r.yaml_pars0r import YamlPars0r
+
+task_stopped = False
+task_saved = False
 
 
 def start_task(scene):
@@ -26,13 +29,12 @@ def stop_task():
         return stop_simulator()
     except rospy.ServiceException, e:
         print "Service call failed: %s"%e
+    global task_stopped
+    task_stopped = True
 
 
 def save_task():
-    print 'Saving log'
-    rospy.wait_for_service('/euroc_interface_node/save_log')
-    try:
-        save_log = rospy.ServiceProxy('/euroc_interface_node/save_log', SaveLog)
-        return save_log()
-    except rospy.ServiceException, e:
-        print "Service call failed: %s"%e
+    sp = subprocess.Popen('rosrun suturo_planning_startup save_task.py', shell=True)
+    sp.wait()
+    global task_saved
+    task_saved = True

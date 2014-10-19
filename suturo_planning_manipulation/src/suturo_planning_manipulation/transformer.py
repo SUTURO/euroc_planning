@@ -22,8 +22,8 @@ class Transformer:
         i = 0
         while odom_pose is None and i < 10:
             try:
-                now = rospy.Time.now()
-                self.__listener.waitForTransform(target_frame, pose_target.header.frame_id, now, rospy.Duration(4))
+                #now = rospy.Time.now()
+                #self.__listener.waitForTransform(target_frame, pose_target.header.frame_id, now, rospy.Duration(4))
                 if type(pose_target) is CollisionObject:
                     i = 0
                     new_co = deepcopy(pose_target)

@@ -7,6 +7,7 @@ import sys
 import rospy
 from suturo_planning_task_selector import start_task, stop_task, save_task
 from suturo_planning_plans.toplevel import toplevel_plan
+from suturo_planning_task_selector import task_selector
 
 
 _pro_task_selector = None
@@ -14,11 +15,11 @@ _pro_task_selector = None
 _save_log = False
 
 
-def main(task, with_plan, init_sim):
+def main(task, with_plan, init_sim, savelog, no_taskselector):
 
     # signal.signal(signal.SIGINT, exit_handler)
 
-    if init_sim:
+    if init_sim and not no_taskselector:
         #Taskselector
         print "Starting task_selector"
         global _pro_task_selector
@@ -30,7 +31,7 @@ def main(task, with_plan, init_sim):
     if with_plan:
         rospy.init_node('suturo_planning_execution', log_level=rospy.DEBUG)
         rospy.loginfo('Started plan')
-        toplevel_plan(init_sim, [task])
+        toplevel_plan(init_sim, [task], savelog)
     else:
         rospy.init_node('suturo_planning_start_task', log_level=rospy.DEBUG)
         #Start tasks
@@ -44,25 +45,18 @@ def rospy_exit_handler():
     atexit.register(exit_handler)
     global _save_log
     print 'Exithandler: save_log = ' + str(_save_log) + ', rospy.is_shutdown() = ' + str(rospy.is_shutdown())
-    if not rospy.is_shutdown():
-        if _save_log:
-            rospy.loginfo('Saving log')
-            save_task()
+    if _save_log and not task_selector.task_saved:
+        rospy.loginfo('Going to save log')
+        save_task()
+    if not task_selector.task_stopped:
         stop_task()
-        rospy.sleep(2)
-    else:
-        rospy.init_node('exit_handler')
-        if _save_log:
-            rospy.loginfo('Saving log')
-            save_task()
-        stop_task()
-        rospy.sleep(2)
+    rospy.sleep(2)
 
 
 def exit_handler():
-    print 'Stopping TaskSelector'
     global _pro_task_selector
     if _pro_task_selector is not None:
+        print 'Stopping TaskSelector'
         print 'Stopping gazebo'
         os.killpg(_pro_task_selector.pid, signal.SIGTERM)
         rospy.sleep(0.5)
@@ -76,4 +70,4 @@ if '--init' in sys.argv:
 if __name__ == '__main__':
     if '--save' in sys.argv:
         _save_log = True
-    main(sys.argv[1], '--plan' in sys.argv, '--init' in sys.argv)
+    main(sys.argv[1], '--plan' in sys.argv, '--init' in sys.argv, _save_log, '--no-ts' in sys.argv)

@@ -10,7 +10,7 @@ import start_nodes
 from suturo_msgs.msg import Task
 
 
-def toplevel_plan(init_sim, task_list):
+def toplevel_plan(init_sim, task_list, savelog):
 
     # Create a SMACH state machine
     toplevel = smach.StateMachine(outcomes=['success', 'fail'])
@@ -19,15 +19,17 @@ def toplevel_plan(init_sim, task_list):
     with toplevel:
         for task_name in task_list:
             rospy.logdebug('Adding task: %s', task_name)
-            smach.StateMachine.add('Execute%s' % task_name, EurocTask(init_sim, task_name),
+            smach.StateMachine.add('Execute%s' % task_name, EurocTask(init_sim, task_name, savelog),
                                    transitions={'success': 'success',
                                                 'fail': 'fail'})
 
     # Create and start the introspection server
+    rospy.loginfo('Creating and starting the introspection server.')
     sis = smach_ros.IntrospectionServer('toplevel', toplevel, '/SM_ROOT')
     sis.start()
 
     # Create a thread to execute the smach container
+    rospy.loginfo('Creating a thread to execute the smach container.')
     smach_thread = threading.Thread(target=toplevel.execute)
     smach_thread.start()
 
@@ -35,15 +37,18 @@ def toplevel_plan(init_sim, task_list):
     rospy.spin()
 
     # Request the container to preempt
+    rospy.loginfo('Request the container to preempt.')
     toplevel.request_preempt()
 
     # Block until everything is preempted
     # (you could do something more complicated to get the execution outcome if you want it)
+    rospy.loginfo('Block until everything is preempted.')
     smach_thread.join()
 
 
 class EurocTask(smach.StateMachine):
-    def __init__(self, init_sim, task_name):
+    def __init__(self, init_sim, task_name, savelog):
+        self.savelog = savelog
         smach.StateMachine.__init__(self, outcomes=['success', 'fail'])
 
         # Associate the task name with a state machine
@@ -73,7 +78,7 @@ class EurocTask(smach.StateMachine):
                                        transitions={'success': task_name,
                                                     'fail': 'fail'})
 
-                smach.StateMachine.add('StopSimulation', start_nodes.StopSimulation(),
+                smach.StateMachine.add('StopSimulation', start_nodes.StopSimulation(self.savelog),
                                        transitions={'success': 'StopNodes',
                                                     'fail': 'fail'})
 
@@ -105,16 +110,18 @@ class InitSimulation(smach.StateMachine):
             #                                        'fail': 'StartPerception'})
             # else:
             # rospy.loginfo("Normal Perception started")
-
-            smach.StateMachine.add('StartPerception', start_nodes.StartPerception(),
-                                   transitions={'success': 'StartSimulation',
-                                                'fail': 'StartPerception'})
             smach.StateMachine.add('StartSimulation', start_nodes.StartSimulation(task_name),
-                                   transitions={'success': 'StartManipulation',
+                                   transitions={'success': 'StartPerception',
                                                 'fail': 'StartSimulation'})
+            smach.StateMachine.add('StartPerception', start_nodes.StartPerception(),
+                                   transitions={'success': 'StartManipulation',
+                                                'fail': 'StartPerception'})
             smach.StateMachine.add('StartManipulation', start_nodes.StartManipulation(),
-                                   transitions={'success': 'success',
+                                   transitions={'success': 'StartClassifier',
                                                 'fail': 'StartManipulation'})
+            smach.StateMachine.add('StartClassifier', start_nodes.StartClassifier(),
+                                   transitions={'success': 'success',
+                                                'fail': 'StartClassifier'})
 
 
 class GetYaml(smach.State):
