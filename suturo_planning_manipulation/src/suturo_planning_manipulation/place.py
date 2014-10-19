@@ -31,7 +31,7 @@ def get_place_position(collision_object, destination, transform_func, d, grasp):
     if len(collision_object.primitives) == 1:
         return get_place_position_for_single_object(collision_object, destination, transform_func, grasp,d)
     else:
-        return get_place_position_handle(collision_object, destination, grasp, transform_func, d)
+        return get_place_position_handle(collision_object, destination, transform_func, d)
 
 
 def get_place_position_for_single_object(collision_object, destination, transform_func,  grasp, d):
