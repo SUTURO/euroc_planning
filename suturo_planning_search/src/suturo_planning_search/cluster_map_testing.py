@@ -70,3 +70,4 @@ for r in regions:
     print "Distance of region to (0,0): " + str(r.euclidean_distance_to_avg(0,0))
 cubified_field = cm.cubify_regions()
 cm.print_2d_field(cubified_field)
+cm.split_and_cubify_regions()

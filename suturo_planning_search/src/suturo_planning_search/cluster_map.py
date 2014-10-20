@@ -54,6 +54,18 @@ class RegionType:
     unknown = 2
     free = 3
 
+class RegionLineFragment:
+
+    def __init__(self):
+        self.cells = []
+        self.min_y = None
+        self.max_y = 0
+        self.x = None
+
+    def __str__(self):
+        s = "RegionLineFragment - min_y: " + str(self.min_y) + ", max_y: " + str(self.max_y) + ", x: " + str(self.x)
+        return s
+
 
 class ClusterRegions:
     ''' This class takes a field, which is represented as a 2D-array.
@@ -71,6 +83,7 @@ class ClusterRegions:
     '''
     SEGMENT_MAP_NOT_COLORED = 0 # cells that should not be grouped
     SEGMENT_COLORED_FIELD = 1 # cells that should be grouped (for example obstacles)
+    REGION_SPLIT_SPACE_TRESHOLD = 0 # How many adjacent cells can be empty but it still forms a line?
 
     map_width = 25
 
@@ -205,14 +218,79 @@ class ClusterRegions:
         return self.regions
 
     def cubify_regions(self):
+        """ Create a map where each region will be represented with a bounding box (using min/max x/y values) """
         # init empty map
         self.cubified_field = [[self.SEGMENT_MAP_NOT_COLORED for x in xrange(len(self.field))] for x in
                                 xrange(len(self.field[0]))]
-        for r in self.regions:
+        return self.cubify_regions_w_field(self.cubified_field, self.regions)
+
+    def cubify_regions_w_field(self, cubified_field, regions):
+        for r in regions:
             for x in range(r.min_x, r.max_x+1):
                 for y in range(r.min_y, r.max_y+1):
-                    self.cubified_field[x][y] = r.id
-        return self.cubified_field
+                    cubified_field[x][y] = r.id
+        return cubified_field
+
+    def split_and_cubify_regions(self):
+        """ Create a map where each region will be splitted into small rectangles. Afterwards, each region get's a boundingbox"""
+        # init empty map
+        for r in self.regions:
+            # Sort the corresponding cells to scan linewise
+            cells = sorted(r.cell_coords)
+
+            # Remember the last row/col while you iterate
+            last_row_idx = 0
+            last_col_idx = None
+            first_line_entry = True
+            list_of_last_line_fragments = [RegionLineFragment()]
+            print "calculate with:"
+            print cells
+
+            for i in xrange(len(cells)):
+                [x,y] = cells[i]
+                # Remember the row id, if it's the first elem in the line
+                if first_line_entry is True:
+                    print "New line at " + str(x) + " " + str(y)
+                    last_row_idx = x
+                    last_col_idx = y
+                    first_line_entry = False
+                    line_fragment = list_of_last_line_fragments[-1]
+                    line_fragment.min_y = y
+                    line_fragment.max_y = y
+                    line_fragment.x = x
+
+                if x is not last_row_idx:
+                    print "Breaking at " + str(x) + " " + str(y) + " " +str(last_col_idx)
+                    list_of_last_line_fragments.append(RegionLineFragment())
+                    first_line_entry = True
+                    line_fragment = list_of_last_line_fragments[-1]
+                    line_fragment.min_y = y
+                    # Line break
+                    # Maybe we have to merge the last line with it's predecessor
+                elif (y-last_col_idx) > self.REGION_SPLIT_SPACE_TRESHOLD:
+                    list_of_last_line_fragments.append(RegionLineFragment())
+                    first_line_entry = True
+                    line_fragment = list_of_last_line_fragments[-1]
+                    line_fragment.min_y = y
+                else:
+                    line_fragment = list_of_last_line_fragments[-1]
+                    line_fragment.max_y = y
+                    line_fragment.x = x
+                    last_col_idx = y
+                print "end of for" + str(last_col_idx)
+
+            print list_of_last_line_fragments
+            for lf in list_of_last_line_fragments:
+                print lf
+
+
+
+        #     # Scan each line
+        #     for x in range(r.min_x, r.max_x+1):
+        #         for y in range(r.min_y, r.max_y+1):
+        #             self.cubified_field[x][y] = r.id
+        # return self.cubified_field
+
 
     def get_surrounding_cells(self, x_index, y_index):
         cells = []
