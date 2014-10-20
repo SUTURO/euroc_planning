@@ -31,10 +31,31 @@ def test_field2():
             c.set_unknown()
     return field
 
+def test_field3():
+    c = Cell()
+    c.set_free()
+    field = [[c for x in xrange(15)] for x in xrange(15)]
 
+    field[0][6] = Cell()
+    field[0][6].set_unknown()
+    field[0][7] = Cell()
+    field[0][7].set_unknown()
+    field[0][8] = Cell()
+    field[0][8].set_unknown()
+
+    field[1][6] = Cell()
+    field[1][6].set_unknown()
+    field[2][6] = Cell()
+    field[2][6].set_unknown()
+
+    field[1][8] = Cell()
+    field[1][8].set_unknown()
+    field[2][8] = Cell()
+    field[2][8].set_unknown()
+    return field
 
 cm = ClusterRegions()
-cm.set_field(test_field1())
+cm.set_field(test_field3())
 cm.print_field()
 
 print "Returned regions: " + str(cm.group_regions())
@@ -47,3 +68,5 @@ print "Region count: " + str(len(regions))
 for r in regions:
     print r
     print "Distance of region to (0,0): " + str(r.euclidean_distance_to_avg(0,0))
+cubified_field = cm.cubify_regions()
+cm.print_2d_field(cubified_field)

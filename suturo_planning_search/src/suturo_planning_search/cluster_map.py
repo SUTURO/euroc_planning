@@ -23,6 +23,10 @@ class Region:
         self.cells = []
         self.cell_coords = []
         self.avg = [None, None]
+        self.min_y = None
+        self.max_y = 0
+        self.min_x = None
+        self.max_x = 0
 
     def __str__(self):
         s =  "Region id: " + str(self.id) + "\n" + "Cells ("+ str(len(self.cells)) +") : " + "\n"
@@ -31,7 +35,8 @@ class Region:
         for cc in self.cell_coords:
             s += str(cc)
         self.get_avg()
-        s += " Average: " + str(self.avg[0]) + " " + str(self.avg[1])
+        s += "\nAverage: " + str(self.avg[0]) + " " + str(self.avg[1])
+        s += "\nmin/max dims: (" + str(self.min_x) + "x" + str(self.min_y) + ")-(" + str(self.max_x) + "x" + str(self.max_y) + ")"
         return s
 
     def euclidean_distance_to_avg(self, x1, y1):
@@ -131,6 +136,11 @@ class ClusterRegions:
         self.result_field = self.field
         self.result_field[x][y].segment_id = color
         region.cells.append(self.result_field[x][y])
+        # fill min/max values in region
+        if(x > region.max_x): region.max_x = x
+        if(y > region.max_y): region.max_y = y
+        if(x < region.min_x or region.min_x is None): region.min_x = x
+        if(y < region.min_y or region.min_y is None): region.min_y = y
         # coords = []
         # coords.append(x)
         # coords.append(y)
@@ -193,6 +203,16 @@ class ClusterRegions:
 
     def get_result_regions(self):
         return self.regions
+
+    def cubify_regions(self):
+        # init empty map
+        self.cubified_field = [[self.SEGMENT_MAP_NOT_COLORED for x in xrange(len(self.field))] for x in
+                                xrange(len(self.field[0]))]
+        for r in self.regions:
+            for x in range(r.min_x, r.max_x+1):
+                for y in range(r.min_y, r.max_y+1):
+                    self.cubified_field[x][y] = r.id
+        return self.cubified_field
 
     def get_surrounding_cells(self, x_index, y_index):
         cells = []
