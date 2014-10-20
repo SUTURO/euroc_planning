@@ -259,19 +259,32 @@ class ClusterRegions:
                     line_fragment.max_y = y
                     line_fragment.x = x
 
-                if x is not last_row_idx:
-                    print "Breaking at " + str(x) + " " + str(y) + " " +str(last_col_idx)
+                if x is not last_row_idx or (y-last_col_idx) > self.REGION_SPLIT_SPACE_TRESHOLD+1:
+                    print "Found linebreak at " + str(x) + " " + str(y) + " " +str(last_col_idx)
                     list_of_last_line_fragments.append(RegionLineFragment())
-                    first_line_entry = True
+                    # first_line_entry = True
+                    # line_fragment = list_of_last_line_fragments[-1]
+                    # line_fragment.min_y = y
+
+                    last_row_idx = x
+                    last_col_idx = y
+                    first_line_entry = False
                     line_fragment = list_of_last_line_fragments[-1]
                     line_fragment.min_y = y
+                    line_fragment.max_y = y
+                    line_fragment.x = x
                     # Line break
                     # Maybe we have to merge the last line with it's predecessor
-                elif (y-last_col_idx) > self.REGION_SPLIT_SPACE_TRESHOLD:
+                elif (y-last_col_idx) > self.REGION_SPLIT_SPACE_TRESHOLD+1:
+                    print "Splitting at " + str(x) + " " + str(y) + " " +str(last_col_idx)
                     list_of_last_line_fragments.append(RegionLineFragment())
-                    first_line_entry = True
+                    last_row_idx = x
+                    last_col_idx = y
+                    first_line_entry = False
                     line_fragment = list_of_last_line_fragments[-1]
                     line_fragment.min_y = y
+                    line_fragment.max_y = y
+                    line_fragment.x = x
                 else:
                     line_fragment = list_of_last_line_fragments[-1]
                     line_fragment.max_y = y
