@@ -48,6 +48,9 @@ class Region:
         return sqrt((x2 - x1) ** 2 +
                      (y2 - y1) ** 2)
 
+    def get_number_of_cells(self):
+        return len(self.cells)
+
 
 class RegionType:
     obstacles = 1

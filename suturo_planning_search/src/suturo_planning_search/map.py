@@ -16,7 +16,7 @@ import time
 from visualization_msgs.msg import Marker, MarkerArray
 from suturo_planning_manipulation.mathemagie import *
 from suturo_planning_search.cell import Cell
-from suturo_planning_search.cluster_map import ClusterRegions
+from suturo_planning_search.cluster_map import ClusterRegions, RegionType
 from suturo_planning_visualization import visualization
 from suturo_planning_manipulation.transformer import Transformer
 # from suturo_perception_msgs.msg import GetPointArray
@@ -285,6 +285,13 @@ class Map:
         # (p.x, p.y) = self.index_to_coordinates(cx, cy)
         # return p
 
+    def get_obstacle_regions(self):
+        cm = ClusterRegions()
+        cm.set_region_type(RegionType.obstacles)
+        cm.set_field(self.field)
+        cm.group_regions()
+        return cm.get_result_regions()
+
     def mark_cell(self, x, y, marked=True):
         self.get_cell(x, y).set_mark(marked)
         self.publish_as_marker()
@@ -304,6 +311,12 @@ class Map:
             cells.append((self.field[x_index][y_index+1], x_index, y_index+1))
 
         return cells
+
+    def all_unknowns_to_obstacle(self):
+        for x in range(self.num_of_cells):
+            for y in range(self.num_of_cells):
+                if self.get_cell_by_index(x, y).is_unknown():
+                    self.get_cell_by_index(x, y).set_obstacle()
 
     def get_surrounding_cells(self, x, y):
         cells = []
