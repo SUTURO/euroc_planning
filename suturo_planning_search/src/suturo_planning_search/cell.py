@@ -71,6 +71,7 @@ class Cell:
     def set_obstacle(self):
         self.points = self.threshold_min_points + 1
         self.average_z = 1
+        self.highest_z = 1
 
     def set_unknown(self):
         self.average_z = 0

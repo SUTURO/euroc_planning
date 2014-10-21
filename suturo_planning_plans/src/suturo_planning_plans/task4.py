@@ -26,10 +26,11 @@ class Task4(smach.StateMachine):
 
             smach.StateMachine.add('ScanObstacles', ScanObstacles(),
                                    transitions={'mapScanned': 'success',
-                                                'newImage' : 'ScanMapArmCam'})
+                                                'newImage' : 'ClassifyObjects',
+                                                'noRegionLeft' : 'ChooseObject'})
 
             smach.StateMachine.add('SearchObject', SearchObject(),
-                                   transitions={'objectFound': 'ClassifyObjects',
+                                   transitions={'searchObject': 'ScanMapArmCam',
                                                 'noObjectsLeft': 'ChooseObject',
                                                 'simStopped': 'fail'})
 
@@ -39,18 +40,19 @@ class Task4(smach.StateMachine):
 
             smach.StateMachine.add('FocusObjects', FocusObjects(),
                                    transitions={'success': 'SearchObject',
-                                                'nextObject': 'FocusObject',
+                                                'nextObject': 'PoseEstimateObject',
                                                 'fail': 'SearchObject'},
                                    remapping={'objects_to_focus': 'classified_objects'})
 
-            smach.StateMachine.add('FocusObject', FocusObject(),
-                                   transitions={'success': 'PoseEstimateObject',
-                                                'fail': 'FocusObjects'},
-                                   remapping={'objects_to_focus': 'classified_objects'})
+            # smach.StateMachine.add('FocusObject', FocusObject(),
+            #                        transitions={'success': 'PoseEstimateObject',
+            #                                     'fail': 'FocusObjects'},
+            #                        remapping={'objects_to_focus': 'classified_objects'})
 
             smach.StateMachine.add('PoseEstimateObject', PoseEstimateObject(),
                                    transitions={'success': 'FocusObjects',
-                                                'fail': 'FocusObjects'})
+                                                'fail': 'FocusObjects'},
+                                   remapping={'focused_object': 'objects_to_focus'})
 
             smach.StateMachine.add('ChooseObject', ChooseObject(),
                                    transitions={'objectChosen': 'TidyUpObject',
@@ -60,5 +62,10 @@ class Task4(smach.StateMachine):
                                    transitions={'success': 'ChooseObject',
                                                 'fail': 'ChooseObject'})
 
+        self.userdata.objects_found = []
+        self.userdata.perceived_objects = []
+        self.userdata.fitted_object = None
+        self.userdata.fitted_objects = []
         self.userdata.enable_movement = True
         self.userdata.task = task
+        self.userdata.cell_coords = []

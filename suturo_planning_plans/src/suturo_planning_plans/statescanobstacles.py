@@ -2,7 +2,10 @@ from geometry_msgs.msg._Point import Point
 import smach
 import rospy
 from geometry_msgs.msg import PoseStamped
+import time
+from suturo_planning_manipulation.calc_grasp_position import make_scan_pose
 from suturo_planning_search.map import Map
+from suturo_planning_visualization.visualization import visualize_poses
 
 import utils
 from utils import hex_to_color_msg
@@ -16,9 +19,9 @@ class ScanObstacles(smach.State):
     next_cluster = 0
 
     def __init__(self):
-        smach.State.__init__(self, outcomes=['mapScanned'],
+        smach.State.__init__(self, outcomes=['mapScanned', 'noRegionLeft', 'newImage'],
                              input_keys=[],
-                             output_keys=[])
+                             output_keys=['region'])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state ScanObstacles')
@@ -28,17 +31,27 @@ class ScanObstacles(smach.State):
 
         if self.next_cluster >= len(self.obstacle_cluster):
             rospy.loginfo("searched all cluster")
-            return 'finish'
+            return 'noRegionLeft'
 
-        #such obstacle region
         current_region = self.obstacle_cluster[self.next_cluster]
-        p = Point(*tuple(current_region.get_avg)+(0,))
+        self.next_cluster += 1
+        print current_region
+        region_centroid = Point(*(utils.map.index_to_coordinates(*current_region.get_avg()))+(-0.05,))
+        print region_centroid
 
 
+        poses = make_scan_pose(region_centroid, 0.8, pi / 4.0)
+        visualize_poses(poses)
+        for pose in poses:
+            if utils.manipulation.move_arm_and_base_to(pose):
 
-        #hinfahren
-        #gucken
+                rospy.logdebug('Wait for clock')
+                time.sleep(1)
 
+                rospy.logdebug('Wait for tf again.')
+                rospy.sleep(4)
+                userdata.region = current_region.cell_coords
+                return 'newImage'
 
         return 'mapScanned'
 

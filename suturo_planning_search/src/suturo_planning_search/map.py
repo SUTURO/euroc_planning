@@ -189,7 +189,7 @@ class Map:
 
         for x in range(0, len(self.field)):
             for y in range(0, len(self.field[x])):
-                if self.field[x][y].is_free():
+                if self.field[x][y].is_free() or self.field[x][y].is_object():
                     continue
                 if self.field[x][y].is_obstacle():
                     primitive.dimensions[primitive.BOX_Z] = self.get_cell_by_index(x, y).highest_z * 2
@@ -395,7 +395,11 @@ class Map:
                 marker.scale.y = self.cell_size_y
                 marker.scale.z = 0.01
                 c = self.get_cell_by_index(x, y)
-                if c.is_marked():
+                if c.is_object():
+                    marker.color.r = 1
+                    marker.color.g = 1
+                    marker.color.b = 0
+                elif c.is_marked():
                     marker.color.r = 0
                     marker.color.g = 0
                     marker.color.b = 1

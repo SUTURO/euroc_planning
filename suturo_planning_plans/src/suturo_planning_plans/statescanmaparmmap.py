@@ -15,6 +15,9 @@ from math import pi
 
 class ScanMapArmCam(smach.State):
 
+    finished = False
+    last_scanned_point = None
+
     def __init__(self):
         smach.State.__init__(self, outcomes=['mapScanned', 'newImage'],
                              input_keys=[],
@@ -23,11 +26,16 @@ class ScanMapArmCam(smach.State):
     def execute(self, userdata):
         rospy.loginfo('Executing state ScanMapMastCam')
 
+        if self.finished:
+            return 'mapScanned'
+
         # arm_base = utils.manipulation.get_base_origin()
-        eef_pose = utils.manipulation.get_eef_position()
-        next_point = utils.map.get_closest_unknown(eef_pose.pose.position)
-        map_updated = False
-        # last_point_id = 0
+        if self.last_scanned_point is None:
+            eef_pose = utils.manipulation.get_eef_position()
+            next_point = utils.map.get_closest_unknown(eef_pose.pose.position)
+        else:
+            next_point = utils.map.get_closest_unknown(self.last_scanned_point)
+
         for i in xrange(len(next_point)):
             cell_x = next_point[i].x
             cell_y = next_point[i].y
@@ -61,18 +69,13 @@ class ScanMapArmCam(smach.State):
                 utils.manipulation.get_planning_scene().add_object(co)
                 utils.map.mark_cell(next_point[i].x, next_point[i].y, False)
                 # last_point_id = i
+                self.last_scanned_point = next_point[i]
                 return 'newImage'
             utils.map.mark_cell(next_point[i].x, next_point[i].y, False)
-        if not map_updated:
-            rospy.loginfo("can't update map any further")
-            utils.map.all_unknowns_to_obstacle()
-        else:
-            rospy.logerr("IT HAPPEND!!!!")
-            # return 'mapScanned'
-        # next_point = utils.map.get_closest_unknown(arm_base.point)
-        # next_point = utils.map.get_closest_unknown(next_point[last_point_id])
-        # print len(next_point)
 
+        rospy.loginfo("can't update map any further")
+        utils.map.all_unknowns_to_obstacle()
+        self.finished = True
         return 'mapScanned'
 
 

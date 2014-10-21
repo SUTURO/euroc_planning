@@ -51,3 +51,4 @@ class Task1(smach.StateMachine):
         self.userdata.fitted_objects = []
         self.userdata.enable_movement = enable_movement
         self.userdata.task = task
+        self.userdata.cell_coords = []

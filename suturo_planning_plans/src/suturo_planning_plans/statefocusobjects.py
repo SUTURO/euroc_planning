@@ -13,7 +13,7 @@ class FocusObjects(smach.State):
 
     def __init__(self):
         smach.State.__init__(self, outcomes=['success', 'fail', 'nextObject'],
-                             input_keys=['yaml', 'objects_to_focus', 'fitted_object'],
+                             input_keys=['yaml', 'objects_to_focus', 'fitted_object', 'cell_coords'],
                              output_keys=['object_to_focus', 'fitted_objects'])
 
     def execute(self, userdata):
@@ -24,6 +24,9 @@ class FocusObjects(smach.State):
         # Remember the fitted objects
         elif not userdata.fitted_object is None:
             self._fitted_objects.append(userdata.fitted_object)
+            if not len(userdata.cell_coords) == 0:
+                for coord in userdata.cell_coords:
+                    utils.map.get_cell_by_index(*coord).set_object()
 
         # If there are no more objects to focus
         if not self._objects_to_focus:
