@@ -162,3 +162,8 @@ def visualize_poses(poses):
         i += 1
         pub_marker.publish(marker)
         rospy.sleep(0.1)
+    for i in range(len(poses), 50):
+        marker.action = Marker.DELETE
+        marker.id = i
+        pub_marker.publish(marker)
+        rospy.sleep(0.1)

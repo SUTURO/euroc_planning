@@ -204,7 +204,7 @@ class ClusterRegions:
                         (x2, y2) = maybe_cells.pop(0)
                         if self.fill_cell(x2, y2, region_color, rx):
                             maybe_cells.extend(filter(lambda (x1, y1): self.segmented_field[x1][y1] == self.SEGMENT_COLORED_FIELD,
-                                                  self.get_surrounding_cells(x2, y2)))
+                                                  self.get_surrounding_cells8(x2, y2)))
 
                     self.regions.append(rx)
                     # print rx
@@ -318,5 +318,41 @@ class ClusterRegions:
 
         if y_index + 1 < self.map_width:
             cells.append((x_index, y_index+1))
+        return cells
+
+    def get_surrounding_cells8(self, x_index, y_index):
+        cells = []
+        xm1 = False
+        xp1 = False
+        ym1 = False
+        yp1 = False
+        if not x_index - 1 < 0:
+            cells.append((x_index-1, y_index))
+            xm1 = True
+
+        if not y_index - 1 < 0:
+            cells.append((x_index, y_index-1))
+            ym1 = True
+
+        if not x_index + 1 >= self.map_width:
+            cells.append((x_index+1, y_index))
+            xp1 = True
+
+        if not y_index + 1 >= self.map_width:
+            cells.append((x_index, y_index+1))
+            yp1 = True
+
+        if xm1 and ym1:
+            cells.append((x_index-1, y_index-1))
+
+        if xm1 and yp1:
+            cells.append((x_index-1, y_index+1))
+
+        if xp1 and ym1:
+            cells.append((x_index+1, y_index-1))
+
+        if xp1 and yp1:
+            cells.append((x_index+1, y_index+1))
+
         return cells
 

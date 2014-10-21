@@ -242,6 +242,8 @@ class Map:
 
         return closest_points
 
+    # def map_from_planning_scene(self, list_of_cos):
+
 
     def get_cell_above(self, x, y):
         (x_index, y_index) = self.coordinates_to_index(x,y)

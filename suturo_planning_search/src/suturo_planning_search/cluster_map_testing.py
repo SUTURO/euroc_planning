@@ -22,6 +22,7 @@ def test_field1():
     field[2][8].set_unknown()
     return field
 
+
 def test_field2():
     size = 50
     field = [[Cell() for x in xrange(size)] for x in xrange(size)]
@@ -30,6 +31,7 @@ def test_field2():
         for c in row:
             c.set_unknown()
     return field
+
 
 def test_field3():
     c = Cell()
@@ -54,8 +56,32 @@ def test_field3():
     field[2][8].set_unknown()
     return field
 
+
+def test_field4():
+    c = Cell()
+    c.set_free()
+    field = [[c for x in xrange(15)] for x in xrange(15)]
+
+    # field[0][6] = Cell()
+    # field[0][6].set_unknown()
+    # field[0][7] = Cell()
+    # field[0][7].set_unknown()
+    field[0][8] = Cell()
+    field[0][8].set_unknown()
+
+    field[1][7] = Cell()
+    field[1][7].set_unknown()
+    field[2][6] = Cell()
+    field[2][6].set_unknown()
+
+    # field[1][8] = Cell()
+    # field[1][8].set_unknown()
+    # field[2][8] = Cell()
+    # field[2][8].set_unknown()
+    return field
+
 cm = ClusterRegions()
-cm.set_field(test_field3())
+cm.set_field(test_field4())
 cm.print_field()
 
 print "Returned regions: " + str(cm.group_regions())

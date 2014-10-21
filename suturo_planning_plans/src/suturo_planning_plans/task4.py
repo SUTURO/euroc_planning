@@ -1,4 +1,6 @@
 import smach
+from suturo_planning_plans.stateSearchForObjects import SearchForObjects
+from suturo_planning_plans.stateclassifyobject import ClassifyObjects
 from suturo_planning_plans.statescanmapmastcam import ScanMapMastCam
 from suturo_planning_plans.statescanmaparmmap import ScanMapArmCam
 
@@ -15,5 +17,19 @@ class Task4(smach.StateMachine):
             smach.StateMachine.add('ScanMapArmCam', ScanMapArmCam(),
                                    transitions={'mapScanned': 'success'})
 
+            # smach.StateMachine.add('SearchForObjects', SearchForObjects(),
+            #                        transitions={'mapScanned': 'success'})
+            #
+            # smach.StateMachine.add('ClassifyObjects', ClassifyObjects(),
+            #                        transitions={'objectsClassified': 'FocusObjects',
+            #                                     'noObject': 'SearchObject'})
+            #
+            # smach.StateMachine.add('ChooseObject', ChooseObject(),
+            #                        transitions={'objectChosen': 'TidyUpObject',
+            #                                     'noObjectsLeft': 'success'})
+            #
+            # smach.StateMachine.add('TidyUpObject', TidyUpObject(),
+            #                        transitions={'success': 'ChooseObject',
+            #                                     'fail': 'ChooseObject'})
         self.userdata.enable_movement = True
         self.userdata.task = task

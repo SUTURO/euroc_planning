@@ -20,7 +20,15 @@ def get_angle(p1, p2):
     :param p2: Point
     :return: angle as float
     '''
-    return acos(scalar_product(p1, p2) / (sqrt(scalar_product(p1, p1)) * sqrt(scalar_product(p2, p2))))
+    muh = scalar_product(p1, p2) / (sqrt(scalar_product(p1, p1)) * sqrt(scalar_product(p2, p2)))
+    # print "muh", muh
+    if muh <= -1.0:
+        muh = -0.9999999999999
+    if muh >= 1.0:
+        muh = 0.9999999999999
+    result = acos(muh)
+    # print result
+    return result
 
 
 def three_points_to_quaternion(origin, to, roll=None):

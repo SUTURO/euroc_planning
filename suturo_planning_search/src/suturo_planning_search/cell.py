@@ -26,6 +26,7 @@ class Cell:
         self.segment_id = 0
         self.threshold_min_points = 75
         self.marked = False
+        self.object = False
 
     def __del__(self):
         pass
@@ -40,6 +41,11 @@ class Cell:
         # "free points: " + str(self.num_free_points) + "\n" + \
         # "obstacle points: " + str(self.num_obstacle_points) + "\n"
 
+    def __eq__(self, other):
+        return other.is_obstacle() and self.is_obstacle() or \
+               other.is_free() and self.is_free() or \
+               other.is_unknown() and self.is_unknown()
+
     def add_point(self, z):
         z2 = self.average_z * self.points
         self.points += 1
@@ -47,9 +53,20 @@ class Cell:
         if z > self.highest_z:
             self.highest_z = z
 
+    def enough_points(self):
+        return self.points > self.threshold_min_points
+
+    def get_num_points(self):
+        return self.num_free_points + self.num_obstacle_points
+
+    #setter
+
     def set_free(self):
         self.average_z = 0
         self.points = self.threshold_min_points + 1
+
+    def set_object(self, is_object=True):
+        self.object = is_object
 
     def set_obstacle(self):
         self.points = self.threshold_min_points + 1
@@ -59,29 +76,24 @@ class Cell:
         self.average_z = 0
         self.points = 0
 
+    def set_mark(self, marked=True):
+        self.marked = marked
+
+    #getter
+
+    def is_object(self):
+        return self.object
+
     def is_free(self):
-        return self.enough_points() and not self.is_obstacle()
+        return not self.is_object() and self.enough_points() and not self.is_obstacle()
 
     def is_obstacle(self):
-        return self.enough_points() and \
+        return not self.is_object() and self.enough_points() and \
                not 0 <= self.average_z <= 0.0125
 
     def is_unknown(self):
-        return not self.is_obstacle() and not self.is_free()
-
-    def enough_points(self):
-        return self.points > self.threshold_min_points
-
-    def get_num_points(self):
-        return self.num_free_points + self.num_obstacle_points
-
-    def set_mark(self, marked=True):
-        self.marked = marked
+        return not self.is_object() and not self.is_obstacle() and not self.is_free()
 
     def is_marked(self):
         return self.marked
 
-    def __eq__(self, other):
-        return other.is_obstacle() and self.is_obstacle() or \
-               other.is_free() and self.is_free() or \
-               other.is_unknown() and self.is_unknown()

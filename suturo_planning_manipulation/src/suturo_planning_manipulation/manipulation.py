@@ -121,6 +121,13 @@ class Manipulation(object):
         result.point = Point(current_pose[0], current_pose[1], 0)
         return result
 
+    def get_eef_position(self):
+        '''
+        :return: The centre of the arm's base as PointStamped
+        '''
+        current_pose = self.__arm_group.get_current_pose()
+        return current_pose
+
     def __move_group_to(self, goal_pose, move_group):
         move_group.set_start_state_to_current_state()
         goal = deepcopy(goal_pose)
