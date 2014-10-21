@@ -25,6 +25,7 @@ class Cell:
         self.points = 0
         self.segment_id = 0
         self.threshold_min_points = 75
+        self.marked = False
 
     def __del__(self):
         pass
@@ -73,6 +74,12 @@ class Cell:
 
     def get_num_points(self):
         return self.num_free_points + self.num_obstacle_points
+
+    def set_mark(self, marked=True):
+        self.marked = marked
+
+    def is_marked(self):
+        return self.marked
 
     def __eq__(self, other):
         return other.is_obstacle() and self.is_obstacle() or \

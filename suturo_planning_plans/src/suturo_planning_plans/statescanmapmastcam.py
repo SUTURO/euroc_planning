@@ -26,11 +26,11 @@ class ScanMapMastCam(smach.State):
         arm_base = utils.manipulation.get_base_origin()
         print arm_base
         utils.manipulation.pan_tilt(0.2, 0.5)
-        rospy.sleep(3)
+        rospy.sleep(4)
         utils.map.add_point_cloud(scene_cam=True)
 
         utils.manipulation.pan_tilt(0.275, 0.775)
-        rospy.sleep(3)
+        rospy.sleep(4)
         utils.map.add_point_cloud(scene_cam=True)
 
         utils.manipulation.pan_tilt(0, 1.1)
@@ -38,12 +38,12 @@ class ScanMapMastCam(smach.State):
         utils.map.add_point_cloud(scene_cam=True)
 
         utils.manipulation.pan_tilt(-0.275, 0.775)
-        rospy.sleep(3)
+        rospy.sleep(4)
         utils.map.add_point_cloud(scene_cam=True)
 
 
         utils.manipulation.pan_tilt(-0.2, 0.5)
-        rospy.sleep(3)
+        rospy.sleep(4)
         # utils.manipulation.pan_tilt(0, 0.6)
         # rospy.sleep(5)
         utils.map.add_point_cloud(scene_cam=True)
@@ -51,7 +51,7 @@ class ScanMapMastCam(smach.State):
         # utils.map.add_point_cloud(arm_origin=arm_base, scene_cam=True)
         # utils.map.add_point_cloud(arm_origin=arm_base, scene_cam=True)
 
-        utils.map.publish_as_marker()
+        # utils.map.publish_as_marker()
 
         co = utils.map.to_collision_object()
         utils.manipulation.get_planning_scene().add_object(co)

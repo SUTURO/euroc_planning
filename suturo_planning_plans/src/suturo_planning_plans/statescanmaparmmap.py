@@ -28,14 +28,39 @@ class ScanMapArmCam(smach.State):
 
             # print len(next_point)
 
-        next_point = utils.map.get_closest_unknown()
+        arm_base = utils.manipulation.get_base_origin()
+        next_point = utils.map.get_closest_unknown(arm_base.point)
         while not len(next_point) == 0:
             map_updated = False
             for i in xrange(len(next_point)):
+                cell_x = next_point[i].x
+                cell_y = next_point[i].y
+                utils.map.mark_cell(cell_x, cell_y, True)
                 print next_point[i]
                 next_point[i].z = 0.08
                 poses = make_scan_pose(next_point[i], 0.55, 0.65, n=16)
-                # visualize_poses(poses)
+                for (c, x, y) in utils.map.get_surrounding_cells8(cell_x, cell_y):
+                    # print "cellx ", x, " celly ", y
+                    if not c.is_free():
+                        # print "not free"
+                        p = Point(x, y, 0)
+                        p2 = Point(cell_x, cell_y, 0)
+                        cell_to_p = subtract_point(p, p2)
+                        # print "cell_to_p " , cell_to_p
+                        # poses = filter(lambda x: get_angle(cell_to_p, subtract_point(x.pose.position, p2)) > pi/2, poses)
+                        new_poses = []
+                        for pose in poses:
+                            temp_pose = deepcopy(pose.pose.position)
+                            temp_pose.z = 0
+                            cell_to_pose = subtract_point(temp_pose, p2)
+                            # print "cell_to_pose " , cell_to_pose
+                            angle = get_angle(cell_to_p, cell_to_pose)
+                            # print "angle ", angle
+                            if angle > pi/4:
+                                # print "not removed"
+                                new_poses.append(pose)
+                        poses = new_poses
+                visualize_poses(poses)
                 j = 0
                 move_successfull = False
                 while j < len(poses) and not move_successfull:
@@ -48,15 +73,17 @@ class ScanMapArmCam(smach.State):
                     if not map_updated:
                         rospy.logdebug("no map update")
                         continue
-                    utils.map.publish_as_marker()
+                    # utils.map.publish_as_marker()
                     rospy.logdebug("published")
                     co = utils.map.to_collision_object()
                     utils.manipulation.get_planning_scene().add_object(co)
+                    utils.map.mark_cell(next_point[i].x, next_point[i].y, False)
                     break
+                utils.map.mark_cell(next_point[i].x, next_point[i].y, False)
             if not map_updated:
                 rospy.loginfo("can't update map any further")
                 break
-            next_point = utils.map.get_closest_unknown()
+            next_point = utils.map.get_closest_unknown(arm_base.point)
             print len(next_point)
 
         return 'mapScanned'

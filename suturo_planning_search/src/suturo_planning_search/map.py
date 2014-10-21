@@ -26,7 +26,7 @@ __author__ = 'ichumuh'
 
 
 class Map:
-    num_of_cells = 25
+    num_of_cells = 50
 
     def __init__(self, size_x, size_y):
         self.field = [[Cell() for i in range(self.num_of_cells)] for j in range(self.num_of_cells)]
@@ -96,12 +96,11 @@ class Map:
 
         for x in numpy.arange(0.92 - radius, 0.92 + radius + 0.01, self.cell_size_x):
             for y in numpy.arange(0.92 - radius, 0.92 + radius + 0.01, self.cell_size_y):
-                if not self.get_cell(x, y).is_obstacle():
-                    self.get_cell(x, y).set_free()
+                self.get_cell(x, y).set_obstacle()
 
         #remove unknown surrounded by obstacles (or the and of the map)
         self.remove_unreachable_unknowns()
-
+        self.publish_as_marker()
         return not self.field == oldmap
 
     def is_point_in_arm(self, arm_origin, radius, x, y):
@@ -235,13 +234,30 @@ class Map:
                 p = Point()
                 (p.x, p.y) = self.index_to_coordinates(x, y)
                 if self.field[x][y].is_unknown():
-                    sc = self.get_surrounding_cells(x, y)
+                    sc = self.get_surrounding_cells_by_index(x, y)
                     if reduce(lambda free, c: free or c[0].is_free(), sc, False):
                         closest_points.append(p)
 
         closest_points.sort(key=lambda pointx: magnitude(subtract_point(arm_origin, pointx)))
 
         return closest_points
+
+
+    def get_cell_above(self, x, y):
+        (x_index, y_index) = self.coordinates_to_index(x,y)
+        return None if x_index-1 < 0 else self.get_cell_by_index(x_index-1, y_index)
+
+    def get_cell_below(self, x, y):
+        (x_index, y_index) = self.coordinates_to_index(x,y)
+        return None if x_index+1 >= self.size_x else self.get_cell_by_index(x_index+1, y_index)
+
+    def get_cell_left(self, x, y):
+        (x_index, y_index) = self.coordinates_to_index(x,y)
+        return None if y_index-1 < 0 else self.get_cell_by_index(x_index, y_index-1)
+
+    def get_cell_right(self, x, y):
+        (x_index, y_index) = self.coordinates_to_index(x,y)
+        return None if y_index+1 >= self.size_y else self.get_cell_by_index(x_index, y_index+1)
 
     def get_next_point(self, arm_x = 0, arm_y = 0):
         cm = ClusterRegions()
@@ -255,7 +271,7 @@ class Map:
 
         boarder_cells = []
         for i in range(len(next_r.cells)):
-            sc = self.get_surrounding_cells(*next_r.cell_coords[i])
+            sc = self.get_surrounding_cells_by_index(*next_r.cell_coords[i])
             # sc = map(lambda (c, x, y): c.is_free(), sc)
             if reduce(lambda free, (c, x, y): free or c.is_free, sc, False):
                 boarder_cells.append((next_r.cells, next_r.cell_coords[i][0], next_r.cell_coords[i][1]))
@@ -267,9 +283,11 @@ class Map:
         # (p.x, p.y) = self.index_to_coordinates(cx, cy)
         # return p
 
+    def mark_cell(self, x, y, marked=True):
+        self.get_cell(x, y).set_mark(marked)
+        self.publish_as_marker()
 
-
-    def get_surrounding_cells(self, x_index, y_index):
+    def get_surrounding_cells_by_index(self, x_index, y_index):
         cells = []
         if not x_index - 1 < 0:
             cells.append((self.field[x_index-1][y_index], x_index-1, y_index))
@@ -282,6 +300,61 @@ class Map:
 
         if not y_index + 1 >= self.num_of_cells:
             cells.append((self.field[x_index][y_index+1], x_index, y_index+1))
+
+        return cells
+
+    def get_surrounding_cells(self, x, y):
+        cells = []
+        (x_index, y_index) = self.coordinates_to_index(x,y)
+        if not x_index - 1 < 0:
+            cells.append((self.field[x_index-1][y_index],) + self.index_to_coordinates(x_index-1, y_index))
+
+        if not y_index - 1 < 0:
+            cells.append((self.field[x_index][y_index-1],) + self.index_to_coordinates(x_index, y_index-1))
+
+        if not x_index + 1 >= self.num_of_cells:
+            cells.append((self.field[x_index+1][y_index],) + self.index_to_coordinates(x_index+1, y_index))
+
+        if not y_index + 1 >= self.num_of_cells:
+            cells.append((self.field[x_index][y_index+1],) + self.index_to_coordinates(x_index, y_index+1))
+
+        return cells
+
+    def get_surrounding_cells8(self, x, y):
+        cells = []
+        (x_index, y_index) = self.coordinates_to_index(x,y)
+        xm1 = False
+        xp1 = False
+        ym1 = False
+        yp1 = False
+        if not x_index - 1 < 0:
+            cells.append((self.field[x_index-1][y_index],) + self.index_to_coordinates(x_index-1, y_index))
+            xm1 = True
+
+        if not y_index - 1 < 0:
+            cells.append((self.field[x_index][y_index-1],) + self.index_to_coordinates(x_index, y_index-1))
+            ym1 = True
+
+        if not x_index + 1 >= self.num_of_cells:
+            cells.append((self.field[x_index+1][y_index],) + self.index_to_coordinates(x_index+1, y_index))
+            xp1 = True
+
+        if not y_index + 1 >= self.num_of_cells:
+            cells.append((self.field[x_index][y_index+1],) + self.index_to_coordinates(x_index, y_index+1))
+            yp1 = True
+
+        if xm1 and ym1:
+            cells.append((self.field[x_index-1][y_index-1],) + self.index_to_coordinates(x_index-1, y_index-1))
+
+        if xm1 and yp1:
+            cells.append((self.field[x_index-1][y_index+1],) + self.index_to_coordinates(x_index-1, y_index+1))
+
+        if xp1 and ym1:
+            cells.append((self.field[x_index+1][y_index-1],) + self.index_to_coordinates(x_index+1, y_index-1))
+
+        if xp1 and yp1:
+            cells.append((self.field[x_index+1][y_index+1],) + self.index_to_coordinates(x_index+1, y_index+1))
+
 
         return cells
 
@@ -306,11 +379,16 @@ class Map:
                 marker.scale.x = self.cell_size_x
                 marker.scale.y = self.cell_size_y
                 marker.scale.z = 0.01
-                if self.get_cell_by_index(x, y).is_free():
+                c = self.get_cell_by_index(x, y)
+                if c.is_marked():
+                    marker.color.r = 0
+                    marker.color.g = 0
+                    marker.color.b = 1
+                elif c.is_free():
                     marker.color.r = 1
                     marker.color.g = 1
                     marker.color.b = 1
-                elif self.get_cell_by_index(x, y).is_obstacle():
+                elif c.is_obstacle():
                     marker.color.r = 1
                     marker.color.g = 0
                     marker.color.b = 0
