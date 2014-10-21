@@ -66,8 +66,9 @@ class Manipulation(object):
         rospy.loginfo( "Manipulation started.")
 
     def __del__(self):
-        moveit_commander.roscpp_shutdown()
-        moveit_commander.os._exit(0)
+        if moveit_commander is not None:
+            moveit_commander.roscpp_shutdown()
+            moveit_commander.os._exit(0)
 
     def move_base(self, goal_pose):
         '''

@@ -1,3 +1,4 @@
+import sys
 import rospy
 import smach
 import smach_ros
@@ -8,6 +9,12 @@ import task4
 import task6
 import start_nodes
 from suturo_msgs.msg import Task
+
+
+def handle_uncaught_exception(e):
+    print('Uncaught exception: ' + str(e))
+    print('Terminating task.')
+    rospy.signal_shutdown('Terminating Task due to unhandled exception.')
 
 
 def toplevel_plan(init_sim, task_list, savelog):
@@ -30,7 +37,14 @@ def toplevel_plan(init_sim, task_list, savelog):
 
     # Create a thread to execute the smach container
     rospy.loginfo('Creating a thread to execute the smach container.')
-    smach_thread = threading.Thread(target=toplevel.execute)
+
+    def execute_task():
+        try:
+            toplevel.execute()
+        except:
+            handle_uncaught_exception(sys.exc_info()[0])
+
+    smach_thread = threading.Thread(target=execute_task)
     smach_thread.start()
 
     # Wait for ctrl-c
@@ -101,7 +115,8 @@ class InitSimulation(smach.StateMachine):
     def __init__(self, task_name):
         smach.StateMachine.__init__(self, outcomes=['success', 'fail'],
                                     input_keys=[],
-                                    output_keys=['objects_found', 'yaml', 'perception_process', 'manipulation_process'])
+                                    output_keys=['objects_found', 'yaml', 'perception_process', 'manipulation_process',
+                                                 'classifier_process'])
         with self:
             # if task_name.split('_')[0] == 'task6':
             #    rospy.loginfo("Task 6 Perception started")

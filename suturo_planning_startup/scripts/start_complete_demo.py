@@ -7,6 +7,7 @@ import rospy
 from euroc_c2_msgs.srv import ListScenes
 import subprocess
 
+
 def start_demo(wait, tasks):
     print('Getting available task names.')
     rospy.wait_for_service('euroc_c2_task_selector/list_scenes')
