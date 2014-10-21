@@ -5,6 +5,7 @@ from suturo_planning_plans.statetidyupobject import TidyUpObject
 from suturo_planning_plans.statechooseobject import ChooseObject
 from suturo_planning_plans.statefocusobjects import FocusObjects, FocusObject
 from suturo_planning_plans.stateposeestimateobject import PoseEstimateObject
+from suturo_planning_plans.stateturn import Turn
 
 
 class Task1(smach.StateMachine):
@@ -15,8 +16,12 @@ class Task1(smach.StateMachine):
 
         with self:
             smach.StateMachine.add('SearchObject', SearchObject(),
-                                   transitions={'objectFound': 'ClassifyObjects',
+                                   transitions={'searchObject': 'Turn',
                                                 'noObjectsLeft': 'ChooseObject',
+                                                'simStopped': 'fail'})
+            smach.StateMachine.add('Turn', Turn(),
+                                   transitions={'objectFound': 'ClassifyObjects',
+                                                'noObjectsFound': 'ChooseObject',
                                                 'simStopped': 'fail'})
             smach.StateMachine.add('ClassifyObjects', ClassifyObjects(),
                                    transitions={'objectsClassified': 'FocusObjects',
@@ -43,5 +48,6 @@ class Task1(smach.StateMachine):
         self.userdata.objects_found = []
         self.userdata.perceived_objects = []
         self.userdata.fitted_object = None
+        self.userdata.fitted_objects = []
         self.userdata.enable_movement = enable_movement
         self.userdata.task = task

@@ -9,20 +9,30 @@ from suturo_planning_manipulation import calc_grasp_position
 class FocusObjects(smach.State):
 
     _objects_to_focus = None
+    _fitted_objects = []
 
     def __init__(self):
         smach.State.__init__(self, outcomes=['success', 'fail', 'nextObject'],
-                             input_keys=['yaml', 'objects_to_focus'],
-                             output_keys=['object_to_focus'])
+                             input_keys=['yaml', 'objects_to_focus', 'fitted_object'],
+                             output_keys=['object_to_focus', 'fitted_objects'])
 
     def execute(self, userdata):
+
+        # Read the objects_to_focus if this is the first iteration
         if self._objects_to_focus is None:
             self._objects_to_focus = userdata.objects_to_focus
+        # Remember the fitted objects
+        elif not userdata.fitted_object is None:
+            self._fitted_objects.append(userdata.fitted_object)
 
+        # If there are no more objects to focus
         if not self._objects_to_focus:
             self._objects_to_focus = None
+            userdata.fitted_objects = self._fitted_objects
+            self._fitted_objects = []
             return 'success'
 
+        # Set the next object to focus
         userdata.object_to_focus = self._objects_to_focus.pop()
 
         return 'nextObject'
