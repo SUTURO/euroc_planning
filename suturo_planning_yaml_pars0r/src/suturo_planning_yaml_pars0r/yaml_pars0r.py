@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from jinja2.nodes import Concat
 import yaml
 from geometry_msgs.msg._Quaternion import Quaternion
 import rospy
@@ -13,6 +14,7 @@ from suturo_msgs.msg import Robot
 from suturo_msgs.msg import Sensor
 from suturo_msgs.msg import Camera
 from suturo_msgs.msg import TargetZone
+from suturo_msgs.msg import ConveyorBelt
 from std_msgs.msg import String
 from std_msgs.msg import Header
 from geometry_msgs.msg import Twist
@@ -96,6 +98,7 @@ class YamlPars0r:
             f_target_zones = YamlPars0r.get_dict_value(y, 'target_zones')
             target_zones_msg = YamlPars0r.parse_target_zones(f_target_zones)
             f_task_name = YamlPars0r.get_dict_value(y, 'task_name')
+            f_belt = YamlPars0r.parse_conveyor_belt(YamlPars0r.get_dict_value(y, 'conveyor_belt'))
             msg = Task(
                 description=f_description,
                 log_filename=f_log_filename,
@@ -107,11 +110,72 @@ class YamlPars0r:
                 task_type=YamlPars0r.parse_task_type(f_task_name),
                 task_name=f_task_name,
                 time_limit=YamlPars0r.get_dict_value(y, 'time_limit', float),
-                two_axes_table_speed_limit=YamlPars0r.get_dict_value(YamlPars0r.get_dict_value(y, 'two_axes_table'), 'speed_limit', list)
+                two_axes_table_speed_limit=YamlPars0r.get_dict_value(YamlPars0r.get_dict_value(y, 'two_axes_table'),
+                                                                     'speed_limit', list),
+                conveyor_belt=f_belt
             )
             return msg
         else:
             return Task()
+
+    @staticmethod
+    def parse_conveyor_belt(belt):
+        belt_msg = ConveyorBelt()
+        if belt is None:
+            return belt_msg
+        f_move_direction_and_length = YamlPars0r.get_dict_value(belt, 'move_direction_and_length', list)
+        move_direction_and_length_msg = Vector3()
+        try:
+            move_direction_and_length_msg.x = f_move_direction_and_length[0]
+        except IndexError:
+            rospy.loginfo('parse_conveyor_belt: x value in f_move_direction_and_length is not set.')
+        try:
+            move_direction_and_length_msg.y = f_move_direction_and_length[1]
+        except IndexError:
+            rospy.loginfo('parse_conveyor_belt: y value in f_move_direction_and_length is not set.')
+        try:
+            move_direction_and_length_msg.z = f_move_direction_and_length[2]
+        except IndexError:
+            rospy.loginfo('parse_conveyor_belt: z value in f_move_direction_and_length is not set.')
+        belt_msg.move_direction_and_length = move_direction_and_length_msg
+
+        f_drop_center_point = YamlPars0r.get_dict_value(belt, 'drop_center_point', list)
+        drop_center_point_msg = Vector3()
+        try:
+            drop_center_point_msg.x = f_drop_center_point[0]
+        except IndexError:
+            rospy.loginfo('parse_conveyor_belt: x value in drop_center_point is not set.')
+        try:
+            drop_center_point_msg.y = f_drop_center_point[1]
+        except IndexError:
+            rospy.loginfo('parse_conveyor_belt: y value in drop_center_point is not set.')
+        try:
+            drop_center_point_msg.z = f_drop_center_point[2]
+        except IndexError:
+            rospy.loginfo('parse_conveyor_belt: z value in drop_center_point is not set.')
+        belt_msg.drop_center_point = drop_center_point_msg
+
+        f_drop_deviation = YamlPars0r.get_dict_value(belt, 'drop_deviation', list)
+        drop_deviation_msg = Vector3()
+        try:
+            drop_deviation_msg.x = f_drop_deviation[0]
+        except IndexError:
+            rospy.loginfo('parse_conveyor_belt: x value in drop_deviation is not set.')
+        try:
+            drop_deviation_msg.y = f_drop_deviation[1]
+        except IndexError:
+            rospy.loginfo('parse_conveyor_belt: y value in drop_deviation is not set.')
+        try:
+            drop_deviation_msg.z = f_drop_deviation[2]
+        except IndexError:
+            rospy.loginfo('parse_conveyor_belt: z value in drop_deviation is not set.')
+        belt_msg.drop_deviation = drop_deviation_msg
+
+        belt_msg.start_speed = YamlPars0r.get_dict_value(belt, 'start_speed', float)
+        belt_msg.end_speed = YamlPars0r.get_dict_value(belt, 'end_speed', float)
+        belt_msg.n_objects = YamlPars0r.get_dict_value(belt, 'n_objects')
+        belt_msg.object_template = YamlPars0r.get_dict_value(belt, 'object_template')
+        return belt_msg
 
     @staticmethod
     def parse_task_type(task):
