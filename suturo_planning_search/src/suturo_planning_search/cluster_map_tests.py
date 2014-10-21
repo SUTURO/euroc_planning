@@ -6,23 +6,61 @@ __author__ = 'pmania'
 import random
 import unittest
 
-# class TestRegion(unittest.TestCase):
-#     def test_line_fragment_to_region(self):
-#         lf = RegionLineFragment()
-#         lf.cells = [Cell(), Cell()]
-#         lf.cell_coords = [[0,0],[0,1]]
-#         lf.min_y = 0
-#         lf.max_y = 1
-#         lf.x = 0
-#         r = lf.to_region(2)
-#         self.assertTrue(len(r.cells) == 2)
-#         self.assertTrue(len(r.cell_coords) == 2)
-#
-#         self.assertTrue([0,0] in r.cell_coords)
-#         self.assertTrue([0,1] in r.cell_coords)
+class TestClusterRegionsSplitAndCubify(unittest.TestCase):
+    def test1(self):
+        c = Cell()
+        c.set_free()
+        test_field3 = [[c for x in xrange(15)] for x in xrange(15)]
 
+        test_field3[0][6] = Cell()
+        test_field3[0][6].set_unknown()
+        test_field3[0][7] = Cell()
+        test_field3[0][7].set_unknown()
+        test_field3[0][8] = Cell()
+        test_field3[0][8].set_unknown()
 
+        test_field3[1][6] = Cell()
+        test_field3[1][6].set_unknown()
+        test_field3[2][6] = Cell()
+        test_field3[2][6].set_unknown()
 
+        test_field3[1][8] = Cell()
+        test_field3[1][8].set_unknown()
+        test_field3[2][8] = Cell()
+        test_field3[2][8].set_unknown()
+        cm = ClusterRegions()
+        cm.set_field(test_field3)
+        cm.print_field()
+
+        print "Returned regions: " + str(cm.group_regions())
+        print "Grouping done"
+        cm.print_segmented_field()
+        c = cm.get_result_map()
+
+        regions = cm.get_result_regions()
+        print "Region count: " + str(len(regions))
+        for r in regions:
+            print r
+            print "Distance of region to (0,0): " + str(r.euclidean_distance_to_avg(0,0))
+        cubified_field = cm.cubify_regions()
+        cm.print_2d_field(cubified_field)
+        cm.split_and_cubify_regions()
+
+class TestRegion(unittest.TestCase):
+    def test_line_fragment_to_region(self):
+        lf = RegionLineFragment()
+        lf.cells = [Cell(), Cell()]
+        lf.cell_coords = [[0,0],[0,1]]
+        lf.min_y = 0
+        lf.max_y = 1
+        lf.x = 0
+        r = lf.to_region(2)
+        self.assertTrue(len(r.cells) == 2)
+        self.assertTrue(len(r.cell_coords) == 2)
+
+        self.assertTrue([0,0] in r.cell_coords)
+        self.assertTrue([0,1] in r.cell_coords)
+        self.assertEquals(r.id,2)
 
 class TestRegionMerge(unittest.TestCase):
 

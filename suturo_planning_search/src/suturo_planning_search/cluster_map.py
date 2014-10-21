@@ -126,8 +126,6 @@ class ClusterRegions:
 
     map_width = 25
 
-
-
     # Group unknown fields as default
     type = RegionType.unknown
 
@@ -301,13 +299,16 @@ class ClusterRegions:
                     line_fragment.x = x
                     line_fragments_in_this_row = 1
                     # Prepare the hash with the new regions for the new line
-                    new_regions[str(last_col_idx)] = []
+                    new_regions[str(x)] = []
+                    new_regions[str(x)].append(line_fragment)
 
 
                 if x is not last_row_idx:
-                    print "Found linebreak at " + str(x) + " " + str(y) + " " +str(last_col_idx) + "fragments in this row: " + str(line_fragments_in_this_row)
-
-                    list_of_last_line_fragments.append(RegionLineFragment())
+                    print "Found linebreak at " + str(x) + " " + str(y) + " " +str(last_col_idx) + ". fragments in this row: " + str(line_fragments_in_this_row)
+                    r = RegionLineFragment()
+                    list_of_last_line_fragments.append(r)
+                    new_regions[str(x)] = []
+                    new_regions[str(x)].append(r)
                     # new_regions[str(last_col_idx)].append(list_of_last_line_fragments[-1])
                     # first_line_entry = True
                     # line_fragment = list_of_last_line_fragments[-1]
@@ -326,7 +327,9 @@ class ClusterRegions:
                 elif (y-last_col_idx) > self.REGION_SPLIT_SPACE_TRESHOLD+1:
                     print "Split found at " + str(x) + " " + str(y) + " " +str(last_col_idx)
 
-                    list_of_last_line_fragments.append(RegionLineFragment())
+                    r = RegionLineFragment()
+                    list_of_last_line_fragments.append(r)
+                    new_regions[str(x)].append(r)
                     last_row_idx = x
                     last_col_idx = y
                     first_line_entry = False
@@ -347,9 +350,57 @@ class ClusterRegions:
 
             # TODO handle the last line for merge
 
-            print list_of_last_line_fragments
-            for lf in list_of_last_line_fragments:
-                print lf
+            #print list_of_last_line_fragments
+            # created_regions[str(x)] = []
+            # created_regions[str(x)].append(list_of_last_line_fragments[-1].to_region())
+        first_row_idx = list_of_last_line_fragments[0].x #Start at the lowest x value
+        last_row_idx = list_of_last_line_fragments[0].x #Start at the lowest x value
+        splitted_regions = {}
+        splitted_regions[str(first_row_idx)] = []
+        start_color = 100
+        print "Dict before iteration"
+        for rl in splitted_regions:
+            print rl + " value: " + str(splitted_regions[rl])
+        for lf in list_of_last_line_fragments:
+            r = lf.to_region(start_color)
+            # Are we still in the first line? Create a region for each of the line segments
+            if lf.x == first_row_idx:
+                print "first row - added " + str(r)
+                splitted_regions[str(first_row_idx)].append(r)
+            else:
+                # Only append if merge
+                # look into the previous line for regions
+                previous_regions = splitted_regions[str(lf.x-1)]
+                print "Looking at " + str(lf) + " which is " + str(r)
+                for pr in previous_regions:
+                    # Init an empty region list first, if necessary
+                    if str(lf.x) not in splitted_regions or not splitted_regions[str(lf.x)]:
+                        splitted_regions[str(lf.x)] = []
+
+                    print "PR vs. R: " + str(pr) + "----" + str(r)
+                    if pr.merge_region_w_criteria(1,1,r):
+                        print "true - added " + str(pr)
+                        splitted_regions[str(lf.x)].append(pr)
+                    else:
+                        print "False - added " + str(r)
+                        splitted_regions[str(lf.x)].append(r)
+
+            if lf.x is not last_row_idx:
+                print "Linebreak in lf iter at "
+                last_row_idx = lf.x
+            print lf
+            start_color += 1
+            # print "List of new regions"
+            # for rl in splitted_regions:
+            #     print rl + " value: " + str(splitted_regions[rl])
+
+        for rl in splitted_regions:
+            rl_regions = splitted_regions[rl]
+            print rl
+            for rlr in rl_regions:
+                print rlr
+            print "---"
+
 
 
 
