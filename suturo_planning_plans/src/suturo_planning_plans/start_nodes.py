@@ -139,7 +139,7 @@ class StopSimulation(smach.State):
 class StopNodes(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['success', 'fail'],
-                             input_keys=['perception_process', 'manipulation_process'],
+                             input_keys=['perception_process', 'manipulation_process', 'classifier_process'],
                              output_keys=[])
 
     def execute(self, userdata):
