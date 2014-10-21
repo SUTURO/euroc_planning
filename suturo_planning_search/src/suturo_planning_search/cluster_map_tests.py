@@ -1,10 +1,28 @@
-from suturo_planning_search.cluster_map import ClusterRegions, Region
+from suturo_planning_search.cluster_map import ClusterRegions, Region, RegionLineFragment
 from suturo_planning_search.cell import Cell
 
 __author__ = 'pmania'
 
 import random
 import unittest
+
+# class TestRegion(unittest.TestCase):
+#     def test_line_fragment_to_region(self):
+#         lf = RegionLineFragment()
+#         lf.cells = [Cell(), Cell()]
+#         lf.cell_coords = [[0,0],[0,1]]
+#         lf.min_y = 0
+#         lf.max_y = 1
+#         lf.x = 0
+#         r = lf.to_region(2)
+#         self.assertTrue(len(r.cells) == 2)
+#         self.assertTrue(len(r.cell_coords) == 2)
+#
+#         self.assertTrue([0,0] in r.cell_coords)
+#         self.assertTrue([0,1] in r.cell_coords)
+
+
+
 
 class TestRegionMerge(unittest.TestCase):
 
@@ -132,10 +150,10 @@ class TestRegionMerge(unittest.TestCase):
 
 
         r2.cells = [Cell() for x in xrange(4)]
-        r.cell_coords.append([2,2])
-        r.cell_coords.append([2,3])
-        r.cell_coords.append([3,2])
-        r.cell_coords.append([3,3])
+        r2.cell_coords.append([2,2])
+        r2.cell_coords.append([2,3])
+        r2.cell_coords.append([3,2])
+        r2.cell_coords.append([3,3])
         r2.min_x = 2
         r2.min_y = 2
         r2.max_x = 3
@@ -217,10 +235,10 @@ class TestRegionMerge(unittest.TestCase):
 
 
         r2.cells = [Cell() for x in xrange(4)]
-        r.cell_coords.append([2,1])
-        r.cell_coords.append([2,2])
-        r.cell_coords.append([3,1])
-        r.cell_coords.append([3,2])
+        r2.cell_coords.append([2,1])
+        r2.cell_coords.append([2,2])
+        r2.cell_coords.append([3,1])
+        r2.cell_coords.append([3,2])
         r2.min_x = 2
         r2.min_y = 1
         r2.max_x = 3
@@ -229,22 +247,14 @@ class TestRegionMerge(unittest.TestCase):
         self.assertFalse(r.merge_region_w_criteria(0,0,r2))
 
         # Check the size of cell lists
-        self.assertTrue(len(r.cells) == 8)
-        self.assertTrue(len(r.cell_coords) == 8)
+        self.assertEquals(len(r.cells),4)
+        self.assertEquals(len(r.cell_coords),4)
 
         self.assertTrue([0,0] in r.cell_coords)
         self.assertTrue([0,1] in r.cell_coords)
         self.assertTrue([1,0] in r.cell_coords)
         self.assertTrue([1,1] in r.cell_coords)
-        self.assertTrue([2,1] in r.cell_coords)
-        self.assertTrue([2,2] in r.cell_coords)
-        self.assertTrue([3,1] in r.cell_coords)
-        self.assertTrue([3,2] in r.cell_coords)
 
-        self.assertEqual(r.min_x,0)
-        self.assertEqual(r.min_y,0)
-        self.assertEqual(r.max_x,3)
-        self.assertEqual(r.max_y,2)
 
 
 if __name__ == '__main__':

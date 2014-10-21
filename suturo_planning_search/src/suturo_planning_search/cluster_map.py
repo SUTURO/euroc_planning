@@ -66,10 +66,10 @@ class Region:
             self.max_y = other_region.max_y
 
     def merge_region_w_criteria(self, spacing_left, spacing_right, other_region):
-        """" Merges a region, if abs(self.min_x - other_region.min_x) < spacing_left
-             and abs(self.max_x - other_region.max) < spacing_right
+        """" Merges a region, if abs(self.min_x - other_region.min_x) <= spacing_left
+             and abs(self.max_x - other_region.max) <= spacing_right
              Returns false otherwise"""
-        if abs(self.min_x - other_region.min_x) < spacing_left  and abs(self.max_x - other_region.max) < spacing_right:
+        if abs(self.min_y - other_region.min_y) <= spacing_left and abs(self.max_y - other_region.max_y) <= spacing_right:
             self.merge_region(other_region)
             return True
         else:
@@ -84,13 +84,26 @@ class RegionLineFragment:
 
     def __init__(self):
         self.cells = []
+        self.cell_coords = []
         self.min_y = None
         self.max_y = 0
         self.x = None
 
     def __str__(self):
-        s = "RegionLineFragment - min_y: " + str(self.min_y) + ", max_y: " + str(self.max_y) + ", x: " + str(self.x)
+        s = "RegionLineFragment - min_y: " + str(self.min_y) + ", max_y: " + str(self.max_y) + ", x: " + str(self.x) + " "
+        for cc in self.cell_coords:
+           s += str(cc)
         return s
+
+    def to_region(self,rid):
+        r = Region(rid)
+        r.cells = self.cells
+        r.cell_coords = self.cell_coords
+        r.min_x = self.x
+        r.max_x = self.x
+        r.min_y = self.min_y
+        r.max_y = self.max_y
+        return r
 
 
 class ClusterRegions:
@@ -293,6 +306,7 @@ class ClusterRegions:
 
                 if x is not last_row_idx:
                     print "Found linebreak at " + str(x) + " " + str(y) + " " +str(last_col_idx) + "fragments in this row: " + str(line_fragments_in_this_row)
+
                     list_of_last_line_fragments.append(RegionLineFragment())
                     # new_regions[str(last_col_idx)].append(list_of_last_line_fragments[-1])
                     # first_line_entry = True
@@ -306,10 +320,12 @@ class ClusterRegions:
                     line_fragment.min_y = y
                     line_fragment.max_y = y
                     line_fragment.x = x
+                    line_fragment.cell_coords.append([x,y])
                     # Line break
                     # Maybe we have to merge the last line with it's predecessor
                 elif (y-last_col_idx) > self.REGION_SPLIT_SPACE_TRESHOLD+1:
-                    print "Splitting at " + str(x) + " " + str(y) + " " +str(last_col_idx)
+                    print "Split found at " + str(x) + " " + str(y) + " " +str(last_col_idx)
+
                     list_of_last_line_fragments.append(RegionLineFragment())
                     last_row_idx = x
                     last_col_idx = y
@@ -319,13 +335,17 @@ class ClusterRegions:
                     line_fragment.max_y = y
                     line_fragment.x = x
                     line_fragments_in_this_row += 1
+                    line_fragment.cell_coords.append([x,y])
+
                 else:
                     line_fragment = list_of_last_line_fragments[-1]
                     line_fragment.max_y = y
                     line_fragment.x = x
+                    line_fragment.cell_coords.append([x,y])
                     last_col_idx = y
                 print "end of for" + str(last_col_idx)
-            # TODO handle the last line
+
+            # TODO handle the last line for merge
 
             print list_of_last_line_fragments
             for lf in list_of_last_line_fragments:
@@ -390,4 +410,3 @@ class ClusterRegions:
             cells.append((x_index+1, y_index+1))
 
         return cells
-
