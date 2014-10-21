@@ -47,7 +47,29 @@ class Region:
         y2 = self.get_avg()[1]
         return sqrt((x2 - x1) ** 2 +
                      (y2 - y1) ** 2)
+    def merge_region(self, other_region):
+        """ Copy the cells of other_region with self.cells"""
+        self.cells.extend(other_region.cells)
+        self.cell_coords.extend(other_region.cell_coords)
+        self.get_avg()
+        if self.min_x > other_region.min_x:
+            self.min_x = other_region.min_x
+        if self.min_y > other_region.min_y:
+            self.min_y = other_region.min_y
+        if self.max_x < other_region.max_x:
+            self.max_x = other_region.max_x
+        if self.max_y < other_region.max_y:
+            self.max_y = other_region.max_y
 
+    def merge_region_w_criteria(self, spacing_left, spacing_right, other_region):
+        """" Merges a region, if abs(self.min_x - other_region.min_x) < spacing_left
+             and abs(self.max_x - other_region.max) < spacing_right
+             Returns false otherwise"""
+        if abs(self.min_x - other_region.min_x) < spacing_left  and abs(self.max_x - other_region.max) < spacing_right:
+            self.merge_region(other_region)
+            return True
+        else:
+            return False
 
 class RegionType:
     obstacles = 1
@@ -234,6 +256,7 @@ class ClusterRegions:
     def split_and_cubify_regions(self):
         """ Create a map where each region will be splitted into small rectangles. Afterwards, each region get's a boundingbox"""
         # init empty map
+        new_regions = {}
         for r in self.regions:
             # Sort the corresponding cells to scan linewise
             cells = sorted(r.cell_coords)
@@ -243,6 +266,7 @@ class ClusterRegions:
             last_col_idx = None
             first_line_entry = True
             list_of_last_line_fragments = [RegionLineFragment()]
+            line_fragments_in_this_row = 0
             print "calculate with:"
             print cells
 
@@ -258,10 +282,15 @@ class ClusterRegions:
                     line_fragment.min_y = y
                     line_fragment.max_y = y
                     line_fragment.x = x
+                    line_fragments_in_this_row = 1
+                    # Prepare the hash with the new regions for the new line
+                    new_regions[str(last_col_idx)] = []
 
-                if x is not last_row_idx or (y-last_col_idx) > self.REGION_SPLIT_SPACE_TRESHOLD+1:
-                    print "Found linebreak at " + str(x) + " " + str(y) + " " +str(last_col_idx)
+
+                if x is not last_row_idx:
+                    print "Found linebreak at " + str(x) + " " + str(y) + " " +str(last_col_idx) + "fragments in this row: " + str(line_fragments_in_this_row)
                     list_of_last_line_fragments.append(RegionLineFragment())
+                    # new_regions[str(last_col_idx)].append(list_of_last_line_fragments[-1])
                     # first_line_entry = True
                     # line_fragment = list_of_last_line_fragments[-1]
                     # line_fragment.min_y = y
@@ -285,12 +314,14 @@ class ClusterRegions:
                     line_fragment.min_y = y
                     line_fragment.max_y = y
                     line_fragment.x = x
+                    line_fragments_in_this_row += 1
                 else:
                     line_fragment = list_of_last_line_fragments[-1]
                     line_fragment.max_y = y
                     line_fragment.x = x
                     last_col_idx = y
                 print "end of for" + str(last_col_idx)
+            # TODO handle the last line
 
             print list_of_last_line_fragments
             for lf in list_of_last_line_fragments:
