@@ -9,7 +9,7 @@ from suturo_perception_msgs.msg import EurocObject
 class ClassifyObjects(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['noObject', 'objectsClassified'],
-                             input_keys=['object_to_perceive', 'yaml', 'placed_objects', 'objects_found'],
+                             input_keys=['yaml', 'placed_objects', 'objects_found'],
                              output_keys=['classified_objects'])
 
     def execute(self, userdata):
@@ -56,7 +56,6 @@ class ClassifyObjects(smach.State):
                     utils.centroid_to_odom_combined(matched_obj)
                     matched_objects.append(matched_obj)
 
-        rospy.loginfo('Publishing objects into planning scene.')
         # publish_collision_objects(collision_objects)
         userdata.classified_objects = matched_objects
 
