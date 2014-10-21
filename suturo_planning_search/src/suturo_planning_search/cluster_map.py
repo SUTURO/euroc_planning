@@ -27,15 +27,18 @@ class Region:
         self.max_y = 0
         self.min_x = None
         self.max_x = 0
+        # Flag to decide, if this region has been merged
+        self.was_merged = False
 
     def __str__(self):
-        s =  "Region id: " + str(self.id) + "\n" + "Cells ("+ str(len(self.cells)) +") : " + "\n"
-        for c in self.cells:
-            s += str(c)
+        s =  "Region id: " + str(self.id) + "\n"
+        # s += "Cells ("+ str(len(self.cells)) +") : " + "\n"
+        # for c in self.cells:
+        #     s += str(c)
         for cc in self.cell_coords:
             s += str(cc)
         self.get_avg()
-        s += "\nAverage: " + str(self.avg[0]) + " " + str(self.avg[1])
+        # s += "\nAverage: " + str(self.avg[0]) + " " + str(self.avg[1])
         s += "\nmin/max dims: (" + str(self.min_x) + "x" + str(self.min_y) + ")-(" + str(self.max_x) + "x" + str(self.max_y) + ")"
         return s
 
@@ -64,6 +67,7 @@ class Region:
             self.max_x = other_region.max_x
         if self.max_y < other_region.max_y:
             self.max_y = other_region.max_y
+        self.was_merged = True
 
     def merge_region_w_criteria(self, spacing_left, spacing_right, other_region):
         """" Merges a region, if abs(self.min_x - other_region.min_x) <= spacing_left
@@ -269,7 +273,8 @@ class ClusterRegions:
         return cubified_field
 
     def split_and_cubify_regions(self):
-        """ Create a map where each region will be splitted into small rectangles. Afterwards, each region get's a boundingbox"""
+        """ Create a map where each region will be splitted into small rectangles. Afterwards, each region get's a boundingbox
+        :returns a list of regions, that have been splitted"""
         # init empty map
         new_regions = {}
         for r in self.regions:
@@ -355,53 +360,78 @@ class ClusterRegions:
             # created_regions[str(x)].append(list_of_last_line_fragments[-1].to_region())
         first_row_idx = list_of_last_line_fragments[0].x #Start at the lowest x value
         last_row_idx = list_of_last_line_fragments[0].x #Start at the lowest x value
-        splitted_regions = {}
-        splitted_regions[str(first_row_idx)] = []
         start_color = 100
-        print "Dict before iteration"
-        for rl in splitted_regions:
-            print rl + " value: " + str(splitted_regions[rl])
+        regions_in_this_line = []
+        regions_in_previous_line = []
+        regions_closed = []
+
+        # print "Dict before iteration"
+        # for rl in splitted_regions:
+        #     print rl + " value: " + str(splitted_regions[rl])
+        print "Analyzing last line fragments"
         for lf in list_of_last_line_fragments:
+
             r = lf.to_region(start_color)
+            if lf.x is not last_row_idx:
+                print "Linebreak in lf iter at "
+                # if last_row_idx is not first_row_idx:
+                # Check if one of the regions has been closed ( e.g. no other region has been merged into it)
+
+                for prev_reg in regions_in_previous_line:
+                    if not prev_reg.was_merged:
+                        regions_closed.append(prev_reg)
+                regions_in_previous_line = []
+                regions_in_previous_line.extend(list(regions_in_this_line))
+                for rl in regions_in_previous_line:
+                    print rl
+                regions_in_this_line = []
+                last_row_idx = lf.x
+                print "Linebreak -- end  "
+
             # Are we still in the first line? Create a region for each of the line segments
             if lf.x == first_row_idx:
                 print "first row - added " + str(r)
-                splitted_regions[str(first_row_idx)].append(r)
+                regions_in_this_line.append(r)
+                # regions_in_previous_line.append(r)
+                # splitted_regions[str(first_row_idx)].append(r)
             else:
                 # Only append if merge
                 # look into the previous line for regions
-                previous_regions = splitted_regions[str(lf.x-1)]
+                previous_regions = regions_in_previous_line
                 print "Looking at " + str(lf) + " which is " + str(r)
+                line_has_been_merged = False
                 for pr in previous_regions:
-                    # Init an empty region list first, if necessary
-                    if str(lf.x) not in splitted_regions or not splitted_regions[str(lf.x)]:
-                        splitted_regions[str(lf.x)] = []
-
                     print "PR vs. R: " + str(pr) + "----" + str(r)
                     if pr.merge_region_w_criteria(1,1,r):
                         print "true - added " + str(pr)
-                        splitted_regions[str(lf.x)].append(pr)
-                    else:
-                        print "False - added " + str(r)
-                        splitted_regions[str(lf.x)].append(r)
+                        # splitted_regions[str(lf.x)].append(pr)
+                        regions_in_this_line.append(pr)
+                        line_has_been_merged = True
+                        break
+                if not line_has_been_merged:
+                    print "Couldn't find match - added " + str(r)
+                    # splitted_regions[str(lf.x)].append(r)
+                    regions_in_this_line.append(r)
 
-            if lf.x is not last_row_idx:
-                print "Linebreak in lf iter at "
-                last_row_idx = lf.x
+
             print lf
             start_color += 1
             # print "List of new regions"
             # for rl in splitted_regions:
             #     print rl + " value: " + str(splitted_regions[rl])
+        # Repeat linebreak handling
+        # if last_row_idx is not first_row_idx:
+        #     regions_in_previous_line = list(regions_in_this_line)
+        regions_in_previous_line = list(regions_in_this_line)
+        regions_in_previous_line.extend(regions_closed)
+        splitted_regions = regions_in_previous_line
 
+        print "########### "
+        print "Result: \n"
         for rl in splitted_regions:
-            rl_regions = splitted_regions[rl]
             print rl
-            for rlr in rl_regions:
-                print rlr
-            print "---"
 
-
+        return splitted_regions
 
 
         #     # Scan each line

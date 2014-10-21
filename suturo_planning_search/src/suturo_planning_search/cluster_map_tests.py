@@ -44,7 +44,15 @@ class TestClusterRegionsSplitAndCubify(unittest.TestCase):
             print "Distance of region to (0,0): " + str(r.euclidean_distance_to_avg(0,0))
         cubified_field = cm.cubify_regions()
         cm.print_2d_field(cubified_field)
-        cm.split_and_cubify_regions()
+        regions = cm.split_and_cubify_regions()
+
+        # Check the cells of the splitted regions
+        regions = sorted(regions)
+        self.assertEquals(len(regions), 3)
+        self.assertEquals(regions[0].cell_coords, [[0,6],[0,7],[0,8]])
+        self.assertEquals(regions[1].cell_coords, [[1,6],[2,6]])
+        self.assertEquals(regions[2].cell_coords, [[1,8],[2,8]])
+
 
 class TestRegion(unittest.TestCase):
     def test_line_fragment_to_region(self):
