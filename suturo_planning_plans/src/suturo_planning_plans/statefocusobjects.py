@@ -57,7 +57,7 @@ class FocusObject(smach.State):
         centroid = userdata.object_to_focus.c_centroid
         centroid.z -= 0.05
 
-        poses = calc_grasp_position.make_scan_pose(centroid, 0.8, pi / 4.0)
+        poses = calc_grasp_position.make_scan_pose(centroid, 0.6, pi / 4.0)
         for pose in poses:
             if utils.manipulation.move_to(pose):
                 userdata.focused_object = userdata.object_to_focus
