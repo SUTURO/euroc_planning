@@ -52,7 +52,7 @@ class Task4(smach.StateMachine):
             smach.StateMachine.add('PoseEstimateObject', PoseEstimateObject(),
                                    transitions={'success': 'FocusObjects',
                                                 'fail': 'FocusObjects'},
-                                   remapping={'focused_object': 'objects_to_focus'})
+                                   remapping={'focused_object': 'object_to_focus'})
 
             smach.StateMachine.add('ChooseObject', ChooseObject(),
                                    transitions={'objectChosen': 'TidyUpObject',

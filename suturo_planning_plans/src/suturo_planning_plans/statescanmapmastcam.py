@@ -22,7 +22,7 @@ class ScanMapMastCam(smach.State):
             utils.manipulation = Manipulation()
             rospy.sleep(2)
 
-        utils.map = Map(2, 2)
+        utils.map = Map(2)
         arm_base = utils.manipulation.get_base_origin()
         print arm_base
         utils.manipulation.pan_tilt(0.2, 0.5)

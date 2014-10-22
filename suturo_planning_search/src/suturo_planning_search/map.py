@@ -28,7 +28,9 @@ __author__ = 'ichumuh'
 class Map:
     num_of_cells = 50
 
-    def __init__(self, size_x, size_y):
+    def __init__(self, size):
+        size_x = size
+        size_y = size
         self.field = [[Cell() for i in range(self.num_of_cells)] for j in range(self.num_of_cells)]
         self.cell_size_x = 1.0 * size_x / len(self.field)
         self.cell_size_y = 1.0 * size_y / len(self.field[0])
@@ -52,6 +54,9 @@ class Map:
 
     def reset(self):
         self.field = [[Cell() for i in range(self.num_of_cells)] for j in range(self.num_of_cells)]
+
+    def get_field(self):
+        return self.field
 
     def add_point_cloud(self, arm_origin=Point(0, 0, 0), radius=0.1, scene_cam=True):
         '''
@@ -86,7 +91,7 @@ class Map:
                     self.is_point_in_arm2(arm_origin, radius, x, y):
                 continue
 
-            self.get_cell(x, y).add_point(z)
+            self.get_cell(x, y).update_cell(z)
 
         #Set the area around the arms base free
         for x in numpy.arange(arm_origin.x - radius, arm_origin.x + radius + 0.01, self.cell_size_x):
@@ -99,7 +104,7 @@ class Map:
                 self.get_cell(x, y).set_obstacle()
 
         #remove unknown surrounded by obstacles (or the and of the map)
-        self.remove_unreachable_unknowns()
+        self.clean_up_map()
         self.publish_as_marker()
         return not self.field == oldmap
 
@@ -153,26 +158,26 @@ class Map:
     def publish_as_marker(self):
         visualization.publish_marker_array(self.to_marker_array())
 
-    def remove_unreachable_unknowns(self):
+    def clean_up_map(self):
         cell_changed = True
         while cell_changed:
             cell_changed = False
             for x in range(0, len(self.field)):
                 for y in range(0, len(self.field[x])):
-                    if self.get_cell_by_index(x, y).is_unknown() and self.is_cell_surrounded_by_obstacles(x, y):
-                        self.get_cell_by_index(x, y).set_obstacle()
-                        cell_changed = True
+                    if self.get_cell_by_index(x, y).is_unknown():
+                        if self.is_cell_surrounded_by_obstacles(x, y):
+                            self.get_cell_by_index(x, y).set_obstacle()
+                            cell_changed = True
+                        elif self.is_cell_alone(x, y):
+                            self.get_cell_by_index(x, y).set_free()
+                            cell_changed = True
+
+    def is_cell_alone(self, x_index, y_index):
+        return reduce(lambda yes, c: yes and c[0].is_free(), self.get_surrounding_cells8_by_index(x_index, y_index), True)
 
     def is_cell_surrounded_by_obstacles(self, x_index, y_index):
-        yes = x_index - 1 < 0 or self.get_cell_by_index(x_index - 1, y_index).is_obstacle()
-
-        yes = yes and (y_index - 1 < 0 or self.get_cell_by_index(x_index, y_index - 1).is_obstacle())
-
-        yes = yes and (x_index + 1 >= self.num_of_cells or self.get_cell_by_index(x_index + 1, y_index).is_obstacle())
-
-        yes = yes and (y_index + 1 >= self.num_of_cells or self.get_cell_by_index(x_index, y_index + 1).is_obstacle())
-
-        return yes
+        sc = self.get_surrounding_cells_by_index(x_index, y_index)
+        return len(sc)-1 <= reduce(lambda num_of_obstacles, c: num_of_obstacles + 1  if c[0].is_obstacle() else num_of_obstacles, sc, 0)
 
     def to_collision_object(self):
         '''
@@ -336,8 +341,11 @@ class Map:
         return cells
 
     def get_surrounding_cells8(self, x, y):
-        cells = []
         (x_index, y_index) = self.coordinates_to_index(x,y)
+        return self.get_surrounding_cells8_by_index(x_index, y_index)
+
+    def get_surrounding_cells8_by_index(self, x_index, y_index):
+        cells = []
         xm1 = False
         xp1 = False
         ym1 = False
@@ -369,7 +377,6 @@ class Map:
 
         if xp1 and yp1:
             cells.append((self.field[x_index+1][y_index+1],) + self.index_to_coordinates(x_index+1, y_index+1))
-
 
         return cells
 

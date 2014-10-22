@@ -17,6 +17,12 @@ __author__ = 'ichumuh'
 
 
 class Cell:
+
+    Free = 0
+    Unknown = 1
+    Obstacle = 2
+    Object = 3
+
     def __init__(self):
         self.num_free_points = 0
         self.num_obstacle_points = 0
@@ -26,7 +32,8 @@ class Cell:
         self.segment_id = 0
         self.threshold_min_points = 75
         self.marked = False
-        self.object = False
+        # self.object = False
+        self.state = self.Unknown
 
     def __del__(self):
         pass
@@ -46,12 +53,20 @@ class Cell:
                other.is_free() and self.is_free() or \
                other.is_unknown() and self.is_unknown()
 
-    def add_point(self, z):
+    def update_cell(self, z):
         z2 = self.average_z * self.points
         self.points += 1
         self.average_z = (z2 + z) / self.points
         if z > self.highest_z:
             self.highest_z = z
+        self.update_state()
+
+    def update_state(self):
+        if not self.is_object() and self.enough_points():
+            if 0 <= self.average_z <= 0.0125:
+                self.state = self.Free
+            else:
+                self.state = self.Obstacle
 
     def enough_points(self):
         return self.points > self.threshold_min_points
@@ -62,38 +77,44 @@ class Cell:
     #setter
 
     def set_free(self):
-        self.average_z = 0
-        self.points = self.threshold_min_points + 1
+        self.state = self.Free
+        # self.average_z = 0
+        # self.points = self.threshold_min_points + 1
 
     def set_object(self, is_object=True):
-        self.object = is_object
+        self.state = self.Object
+        # self.object = is_object
 
     def set_obstacle(self):
-        self.points = self.threshold_min_points + 1
-        self.average_z = 1
-        self.highest_z = 1
+        self.state = self.Obstacle
+        # self.points = self.threshold_min_points + 1
+        # self.average_z = 1
+        # self.highest_z = 1
 
     def set_unknown(self):
-        self.average_z = 0
-        self.points = 0
+        self.state = self.Unknown
+        # self.average_z = 0
+        # self.points = 0
 
     def set_mark(self, marked=True):
         self.marked = marked
 
     #getter
 
+    def get_state(self):
+        return self.state
+
     def is_object(self):
-        return self.object
+        return self.state == self.Object
 
     def is_free(self):
-        return not self.is_object() and self.enough_points() and not self.is_obstacle()
+        return self.state == self.Free
 
     def is_obstacle(self):
-        return not self.is_object() and self.enough_points() and \
-               not 0 <= self.average_z <= 0.0125
+        return self.state == self.Obstacle
 
     def is_unknown(self):
-        return not self.is_object() and not self.is_obstacle() and not self.is_free()
+        return self.state == self.Unknown
 
     def is_marked(self):
         return self.marked

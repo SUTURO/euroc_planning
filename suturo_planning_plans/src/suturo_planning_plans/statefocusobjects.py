@@ -24,9 +24,13 @@ class FocusObjects(smach.State):
         # Remember the fitted objects
         elif not userdata.fitted_object is None:
             self._fitted_objects.append(userdata.fitted_object)
+
+            #clear region for task 4
             if not len(userdata.cell_coords) == 0:
                 for coord in userdata.cell_coords:
                     utils.map.get_cell_by_index(*coord).set_object()
+                    co = utils.map.to_collision_object()
+                    utils.manipulation.get_planning_scene().add_object(co)
 
         # If there are no more objects to focus
         if not self._objects_to_focus:
