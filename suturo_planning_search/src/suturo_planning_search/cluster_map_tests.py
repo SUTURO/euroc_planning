@@ -8,6 +8,11 @@ import unittest
 
 class TestClusterRegionsSplitAndCubify(unittest.TestCase):
     def test1(self):
+        """ Split the following form into regions:
+           xxx
+           x x
+           x x
+        """
         c = Cell()
         c.set_free()
         test_field3 = [[c for x in xrange(15)] for x in xrange(15)]
@@ -44,14 +49,224 @@ class TestClusterRegionsSplitAndCubify(unittest.TestCase):
             print "Distance of region to (0,0): " + str(r.euclidean_distance_to_avg(0,0))
         cubified_field = cm.cubify_regions()
         cm.print_2d_field(cubified_field)
-        regions = cm.split_and_cubify_regions()
+        regions_not_sorted = cm.split_and_cubify_regions()
 
         # Check the cells of the splitted regions
-        regions = sorted(regions)
+        regions = sorted(regions_not_sorted)
         self.assertEquals(len(regions), 3)
         self.assertEquals(regions[0].cell_coords, [[0,6],[0,7],[0,8]])
         self.assertEquals(regions[1].cell_coords, [[1,6],[2,6]])
         self.assertEquals(regions[2].cell_coords, [[1,8],[2,8]])
+
+    def test2(self):
+        print "test2"
+        """ Split the following form into one region:
+           xxx
+           xxx
+        """
+        c = Cell()
+        c.set_free()
+        test_field3 = [[c for x in xrange(15)] for x in xrange(15)]
+
+        test_field3[0][6] = Cell()
+        test_field3[0][6].set_unknown()
+        test_field3[0][7] = Cell()
+        test_field3[0][7].set_unknown()
+        test_field3[0][8] = Cell()
+        test_field3[0][8].set_unknown()
+
+        test_field3[1][6] = Cell()
+        test_field3[1][6].set_unknown()
+        test_field3[1][7] = Cell()
+        test_field3[1][7].set_unknown()
+        test_field3[1][8] = Cell()
+        test_field3[1][8].set_unknown()
+        cm = ClusterRegions()
+        cm.set_field(test_field3)
+        cm.print_field()
+
+        cm.group_regions()
+        # cm.print_segmented_field()
+        c = cm.get_result_map()
+
+        # regions = cm.get_result_regions()
+        # print "Region count: " + str(len(regions))
+        # for r in regions:
+        #     print r
+        #     print "Distance of region to (0,0): " + str(r.euclidean_distance_to_avg(0,0))
+        # cubified_field = cm.cubify_regions()
+        # cm.print_2d_field(cubified_field)
+        regions_not_sorted = cm.split_and_cubify_regions()
+
+        # Check the cells of the splitted regions
+        regions = sorted(regions_not_sorted)
+        self.assertEquals(len(regions), 1)
+        self.assertEquals(regions[0].cell_coords, [[0,6],[0,7],[0,8],[1,6],[1,7],[1,8]])
+    def test3(self):
+        print "test3"
+        """ Split the following form into regions:
+             x
+             x
+           xxxxx
+        """
+        c = Cell()
+        c.set_free()
+        test_field3 = [[c for x in xrange(15)] for x in xrange(15)]
+
+
+        test_field3[0][7] = Cell()
+        test_field3[0][7].set_unknown()
+        test_field3[1][7] = Cell()
+        test_field3[1][7].set_unknown()
+
+        test_field3[2][5] = Cell()
+        test_field3[2][5].set_unknown()
+        test_field3[2][6] = Cell()
+        test_field3[2][6].set_unknown()
+        test_field3[2][7] = Cell()
+        test_field3[2][7].set_unknown()
+        test_field3[2][8] = Cell()
+        test_field3[2][8].set_unknown()
+        test_field3[2][9] = Cell()
+        test_field3[2][9].set_unknown()
+
+        cm = ClusterRegions()
+        cm.set_field(test_field3)
+        cm.print_field()
+
+        cm.group_regions()
+        # cm.print_segmented_field()
+        c = cm.get_result_map()
+
+        # regions = cm.get_result_regions()
+        # print "Region count: " + str(len(regions))
+        # for r in regions:
+        #     print r
+        #     print "Distance of region to (0,0): " + str(r.euclidean_distance_to_avg(0,0))
+        # cubified_field = cm.cubify_regions()
+        # cm.print_2d_field(cubified_field)
+        regions = cm.split_and_cubify_regions()
+
+        # Check the cells of the splitted regions
+        # for rl in regions:
+        #     print rl
+        self.assertEquals(len(regions), 2)
+
+        self.assertEquals(regions[1].cell_coords, [[0,7],[1,7]])
+        self.assertEquals(regions[0].cell_coords, [[2,5],[2,6],[2,7],[2,8],[2,9]])
+
+    def test4(self):
+        print "test4"
+        """ Split the following form into regions:
+            xxxx
+            x
+            xxxx
+        """
+        c = Cell()
+        c.set_free()
+        test_field3 = [[c for x in xrange(15)] for x in xrange(15)]
+
+        test_field3[0][5] = Cell()
+        test_field3[0][5].set_unknown()
+        test_field3[0][6] = Cell()
+        test_field3[0][6].set_unknown()
+        test_field3[0][7] = Cell()
+        test_field3[0][7].set_unknown()
+        test_field3[0][8] = Cell()
+        test_field3[0][8].set_unknown()
+        test_field3[1][5] = Cell()
+        test_field3[1][5].set_unknown()
+        test_field3[2][5] = Cell()
+        test_field3[2][5].set_unknown()
+        test_field3[2][6] = Cell()
+        test_field3[2][6].set_unknown()
+        test_field3[2][7] = Cell()
+        test_field3[2][7].set_unknown()
+        test_field3[2][8] = Cell()
+        test_field3[2][8].set_unknown()
+
+
+        cm = ClusterRegions()
+        cm.set_field(test_field3)
+        cm.print_field()
+
+        cm.group_regions()
+        # cm.print_segmented_field()
+        c = cm.get_result_map()
+
+        # regions = cm.get_result_regions()
+        # print "Region count: " + str(len(regions))
+        # for r in regions:
+        #     print r
+        #     print "Distance of region to (0,0): " + str(r.euclidean_distance_to_avg(0,0))
+        # cubified_field = cm.cubify_regions()
+        # cm.print_2d_field(cubified_field)
+        regions_not_sorted = cm.split_and_cubify_regions()
+
+        # Check the cells of the splitted regions
+        regions = sorted(regions_not_sorted)
+        self.assertEquals(len(regions), 3)
+        # self.assertEquals(regions[0].cell_coords, [[0,7],[1,7]])
+        # self.assertEquals(regions[1].cell_coords, [[2,5],[2,6],[2,7],[2,8],[2,9]])
+    def test5(self):
+        print "test5"
+        """ Split the following form into regions:
+            xxxx
+            x
+            x
+            xxxx
+        """
+        c = Cell()
+        c.set_free()
+        test_field3 = [[c for x in xrange(15)] for x in xrange(15)]
+
+        test_field3[0][5] = Cell()
+        test_field3[0][5].set_unknown()
+        test_field3[0][6] = Cell()
+        test_field3[0][6].set_unknown()
+        test_field3[0][7] = Cell()
+        test_field3[0][7].set_unknown()
+        test_field3[0][8] = Cell()
+        test_field3[0][8].set_unknown()
+        test_field3[1][5] = Cell()
+        test_field3[1][5].set_unknown()
+        test_field3[2][5] = Cell()
+        test_field3[2][5].set_unknown()
+        test_field3[3][5] = Cell()
+        test_field3[3][5].set_unknown()
+        test_field3[3][6] = Cell()
+        test_field3[3][6].set_unknown()
+        test_field3[3][7] = Cell()
+        test_field3[3][7].set_unknown()
+        test_field3[3][8] = Cell()
+        test_field3[3][8].set_unknown()
+
+
+        cm = ClusterRegions(True)
+        cm.set_field(test_field3)
+        cm.print_field()
+
+        cm.group_regions()
+        # cm.print_segmented_field()
+        c = cm.get_result_map()
+
+        # regions = cm.get_result_regions()
+        # print "Region count: " + str(len(regions))
+        # for r in regions:
+        #     print r
+        #     print "Distance of region to (0,0): " + str(r.euclidean_distance_to_avg(0,0))
+        # cubified_field = cm.cubify_regions()
+        # cm.print_2d_field(cubified_field)
+        regions_not_sorted = cm.split_and_cubify_regions()
+
+        # Check the cells of the splitted regions
+        regions = regions_not_sorted
+        self.assertEquals(len(regions), 3)
+        self.assertEquals(regions[0].cell_coords, [[3,5],[3,6],[3,7],[3,8]])
+        self.assertEquals(regions[1].cell_coords, [[0,5],[0,6],[0,7],[0,8]])
+        self.assertEquals(regions[2].cell_coords, [[1,5],[2,5]])
+
+        # self.assertEquals(regions[1].cell_coords, [[2,5],[2,6],[2,7],[2,8],[2,9]])
 
 
 class TestRegion(unittest.TestCase):

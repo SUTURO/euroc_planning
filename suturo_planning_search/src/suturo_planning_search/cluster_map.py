@@ -5,6 +5,8 @@ from math import sqrt
 
 __author__ = 'pmania'
 
+# TODO
+# Avoid for-loops if not verbose
 
 class Region:
     def get_avg(self):
@@ -29,9 +31,11 @@ class Region:
         self.max_x = 0
         # Flag to decide, if this region has been merged
         self.was_merged = False
+        self.last_merge_x = None
+        self.is_closed = False
 
     def __str__(self):
-        s =  "Region id: " + str(self.id) + "\n"
+        s =  "Region#: " + str(self.id) + " "
         # s += "Cells ("+ str(len(self.cells)) +") : " + "\n"
         # for c in self.cells:
         #     s += str(c)
@@ -39,7 +43,7 @@ class Region:
             s += str(cc)
         self.get_avg()
         # s += "\nAverage: " + str(self.avg[0]) + " " + str(self.avg[1])
-        s += "\nmin/max dims: (" + str(self.min_x) + "x" + str(self.min_y) + ")-(" + str(self.max_x) + "x" + str(self.max_y) + ")"
+        s += ". min/max dims: (" + str(self.min_x) + "x" + str(self.min_y) + ")-(" + str(self.max_x) + "x" + str(self.max_y) + ")"
         return s
 
     def euclidean_distance_to_avg(self, x1, y1):
@@ -54,7 +58,7 @@ class Region:
     def get_number_of_cells(self):
         return len(self.cells)
 
-    def merge_region(self, other_region):
+    def merge_region(self, other_region,last_merge_x=None):
         """ Copy the cells of other_region with self.cells"""
         self.cells.extend(other_region.cells)
         self.cell_coords.extend(other_region.cell_coords)
@@ -68,13 +72,14 @@ class Region:
         if self.max_y < other_region.max_y:
             self.max_y = other_region.max_y
         self.was_merged = True
+        self.last_merge_x = last_merge_x
 
-    def merge_region_w_criteria(self, spacing_left, spacing_right, other_region):
+    def merge_region_w_criteria(self, spacing_left, spacing_right, other_region,last_merge_x=None):
         """" Merges a region, if abs(self.min_x - other_region.min_x) <= spacing_left
              and abs(self.max_x - other_region.max) <= spacing_right
              Returns false otherwise"""
         if abs(self.min_y - other_region.min_y) <= spacing_left and abs(self.max_y - other_region.max_y) <= spacing_right:
-            self.merge_region(other_region)
+            self.merge_region(other_region,last_merge_x)
             return True
         else:
             return False
@@ -149,10 +154,11 @@ class ClusterRegions:
     def init_segment_list(self):
         self.segments = []
 
-    def __init__(self):
+    def __init__(self, verbose=False):
         self.init_field()
         self.regions = []
         self.result_field = [[]]
+        self.verbose = verbose
 
     def set_field(self, field):
         self.map_width = len(field)
@@ -287,14 +293,14 @@ class ClusterRegions:
             first_line_entry = True
             list_of_last_line_fragments = [RegionLineFragment()]
             line_fragments_in_this_row = 0
-            print "calculate with:"
-            print cells
+            if self.verbose: print "calculate with:"
+            if self.verbose: print cells
 
             for i in xrange(len(cells)):
                 [x,y] = cells[i]
                 # Remember the row id, if it's the first elem in the line
                 if first_line_entry is True:
-                    print "New line at " + str(x) + " " + str(y)
+                    if self.verbose: print "New line at " + str(x) + " " + str(y)
                     last_row_idx = x
                     last_col_idx = y
                     first_line_entry = False
@@ -309,7 +315,7 @@ class ClusterRegions:
 
 
                 if x is not last_row_idx:
-                    print "Found linebreak at " + str(x) + " " + str(y) + " " +str(last_col_idx) + ". fragments in this row: " + str(line_fragments_in_this_row)
+                    if self.verbose: print "Found linebreak at " + str(x) + " " + str(y) + " " +str(last_col_idx) + ". fragments in this row: " + str(line_fragments_in_this_row)
                     r = RegionLineFragment()
                     list_of_last_line_fragments.append(r)
                     new_regions[str(x)] = []
@@ -330,7 +336,7 @@ class ClusterRegions:
                     # Line break
                     # Maybe we have to merge the last line with it's predecessor
                 elif (y-last_col_idx) > self.REGION_SPLIT_SPACE_TRESHOLD+1:
-                    print "Split found at " + str(x) + " " + str(y) + " " +str(last_col_idx)
+                    if self.verbose: print "Split found at " + str(x) + " " + str(y) + " " +str(last_col_idx)
 
                     r = RegionLineFragment()
                     list_of_last_line_fragments.append(r)
@@ -351,7 +357,7 @@ class ClusterRegions:
                     line_fragment.x = x
                     line_fragment.cell_coords.append([x,y])
                     last_col_idx = y
-                print "end of for" + str(last_col_idx)
+                if self.verbose: print "end of for" + str(last_col_idx)
 
             # TODO handle the last line for merge
 
@@ -368,29 +374,38 @@ class ClusterRegions:
         # print "Dict before iteration"
         # for rl in splitted_regions:
         #     print rl + " value: " + str(splitted_regions[rl])
-        print "Analyzing last line fragments"
+        if self.verbose:
+            print "Got the following line fragments"
+            for lf in list_of_last_line_fragments:
+                print lf
+            print "Analyzing last line fragments"
         for lf in list_of_last_line_fragments:
 
             r = lf.to_region(start_color)
             if lf.x is not last_row_idx:
-                print "Linebreak in lf iter at "
+                if self.verbose: print "Linebreak in lf iter at " + str(lf) + "prev size: "+ str(len(regions_in_previous_line))
                 # if last_row_idx is not first_row_idx:
                 # Check if one of the regions has been closed ( e.g. no other region has been merged into it)
-
                 for prev_reg in regions_in_previous_line:
-                    if not prev_reg.was_merged:
+                    # Has the region been merged in the last iteration?
+                    # Or: Has the merge been in the last line, or has it been merged before that?
+                    if not prev_reg.was_merged or (prev_reg.last_merge_x!=last_row_idx):
+                        if self.verbose: print str(prev_reg) + " has not been merged. add it as closed ( " + str(prev_reg.last_merge_x) + " vs. " + str(last_row_idx) + ")"
                         regions_closed.append(prev_reg)
+                    else:
+                        if self.verbose: print str(prev_reg) + " can't be closed: " + str(prev_reg.was_merged) + " " + str(prev_reg.last_merge_x)
+
                 regions_in_previous_line = []
                 regions_in_previous_line.extend(list(regions_in_this_line))
                 for rl in regions_in_previous_line:
-                    print rl
+                    if self.verbose: print rl
                 regions_in_this_line = []
                 last_row_idx = lf.x
-                print "Linebreak -- end  "
+                if self.verbose: print "Linebreak -- end  "
 
             # Are we still in the first line? Create a region for each of the line segments
             if lf.x == first_row_idx:
-                print "first row - added " + str(r)
+                if self.verbose: print "first row - added " + str(r)
                 regions_in_this_line.append(r)
                 # regions_in_previous_line.append(r)
                 # splitted_regions[str(first_row_idx)].append(r)
@@ -398,38 +413,56 @@ class ClusterRegions:
                 # Only append if merge
                 # look into the previous line for regions
                 previous_regions = regions_in_previous_line
-                print "Looking at " + str(lf) + " which is " + str(r)
+                if self.verbose: print "Looking at " + str(lf) + " which is " + str(r)
                 line_has_been_merged = False
                 for pr in previous_regions:
-                    print "PR vs. R: " + str(pr) + "----" + str(r)
-                    if pr.merge_region_w_criteria(1,1,r):
-                        print "true - added " + str(pr)
+                    if self.verbose: print "PR vs. R: " + str(pr) + "----" + str(r)
+                    if pr.merge_region_w_criteria(1,1,r,lf.x):
+                        if self.verbose: print "true - added " + str(pr)
                         # splitted_regions[str(lf.x)].append(pr)
                         regions_in_this_line.append(pr)
                         line_has_been_merged = True
                         break
                 if not line_has_been_merged:
-                    print "Couldn't find match - added " + str(r)
+                    if self.verbose: print "Couldn't find match - added " + str(r)
                     # splitted_regions[str(lf.x)].append(r)
                     regions_in_this_line.append(r)
 
 
-            print lf
+            if self.verbose: print lf
             start_color += 1
             # print "List of new regions"
             # for rl in splitted_regions:
             #     print rl + " value: " + str(splitted_regions[rl])
         # Repeat linebreak handling
+        if self.verbose: print "Line Merging Iteration is over"
+        for prev_reg in regions_in_previous_line:
+            # Has the region already been closed?
+            # if prev_reg.is_closed:
+            #     print "REG IS CLOSED"
+            #     continue
+            # Has the region been merged in the last iteration?
+            # Or: Has the merge been in the last line, or has it been merged before that?
+            if not prev_reg.was_merged or (prev_reg.last_merge_x!=last_row_idx):
+                if self.verbose: print str(prev_reg) + " has not been merged. add it as closed ( " + str(prev_reg.last_merge_x) + " vs. " + str(last_row_idx) + ")"
+                # prev_reg.is_closed = True
+                regions_closed.append(prev_reg)
+            else:
+                if self.verbose: print str(prev_reg) + " can't be closed: " + str(prev_reg.was_merged) + " " + prev_reg.last_merge_x
+
         # if last_row_idx is not first_row_idx:
         #     regions_in_previous_line = list(regions_in_this_line)
         regions_in_previous_line = list(regions_in_this_line)
         regions_in_previous_line.extend(regions_closed)
         splitted_regions = regions_in_previous_line
 
-        print "########### "
-        print "Result: \n"
+        if self.verbose: print "########### "
+        if self.verbose: print "Result: \n"
         for rl in splitted_regions:
-            print rl
+            if self.verbose: print rl
+        if self.verbose: print "Regions Closed: \n"
+        for rl in regions_closed:
+            if self.verbose: print rl
 
         return splitted_regions
 
