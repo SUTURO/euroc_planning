@@ -123,3 +123,12 @@ def euroc_object_to_odom_combined(euroc_object):
             posestamped = manipulation.transform_to(posestamped, '/odom_combined')
             euroc_object.mpe_object.primitive_poses[i] = posestamped.pose
             euroc_object.mpe_object.header.frame_id = '/odom_combined'
+
+
+def is_handle(name, yaml):
+    filter_handle = [obj for obj in yaml.objects if len(obj.primitives) > 1]
+    for handle in filter_handle:
+        if handle.name == name:
+            return True
+
+    return False

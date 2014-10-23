@@ -1,8 +1,6 @@
 import smach
 import rospy
 from geometry_msgs.msg import PoseStamped
-from suturo_planning_manipulation import manipulation_service
-
 import utils
 from utils import hex_to_color_msg
 from suturo_planning_perception import perception
