@@ -129,7 +129,7 @@ class Manipulation(object):
         current_pose = self.__arm_group.get_current_pose()
         return current_pose
 
-    def __move_group_to(self, goal_pose, move_group):
+    def __plan_group_to(self, goal_pose, move_group):
         move_group.set_start_state_to_current_state()
         goal = deepcopy(goal_pose)
         if type(goal) is str:
@@ -137,16 +137,41 @@ class Manipulation(object):
         elif type(goal) is PoseStamped:
             visualize_poses([goal])
 
-            #Rotate the goal so that the gripper points from 0,0,0 to 1,0,0 with a 0,0,0,1 quaternion as orientation.
-            goal.pose.orientation = rotate_quaternion(goal.pose.orientation, pi/2, pi, pi/2)
+            # Rotate the goal so that the gripper points from 0,0,0 to 1,0,0 with a 0,0,0,1 quaternion as orientation.
+            goal.pose.orientation = rotate_quaternion(goal.pose.orientation, pi / 2, pi, pi / 2)
             goal = self.tf.transform_to(goal)
 
             move_group.set_pose_target(goal)
         else:
             move_group.set_joint_value_target(goal)
-
         path = move_group.plan()
+        return path
+
+    def plan_to(self, goal_pose):
+        '''
+        Moves the endeffector to the goal position, without moving the base.
+        :param goal_pose: goal position as PoseStamped
+        :return: success of the movement
+        '''
+        return self.__plan_group_to(goal_pose, self.__arm_group)
+
+    def plan_arm_and_base_to(self, goal_pose):
+        '''
+        Moves the endeffector to the goal position. (Don't use this for Task 1 and 2)
+        :param goal_pose: goal position as PoseStamped
+        :return: success of the movement
+        '''
+        return self.__plan_group_to(goal_pose, self.__arm_base_group)
+
+    def __move_group_to(self, goal_pose, move_group):
+        path = self.__plan_group_to(goal_pose, move_group)
         return self.__manService.move(path)
+
+    def get_timing_to(self, goal_pose):
+        return self.__plan_group_to(goal_pose, self.__arm_group)
+
+    def get_timing_arm_and_base_to(self, goal_pose):
+        return self.__plan_group_to(goal_pose, self.__arm_base_group)
 
     def get_current_joint_state(self):
         '''

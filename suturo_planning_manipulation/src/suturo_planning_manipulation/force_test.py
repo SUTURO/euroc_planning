@@ -16,6 +16,37 @@ def get_position(pose):
     l.append(pose.primitive_poses[0].position.z)
     return l
 
+
+def test_extrapolation(dir, m, pose1, pose2, service, time1, time_12):
+    # this stuff is done to test the accuracy of the extrapolation
+    # wait some time to get the expected position
+    rospy.sleep(Duration.from_sec(5))
+    resp = service("centroid,cuboid")
+    object3 = resp.objects[0].object
+    time3 = resp.stamp
+    pose3 = m.transform_to(object3)
+    # Get the duration between the first perception and now
+    time_13 = time3 - time1
+    # get the relation between the first and second duration
+    diff_time = float(time_13.to_sec()) / float(time_12.to_sec())
+    # table = [["stamps: ", time1, time2, time3], ["duration: ", time_12, time_13, diff_time]]
+    # print tabulate(table)
+    # calculate the new longer vector (scalar multiplication by hand)
+    dir_13 = numpy.array([diff_time * dir[0], diff_time * dir[1]])
+    # add this new vector on the points from the first perception
+    pose_comp = copy.deepcopy(pose1)
+    pose_comp.primitive_poses[0].position.x += dir_13[0]
+    pose_comp.primitive_poses[0].position.y += dir_13[1]
+    pose_comp.id = "red_cube"
+    print pose_comp
+    # print out the table for the different poses for debug
+    table = [get_position(pose1), get_position(pose2), get_position(pose3), get_position(pose_comp)]
+    print tabulate(table)
+    dev = get_position(pose3)[1] / get_position(pose_comp)[1] * 100
+    print dev
+    return pose_comp
+
+
 def pos_calc_test(m):
     # create service
     service = rospy.ServiceProxy("/suturo/GetGripper", GetGripper)
@@ -38,37 +69,30 @@ def pos_calc_test(m):
     # get the duration between the two looks
     time_12 = time2 - time1
 
-    # this stuff is done to test the accuracy of the extrapolation
-    # wait some time to get the expected position
-    rospy.sleep(Duration.from_sec(5))
-    resp = service("centroid,cuboid")
-    object3 = resp.objects[0].object
-    time3 = resp.stamp
-    pose3 = m.transform_to(object3)
-    # Get the duration between the first perception and now
-    time_13 = time3 - time1
-    # get the relation between the first and second duration
-    diff_time = float(time_13.to_sec()) / float(time_12.to_sec())
-    # table = [["stamps: ", time1, time2, time3], ["duration: ", time_12, time_13, diff_time]]
-    # print tabulate(table)
-    # calculate the new longer vector (scalar multiplication by hand)
+    # set the time in 5 secs
+    t_5 = rospy.Time.now() + rospy.Duration(5)
+    diff_time = float(t_5.to_sec()) / float(time_12.to_sec())
     dir_13 = numpy.array([diff_time * dir[0], diff_time * dir[1]])
     # add this new vector on the points from the first perception
     pose_comp = copy.deepcopy(pose1)
     pose_comp.primitive_poses[0].position.x += dir_13[0]
     pose_comp.primitive_poses[0].position.y += dir_13[1]
-    table = [get_position(pose1), get_position(pose2), get_position(pose3), get_position(pose_comp)]
-    print tabulate(table)
-    # the percentage of deviation is returned
-    dev = get_position(pose3)[1] / get_position(pose_comp)[1] * 100
-    print dev
-    return dev
+    pose_comp.id = "red_cube"
+    print pose_comp
+    # print out the table for the different poses for debug
+    # table = [get_position(pose1), get_position(pose2), get_position(pose3), get_position(pose_comp)]
+    # print tabulate(table)
+    # dev = get_position(pose3)[1] / get_position(pose_comp)[1] * 100
+    # print dev
+    return pose_comp
+    # return test_extrapolation(dir, m, pose1, pose2, service, time1, time_12)
 
 
 
 if __name__ == '__main__':
     rospy.init_node('force_test', anonymous=True)
     m = Manipulation()
+    ps = m.get_planning_scene()
     # m.open_gripper()
     # t_point = geometry_msgs.msg.PoseStamped()
     # t_point.header.frame_id = "/odom_combined"
@@ -82,4 +106,18 @@ if __name__ == '__main__':
     # while not rospy.is_shutdown():
     # print tfs.get_values()
     # r.sleep()
-    pos_calc_test(m)
+    m.move_to("scan_conveyor_pose1")
+    obj = pos_calc_test(m)
+    ps.add_object(obj)
+    t_point = geometry_msgs.msg.PoseStamped()
+    t_point.header.frame_id = "/odom_combined"
+    t_point.header.stamp = rospy.Time.now()
+    t_point.pose.position = obj.primitive_poses[0].position
+    t_point.pose.position.z += 0.2
+    t_point.pose.orientation = geometry_msgs.msg.Quaternion(0, 0, 0, 1)
+    print t_point
+    # bla = m.get_timing_to(t_point)
+    # print bla
+    # last = bla.joint_trajectory.points[len(bla.joint_trajectory.points) - 1].time_from_start
+    # print last.to_sec()
+    m.move_to(t_point)
