@@ -43,22 +43,29 @@ class ScanMapArmCam(smach.State):
         regions.sort(key=lambda r: -r.get_number_of_cells())
 
 
-        i = 0
-        r_id = 0
         boarder_cells = []
         for i in range(len(regions)):
             boarder_cells.append(utils.map.get_boarder_cells_points(regions[i]))
             #evt mit dem punkt anfangen der am weitesten von der mitte weg ist?
-            boarder_cells[-1].sort(key=lambda cp: euclidean_distance(cp, last_point))
+            boarder_cells[-1].sort(key=lambda cp: -euclidean_distance(cp, last_point))
+
+        # id = min(range(len(boarder_cells)), key=lambda id: euclidean_distance(boarder_cells[id][-1], last_point))
+
+        # next_point = boarder_cells[id][-1]
+        # boarder_cells[id].remove(next_point)
+        i = 0
+        r_id = 0
 
         while reduce(lambda l, bc: l + len(bc), boarder_cells, 0) > 0 and utils.map.get_percent_cleared() < 0.9:
-            if len(boarder_cells[r_id]) == 0:
+            if len(boarder_cells[r_id]) == 0 or i >= 1:
+                print "muh??? ", r_id
                 r_id += 1
                 r_id = r_id % len(regions)
                 i = 0
                 continue
 
-            next_point = boarder_cells[r_id][0]
+            next_point = boarder_cells[r_id].pop()
+
             cell_x = next_point.x
             cell_y = next_point.y
             utils.map.mark_cell(cell_x, cell_y, True)
@@ -93,13 +100,16 @@ class ScanMapArmCam(smach.State):
                 self.last_scanned_point = next_point
                 return 'newImage'
             utils.map.mark_cell(next_point.x, next_point.y, False)
-            boarder_cells[r_id].remove(next_point)
-            i += 1
-            if i >= 1:
 
-                r_id += 1
-                r_id = r_id % len(regions)
-                i = 0
+            # boarder_cells[r_id].remove(next_point)
+            i += 1
+            # if i >= 1:
+            #     r_id += 1
+            #     r_id = r_id % len(regions)
+            #     i = 0
+            # if len(boarder_cells[r_id]) == 0:
+            #     continue
+            # next_point = boarder_cells[r_id].pop()
 
         rospy.loginfo("can't update map any further")
         utils.map.all_unknowns_to_obstacle()
