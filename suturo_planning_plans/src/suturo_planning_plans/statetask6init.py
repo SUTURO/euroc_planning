@@ -1,7 +1,12 @@
 import smach
 import rospy
 from suturo_msgs.msg import Task
+from geometry_msgs.msg._PoseStamped import PoseStamped
+from geometry_msgs.msg._Quaternion import Quaternion
+from geometry_msgs.msg._Point import Point
 import utils
+from suturo_planning_manipulation.manipulation import Manipulation
+
 
 class Task6Init(smach.State):
     def __init__(self):
@@ -12,12 +17,46 @@ class Task6Init(smach.State):
     def execute(self, userdata):
         rospy.loginfo('Executing state CamToDropzone')
 
+        if utils.manipulation is None:
+            utils.manipulation = Manipulation()
+            rospy.sleep(2)
+
         # TODO: 1. Foerderband in PS haun, wenns noch nicht drin ist.
         subscriber = rospy.Subscriber("suturo/yaml_pars0r", Task, self.addConveyorBelt)
+        # 1: Dropzone Punkt ueber Vektor dp finden
+        # 2: Breite des Bandes ueber 2*drop_deviation[1] bestimmen
+        # 3: Hoehe des Bandes ueber drop_center_point[2] (z wert) + Banddicke (0.01m) holen
+        # 4: Lange des Bandes mit mdl Vektor bestimmen + 0.10m fuer Laenge hinter dem dp Vektor
+        # 5: Orientierung de Bandes mit mdl Vektor bestimmen
 
         return 'fail'
 
     def addConveyorBelt(self, msg):
-        conveyorBeltMsg = msg.conveyorBelt
-        ps = utils.manipulation.get_planning_scene()
+        print "addConveyorBelt callback"
+        # print msg
+        # zu 1
+        drop_point = msg.conveyor_belt.drop_center_point
+        print drop_point
+        # zu 2
+        conveyor_belt_width = msg.conveyor_belt.drop_deviation.z * 2
+        print conveyor_belt_width
+        # zu 3
+        conveyor_belt_height = drop_point.z
+        print conveyor_belt_height
+        # zu 4
+        conveyor_belt_length = msg.conveyor_belt.move_direction_and_length.y
+        print conveyor_belt_length
+
+        pose = PoseStamped()
+        pose.header.frame_id = "/odom_combined"
+        # h w d
+        pose.pose.position = Point(drop_point.x - (abs(conveyor_belt_width * 2)),
+                                   (drop_point.y - (abs(conveyor_belt_length / 2)) + 0.05),
+                                   drop_point.z - 0.01)
+        pose.pose.orientation = Quaternion(0, 0, 0, 1)
+
+        cb_size = [conveyor_belt_height, (conveyor_belt_length - 0.1), conveyor_belt_width]
+
+        co = utils.manipulation.get_planning_scene().make_box("conveyor_belt", pose, cb_size)
+        utils.manipulation.get_planning_scene().add_object(co)
         pass

@@ -19,36 +19,10 @@ class Task6(smach.StateMachine):
 
         with self:
             smach.StateMachine.add('Task6Init', Task6Init(),
-                                   transitions={'success': CamToDropzone,
+                                   transitions={'success': 'success',
                                                 'fail': 'fail'})
 
-            # TODO: Was tun wenn das failed? Wie stell ich fest, dass wir durch sind?
-            smach.StateMachine.add('CamToDropzone', CamToDropzone(),
-                                   transitions={'success': 'ClassifyObjects',
-                                                'fail': 'success'})
 
-            # TODO: Brauchen wir das Objekt in der Planningscene
-            smach.StateMachine.add('ClassifyObjects', ClassifyObjects(),
-                                   transitions={'objectsClassified': 'GraspObject',
-                                                'noObject': 'fail'})
-
-            # Wird zu GraspObjectTask6 und ueberlegen, was bei den einzelnen Dingen genau passieren soll (Benny)
-            smach.StateMachine.add('GraspObject', GraspObject(),
-                                   transitions={'success': 'PlaceObject',
-                                                'objectNotInPlanningscene': 'ClassifyObjects',
-                                                'fail': 'ChooseObject'})
-
-            smach.StateMachine.add('PlaceObject', PlaceObject(),
-                                   transitions={'success': 'CheckPlacement',
-                                                'fail': 'ChooseObject',
-                                                'noObjectAttached': 'GraspObject',
-                                                'noPlacePosition': 'PlaceObject'},
-                                   remapping={'target_position': 'place_position'})
-
-            # Ist das zwingend noetig?
-            smach.StateMachine.add('CheckPlacement', CheckPlacement(),
-                                   transitions={'onTarget': 'CamToDropzone',
-                                                'notOnTarget': 'GraspObject'})
 
         self.userdata.objects_found = []
         self.userdata.pending_objects = []
