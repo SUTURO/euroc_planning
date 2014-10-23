@@ -3,7 +3,7 @@ from suturo_planning_plans.stateclassifyobject import ClassifyObjects
 from suturo_planning_plans.statesearchobject import SearchObject
 from suturo_planning_plans.statetidyupobject import TidyUpObject
 from suturo_planning_plans.statechooseobject import ChooseObject
-from suturo_planning_plans.statefocusobjects import FocusObjects, FocusObject
+from suturo_planning_plans.statefocusobjects import FocusObjects, FocusObject, RefocusHandle
 from suturo_planning_plans.stateposeestimateobject import PoseEstimateObject
 from suturo_planning_plans.stateturn import Turn
 
@@ -28,13 +28,25 @@ class Task1(smach.StateMachine):
                                                 'noObject': 'SearchObject'})
             smach.StateMachine.add('FocusObjects', FocusObjects(),
                                    transitions={'success': 'SearchObject',
-                                                'nextObject': 'FocusObject',
+                                                'focusObject': 'FocusObject',
+                                                'focusHandle': 'FocusHandle',
                                                 'fail': 'SearchObject'},
                                    remapping={'objects_to_focus': 'classified_objects'})
             smach.StateMachine.add('FocusObject', FocusObject(),
                                    transitions={'success': 'PoseEstimateObject',
-                                                'fail': 'FocusObjects'},
+                                                'fail': 'FocusObjects',
+                                                'retry': 'FocusObject'},
                                    remapping={'objects_to_focus': 'classified_objects'})
+            smach.StateMachine.add('FocusHandle', FocusObject(),
+                                   transitions={'success': 'ClassifyHandle',
+                                                'fail': 'FocusObjects',
+                                                'retry': 'FocusHandle'})
+            smach.StateMachine.add('ClassifyHandle', ClassifyObjects(),
+                                   transitions={'objectsClassified': 'RefocusHandle',
+                                                'noObject': 'FocusObjects'})
+            smach.StateMachine.add('RefocusHandle', RefocusHandle(),
+                                   transitions={'focusHandle': 'FocusObject',
+                                                'noHandle': 'FocusObject'})
             smach.StateMachine.add('PoseEstimateObject', PoseEstimateObject(),
                                    transitions={'success': 'FocusObjects',
                                                 'fail': 'FocusObjects'})
