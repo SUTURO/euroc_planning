@@ -17,7 +17,7 @@ def handle_uncaught_exception(e):
     rospy.signal_shutdown('Terminating Task due to unhandled exception.')
 
 
-def toplevel_plan(init_sim, task_list, savelog):
+def toplevel_plan(init_sim, task_list, savelog, initialization_time):
 
     # Create a SMACH state machine
     toplevel = smach.StateMachine(outcomes=['success', 'fail'])
@@ -26,7 +26,8 @@ def toplevel_plan(init_sim, task_list, savelog):
     with toplevel:
         for task_name in task_list:
             rospy.logdebug('Adding task: %s', task_name)
-            smach.StateMachine.add('Execute%s' % task_name, EurocTask(init_sim, task_name, savelog),
+            smach.StateMachine.add('Execute%s' % task_name,
+                                   EurocTask(init_sim, task_name, savelog, initialization_time),
                                    transitions={'success': 'success',
                                                 'fail': 'fail'})
 
@@ -61,10 +62,10 @@ def toplevel_plan(init_sim, task_list, savelog):
 
 
 class EurocTask(smach.StateMachine):
-    def __init__(self, init_sim, task_name, savelog):
+    def __init__(self, init_sim, task_name, savelog, initialization_time):
         self.savelog = savelog
-        smach.StateMachine.__init__(self, outcomes=['success', 'fail'])
-
+        smach.StateMachine.__init__(self, input_keys=[], outcomes=['success', 'fail'])
+        self.userdata.initialization_time = initialization_time
         # Associate the task name with a state machine
         plans = {'task1': task1.Task1,
                  'task2': task1.Task1,
@@ -114,9 +115,10 @@ class EurocTask(smach.StateMachine):
 class InitSimulation(smach.StateMachine):
     def __init__(self, task_name):
         smach.StateMachine.__init__(self, outcomes=['success', 'fail'],
-                                    input_keys=[],
+                                    input_keys=['initialization_time'],
                                     output_keys=['objects_found', 'yaml', 'perception_process', 'manipulation_process',
-                                                 'classifier_process'])
+                                                 'classifier_process', 'perception_logger_process',
+                                                 'manipulation_logger_process', 'classifier_logger_process'])
         with self:
             # if task_name.split('_')[0] == 'task6':
             #    rospy.loginfo("Task 6 Perception started")

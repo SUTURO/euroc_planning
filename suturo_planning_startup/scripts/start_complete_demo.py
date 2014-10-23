@@ -2,10 +2,29 @@
 
 import getopt
 import sys
+import signal
+import os
 import re
 import rospy
+import atexit
+from suturo_planning_plans import utils
+from datetime import datetime
 from euroc_c2_msgs.srv import ListScenes
 import subprocess
+
+__initialization_time = datetime.now().isoformat(' ')
+subproc = 0
+logger_process = 0
+
+
+def exit_handler():
+    try:
+        os.killpg(subproc.pid, signal.SIGTERM)
+        os.killpg(logger_process.pid, signal.SIGTERM)
+    except:
+        pass
+
+atexit.register(exit_handler)
 
 
 def start_demo(wait, tasks):
@@ -29,11 +48,29 @@ def start_demo(wait, tasks):
 
     print('Going to execute the following tasks: ' + str(tasks_to_execute))
     for task in tasks_to_execute:
+        init_time = __initialization_time + ' ' + task
         if wait:
             raw_input('Starting task ' + str(task) + '. Press ENTER.')
-        subproc = subprocess.Popen('rosrun suturo_planning_startup start_task.py ' + task + ' --plan --init --save --no-ts', shell=True)
+        print('Starting task ' + str(task))
+        global subproc
+        subproc = subprocess.Popen('rosrun suturo_planning_startup start_task.py ' + task +
+                                   ' --plan --init --save --no-ts --inittime="' + init_time + '"',
+                                   shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
+        print('Starting logger.')
+        global logger_process
+        logger_process = subprocess.Popen('./logger.py "' + utils.log_dir + '/' + init_time +
+                                          ' Complete.log"', stdin=subproc.stdout, shell=True)
         subproc.wait()
-
+        print('Killing logger.')
+        try:
+            os.kill(logger_process.pid, signal.SIGTERM)
+        except:
+            print('Could not kill logger with pid ' + str(logger_process.pid))
+            print('Trying to force kill.')
+            try:
+                os.kill(logger_process.pid, signal.SIGINT)
+            except:
+                print('Still not possible to kill logger.')
 
 def main(argv):
     usage = 'usage: start_complete_demo [--tasks=<tasks you want to execute> [-w]\n\n' \
@@ -43,6 +80,8 @@ def main(argv):
     tasks = ':'
     try:
         opts, args = getopt.getopt(argv, 'hw', ['tasks='])
+        #print ('opts: ' + str(opts))
+        #print ('args: ' + str(args))
     except getopt.GetoptError:
         print usage
         sys.exit(2)

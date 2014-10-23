@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 import os
+import getopt
 import subprocess
 import signal
 import atexit
+from datetime import datetime
 import sys
 import rospy
 from suturo_planning_task_selector import start_task, stop_task, save_task
@@ -15,10 +17,9 @@ _pro_task_selector = None
 _save_log = False
 
 
-def main(task, with_plan, init_sim, savelog, no_taskselector):
+def main(task, with_plan, init_sim, savelog, no_taskselector, initialization_time):
 
     # signal.signal(signal.SIGINT, exit_handler)
-
     if init_sim and not no_taskselector:
         #Taskselector
         print "Starting task_selector"
@@ -31,7 +32,7 @@ def main(task, with_plan, init_sim, savelog, no_taskselector):
     if with_plan:
         rospy.init_node('suturo_planning_execution', log_level=rospy.DEBUG)
         rospy.loginfo('Started plan')
-        toplevel_plan(init_sim, [task], savelog)
+        toplevel_plan(init_sim, [task], savelog, initialization_time)
     else:
         rospy.init_node('suturo_planning_start_task', log_level=rospy.DEBUG)
         #Start tasks
@@ -66,8 +67,24 @@ def exit_handler():
 if '--init' in sys.argv:
     rospy.on_shutdown(rospy_exit_handler)
 
-
 if __name__ == '__main__':
-    if '--save' in sys.argv:
-        _save_log = True
-    main(sys.argv[1], '--plan' in sys.argv, '--init' in sys.argv, _save_log, '--no-ts' in sys.argv)
+    task = sys.argv[1]
+    argv = sys.argv[2:]
+    try:
+        opts, args = getopt.getopt(argv, '', ['save', 'plan', 'init', 'no-ts', 'inittime='])
+    except getopt.GetoptError:
+        sys.exit(2)
+    #print ('opts: ' + str(opts))
+    #print ('args: ' + str(args))
+    __initialization_time = None
+    for opt, arg in opts:
+        print ('opt: ' + str(opt))
+        print ('arg: ' + str(arg))
+        if opt == '--save':
+            _save_log = True
+        elif opt == '--inittime':
+            __initialization_time = arg
+
+    if __initialization_time is None:
+        __initialization_time = datetime.now().isoformat(' ')
+    main(task, '--plan' in sys.argv, '--init' in sys.argv, _save_log, '--no-ts' in sys.argv, __initialization_time)

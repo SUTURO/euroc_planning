@@ -1,4 +1,5 @@
 import rospy
+import os
 import struct
 import math
 from std_msgs.msg import ColorRGBA
@@ -11,6 +12,11 @@ from math import pi
 # Holds the manipulation object
 manipulation = None
 map = None
+initialization_time = None
+log_dir = '/tmp/euroc_c2'
+
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
 
 focus_poses = [[0.6, pi / 4.0], [0.6, pi / 3.0], [0.6, pi / 5.0], [0.7, pi / 4.0], [0.5, pi / 4.0], [0.4, pi / 4.0]]
 
