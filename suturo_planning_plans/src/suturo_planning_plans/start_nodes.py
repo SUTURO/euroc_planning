@@ -29,6 +29,8 @@ class StartManipulation(smach.State):
                              output_keys=['manipulation_process', 'manipulation_logger_process'])
 
     def execute(self, userdata):
+        rospy.loginfo('Executing TestNode init.')
+        subprocess.Popen('rosrun euroc_launch TestNode --init', shell=True)
         rospy.loginfo('Executing state StartManipulation')
         global manipulation_process
         manipulation_process = subprocess.Popen('roslaunch euroc_launch manipulation.launch',
@@ -100,7 +102,7 @@ class StartClassifier(smach.State):
     def execute(self, userdata):
         rospy.loginfo('Executing state StartClassifier')
         global classifier_process
-        classifier_process = subprocess.Popen('rosrun suturo_perception_classifier obstacle_classifier.py',
+        classifier_process = subprocess.Popen('rosrun suturo_perception_classifier classifier.py',
                                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                               shell=True, preexec_fn=os.setsid)
         userdata.classifier_process = classifier_process
@@ -152,11 +154,19 @@ class StopSimulation(smach.State):
     def __init__(self, savelog):
         self.savelog = savelog
         smach.State.__init__(self, outcomes=['success', 'fail'],
-                             input_keys=['yaml'],
+                             input_keys=['yaml', 'initialization_time'],
                              output_keys=[])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state StopSimulation')
+        rospy.loginfo('Executing TestNode check.')
+        test_node = subprocess.Popen('rosrun euroc_launch TestNode --check', shell=True,
+                                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        test_node_logger = subprocess.Popen('./logger.py "' + utils.log_dir + '/' + userdata.initialization_time +
+                                            ' TestNode check.log"', shell=True, stdin=test_node.stdout)
+        test_node.wait()
+        rospy.loginfo('Killing TestNode logger.')
+        os.kill(test_node_logger.pid, signal.SIGTERM)
         if self.savelog:
             save_task()
         stop_task()
