@@ -1,13 +1,16 @@
+from geometry_msgs.msg._Point import Point
 import smach
 import rospy
 from geometry_msgs.msg import PoseStamped
+from suturo_planning_manipulation.mathemagie import set_vector_length, add_point
 from suturo_planning_search.map import Map
 
 import utils
 from utils import hex_to_color_msg
 from suturo_planning_manipulation.manipulation import Manipulation
 from suturo_planning_perception import perception
-from math import pi
+from math import *
+
 
 class ScanMapMastCam(smach.State):
 
@@ -23,8 +26,8 @@ class ScanMapMastCam(smach.State):
             rospy.sleep(2)
 
         utils.map = Map(2)
-        arm_base = utils.manipulation.get_base_origin()
-        print arm_base
+        # arm_base = utils.manipulation.get_base_origin()
+
         utils.manipulation.pan_tilt(0.2, 0.5)
         rospy.sleep(4)
         utils.map.add_point_cloud(scene_cam=True)
@@ -47,6 +50,26 @@ class ScanMapMastCam(smach.State):
         # utils.manipulation.pan_tilt(0, 0.6)
         # rospy.sleep(5)
         utils.map.add_point_cloud(scene_cam=True)
+
+        n = 8
+        utils.manipulation.pan_tilt(0, 0.45)
+        for i in range(0, n):
+            a = 2 * pi * ((i + 0.0) / (n + 0.0))
+
+            goal_base_pose = PoseStamped()
+            goal_base_pose.header.frame_id = "/odom_combined"
+
+            goal_base_pose.pose.position= Point(cos(a), sin(a), 0)
+            if goal_base_pose.pose.position.x < 0 and goal_base_pose.pose.position.y < 0:
+                continue
+            goal_base_pose.pose.position = set_vector_length(0.25, goal_base_pose.pose.position)
+
+            goal_base_pose.pose.orientation.w = 1
+
+            if utils.manipulation.move_base(goal_base_pose):
+                rospy.sleep(4)
+                utils.map.add_point_cloud(arm_origin=utils.manipulation.get_base_origin().point, scene_cam=True)
+                break
 
         # utils.map.add_point_cloud(arm_origin=arm_base, scene_cam=True)
         # utils.map.add_point_cloud(arm_origin=arm_base, scene_cam=True)

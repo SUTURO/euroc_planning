@@ -26,7 +26,7 @@ class ScanMapArmCam(smach.State):
                              output_keys=[])
 
     def execute(self, userdata):
-        rospy.loginfo('Executing state ScanMapMastCam')
+        rospy.loginfo('Executing state ScanMapArmCam')
 
         if self.finished:
             return 'mapScanned'
@@ -56,27 +56,35 @@ class ScanMapArmCam(smach.State):
         i = 0
         r_id = 0
 
-        while reduce(lambda l, bc: l + len(bc), boarder_cells, 0) > 0 and utils.map.get_percent_cleared() < 0.9:
-            if len(boarder_cells[r_id]) == 0 or i >= 1:
-                print "muh??? ", r_id
+        while reduce(lambda l, bc: l + 0 if len(bc) <= 1 else len(bc), boarder_cells, 0) > 0 and utils.map.get_percent_cleared() < 0.9:
+            if len(boarder_cells[r_id]) <= 1  or i >= 1:
                 r_id += 1
                 r_id = r_id % len(regions)
                 i = 0
                 continue
 
-            next_point = boarder_cells[r_id].pop()
+            if i >= 2:
+                next_point = boarder_cells[r_id][randint(0, len(boarder_cells[r_id])-1)]
+            else:
+                next_point = boarder_cells[r_id][-1]
+
+            boarder_cells[r_id].remove(next_point)
 
             cell_x = next_point.x
             cell_y = next_point.y
             utils.map.mark_cell(cell_x, cell_y, True)
-            next_point.z = 0.085
-            poses = make_scan_pose(next_point, 0.5, 0.7, n=16)
+            next_point.z = 0.075
+            poses = make_scan_pose(next_point, 1, 0.8, n=16)
             for (c, x, y) in utils.map.get_surrounding_cells8(cell_x, cell_y):
                 if not c.is_free():
                     p = Point(x, y, 0)
                     p2 = Point(cell_x, cell_y, 0)
                     cell_to_p = subtract_point(p, p2)
-                    poses = filter(lambda pose: get_angle(cell_to_p, subtract_point(Point(pose.pose.position.x, pose.pose.position.y, 0), p2)) > pi/4, poses)
+                    #filter poses that are pointing to unknowns or obstacles
+                    poses = filter(lambda pose: get_angle(cell_to_p, subtract_point(Point(pose.pose.position.x, pose.pose.position.y, 0), p2)) >= pi/4, poses)
+                    #filter poses that are outside of the table
+                    poses = filter(lambda pose: -2.0 <= pose.pose.position.x <= 2.0 and -2.0 <= pose.pose.position.y <= 2.0, poses)
+
             # eef_pose = utils.manipulation.get_eef_position()
             poses.sort(key=lambda pose: -euclidean_distance( Point(*(utils.map.index_to_coordinates(*regions[r_id].get_avg())+(0,))), Point(pose.pose.position.x, pose.pose.position.y, 0)))
             visualize_poses(poses)
@@ -101,15 +109,7 @@ class ScanMapArmCam(smach.State):
                 return 'newImage'
             utils.map.mark_cell(next_point.x, next_point.y, False)
 
-            # boarder_cells[r_id].remove(next_point)
             i += 1
-            # if i >= 1:
-            #     r_id += 1
-            #     r_id = r_id % len(regions)
-            #     i = 0
-            # if len(boarder_cells[r_id]) == 0:
-            #     continue
-            # next_point = boarder_cells[r_id].pop()
 
         rospy.loginfo("can't update map any further")
         utils.map.all_unknowns_to_obstacle()

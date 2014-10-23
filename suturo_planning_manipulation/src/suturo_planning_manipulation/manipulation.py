@@ -42,7 +42,7 @@ class Manipulation(object):
         self.__gripper_group = moveit_commander.MoveGroupCommander("gripper")
 
         self.__base_group = moveit_commander.MoveGroupCommander("base")
-        self.__base_group.set_planning_time(10)
+        self.__base_group.set_planning_time(2.5)
 
         self.__arm_base_group = moveit_commander.MoveGroupCommander("arm_base")
         self.__arm_base_group.set_planning_time(10)

@@ -40,7 +40,7 @@ class ScanObstacles(smach.State):
         # print region_centroid
 
 
-        poses = make_scan_pose(region_centroid, 0.55, 0.7, n=16)
+        poses = make_scan_pose(region_centroid, 0.6, 0.7, n=16)
         visualize_poses(poses)
         for pose in poses:
             if utils.manipulation.move_arm_and_base_to(pose):

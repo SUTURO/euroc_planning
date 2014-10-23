@@ -40,7 +40,8 @@ class Task4(smach.StateMachine):
 
             smach.StateMachine.add('FocusObjects', FocusObjects(),
                                    transitions={'success': 'SearchObject',
-                                                'nextObject': 'PoseEstimateObject',
+                                                'focusObject': 'PoseEstimateObject',
+                                                'focusHandle': 'PoseEstimateObject',
                                                 'fail': 'SearchObject'},
                                    remapping={'objects_to_focus': 'classified_objects'})
 

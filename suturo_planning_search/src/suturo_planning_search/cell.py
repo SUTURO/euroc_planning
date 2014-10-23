@@ -30,7 +30,7 @@ class Cell:
         self.highest_z = 0
         self.points = 0
         self.segment_id = 0
-        self.threshold_min_points = 65
+        self.threshold_min_points = 15
         self.marked = False
         # self.object = False
         self.state = self.Unknown

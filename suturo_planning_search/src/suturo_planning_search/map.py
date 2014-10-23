@@ -165,9 +165,10 @@ class Map:
                         elif self.is_cell_alone(x, y):
                             self.get_cell_by_index(x, y).set_free()
                             cell_changed = True
+        self.publish_as_marker()
 
     def is_cell_alone(self, x_index, y_index):
-        return reduce(lambda yes, c: yes and c[0].is_free(), self.get_surrounding_cells8_by_index(x_index, y_index), True)
+        return reduce(lambda yes, c: yes and c[0].is_free(), self.get_surrounding_cells_by_index(x_index, y_index), True)
 
     def is_cell_surrounded_by_obstacles(self, x_index, y_index):
         sc = self.get_surrounding_cells_by_index(x_index, y_index)
@@ -203,7 +204,7 @@ class Map:
         return co
 
     def get_average_z_of_surrounded_obstacles(self, x_index, y_index):
-        (z, n) = reduce(lambda (z, n), x: (z + x[0].highest_z, n+1) if x[0].is_obstacle() else (z,n), self.get_surrounding_cells_by_index(x_index, y_index), (0.0, 0.0))
+        (z, n) = reduce(lambda (z, n), x: (z + x[0].highest_z, n+1) if x[0].is_obstacle() else (z,n), self.get_surrounding_cells8_by_index(x_index, y_index), (0.0, 0.0))
         if z == 0:
             return 1
         else:
@@ -231,7 +232,7 @@ class Map:
             (p.x, p.y) = self.index_to_coordinates(x_index, y_index)
             if self.field[x_index][y_index].is_unknown():
                 sc = self.get_surrounding_cells8_by_index(x_index, y_index)
-                if reduce(lambda free, c: free or c[0].is_free(), sc, False) and reduce(lambda unknown, c: unknown + 1 if c[0].is_unknown() else unknown, sc, 0) < 7:
+                if reduce(lambda free, c: free or c[0].is_free(), sc, False) and reduce(lambda not_free, c: not_free + 1 if not c[0].is_free() else not_free, sc, 0) < 7:
                     boarder_cells.append(p)
 
         # boarder_cells.sort()
@@ -243,7 +244,9 @@ class Map:
             for y in xrange(self.num_of_cells):
                 if self.get_cell_by_index(x, y).is_unknown():
                     num_unknowns =+ 1
-        return num_unknowns / (self.num_of_cells**2)
+        percent = num_unknowns / (self.num_of_cells**2)
+        print percent, " \% cleared."
+        return percent
 
     def get_next_point(self, arm_x = 0, arm_y = 0):
         cm = ClusterRegions()

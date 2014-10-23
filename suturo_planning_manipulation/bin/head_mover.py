@@ -106,15 +106,15 @@ def test_task3(mani):
 if __name__ == '__main__':
     rospy.init_node('head_mover', anonymous=True)
 
-    # m = Manipulation()
-    # m.pan_tilt(-0.2, 0.5)
+    m = Manipulation()
+    m.pan_tilt(0, 0.45)
     # m.close_gripper()
-    t_point = geometry_msgs.msg.PoseStamped()
-    t_point.header.frame_id = "/odom_combined"
-    p = Point(1,1,0)
-    t_point.pose.position = p
-    t_point.pose.orientation = three_points_to_quaternion(p, Point(0,0,1))
-    visualize_poses([t_point])
+    # t_point = geometry_msgs.msg.PoseStamped()
+    # t_point.header.frame_id = "/odom_combined"
+    # p = Point(1,1,0)
+    # t_point.pose.position = p
+    # t_point.pose.orientation = three_points_to_quaternion(p, Point(0,0,1))
+    # visualize_poses([t_point])
     # m.move_to(t_point)
 
 
