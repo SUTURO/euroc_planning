@@ -13,7 +13,7 @@ class FocusObjects(smach.State):
 
     def __init__(self):
         smach.State.__init__(self, outcomes=['success', 'fail', 'nextObject'],
-                             input_keys=['yaml', 'objects_to_focus', 'fitted_object', 'cell_coords'],
+                             input_keys=['yaml', 'objects_to_focus', 'fitted_object'],
                              output_keys=['object_to_focus', 'fitted_objects'])
 
     def execute(self, userdata):
@@ -25,12 +25,11 @@ class FocusObjects(smach.State):
         elif not userdata.fitted_object is None:
             self._fitted_objects.append(userdata.fitted_object)
 
-            #clear region for task 4
-            if not len(userdata.cell_coords) == 0:
-                for coord in userdata.cell_coords:
-                    utils.map.get_cell_by_index(*coord).set_object()
-                    co = utils.map.to_collision_object()
-                    utils.manipulation.get_planning_scene().add_object(co)
+            if not utils.map is None:
+                position = userdata.fitted_object.mpe_object.primitive_poses[0]
+                utils.map.mark_region_as_object_under_point(position.x, position.y)
+                co = utils.map.to_collision_object()
+                utils.manipulation.get_planning_scene().add_object(co)
 
         # If there are no more objects to focus
         if not self._objects_to_focus:

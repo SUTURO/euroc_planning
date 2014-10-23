@@ -21,7 +21,7 @@ class ScanObstacles(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['mapScanned', 'noRegionLeft', 'newImage'],
                              input_keys=[],
-                             output_keys=['region'])
+                             output_keys=[])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state ScanObstacles')
@@ -50,7 +50,7 @@ class ScanObstacles(smach.State):
 
                 rospy.logdebug('Wait for tf again.')
                 rospy.sleep(4)
-                userdata.region = current_region.cell_coords
+                # userdata.region = current_region.cell_coords
                 return 'newImage'
 
         return 'mapScanned'

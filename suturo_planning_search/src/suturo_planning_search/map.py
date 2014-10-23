@@ -38,6 +38,7 @@ class Map:
         self.max_x_coord = self.size_x / 2
         self.size_y = size_y
         self.max_y_coord = self.size_y / 2
+        self.obstacle_regions = []
         self.__get_point_array = rospy.ServiceProxy('/suturo/GetPointArray', GetPointArray)
         rospy.sleep(1.0)
 
@@ -113,10 +114,6 @@ class Map:
         dist_y = arm_origin.y - y
         return magnitude(Point(dist_x, dist_y, 0)) < radius
 
-    def is_point_in_arm2(self, arm_origin, radius, x, y):
-        return arm_origin.x - radius < x < arm_origin.x + radius and \
-               arm_origin.y - radius < y < arm_origin.y + radius
-
     def get_cell(self, x, y):
         (x_index, y_index) = self.coordinates_to_index(x, y)
         return self.get_cell_by_index(x_index, y_index)
@@ -154,9 +151,6 @@ class Map:
         x = x_index * self.cell_size_x - (self.size_x / 2) + (self.cell_size_x / 2)
         y = y_index * self.cell_size_y - (self.size_y / 2) + (self.cell_size_y / 2)
         return (x, y)
-
-    def publish_as_marker(self):
-        visualization.publish_marker_array(self.to_marker_array())
 
     def clean_up_map(self):
         cell_changed = True
@@ -209,24 +203,7 @@ class Map:
         return co
 
     def get_average_z_of_surrounded_obstacles(self, x_index, y_index):
-        z = 0
-        n = 0
-        if not x_index - 1 < 0 and self.get_cell_by_index(x_index - 1, y_index).is_obstacle():
-            z += self.get_cell_by_index(x_index - 1, y_index).highest_z
-            n += 1
-
-        if not y_index - 1 < 0 and self.get_cell_by_index(x_index, y_index - 1).is_obstacle():
-            z += self.get_cell_by_index(x_index, y_index - 1).highest_z
-            n += 1
-
-        if not x_index + 1 >= self.num_of_cells and self.get_cell_by_index(x_index + 1, y_index).is_obstacle():
-            z += self.get_cell_by_index(x_index + 1, y_index).highest_z
-            n += 1
-
-        if not y_index + 1 >= self.num_of_cells and self.get_cell_by_index(x_index, y_index + 1).is_obstacle():
-            z += self.get_cell_by_index(x_index, y_index + 1).highest_z
-            n += 1
-
+        (z, n) = reduce(lambda (z, n), x: (z + x[0].highest_z, n+1) if x[0].is_obstacle() else (z,n), self.get_surrounding_cells_by_index(x_index, y_index), (0.0, 0.0))
         if z == 0:
             return 1
         else:
@@ -246,25 +223,6 @@ class Map:
         closest_points.sort(key=lambda pointx: magnitude(subtract_point(arm_origin, pointx)))
 
         return closest_points
-
-    # def map_from_planning_scene(self, list_of_cos):
-
-
-    def get_cell_above(self, x, y):
-        (x_index, y_index) = self.coordinates_to_index(x,y)
-        return None if x_index-1 < 0 else self.get_cell_by_index(x_index-1, y_index)
-
-    def get_cell_below(self, x, y):
-        (x_index, y_index) = self.coordinates_to_index(x,y)
-        return None if x_index+1 >= self.size_x else self.get_cell_by_index(x_index+1, y_index)
-
-    def get_cell_left(self, x, y):
-        (x_index, y_index) = self.coordinates_to_index(x,y)
-        return None if y_index-1 < 0 else self.get_cell_by_index(x_index, y_index-1)
-
-    def get_cell_right(self, x, y):
-        (x_index, y_index) = self.coordinates_to_index(x,y)
-        return None if y_index+1 >= self.size_y else self.get_cell_by_index(x_index, y_index+1)
 
     def get_next_point(self, arm_x = 0, arm_y = 0):
         cm = ClusterRegions()
@@ -291,11 +249,23 @@ class Map:
         # return p
 
     def get_obstacle_regions(self):
-        cm = ClusterRegions()
-        cm.set_region_type(RegionType.obstacles)
-        cm.set_field(self.field)
-        cm.group_regions()
-        return cm.get_result_regions()
+        if len(self.obstacle_regions) == 0:
+            cm = ClusterRegions()
+            cm.set_region_type(RegionType.obstacles)
+            cm.set_field(self.field)
+            cm.group_regions()
+            self.obstacle_regions = cm.get_result_regions()
+        return self.obstacle_regions
+
+    def mark_region_as_object_under_point(self, x, y):
+        (x_index, y_index) = self.coordinates_to_index(x, y)
+        for r in self.get_obstacle_regions():
+            if [x_index, y_index] in r.cell_coords:
+                for coords in r.cell_coords:
+                    self.get_cell_by_index(*coords).set_object()
+                self.publish_as_marker()
+                return True
+        return False
 
     def mark_cell(self, x, y, marked=True):
         self.get_cell(x, y).set_mark(marked)
@@ -324,25 +294,10 @@ class Map:
                     self.get_cell_by_index(x, y).set_obstacle()
 
     def get_surrounding_cells(self, x, y):
-        cells = []
-        (x_index, y_index) = self.coordinates_to_index(x,y)
-        if not x_index - 1 < 0:
-            cells.append((self.field[x_index-1][y_index],) + self.index_to_coordinates(x_index-1, y_index))
-
-        if not y_index - 1 < 0:
-            cells.append((self.field[x_index][y_index-1],) + self.index_to_coordinates(x_index, y_index-1))
-
-        if not x_index + 1 >= self.num_of_cells:
-            cells.append((self.field[x_index+1][y_index],) + self.index_to_coordinates(x_index+1, y_index))
-
-        if not y_index + 1 >= self.num_of_cells:
-            cells.append((self.field[x_index][y_index+1],) + self.index_to_coordinates(x_index, y_index+1))
-
-        return cells
+        return self.get_surrounding_cells_by_index(*self.coordinates_to_index(x,y))
 
     def get_surrounding_cells8(self, x, y):
-        (x_index, y_index) = self.coordinates_to_index(x,y)
-        return self.get_surrounding_cells8_by_index(x_index, y_index)
+        return self.get_surrounding_cells8_by_index(*self.coordinates_to_index(x,y))
 
     def get_surrounding_cells8_by_index(self, x_index, y_index):
         cells = []
@@ -379,6 +334,9 @@ class Map:
             cells.append((self.field[x_index+1][y_index+1],) + self.index_to_coordinates(x_index+1, y_index+1))
 
         return cells
+
+    def publish_as_marker(self):
+        visualization.publish_marker_array(self.to_marker_array())
 
     def to_marker_array(self):
         markers = []

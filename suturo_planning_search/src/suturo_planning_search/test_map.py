@@ -166,3 +166,35 @@ class TestMapCleanUp(unittest.TestCase):
         self.assertTrue(m.get_cell_by_index(3,5).is_unknown())
         self.assertTrue(m.get_cell_by_index(4,5).is_unknown())
 
+
+    def test3_1(self):
+        '''
+        3 single unknowns
+        '''
+        m = self.make_free_map()
+
+        m.get_cell_by_index(3,5).set_unknown()
+        m.get_cell_by_index(4,5).set_obstacle()
+        m.get_cell_by_index(4,5).highest_z = 5
+        m.get_cell_by_index(3,4).set_obstacle()
+        m.get_cell_by_index(3,4).highest_z = 4
+
+        self.assertTrue(m.get_average_z_of_surrounded_obstacles(3,5) == 4.5, m.get_average_z_of_surrounded_obstacles(3,5))
+
+        self.assertTrue(m.get_average_z_of_surrounded_obstacles(0,0) == 1, m.get_average_z_of_surrounded_obstacles(0,0))
+
+    def test4_1(self):
+        '''
+        3 single unknowns
+        '''
+        m = self.make_free_map()
+
+        m.get_cell_by_index(3,5).set_obstacle()
+        m.get_cell_by_index(4,5).set_obstacle()
+        m.get_cell_by_index(3,4).set_obstacle()
+
+        m.mark_region_as_object_under_point(*m.index_to_coordinates(4,5))
+
+        self.assertTrue(m.get_cell_by_index(3,5).is_object())
+        self.assertTrue(m.get_cell_by_index(4,5).is_object())
+        self.assertTrue(m.get_cell_by_index(3,4).is_object())
