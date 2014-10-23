@@ -29,7 +29,7 @@ class ScanMapMastCam(smach.State):
         rospy.sleep(4)
         utils.map.add_point_cloud(scene_cam=True)
 
-        utils.manipulation.pan_tilt(0.275, 0.775)
+        utils.manipulation.pan_tilt(0.2825, 0.775)
         rospy.sleep(4)
         utils.map.add_point_cloud(scene_cam=True)
 
@@ -37,7 +37,7 @@ class ScanMapMastCam(smach.State):
         rospy.sleep(4)
         utils.map.add_point_cloud(scene_cam=True)
 
-        utils.manipulation.pan_tilt(-0.275, 0.775)
+        utils.manipulation.pan_tilt(-0.2825, 0.775)
         rospy.sleep(4)
         utils.map.add_point_cloud(scene_cam=True)
 

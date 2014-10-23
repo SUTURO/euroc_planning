@@ -39,6 +39,7 @@ class Map:
         self.size_y = size_y
         self.max_y_coord = self.size_y / 2
         self.obstacle_regions = []
+        self.unknown_regions = []
         self.__get_point_array = rospy.ServiceProxy('/suturo/GetPointArray', GetPointArray)
         rospy.sleep(1.0)
 
@@ -109,10 +110,9 @@ class Map:
         self.publish_as_marker()
         return not self.field == oldmap
 
-    def is_point_in_arm(self, arm_origin, radius, x, y):
-        dist_x = arm_origin.x - x
-        dist_y = arm_origin.y - y
-        return magnitude(Point(dist_x, dist_y, 0)) < radius
+    def is_point_in_arm2(self, arm_origin, radius, x, y):
+        return arm_origin.x - radius < x < arm_origin.x + radius and \
+ 	 	        arm_origin.y - radius < y < arm_origin.y + radius
 
     def get_cell(self, x, y):
         (x_index, y_index) = self.coordinates_to_index(x, y)
@@ -211,8 +211,8 @@ class Map:
 
     def get_closest_unknown(self, arm_origin=Point(0, 0, 0)):
         closest_points = []
-        for x in range(0, len(self.field)):
-            for y in range(0, len(self.field[x])):
+        for x in range(len(self.field)):
+            for y in range(len(self.field[x])):
                 p = Point()
                 (p.x, p.y) = self.index_to_coordinates(x, y)
                 if self.field[x][y].is_unknown():
@@ -223,6 +223,27 @@ class Map:
         closest_points.sort(key=lambda pointx: magnitude(subtract_point(arm_origin, pointx)))
 
         return closest_points
+
+    def get_boarder_cells_points(self, region):
+        boarder_cells = []
+        for [x_index, y_index] in region.cell_coords:
+            p = Point()
+            (p.x, p.y) = self.index_to_coordinates(x_index, y_index)
+            if self.field[x_index][y_index].is_unknown():
+                sc = self.get_surrounding_cells8_by_index(x_index, y_index)
+                if reduce(lambda free, c: free or c[0].is_free(), sc, False) and reduce(lambda unknown, c: unknown + 1 if c[0].is_unknown() else unknown, sc, 0) < 7:
+                    boarder_cells.append(p)
+
+        # boarder_cells.sort()
+        return boarder_cells
+
+    def get_percent_cleared(self):
+        num_unknowns = 0.0
+        for x in xrange(self.num_of_cells):
+            for y in xrange(self.num_of_cells):
+                if self.get_cell_by_index(x, y).is_unknown():
+                    num_unknowns =+ 1
+        return num_unknowns / (self.num_of_cells**2)
 
     def get_next_point(self, arm_x = 0, arm_y = 0):
         cm = ClusterRegions()
@@ -256,6 +277,15 @@ class Map:
             cm.group_regions()
             self.obstacle_regions = cm.get_result_regions()
         return self.obstacle_regions
+
+    def get_unknown_regions(self):
+        if len(self.unknown_regions) == 0:
+            cm = ClusterRegions()
+            cm.set_region_type(RegionType.unknown)
+            cm.set_field(self.field)
+            cm.group_regions()
+            self.unknown_regions = cm.get_result_regions()
+        return self.unknown_regions
 
     def mark_region_as_object_under_point(self, x, y):
         (x_index, y_index) = self.coordinates_to_index(x, y)

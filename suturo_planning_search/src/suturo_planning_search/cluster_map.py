@@ -58,6 +58,9 @@ class Region:
     def get_number_of_cells(self):
         return len(self.cells)
 
+    # def get_boarder_cells(self):
+
+
     def merge_region(self, other_region,last_merge_x=None):
         """ Copy the cells of other_region with self.cells"""
         self.cells.extend(other_region.cells)

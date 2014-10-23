@@ -30,7 +30,7 @@ class Cell:
         self.highest_z = 0
         self.points = 0
         self.segment_id = 0
-        self.threshold_min_points = 75
+        self.threshold_min_points = 50
         self.marked = False
         # self.object = False
         self.state = self.Unknown
@@ -63,7 +63,7 @@ class Cell:
 
     def update_state(self):
         if not self.is_object() and self.enough_points():
-            if 0 <= self.average_z <= 0.0125:
+            if self.average_z <= 0.0125:
                 self.state = self.Free
             else:
                 self.state = self.Obstacle

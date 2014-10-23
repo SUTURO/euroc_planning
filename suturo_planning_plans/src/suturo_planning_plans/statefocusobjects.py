@@ -26,7 +26,7 @@ class FocusObjects(smach.State):
             self._fitted_objects.append(userdata.fitted_object)
 
             if not utils.map is None:
-                position = userdata.fitted_object.mpe_object.primitive_poses[0]
+                position = userdata.fitted_object.mpe_object.primitive_poses[0].position
                 utils.map.mark_region_as_object_under_point(position.x, position.y)
                 co = utils.map.to_collision_object()
                 utils.manipulation.get_planning_scene().add_object(co)

@@ -35,12 +35,12 @@ class ScanObstacles(smach.State):
 
         current_region = self.obstacle_cluster[self.next_cluster]
         self.next_cluster += 1
-        print current_region
-        region_centroid = Point(*(utils.map.index_to_coordinates(*current_region.get_avg()))+(-0.05,))
-        print region_centroid
+        # print current_region
+        region_centroid = Point(*(utils.map.index_to_coordinates(*current_region.get_avg()))+(-0.085,))
+        # print region_centroid
 
 
-        poses = make_scan_pose(region_centroid, 0.8, pi / 4.0)
+        poses = make_scan_pose(region_centroid, 0.55, 0.7, n=16)
         visualize_poses(poses)
         for pose in poses:
             if utils.manipulation.move_arm_and_base_to(pose):
