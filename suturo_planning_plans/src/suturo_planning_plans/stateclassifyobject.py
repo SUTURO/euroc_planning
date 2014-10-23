@@ -27,7 +27,7 @@ class ClassifyObjects(smach.State):
 
         collision_objects = []
         matched_objects = []
-        found_object_names = [] # map(lambda obj1: obj1.mpe_object.id, userdata.objects_found)
+        found_object_names = []  # map(lambda obj1: obj1.mpe_object.id, userdata.objects_found)
         for obj in userdata.objects_found:
             found_object_names.append(obj.mpe_object.id)
 
@@ -53,7 +53,7 @@ class ClassifyObjects(smach.State):
                 if matched_obj.object.id in found_object_names:
                     rospy.logdebug('Object %s was already seen.' % matched_obj.object.id)
                 else:
-                    utils.centroid_to_odom_combined(matched_obj)
+                    utils.euroc_object_to_odom_combined(matched_obj)
                     matched_objects.append(matched_obj)
 
         # publish_collision_objects(collision_objects)

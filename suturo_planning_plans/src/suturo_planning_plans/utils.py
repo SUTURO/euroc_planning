@@ -3,12 +3,16 @@ import struct
 import math
 from std_msgs.msg import ColorRGBA
 from suturo_perception_msgs.srv import Classifier
-from geometry_msgs.msg import PointStamped
+from geometry_msgs.msg import PointStamped, PoseStamped
+from std_msgs.msg import Header
+from math import pi
 
 
 # Holds the manipulation object
 manipulation = None
 map = None
+
+focus_poses = [[0.6, pi / 4.0], [0.6, pi / 3.0], [0.6, pi / 5.0], [0.7, pi / 4.0], [0.5, pi / 4.0], [0.4, pi / 4.0]]
 
 
 def classify_object(obj):
@@ -94,10 +98,28 @@ def get_nearest_object_idx(obj, objects, treshold):
     return None
 
 
-def centroid_to_odom_combined(euroc_object):
+def euroc_object_to_odom_combined(euroc_object):
+    header = Header(0, rospy.Time(0), euroc_object.frame_id)
+
+    # Convert the centroid
     camera_point = PointStamped()
-    camera_point.header.stamp = rospy.Time(0)
-    camera_point.header.frame_id = '/tdepth_pcl'
+    camera_point.header = header
     camera_point.point = euroc_object.c_centroid
     odom_point = manipulation.transform_to(camera_point, '/odom_combined')
     euroc_object.c_centroid = odom_point.point
+    euroc_object.frame_id = '/odom_combined'
+
+    # Convert the cuboid
+    if euroc_object.c_cuboid_success:
+        cuboid_posestamped = PoseStamped(header, euroc_object.object.primitive_poses[0])
+        cuboid_posestamped = manipulation.transform_to(cuboid_posestamped, '/odom_combined')
+        euroc_object.object.primitive_poses[0] = cuboid_posestamped.pose
+        euroc_object.object.header.frame_id = '/odom_combined'
+
+    # Convert the mpe_object
+    if euroc_object.mpe_success:
+        for i in range(0, len(euroc_object.mpe_object.primitive_poses)):
+            posestamped = PoseStamped(header, euroc_object.mpe_object.primitive_poses[i])
+            posestamped = manipulation.transform_to(posestamped, '/odom_combined')
+            euroc_object.mpe_object.primitive_poses[i] = posestamped.pose
+            euroc_object.mpe_object.header.frame_id = '/odom_combined'

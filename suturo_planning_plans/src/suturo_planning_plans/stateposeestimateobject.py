@@ -31,17 +31,21 @@ class PoseEstimateObject(smach.State):
             rospy.logdebug('No object found for pose estimation.')
             return 'fail'
 
+        # Convert the poses to odom_combined
+        map(lambda obj: utils.euroc_object_to_odom_combined(obj), pose_estimated_objects)
+
         # TODO Investigate the result for the object that's closest to the original object we were interested in
         # TODO find proper threshold
-        # corresponding_object_idx = get_nearest_object_idx(userdata.focused_object, pose_estimated_objects, 0.1)
-        # TODO if more than one object were recognized, classify again and take the closest
-        if len(pose_estimated_objects) == 1:
-            corresponding_object_idx = 0
-        else:
-            corresponding_object_idx = None
-            for idx in range(0, len(pose_estimated_objects)):
-                if pose_estimated_objects[idx].mpe_success:
-                    corresponding_object_idx = idx
+        corresponding_object_idx = utils.get_nearest_object_idx(userdata.focused_object, pose_estimated_objects, 0.1)
+
+        # # TODO if more than one object were recognized, classify again and take the closest
+        # if len(pose_estimated_objects) == 1:
+        #     corresponding_object_idx = 0
+        # else:
+        #     corresponding_object_idx = None
+        #     for idx in range(0, len(pose_estimated_objects)):
+        #         if pose_estimated_objects[idx].mpe_success:
+        #             corresponding_object_idx = idx
 
         # TODO Call the perception again
         if corresponding_object_idx is None:
