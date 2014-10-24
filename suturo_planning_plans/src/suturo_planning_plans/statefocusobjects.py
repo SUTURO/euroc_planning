@@ -68,6 +68,7 @@ class FocusObject(smach.State):
 
         poses = calc_grasp_position.make_scan_pose(centroid, *utils.focus_poses[self._ctr])
         if userdata.enable_movement:
+            utils.manipulation.set_planning_time_arm(2)
             move_method = utils.manipulation.move_arm_and_base_to
         else:
             move_method = utils.manipulation.move_to
@@ -84,6 +85,8 @@ class FocusObject(smach.State):
 
                 self._ctr = 0
                 return 'success'
+
+        utils.manipulation.set_planning_time_arm(5)
 
         if self._ctr < 6:
             self._ctr += 1

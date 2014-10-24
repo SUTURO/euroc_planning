@@ -18,7 +18,7 @@ log_dir = '/tmp/euroc_c2'
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
-focus_poses = [[0.6, pi / 4.0], [0.6, pi / 3.0], [0.6, pi / 5.0], [0.7, pi / 4.0], [0.5, pi / 4.0], [0.4, pi / 4.0]]
+focus_poses = [[0.7, pi / 5.0], [0.6, pi / 4.0], [0.6, pi / 3.0], [0.7, pi / 4.0], [0.5, pi / 4.0], [0.4, pi / 4.0]]
 
 
 def classify_object(obj):

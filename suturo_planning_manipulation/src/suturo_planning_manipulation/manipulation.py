@@ -433,3 +433,6 @@ class Manipulation(object):
         :return: success of the movement
         '''
         return self.__manService.pan_tilt(pan, tilt)
+
+    def set_planning_time_arm(self, time):
+        return self.__arm_group.set_planning_time(time)
