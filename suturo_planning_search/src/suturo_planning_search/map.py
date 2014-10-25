@@ -247,6 +247,11 @@ class Map:
         percent = num_unknowns / (self.num_of_cells**2)
         print percent, " \% cleared."
         return percent
+    def get_cells_between(self, x1, y1, x2, y2):
+        (x1_index, y1_index) = self.coordinates_to_index(x1, y1)
+        (x2_index, y2_index) = self.coordinates_to_index(x2, y2)
+        p = subtract_point((x1, x2, 0), (x2, y2, 0))
+        
 
     def get_next_point(self, arm_x = 0, arm_y = 0):
         cm = ClusterRegions()
