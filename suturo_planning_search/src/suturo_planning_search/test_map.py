@@ -1,5 +1,6 @@
 import random
 import unittest
+import rospy
 from suturo_planning_search.cell import Cell
 from suturo_planning_search.map import Map
 
@@ -41,6 +42,13 @@ class TestCell(unittest.TestCase):
         self.assertFalse(c.is_free())
 
 class TestMapCleanUp(unittest.TestCase):
+
+    def __init__(self, *args, **kwargs):
+        super(TestMapCleanUp, self).__init__(*args, **kwargs)
+        # self.gen_stubs()
+        rospy.init_node('test_map', anonymous=True)
+
+
     def make_free_map(self):
         m = Map(2)
         for x in xrange(m.num_of_cells):
@@ -198,3 +206,58 @@ class TestMapCleanUp(unittest.TestCase):
         self.assertTrue(m.get_cell_by_index(3,5).is_object())
         self.assertTrue(m.get_cell_by_index(4,5).is_object())
         self.assertTrue(m.get_cell_by_index(3,4).is_object())
+
+    def test5_1(self):
+        '''
+        3 single unknowns
+        '''
+        m = Map(2)
+        self.assertTrue(m.get_percent_cleared() == 0.0, m.get_percent_cleared())
+
+        m = self.make_free_map()
+        self.assertTrue(m.get_percent_cleared() == 1.0, m.get_percent_cleared())
+
+        m.get_cell_by_index(3,4).set_unknown()
+        self.assertTrue(m.get_percent_cleared() < 1.0, m.get_percent_cleared())
+
+    def test6_1(self):
+        '''
+        '''
+
+        m = self.make_free_map()
+        # print m.coordinates_to_index(0.01, 0.01)
+        # print m.coordinates_to_index(0.13, 0.09)
+        # print "---"
+        # cells = m.get_cells_between(0.01, 0.01, 0.13, 0.09)
+        # print len(cells)
+        # print m.cell_size_x
+        cells = m.get_cells_between(0.01, 0.01, 0.13, 0.09)
+        self.assertTrue(len(cells) == 5)
+        self.assertTrue(m.coordinates_to_index(0.01, 0.01) in cells)
+        self.assertTrue(m.coordinates_to_index(0.13, 0.09) in cells)
+
+        cells = m.get_cells_between(0.13, 0.09, 0.01, 0.01)
+        self.assertTrue(len(cells) == 5)
+        self.assertTrue(m.coordinates_to_index(0.01, 0.01) in cells)
+        self.assertTrue(m.coordinates_to_index(0.13, 0.09) in cells)
+
+        cells = m.get_cells_between(0.01, 0.01, 0.09, 0.09)
+        self.assertTrue(len(cells) == 3)
+        self.assertTrue(m.coordinates_to_index(0.01, 0.01) in cells)
+        self.assertTrue(m.coordinates_to_index(0.09, 0.09) in cells)
+        #
+        # m.get_cell_by_index(3,4).set_unknown()
+        # self.assertTrue(m.get_percent_cleared() < 1.0, m.get_percent_cleared())
+
+
+
+
+
+
+
+
+
+
+
+
+

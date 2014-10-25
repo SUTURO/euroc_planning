@@ -50,7 +50,7 @@ class ScanMapArmCam(smach.State):
         i = 0
         r_id = 0
 
-        while reduce(lambda l, bc: l + 0 if len(bc) <= 1 else len(bc), boarder_cells, 0) > 0 and utils.map.get_percent_cleared() < 0.9:
+        while reduce(lambda l, bc: l + 0 if len(bc) <= 1 else len(bc), boarder_cells, 0) > 0 and utils.map.get_percent_cleared() < 0.97:
             if len(boarder_cells[r_id]) <= 1  or i >= 1:
                 r_id += 1
                 r_id = r_id % len(regions)
