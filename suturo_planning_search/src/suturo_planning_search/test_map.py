@@ -244,7 +244,7 @@ class TestMapCleanUp(unittest.TestCase):
         m = self.make_free_map()
 
         m.get_cell_by_index(10,10).set_obstacle()
-        m.get_cell_by_index(10,10).highest_z = 1
+        m.get_cell_by_index(10,10).highest_z = 0.5
         m.get_cell_by_index(10,11).set_obstacle()
         m.get_cell_by_index(10,11).highest_z = 1
         m.get_cell_by_index(10,12).set_obstacle()
@@ -264,9 +264,9 @@ class TestMapCleanUp(unittest.TestCase):
 
         rs = m.get_obstacle_regions()
         print m.get_cell_volume_by_index(10, 10)
-        self.assertTrue(m.get_cell_volume_by_index(10, 10) == 0.0016)
+        self.assertTrue(m.get_cell_volume_by_index(10, 10) == 0.0008)
         print m.get_region_volume(rs[0])
-        self.assertTrue(m.get_region_volume(rs[0]) == 0.0144)
+        self.assertTrue(abs(m.get_region_volume(rs[0]) - 0.0136) <= 0.00001, m.get_region_volume(rs[0]))
 
 
 
