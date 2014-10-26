@@ -26,7 +26,7 @@ def get_angle(p1, p2):
     v2 = p2
     if type(p2) is Point:
         v2 = (p2.x, p2.y, p2.z)
-    return acos(np.dot(v1,v2))
+    return np.arccos(dot_product(v1,v2) / (magnitude(v1) * magnitude(v2)))
 
 
 def three_points_to_quaternion(origin, to, roll=None):

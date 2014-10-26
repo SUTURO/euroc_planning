@@ -346,6 +346,21 @@ class Map:
             for y in range(self.num_of_cells):
                 if self.get_cell_by_index(x, y).is_unknown():
                     self.get_cell_by_index(x, y).set_obstacle()
+                    self.get_cell_by_index(x, y).average_z == self.get_average_z_of_surrounded_obstacles(x, y)
+                    if self.get_cell_by_index(x, y).average_z <= 0.01:
+                        self.get_cell_by_index(x, y).average_z = 0.1
+        self.publish_as_marker()
+
+    def get_cell_volume_by_index(self, x, y):
+        c = self.get_cell_by_index(x, y)
+        return c.highest_z * self.cell_size_x * self.cell_size_y
+
+    def get_region_volume(self, region):
+        volume = 0
+        for [x, y] in region.cell_coords:
+            volume += self.get_cell_volume_by_index(x, y)
+
+        return volume
 
     def get_surrounding_cells(self, x, y):
         return self.get_surrounding_cells_by_index(*self.coordinates_to_index(x,y))

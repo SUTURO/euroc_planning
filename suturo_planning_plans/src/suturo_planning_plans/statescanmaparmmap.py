@@ -50,7 +50,7 @@ class ScanMapArmCam(smach.State):
         i = 0
         r_id = 0
 
-        while reduce(lambda l, bc: l + 0 if len(bc) <= 1 else len(bc), boarder_cells, 0) > 0 and utils.map.get_percent_cleared() < 0.97:
+        while reduce(lambda l, bc: l + 0 if len(bc) <= 1 else len(bc), boarder_cells, 0) > 0 and utils.map.get_percent_cleared() < 0.98:
             if len(boarder_cells[r_id]) <= 1  or i >= 1:
                 r_id += 1
                 r_id = r_id % len(regions)
@@ -67,8 +67,8 @@ class ScanMapArmCam(smach.State):
             cell_x = next_point.x
             cell_y = next_point.y
             utils.map.mark_cell(cell_x, cell_y, True)
-            next_point.z = 0.075
-            poses = make_scan_pose(next_point, 1, 0.8, n=16)
+            next_point.z = 0.1
+            poses = make_scan_pose(next_point, 0.9, 0.8, n=16)
             for (c, x, y) in utils.map.get_surrounding_cells8(cell_x, cell_y):
                 if not c.is_free():
                     p = Point(x, y, 0)

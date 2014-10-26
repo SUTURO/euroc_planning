@@ -11,6 +11,12 @@ class TestMapCleanUp(unittest.TestCase):
 
         self.assertTrue(get_angle(v1,v2) == pi/2, get_angle(v1,v2))
 
+    def test1_2(self):
+        v1 = Point(1,0,0)
+        v2 = Point(1,1,0)
+
+        self.assertTrue(pi/4-0.01 <= get_angle(v1,v2) <= pi/4+0.01, get_angle(v1,v2))
+
     def test2_1(self):
         v1 = Point(0.5,0,0)
         self.assertTrue(normalize(v1).x == 1)
