@@ -82,4 +82,5 @@ if __name__ == '__main__':
     # while not rospy.is_shutdown():
     # print tfs.get_values()
     # r.sleep()
+    m.move_to("scan_conveyor_pose1")
     pos_calc_test(m)
