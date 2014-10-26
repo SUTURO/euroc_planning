@@ -152,12 +152,12 @@ class Manipulation(object):
         """
 
         original_objects = self.__planning_scene_interface.get_collision_objects()
+        blown_up_objects = []
         if blow_up:
-            blown_up_objects = []
             for each in original_objects:
                 if not each.id in self.__planning_scene_interface.safe_objects:
                     self.__planning_scene_interface.remove_object(each.id)
-                    bobj = self.__blow_up_object(each, blow_up_distance)
+                    bobj = self.__blow_up_object(copy.deepcopy(each), blow_up_distance)
                     blown_up_objects.append(bobj.id)
                     self.__planning_scene_interface.add_object(bobj)
 
