@@ -2,11 +2,12 @@
 import sys
 import os
 import signal
+import atexit
 
 __loop = True
 
 
-def exit_handler(signum, frame):
+def exit_handler(signum=None, frame=None):
     print('Exit handler for logger ' + f + ' on signal' + str(signum))
     global __loop
     __loop = False
@@ -19,6 +20,7 @@ f = sys.argv[1]
 h = open(f, 'w')
 signal.signal(signal.SIGTERM, exit_handler)
 signal.signal(signal.SIGINT, exit_handler)
+atexit.register(exit_handler)
 
 while __loop:
     line = sys.stdin.readline().rstrip()
