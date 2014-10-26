@@ -22,6 +22,17 @@ manipulation_logger_process = 0
 classifier_logger_process = 0
 
 
+def start_node(package, node_name, extension, initialization_time):
+    process = subprocess.Popen('roslaunch ' + package + ' ' + node_name + '.' + extension,
+                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                               shell=True, preexec_fn=os.setsid)
+    logger_process = subprocess.Popen('rosrun suturo_planning_startup logger.py "' + utils.log_dir
+                                      + '/' + initialization_time + node_name.title() + '.log"',
+                                      stdin=manipulation_process.stdout, shell=True, preexec_fn=os.setsid)
+    time.sleep(8)
+    return process, logger_process
+
+
 class StartManipulation(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['success', 'fail'],
@@ -33,17 +44,11 @@ class StartManipulation(smach.State):
         subprocess.Popen('rosrun euroc_launch TestNode --init', shell=True)
         rospy.loginfo('Executing state StartManipulation')
         global manipulation_process
-        manipulation_process = subprocess.Popen('roslaunch euroc_launch manipulation.launch',
-                                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                                shell=True, preexec_fn=os.setsid)
-        userdata.manipulation_process = manipulation_process
         global manipulation_logger_process
-        manipulation_logger_process = subprocess.Popen('rosrun suturo_planning_startup logger.py "' + utils.log_dir
-                                                       + '/' + userdata.initialization_time + ' Manipulation.log"',
-                                                       stdin=manipulation_process.stdout, shell=True,
-                                                       preexec_fn=os.setsid)
+        manipulation_process, manipulation_logger_process = start_node('euroc_launch', 'manipulation', 'launch',
+                                                                       userdata.initialization_time)
+        userdata.manipulation_process = manipulation_process
         userdata.manipulation_logger_process = manipulation_logger_process
-        time.sleep(5)
         return 'success'
 
 
@@ -56,16 +61,11 @@ class StartPerception(smach.State):
     def execute(self, userdata):
         rospy.loginfo('Executing state StartPerception')
         global perception_process
-        perception_process = subprocess.Popen('roslaunch euroc_launch perception_task1.launch',
-                                              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                              shell=True, preexec_fn=os.setsid)
-        userdata.perception_process = perception_process
         global perception_logger_process
-        perception_logger_process = subprocess.Popen('rosrun suturo_planning_startup logger.py "' + utils.log_dir
-                                                     + '/' + userdata.initialization_time + ' Perception.log"',
-                                                     stdin=perception_process.stdout, shell=True, preexec_fn=os.setsid)
+        perception_process, perception_logger_process = start_node('euroc_launch', 'perception_task1', 'launch',
+                                                                   userdata.initialization_time)
+        userdata.perception_process = perception_process
         userdata.perception_logger_process = perception_logger_process
-        time.sleep(8)
         return 'success'
 
 
@@ -100,17 +100,11 @@ class StartClassifier(smach.State):
     def execute(self, userdata):
         rospy.loginfo('Executing state StartClassifier')
         global classifier_process
-        classifier_process = subprocess.Popen('rosrun suturo_perception_classifier classifier.py',
-                                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                              shell=True, preexec_fn=os.setsid)
-        userdata.classifier_process = classifier_process
         global classifier_logger_process
-        classifier_logger_process = subprocess.Popen('rosrun suturo_planning_startup logger.py "' + utils.log_dir +
-                                                     '/' + userdata.initialization_time +
-                                                     ' Classifier.log"', stdin=classifier_process.stdout,
-                                                     shell=True, preexec_fn=os.setsid)
+        classifier_process, classifier_logger_process = start_node('suturo_perception_classifier', 'classifier', 'py',
+                                                                   userdata.initialization_time)
+        userdata.classifier_process = classifier_process
         userdata.classifier_logger_process = classifier_logger_process
-        rospy.sleep(8)
         return 'success'
 
 
