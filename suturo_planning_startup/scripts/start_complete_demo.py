@@ -17,7 +17,7 @@ subproc = 0
 logger_process = 0
 
 
-def exit_handler():
+def exit_handler(signum=None, frame=None):
     try:
         os.killpg(subproc.pid, signal.SIGTERM)
         os.killpg(logger_process.pid, signal.SIGTERM)
@@ -25,6 +25,8 @@ def exit_handler():
         pass
 
 atexit.register(exit_handler)
+signal.signal(signal.SIGTERM, exit_handler)
+signal.signal(signal.SIGINT, exit_handler)
 
 
 def start_demo(wait, tasks):
