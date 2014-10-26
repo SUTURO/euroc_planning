@@ -9,7 +9,6 @@ import task4
 import task6
 import start_nodes
 from suturo_msgs.msg import Task
-from suturo_planning_plans import start_nodes
 
 
 def handle_uncaught_exception(e, initialization_time):
