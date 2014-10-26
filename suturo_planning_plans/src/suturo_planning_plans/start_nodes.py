@@ -27,8 +27,8 @@ def start_node(package, node_name, extension, initialization_time):
                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                shell=True, preexec_fn=os.setsid)
     logger_process = subprocess.Popen('rosrun suturo_planning_startup logger.py "' + utils.log_dir
-                                      + '/' + initialization_time + node_name.title() + '.log"',
-                                      stdin=manipulation_process.stdout, shell=True, preexec_fn=os.setsid)
+                                      + '/' + initialization_time + ' ' + node_name.title() + '.log"',
+                                      stdin=process.stdout, shell=True, preexec_fn=os.setsid)
     time.sleep(8)
     return process, logger_process
 
