@@ -3,6 +3,7 @@ from rospy.rostime import Duration
 from suturo_perception_msgs.srv import GetGripper
 from manipulation import *
 from tabulate import tabulate
+from mathemagie import euler_to_quaternion
 import numpy
 import copy
 
@@ -71,8 +72,13 @@ def pos_calc_test(m):
 
     # set the time in 5 secs
     t_5 = rospy.Time.now() + rospy.Duration(5)
-    diff_time = float(t_5.to_sec()) / float(time_12.to_sec())
+    time_13 = t_5 - time1
+    diff_time = float(time_13.to_sec()) / float(time_12.to_sec())
+    print "diff_time: "
+    print diff_time
     dir_13 = numpy.array([diff_time * dir[0], diff_time * dir[1]])
+    print "dir_13: "
+    print dir_13
     # add this new vector on the points from the first perception
     pose_comp = copy.deepcopy(pose1)
     pose_comp.primitive_poses[0].position.x += dir_13[0]
@@ -80,12 +86,10 @@ def pos_calc_test(m):
     pose_comp.id = "red_cube"
     print pose_comp
     # print out the table for the different poses for debug
-    # table = [get_position(pose1), get_position(pose2), get_position(pose3), get_position(pose_comp)]
-    # print tabulate(table)
-    # dev = get_position(pose3)[1] / get_position(pose_comp)[1] * 100
-    # print dev
-    return pose_comp
+    table = [get_position(pose1), get_position(pose2), get_position(pose_comp)]
+    print tabulate(table)
     # return test_extrapolation(dir, m, pose1, pose2, service, time1, time_12)
+    return pose_comp
 
 
 
@@ -113,8 +117,8 @@ if __name__ == '__main__':
     t_point.header.frame_id = "/odom_combined"
     t_point.header.stamp = rospy.Time.now()
     t_point.pose.position = obj.primitive_poses[0].position
-    t_point.pose.position.z += 0.2
-    t_point.pose.orientation = geometry_msgs.msg.Quaternion(0, 0, 0, 1)
+    t_point.pose.position.z += 0.3
+    t_point.pose.orientation = euler_to_quaternion(0, pi/2, 0)
     print t_point
     # bla = m.get_timing_to(t_point)
     # print bla

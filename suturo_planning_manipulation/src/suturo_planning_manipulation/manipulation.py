@@ -164,7 +164,11 @@ class Manipulation(object):
         return self.__plan_group_to(goal_pose, self.__arm_base_group)
 
     def __move_group_to(self, goal_pose, move_group):
+        print "started planning"
+        print rospy.Time.now().to_sec()
         path = self.__plan_group_to(goal_pose, move_group)
+        print "finished planning, calling movement service"
+        print rospy.Time.now().to_sec()
         return self.__manService.move(path)
 
     def get_timing_to(self, goal_pose):
