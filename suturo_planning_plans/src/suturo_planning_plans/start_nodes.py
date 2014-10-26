@@ -22,8 +22,8 @@ manipulation_logger_process = 0
 classifier_logger_process = 0
 
 
-def start_node(package, node_name, extension, initialization_time):
-    process = subprocess.Popen('roslaunch ' + package + ' ' + node_name + '.' + extension,
+def start_node(command, package, node_name, extension, initialization_time):
+    process = subprocess.Popen(command + ' ' + package + ' ' + node_name + '.' + extension,
                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                shell=True, preexec_fn=os.setsid)
     logger_process = subprocess.Popen('rosrun suturo_planning_startup logger.py "' + utils.log_dir
@@ -45,8 +45,8 @@ class StartManipulation(smach.State):
         rospy.loginfo('Executing state StartManipulation')
         global manipulation_process
         global manipulation_logger_process
-        manipulation_process, manipulation_logger_process = start_node('euroc_launch', 'manipulation', 'launch',
-                                                                       userdata.initialization_time)
+        manipulation_process, manipulation_logger_process = start_node('roslaunch', 'euroc_launch', 'manipulation',
+                                                                       'launch', userdata.initialization_time)
         userdata.manipulation_process = manipulation_process
         userdata.manipulation_logger_process = manipulation_logger_process
         return 'success'
@@ -62,8 +62,8 @@ class StartPerception(smach.State):
         rospy.loginfo('Executing state StartPerception')
         global perception_process
         global perception_logger_process
-        perception_process, perception_logger_process = start_node('euroc_launch', 'perception_task1', 'launch',
-                                                                   userdata.initialization_time)
+        perception_process, perception_logger_process = start_node('roslaunch', 'euroc_launch', 'perception_task1',
+                                                                   'launch', userdata.initialization_time)
         userdata.perception_process = perception_process
         userdata.perception_logger_process = perception_logger_process
         return 'success'
@@ -101,8 +101,8 @@ class StartClassifier(smach.State):
         rospy.loginfo('Executing state StartClassifier')
         global classifier_process
         global classifier_logger_process
-        classifier_process, classifier_logger_process = start_node('suturo_perception_classifier', 'classifier', 'py',
-                                                                   userdata.initialization_time)
+        classifier_process, classifier_logger_process = start_node('rosrun', 'suturo_perception_classifier',
+                                                                   'classifier', 'py', userdata.initialization_time)
         userdata.classifier_process = classifier_process
         userdata.classifier_logger_process = classifier_logger_process
         return 'success'

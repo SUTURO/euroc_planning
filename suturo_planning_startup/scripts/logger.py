@@ -1,23 +1,24 @@
 #!/usr/bin/env python
 import sys
-import atexit
 import os
+import signal
 
 __loop = True
 
 
-def exit_handler():
-    print('Exit handler for logger ' + f)
+def exit_handler(signum, frame):
+    print('Exit handler for logger ' + f + ' on signal' + str(signum) + ', frame' + str(frame))
     global __loop
+    __loop = False
     try:
-        __loop = False
         h.close()
     except:
         print('Error closing file ' + str(h))
 
 f = sys.argv[1]
 h = open(f, 'w')
-atexit.register(exit_handler)
+signal.signal(signal.SIGTERM, exit_handler)
+signal.signal(signal.SIGINT, exit_handler)
 
 while __loop:
     line = sys.stdin.readline().rstrip()
