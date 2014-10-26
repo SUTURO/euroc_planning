@@ -243,9 +243,9 @@ class Map:
         for x in xrange(self.num_of_cells):
             for y in xrange(self.num_of_cells):
                 if self.get_cell_by_index(x, y).is_unknown():
-                    num_unknowns =+ 1
-        percent = num_unknowns / (self.num_of_cells**2)
-        print percent, " \% cleared."
+                    num_unknowns =+ 1.0
+        percent = num_unknowns / ((self.num_of_cells+0.0)**2)
+        print percent, " % cleared."
         return percent
 
     def get_next_point(self, arm_x = 0, arm_y = 0):
