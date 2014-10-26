@@ -130,8 +130,8 @@ class StartSimulation(smach.State):
         rospy.loginfo('Executing state StartSimulation')
         userdata.yaml = suturo_planning_task_selector.start_task(self.task_name)
         userdata.objects_found = []
-        self.clock = rospy.Subscriber('clock', Clock, self.wait_for_clock())
         rospy.loginfo('Waiting for clock.')
+        self.clock = rospy.Subscriber('clock', Clock, self.wait_for_clock())
         self.lock.acquire()
         while not self.new_clock:
             self.lock.release()
