@@ -7,7 +7,7 @@ __loop = True
 
 
 def exit_handler(signum, frame):
-    print('Exit handler for logger ' + f + ' on signal' + str(signum) + ', frame' + str(frame))
+    print('Exit handler for logger ' + f + ' on signal' + str(signum))
     global __loop
     __loop = False
     try:
