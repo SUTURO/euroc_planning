@@ -15,6 +15,7 @@ from calc_grasp_position import *
 
 
 class PlanningSceneInterface(object):
+    safe_objects = []
     def __init__(self):
         self.__collision_object_publisher = rospy.Publisher('/collision_object', moveit_msgs.msg.CollisionObject,
                                                             queue_size=10)
@@ -38,6 +39,7 @@ class PlanningSceneInterface(object):
         pose.pose.position = Point(0, 0, height)
         pose.pose.orientation = Quaternion(0, 0, 0, 1)
         box = self.make_box("ground" + str(height), pose, [3, 3, 0.01])
+        self.safe_objects.append(box.id)
         self.add_object(box)
 
     def add_cam_mast(self):
@@ -49,11 +51,13 @@ class PlanningSceneInterface(object):
         pose.pose.position = Point(0.92, 0.92, 0.55)
         pose.pose.orientation = Quaternion(0, 0, 0, 1)
         c1 = self.make_cylinder("cm1", pose, [1.1, 0.05])
+        self.safe_objects.append(c1.id)
         self.add_object(c1)
 
         pose.pose.position = Point(0.92, 0.92, 1.0)
         pose.pose.orientation = Quaternion(0, 0, 0, 1)
         c1 = self.make_box("mast_cams", pose, [0.3, 0.3, 0.3])
+        self.safe_objects.append(c1.id)
         self.add_object(c1)
 
     @staticmethod

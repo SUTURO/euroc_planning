@@ -57,7 +57,7 @@ class PlaceObject(smach.State):
             # post_place_pose.header.frame_id = "/tcp"
             # post_place_pose.pose.position = Point(0, 0, -post_place_length)
 
-            if not move_to_func(get_pre_grasp(post_place_pose)):
+            if not move_to_func(get_pre_grasp(post_place_pose, blow_up = False)):
                 rospy.logwarn("Can't reach postplaceposition. Continue anyway")
                 return 'success'
             else:

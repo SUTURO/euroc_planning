@@ -50,7 +50,7 @@ class GraspObject(smach.State):
         for grasp in grasp_positions:
             if move_to_func(get_pre_grasp(grasp)):
 
-                if not move_to_func(grasp):
+                if not move_to_func(grasp, blow_up=False):
                     continue
 
                 rospy.sleep(1)
