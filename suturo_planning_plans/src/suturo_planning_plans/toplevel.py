@@ -9,16 +9,18 @@ import task4
 import task6
 import start_nodes
 from suturo_msgs.msg import Task
+from suturo_planning_plans import start_nodes
 
 
-def handle_uncaught_exception(e):
+def handle_uncaught_exception(e, initialization_time):
     print('Uncaught exception: ' + str(e))
+    start_nodes.check_node(initialization_time)
     print('Terminating task.')
     rospy.signal_shutdown('Terminating Task due to unhandled exception.')
 
 
 def toplevel_plan(init_sim, task_list, savelog, initialization_time):
-
+    __initialization_time = initialization_time
     # Create a SMACH state machine
     toplevel = smach.StateMachine(outcomes=['success', 'fail'])
 
@@ -43,7 +45,7 @@ def toplevel_plan(init_sim, task_list, savelog, initialization_time):
         try:
             toplevel.execute()
         except:
-            handle_uncaught_exception(sys.exc_info()[0])
+            handle_uncaught_exception(sys.exc_info()[0], initialization_time)
 
     smach_thread = threading.Thread(target=execute_task)
     smach_thread.start()

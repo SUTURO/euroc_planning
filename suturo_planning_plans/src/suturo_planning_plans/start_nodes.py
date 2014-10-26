@@ -151,20 +151,24 @@ class StopSimulation(smach.State):
 
     def execute(self, userdata):
         rospy.loginfo('Executing state StopSimulation')
-        rospy.loginfo('Executing TestNode check.')
-        test_node = subprocess.Popen('rosrun euroc_launch TestNode --check', shell=True,
-                                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        test_node_logger = subprocess.Popen('rosrun suturo_planning_startup logger.py "' + utils.log_dir + '/' +
-                                            userdata.initialization_time + ' TestNode check.log"',
-                                            shell=True, stdin=test_node.stdout)
-        test_node.wait()
-        rospy.loginfo('Killing TestNode logger.')
-        os.kill(test_node_logger.pid, signal.SIGTERM)
+        check_node(userdata.initialization_time)
         if self.savelog:
             save_task()
         stop_task()
         time.sleep(3)
         return 'success'
+
+
+def check_node(initialization_time):
+    rospy.loginfo('Executing TestNode check.')
+    test_node = subprocess.Popen('rosrun euroc_launch TestNode --check', shell=True,
+                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    test_node_logger = subprocess.Popen('rosrun suturo_planning_startup logger.py "' + utils.log_dir + '/' +
+                                        initialization_time + ' TestNode check.log"',
+                                        shell=True, stdin=test_node.stdout)
+    test_node.wait()
+    rospy.loginfo('Killing TestNode logger.')
+    os.kill(test_node_logger.pid, signal.SIGTERM)
 
 
 class StopNodes(smach.State):
