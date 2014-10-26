@@ -156,7 +156,7 @@ class Manipulation(object):
         if blow_up:
             for each in original_objects:
                 if not each.id in self.__planning_scene_interface.safe_objects:
-                    self.__planning_scene_interface.remove_object(each.id)
+                    # self.__planning_scene_interface.remove_object(each.id)
                     bobj = self.__blow_up_object(copy.deepcopy(each), blow_up_distance)
                     blown_up_objects.append(bobj.id)
                     self.__planning_scene_interface.add_object(bobj)
@@ -181,8 +181,8 @@ class Manipulation(object):
         path = move_group.plan()
 
         if blow_up:
-            for each in blown_up_objects:
-                self.__planning_scene_interface.remove_object(each)
+            # for each in blown_up_objects:
+            #     self.__planning_scene_interface.remove_object(each)
             for each in original_objects:
                 self.__planning_scene_interface.add_object(each)
 

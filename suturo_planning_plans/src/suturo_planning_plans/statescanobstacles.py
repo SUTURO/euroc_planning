@@ -34,7 +34,7 @@ class ScanObstacles(smach.State):
             return 'noRegionLeft'
 
         current_region = self.obstacle_cluster[self.next_cluster]
-        # utils.map.get_region_volume(current_region)
+        print utils.map.get_region_volume(current_region)
         self.next_cluster += 1
         # print current_region
         region_centroid = Point(*(utils.map.index_to_coordinates(*current_region.get_avg()))+(-0.05,))

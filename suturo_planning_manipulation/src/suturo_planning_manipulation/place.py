@@ -59,7 +59,7 @@ def get_place_position_for_single_object(collision_object, destination, transfor
     p2.header.frame_id = collision_object.id
     p2 = transform_func(p2, "tcp")
     rospy.logwarn(p2)
-    if p2.point.y > 0:
+    if p2.point.y < 0:
         for i in range(0, len(place_poses)):
             place_poses[i].pose.orientation = rotate_quaternion(place_poses[i].pose.orientation, pi, 0, 0)
 
@@ -89,7 +89,7 @@ def get_place_position_handle(collision_object, destination, transform_func, d):
     place_pose.z += abs(p2.point.y)
 
     place_poses = make_scan_pose(place_pose, d, angle)
-    if p2.point.y > 0:
+    if p2.point.y < 0:
         for i in range(0, len(place_poses)):
             place_poses[i].pose.orientation = rotate_quaternion(place_poses[i].pose.orientation, pi, 0, 0)
 
