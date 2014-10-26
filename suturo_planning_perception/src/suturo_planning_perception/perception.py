@@ -12,7 +12,7 @@ def recognize_objects_of_interest(colors):
 
 
 def get_gripper_perception(cuboid=True, pose_estimation=False, object_ids=[]):
-    s = 'height,centroid,color,firstConveyerCall'
+    s = 'height,centroid,color'
     if cuboid:
         s += ',cuboid'
     if pose_estimation:

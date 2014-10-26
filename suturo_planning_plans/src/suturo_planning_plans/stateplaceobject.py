@@ -32,11 +32,6 @@ class PlaceObject(smach.State):
 
         destination = utils.manipulation.transform_to(destination)
         place_poses = get_place_position(co, destination, utils.manipulation.transform_to, userdata.dist_to_obj, userdata.grasp)
-        if len(place_poses) == 0:
-            # try to place the object at the current position
-            userdata.place_position = self.new_place_position()
-
-            return 'noPlacePosition'
 
         for place_pose in place_poses:
             if not move_to_func(get_pre_place_position(place_pose)):
@@ -71,6 +66,11 @@ class PlaceObject(smach.State):
             rospy.loginfo("placed " + co.id)
 
             return 'success'
+
+        #try to place the object where it currently is
+        userdata.place_position = self.new_place_position()
+
+        return 'noPlacePosition'
 
     def new_place_position(self):
         current_pose = utils.manipulation.get_arm_move_group().get_current_pose()

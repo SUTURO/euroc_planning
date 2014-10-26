@@ -50,7 +50,8 @@ class ScanMapMastCam(smach.State):
         # utils.manipulation.pan_tilt(0, 0.6)
         # rospy.sleep(5)
         utils.map.add_point_cloud(scene_cam=True)
-
+        co = utils.map.to_collision_object()
+        utils.manipulation.get_planning_scene().add_object(co)
         n = 8
         utils.manipulation.pan_tilt(0, 0.45)
         for i in range(0, n):
