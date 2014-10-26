@@ -177,7 +177,7 @@ class StopNodes(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['success', 'fail'],
                              input_keys=['perception_process', 'manipulation_process', 'classifier_process',
-                                         'perception_logger_process', 'manipulation_loger_process',
+                                         'perception_logger_process', 'manipulation_logger_process',
                                          'classifier_logger_process'],
                              output_keys=[])
 
@@ -188,7 +188,7 @@ class StopNodes(smach.State):
         os.killpg(userdata.classifier_process.pid, signal.SIGTERM)
         os.killpg(userdata.perception_logger_process.pid, signal.SIGTERM)
         os.killpg(userdata.manipulation_logger_process.pid, signal.SIGTERM)
-        os.killpg(userdata.classifier_loger_process.pid, signal.SIGTERM)
+        os.killpg(userdata.classifier_logger_process.pid, signal.SIGTERM)
         rospy.signal_shutdown('Finished plan. Shutting down Node.')
         time.sleep(3)
         return 'success'

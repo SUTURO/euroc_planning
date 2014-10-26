@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys
 import atexit
+import os
 
 __loop = True
 
@@ -24,6 +25,8 @@ while __loop:
         continue
     try:
         h.write(line + '\n')
+        h.flush()
+        os.fsync(h.fileno())
     except:
         print('Error writing to file ' + str(h))
     print(line)
