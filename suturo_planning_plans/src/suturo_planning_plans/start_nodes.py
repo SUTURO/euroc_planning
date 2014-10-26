@@ -38,10 +38,10 @@ class StartManipulation(smach.State):
                                                 shell=True, preexec_fn=os.setsid)
         userdata.manipulation_process = manipulation_process
         global manipulation_logger_process
-        manipulation_logger_process = subprocess.Popen('./logger.py "' + utils.log_dir + '/' +
-                                                       userdata.initialization_time +
-                                                       ' Manipulation.log"', stdin=manipulation_process.stdout,
-                                                       shell=True, preexec_fn=os.setsid)
+        manipulation_logger_process = subprocess.Popen('rosrun suturo_planning_startup logger.py "' + utils.log_dir
+                                                       + '/' + userdata.initialization_time + ' Manipulation.log"',
+                                                       stdin=manipulation_process.stdout, shell=True,
+                                                       preexec_fn=os.setsid)
         userdata.manipulation_logger_process = manipulation_logger_process
         time.sleep(5)
         return 'success'
@@ -61,10 +61,9 @@ class StartPerception(smach.State):
                                               shell=True, preexec_fn=os.setsid)
         userdata.perception_process = perception_process
         global perception_logger_process
-        perception_logger_process = subprocess.Popen('./logger.py "' + utils.log_dir + '/' +
-                                                     userdata.initialization_time +
-                                                     ' Perception.log"', stdin=perception_process.stdout,
-                                                     shell=True, preexec_fn=os.setsid)
+        perception_logger_process = subprocess.Popen('rosrun suturo_planning_startup logger.py "' + utils.log_dir
+                                                     + '/' + userdata.initialization_time + ' Perception.log"',
+                                                     stdin=perception_process.stdout, shell=True, preexec_fn=os.setsid)
         userdata.perception_logger_process = perception_logger_process
         time.sleep(8)
         return 'success'
@@ -84,10 +83,9 @@ class StartPerceptionTask6(smach.State):
                                               shell=True, preexec_fn=os.setsid)
         userdata.perception_process = perception_process
         global perception_logger_process
-        perception_logger_process = subprocess.Popen('./logger.py "' + utils.log_dir + '/' +
-                                                     userdata.initialization_time +
-                                                     ' Perception.log"', stdin=perception_process.stdout,
-                                                     shell=True, preexec_fn=os.setsid)
+        perception_logger_process = subprocess.Popen('rosrun suturo_planning_startup logger.py "' + utils.log_dir +
+                                                     '/' + userdata.initialization_time + ' Perception.log"',
+                                                     stdin=perception_process.stdout, shell=True, preexec_fn=os.setsid)
         userdata.perception_logger_process = perception_logger_process
         time.sleep(8)
         return 'success'
@@ -107,8 +105,8 @@ class StartClassifier(smach.State):
                                               shell=True, preexec_fn=os.setsid)
         userdata.classifier_process = classifier_process
         global classifier_logger_process
-        classifier_logger_process = subprocess.Popen('./logger.py "' + utils.log_dir + '/' +
-                                                     userdata.initialization_time +
+        classifier_logger_process = subprocess.Popen('rosrun suturo_planning_startup logger.py "' + utils.log_dir +
+                                                     '/' + userdata.initialization_time +
                                                      ' Classifier.log"', stdin=classifier_process.stdout,
                                                      shell=True, preexec_fn=os.setsid)
         userdata.classifier_logger_process = classifier_logger_process
@@ -162,8 +160,9 @@ class StopSimulation(smach.State):
         rospy.loginfo('Executing TestNode check.')
         test_node = subprocess.Popen('rosrun euroc_launch TestNode --check', shell=True,
                                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        test_node_logger = subprocess.Popen('./logger.py "' + utils.log_dir + '/' + userdata.initialization_time +
-                                            ' TestNode check.log"', shell=True, stdin=test_node.stdout)
+        test_node_logger = subprocess.Popen('rosrun suturo_planning_startup logger.py "' + utils.log_dir + '/' +
+                                            userdata.initialization_time + ' TestNode check.log"',
+                                            shell=True, stdin=test_node.stdout)
         test_node.wait()
         rospy.loginfo('Killing TestNode logger.')
         os.kill(test_node_logger.pid, signal.SIGTERM)

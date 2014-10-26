@@ -58,7 +58,7 @@ def start_demo(wait, tasks):
                                    shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
         print('Starting logger.')
         global logger_process
-        logger_process = subprocess.Popen('./logger.py "' + utils.log_dir + '/' + init_time +
+        logger_process = subprocess.Popen('rosrun suturo_planning_startup logger.py "' + utils.log_dir + '/' + init_time +
                                           ' Complete.log"', stdin=subproc.stdout, shell=True)
         subproc.wait()
         print('Killing logger.')

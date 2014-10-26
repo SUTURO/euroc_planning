@@ -6,6 +6,7 @@ __loop = True
 
 
 def exit_handler():
+    print('Exit handler for logger ' + f)
     global __loop
     try:
         __loop = False
