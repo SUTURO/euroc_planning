@@ -183,11 +183,11 @@ class StopNodes(smach.State):
         exterminate(userdata.manipulation_process.pid, signal.SIGKILL)
         exterminate(userdata.classifier_process.pid, signal.SIGKILL)
         if userdata.perception_logger_process != 0:
-            os.kill(userdata.perception_logger_process.pid, signal.SIGTERM)
+            exterminate(userdata.perception_logger_process.pid, signal.SIGTERM)
         if userdata.manipulation_logger_process != 0:
-            os.kill(userdata.manipulation_logger_process.pid, signal.SIGTERM)
+            exterminate(userdata.manipulation_logger_process.pid, signal.SIGTERM)
         if userdata.classifier_logger_process != 0:
-            os.kill(userdata.classifier_logger_process.pid, signal.SIGTERM)
+            exterminate(userdata.classifier_logger_process.pid, signal.SIGTERM)
         rospy.signal_shutdown('Finished plan. Shutting down Node.')
         time.sleep(3)
         return 'success'
