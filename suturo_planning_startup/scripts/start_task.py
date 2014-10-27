@@ -84,7 +84,7 @@ if __name__ == '__main__':
         if opt == '--save':
             _save_log = True
         elif opt == '--inittime':
-            __initialization_time = arg
+            initialization_time = arg
         elif opt in ['-c']:
             console_only = True
 
