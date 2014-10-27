@@ -1,8 +1,5 @@
 from mercurial.match import exact
 from os import kill
-import os
-import signal
-
 __author__ = 'moritz'
 
 from subprocess import check_output, CalledProcessError
@@ -18,4 +15,7 @@ def exterminate(killme, signal):
         pids=[]
     for pid in pids:
         exterminate(pid, signal)
-    kill(int(killme), signal)
+    try:
+        kill(int(killme), signal)
+    except:
+        print killme + " was already killed"
