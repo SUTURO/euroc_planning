@@ -7,6 +7,7 @@ import os
 import re
 import rospy
 import atexit
+from suturo_planning_manipulation.total_annihilation import exterminate
 from suturo_planning_plans import utils
 from datetime import datetime
 from euroc_c2_msgs.srv import ListScenes
@@ -19,8 +20,8 @@ logger_process = 0
 
 def exit_handler(signum=None, frame=None):
     try:
-        os.killpg(subproc.pid, signal.SIGTERM)
-        os.killpg(logger_process.pid, signal.SIGTERM)
+        exterminate(subproc.pid, signal.SIGKILL)
+        exterminate(logger_process.pid, signal.SIGKILL)
     except:
         pass
 

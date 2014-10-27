@@ -59,9 +59,9 @@ def exit_handler():
     if _pro_task_selector is not None:
         print 'Stopping TaskSelector'
         print 'Stopping gazebo'
-        os.killpg(_pro_task_selector.pid, signal.SIGTERM)
+        os.kill(_pro_task_selector.pid, signal.SIGTERM)
         rospy.sleep(0.5)
-        os.killpg(_pro_task_selector.pid, signal.SIGKILL)
+        os.kill(_pro_task_selector.pid, signal.SIGKILL)
 
 
 if '--init' in sys.argv:

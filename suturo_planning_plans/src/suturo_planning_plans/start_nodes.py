@@ -6,6 +6,7 @@ import subprocess
 import os
 import signal
 import atexit
+from suturo_planning_manipulation.total_annihilation import exterminate
 import suturo_planning_task_selector
 import threading
 from suturo_planning_plans import utils
@@ -178,15 +179,15 @@ class StopNodes(smach.State):
 
     def execute(self, userdata):
         rospy.loginfo('Stopping Nodes')
-        os.killpg(userdata.perception_process.pid, signal.SIGTERM)
-        os.killpg(userdata.manipulation_process.pid, signal.SIGTERM)
-        os.killpg(userdata.classifier_process.pid, signal.SIGTERM)
+        exterminate(userdata.perception_process.pid, signal.SIGKILL)
+        exterminate(userdata.manipulation_process.pid, signal.SIGKILL)
+        exterminate(userdata.classifier_process.pid, signal.SIGKILL)
         if userdata.perception_logger_process != 0:
-            os.killpg(userdata.perception_logger_process.pid, signal.SIGTERM)
+            os.kill(userdata.perception_logger_process.pid, signal.SIGTERM)
         if userdata.manipulation_logger_process != 0:
-            os.killpg(userdata.manipulation_logger_process.pid, signal.SIGTERM)
+            os.kill(userdata.manipulation_logger_process.pid, signal.SIGTERM)
         if userdata.classifier_logger_process != 0:
-            os.killpg(userdata.classifier_logger_process.pid, signal.SIGTERM)
+            os.kill(userdata.classifier_logger_process.pid, signal.SIGTERM)
         rospy.signal_shutdown('Finished plan. Shutting down Node.')
         time.sleep(3)
         return 'success'
@@ -196,30 +197,27 @@ def exit_handler():
     global manipulation_process
     if manipulation_process != 0:
         print 'Killing manipulation'
-        os.killpg(manipulation_process.pid, signal.SIGTERM)
+        exterminate(manipulation_process.pid, signal.SIGKILL)
     global perception_process
     if perception_process != 0:
         print 'Killing perception'
-        os.killpg(perception_process.pid, signal.SIGTERM)
+        exterminate(perception_process.pid, signal.SIGKILL)
     global classifier_process
     if classifier_process != 0:
         print 'Killing classifier'
-        os.killpg(classifier_process.pid, signal.SIGTERM)
+        exterminate(classifier_process.pid, signal.SIGKILL)
     global manipulation_logger_process
     if manipulation_logger_process != 0:
         print('Killing manipulation logger with pid ' + str(manipulation_logger_process.pid) + '.')
         manipulation_logger_process.terminate()
-        #os.killpg(manipulation_logger_process.pid, signal.SIGTERM)
     global perception_logger_process
     if perception_logger_process != 0:
         print('Killing perception logger with pid ' + str(perception_logger_process.pid) + '.')
         perception_logger_process.terminate()
-        #os.killpg(perception_logger_process.pid, signal.SIGTERM)
     global classifier_logger_process
     if classifier_logger_process != 0:
         print('Killing classifier logger with pid' + str(classifier_logger_process.pid) + '.')
         classifier_logger_process.terminate()
-        #os.killpg(classifier_logger_process.pid, signal.SIGTERM)
 
 
 atexit.register(exit_handler)
