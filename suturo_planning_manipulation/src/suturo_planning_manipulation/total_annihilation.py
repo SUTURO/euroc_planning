@@ -1,5 +1,7 @@
 from mercurial.match import exact
 from os import kill
+import os
+import signal
 
 __author__ = 'moritz'
 
