@@ -15,5 +15,5 @@ def exterminate(killme, signal):
     except:
         pids=[]
     for pid in pids:
-        exterminate(pid)
+        exterminate(pid, signal)
     kill(killme, signal)
