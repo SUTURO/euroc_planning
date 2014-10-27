@@ -35,9 +35,9 @@ def start_node(command, initialization_time, log_name, log_to_console_only):
         stderr = subprocess.STDOUT
     process = subprocess.Popen(command, stdout=stdout, stderr=stderr, shell=True, preexec_fn=os.setsid)
     if not log_to_console_only:
-        logger_process = subprocess.Popen('rosrun suturo_planning_startup logger.py "' + log_dir
+        logger_process = subprocess.Popen('tee "' + log_dir
                                           + '/' + initialization_time + ' ' + log_name + '.log"',
-                                          stdin=process.stdout, shell=True, preexec_fn=os.setsid)
+                                          stdin=process.stdout)
     else:
         logger_process = 0
     time.sleep(8)
