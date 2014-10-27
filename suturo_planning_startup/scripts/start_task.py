@@ -17,7 +17,7 @@ _pro_task_selector = None
 _save_log = False
 
 
-def main(task, with_plan, init_sim, savelog, no_taskselector, initialization_time):
+def main(task, with_plan, init_sim, savelog, no_taskselector, initialization_time, log_to_console_only):
 
     # signal.signal(signal.SIGINT, exit_handler)
     if init_sim and not no_taskselector:
@@ -32,7 +32,7 @@ def main(task, with_plan, init_sim, savelog, no_taskselector, initialization_tim
     if with_plan:
         rospy.init_node('suturo_planning_execution', log_level=rospy.DEBUG)
         rospy.loginfo('Started plan')
-        toplevel_plan(init_sim, [task], savelog, initialization_time)
+        toplevel_plan(init_sim, [task], savelog, initialization_time, log_to_console_only)
     else:
         rospy.init_node('suturo_planning_start_task', log_level=rospy.DEBUG)
         #Start tasks
@@ -71,20 +71,24 @@ if __name__ == '__main__':
     task = sys.argv[1]
     argv = sys.argv[2:]
     try:
-        opts, args = getopt.getopt(argv, '', ['save', 'plan', 'init', 'no-ts', 'inittime='])
+        opts, args = getopt.getopt(argv, 'c', ['save', 'plan', 'init', 'no-ts', 'inittime='])
     except getopt.GetoptError:
         sys.exit(2)
     #print ('opts: ' + str(opts))
     #print ('args: ' + str(args))
-    __initialization_time = None
+    initialization_time = None
+    console_only = False
     for opt, arg in opts:
-        print ('opt: ' + str(opt))
-        print ('arg: ' + str(arg))
+        #print ('opt: ' + str(opt))
+        #print ('arg: ' + str(arg))
         if opt == '--save':
             _save_log = True
         elif opt == '--inittime':
             __initialization_time = arg
+        elif opt in ['-c']:
+            console_only = True
 
-    if __initialization_time is None:
-        __initialization_time = datetime.now().isoformat(' ')
-    main(task, '--plan' in sys.argv, '--init' in sys.argv, _save_log, '--no-ts' in sys.argv, __initialization_time)
+    if initialization_time is None:
+        initialization_time = datetime.now().isoformat(' ')
+    main(task, '--plan' in sys.argv, '--init' in sys.argv, _save_log, '--no-ts' in sys.argv, initialization_time,
+         console_only)

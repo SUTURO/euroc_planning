@@ -22,21 +22,10 @@ manipulation_logger_process = 0
 classifier_logger_process = 0
 
 
-def start_node(command, package, node_name, extension, initialization_time):
-    process = subprocess.Popen(command + ' ' + package + ' ' + node_name + '.' + extension,
-                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                               shell=True, preexec_fn=os.setsid)
-    logger_process = subprocess.Popen('rosrun suturo_planning_startup logger.py "' + utils.log_dir
-                                      + '/' + initialization_time + ' ' + node_name.title() + '.log"',
-                                      stdin=process.stdout, shell=True, preexec_fn=os.setsid)
-    time.sleep(8)
-    return process, logger_process
-
-
 class StartManipulation(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['success', 'fail'],
-                             input_keys=['initialization_time'],
+                             input_keys=['initialization_time', 'log_to_console_only'],
                              output_keys=['manipulation_process', 'manipulation_logger_process'])
 
     def execute(self, userdata):
@@ -45,8 +34,9 @@ class StartManipulation(smach.State):
         rospy.loginfo('Executing state StartManipulation')
         global manipulation_process
         global manipulation_logger_process
-        manipulation_process, manipulation_logger_process = start_node('roslaunch', 'euroc_launch', 'manipulation',
-                                                                       'launch', userdata.initialization_time)
+        manipulation_process, manipulation_logger_process =\
+            utils.start_node('roslaunch euroc_launch manipulation.launch', userdata.initialization_time,
+                             'Manipulation', userdata.log_to_console_only)
         userdata.manipulation_process = manipulation_process
         userdata.manipulation_logger_process = manipulation_logger_process
         return 'success'
@@ -55,15 +45,16 @@ class StartManipulation(smach.State):
 class StartPerception(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['success', 'fail'],
-                             input_keys=['initialization_time'],
+                             input_keys=['initialization_time', 'log_to_console_only'],
                              output_keys=['perception_process', 'perception_logger_process'])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state StartPerception')
         global perception_process
         global perception_logger_process
-        perception_process, perception_logger_process = start_node('roslaunch', 'euroc_launch', 'perception_task1',
-                                                                   'launch', userdata.initialization_time)
+        perception_process, perception_logger_process =\
+            utils.start_node('roslaunch euroc_launch perception_task1.launch', userdata.initialization_time,
+                             'Perception', userdata.log_to_console_only)
         userdata.perception_process = perception_process
         userdata.perception_logger_process = perception_logger_process
         return 'success'
@@ -94,15 +85,16 @@ class StartPerceptionTask6(smach.State):
 class StartClassifier(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['success', 'fail'],
-                             input_keys=['initialization_time'],
+                             input_keys=['initialization_time', 'log_to_console_only'],
                              output_keys=['classifier_process', 'classifier_logger_process'])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state StartClassifier')
         global classifier_process
         global classifier_logger_process
-        classifier_process, classifier_logger_process = start_node('rosrun', 'suturo_perception_classifier',
-                                                                   'classifier', 'py', userdata.initialization_time)
+        classifier_process, classifier_logger_process =\
+            utils.start_node('rosrun suturo_perception_classifier classifier.py', userdata.initialization_time,
+                             'Classifier', userdata.log_to_console_only)
         userdata.classifier_process = classifier_process
         userdata.classifier_logger_process = classifier_logger_process
         return 'success'
@@ -123,6 +115,7 @@ class StartSimulation(smach.State):
     def execute(self, userdata):
         rospy.loginfo('Executing state StartSimulation')
         userdata.yaml = suturo_planning_task_selector.start_task(self.task_name)
+        rospy.loginfo('Got YAML description')
         userdata.objects_found = []
         rospy.loginfo('Waiting for clock.')
         self.clock = rospy.Subscriber('clock', Clock, self.wait_for_clock())
@@ -146,12 +139,12 @@ class StopSimulation(smach.State):
     def __init__(self, savelog):
         self.savelog = savelog
         smach.State.__init__(self, outcomes=['success', 'fail'],
-                             input_keys=['yaml', 'initialization_time'],
+                             input_keys=['yaml', 'initialization_time', 'log_to_console_only'],
                              output_keys=[])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state StopSimulation')
-        check_node(userdata.initialization_time)
+        check_node(userdata.initialization_time, userdata.log_to_console_only)
         if self.savelog:
             save_task()
         stop_task()
@@ -159,16 +152,24 @@ class StopSimulation(smach.State):
         return 'success'
 
 
-def check_node(initialization_time):
+def check_node(initialization_time, log_to_console_only):
     rospy.loginfo('Executing TestNode check.')
-    test_node = subprocess.Popen('rosrun euroc_launch TestNode --check', shell=True,
-                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    test_node_logger = subprocess.Popen('rosrun suturo_planning_startup logger.py "' + utils.log_dir + '/' +
-                                        initialization_time + ' TestNode check.log"',
-                                        shell=True, stdin=test_node.stdout)
+
+    test_node, test_node_logger = utils.start_node('rosrun euroc_launch TestNode --check', initialization_time,
+                                                   'TestNode check', log_to_console_only)
     test_node.wait()
-    rospy.loginfo('Killing TestNode logger.')
-    os.kill(test_node_logger.pid, signal.SIGTERM)
+    if test_node_logger != 0:
+        rospy.loginfo('Killing TestNode logger with pid ' + str(test_node_logger.pid) + '.')
+        test_node_logger.terminate()
+        #os.killpg(os.getpgid(test_node_logger.pid), signal.SIGTERM)
+        time.sleep(1)
+        if test_node_logger.poll() is not None:
+            rospy.loginfo('Test node logger is still running. Sending SIGINT.')
+            try:
+                #os.killpg(os.getpgid(test_node_logger.pid), signal.SIGINT)
+                test_node_logger.kill()
+            except:
+                rospy.loginfo('Could not kill logger.')
 
 
 class StopNodes(smach.State):
@@ -184,9 +185,12 @@ class StopNodes(smach.State):
         os.killpg(userdata.perception_process.pid, signal.SIGTERM)
         os.killpg(userdata.manipulation_process.pid, signal.SIGTERM)
         os.killpg(userdata.classifier_process.pid, signal.SIGTERM)
-        os.killpg(userdata.perception_logger_process.pid, signal.SIGTERM)
-        os.killpg(userdata.manipulation_logger_process.pid, signal.SIGTERM)
-        os.killpg(userdata.classifier_logger_process.pid, signal.SIGTERM)
+        if userdata.perception_logger_process != 0:
+            os.killpg(userdata.perception_logger_process.pid, signal.SIGTERM)
+        if userdata.manipulation_logger_process != 0:
+            os.killpg(userdata.manipulation_logger_process.pid, signal.SIGTERM)
+        if userdata.classifier_logger_process != 0:
+            os.killpg(userdata.classifier_logger_process.pid, signal.SIGTERM)
         rospy.signal_shutdown('Finished plan. Shutting down Node.')
         time.sleep(3)
         return 'success'
@@ -207,16 +211,19 @@ def exit_handler():
         os.killpg(classifier_process.pid, signal.SIGTERM)
     global manipulation_logger_process
     if manipulation_logger_process != 0:
-        print 'Killing manipulation logger'
-        os.killpg(manipulation_logger_process.pid, signal.SIGTERM)
+        print('Killing manipulation logger with pid ' + str(manipulation_logger_process.pid) + '.')
+        manipulation_logger_process.terminate()
+        #os.killpg(manipulation_logger_process.pid, signal.SIGTERM)
     global perception_logger_process
     if perception_logger_process != 0:
-        print 'Killing perception logger'
-        os.killpg(perception_logger_process.pid, signal.SIGTERM)
+        print('Killing perception logger with pid ' + str(perception_logger_process.pid) + '.')
+        perception_logger_process.terminate()
+        #os.killpg(perception_logger_process.pid, signal.SIGTERM)
     global classifier_logger_process
     if classifier_logger_process != 0:
-        print 'Killing classifier logger'
-        os.killpg(classifier_logger_process.pid, signal.SIGTERM)
+        print('Killing classifier logger with pid' + str(classifier_logger_process.pid) + '.')
+        classifier_logger_process.terminate()
+        #os.killpg(classifier_logger_process.pid, signal.SIGTERM)
 
 
 atexit.register(exit_handler)

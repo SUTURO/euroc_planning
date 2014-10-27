@@ -11,14 +11,14 @@ import start_nodes
 from suturo_msgs.msg import Task
 
 
-def handle_uncaught_exception(e, initialization_time):
+def handle_uncaught_exception(e, initialization_time, log_to_console_only):
     print('Uncaught exception: ' + str(e))
-    start_nodes.check_node(initialization_time)
+    start_nodes.check_node(initialization_time, log_to_console_only)
     print('Terminating task.')
     rospy.signal_shutdown('Terminating Task due to unhandled exception.')
 
 
-def toplevel_plan(init_sim, task_list, savelog, initialization_time):
+def toplevel_plan(init_sim, task_list, savelog, initialization_time, log_to_console_only):
     __initialization_time = initialization_time
     # Create a SMACH state machine
     toplevel = smach.StateMachine(outcomes=['success', 'fail'])
@@ -28,7 +28,7 @@ def toplevel_plan(init_sim, task_list, savelog, initialization_time):
         for task_name in task_list:
             rospy.logdebug('Adding task: %s', task_name)
             smach.StateMachine.add('Execute%s' % task_name,
-                                   EurocTask(init_sim, task_name, savelog, initialization_time),
+                                   EurocTask(init_sim, task_name, savelog, initialization_time, log_to_console_only),
                                    transitions={'success': 'success',
                                                 'fail': 'fail'})
 
@@ -44,7 +44,7 @@ def toplevel_plan(init_sim, task_list, savelog, initialization_time):
         try:
             toplevel.execute()
         except:
-            handle_uncaught_exception(sys.exc_info()[0], initialization_time)
+            handle_uncaught_exception(sys.exc_info()[0], initialization_time, log_to_console_only)
 
     smach_thread = threading.Thread(target=execute_task)
     smach_thread.start()
@@ -63,10 +63,11 @@ def toplevel_plan(init_sim, task_list, savelog, initialization_time):
 
 
 class EurocTask(smach.StateMachine):
-    def __init__(self, init_sim, task_name, savelog, initialization_time):
+    def __init__(self, init_sim, task_name, savelog, initialization_time, log_to_console_only):
         self.savelog = savelog
         smach.StateMachine.__init__(self, input_keys=[], outcomes=['success', 'fail'])
         self.userdata.initialization_time = initialization_time
+        self.userdata.log_to_console_only = log_to_console_only
         # Associate the task name with a state machine
         plans = {'task1': task1.Task1,
                  'task2': task1.Task1,
@@ -116,7 +117,7 @@ class EurocTask(smach.StateMachine):
 class InitSimulation(smach.StateMachine):
     def __init__(self, task_name):
         smach.StateMachine.__init__(self, outcomes=['success', 'fail'],
-                                    input_keys=['initialization_time'],
+                                    input_keys=['initialization_time', 'log_to_console_only'],
                                     output_keys=['objects_found', 'yaml', 'perception_process', 'manipulation_process',
                                                  'classifier_process', 'perception_logger_process',
                                                  'manipulation_logger_process', 'classifier_logger_process'])

@@ -2,6 +2,9 @@ import rospy
 import os
 import struct
 import math
+import subprocess
+import time
+import sys
 from std_msgs.msg import ColorRGBA
 from suturo_perception_msgs.srv import Classifier
 from geometry_msgs.msg import PointStamped, PoseStamped
@@ -12,13 +15,33 @@ from math import pi
 # Holds the manipulation object
 manipulation = None
 map = None
-initialization_time = None
 log_dir = '/tmp/euroc_c2'
 
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
 focus_poses = [[0.7, pi / 5.0], [0.6, pi / 4.0], [0.6, pi / 3.0], [0.7, pi / 4.0], [0.5, pi / 4.0], [0.4, pi / 4.0]]
+
+
+def start_node(command, initialization_time, log_name, log_to_console_only):
+    print('Starting node.')
+    print('command: ' + command)
+    print('log_to_console_only: ' + str(log_to_console_only))
+    if log_to_console_only:
+        stdout = sys.stdout
+        stderr = sys.stderr
+    else:
+        stdout = subprocess.PIPE
+        stderr = subprocess.STDOUT
+    process = subprocess.Popen(command, stdout=stdout, stderr=stderr, shell=True, preexec_fn=os.setsid)
+    if not log_to_console_only:
+        logger_process = subprocess.Popen('rosrun suturo_planning_startup logger.py "' + log_dir
+                                          + '/' + initialization_time + ' ' + log_name + '.log"',
+                                          stdin=process.stdout, shell=True, preexec_fn=os.setsid)
+    else:
+        logger_process = 0
+    time.sleep(8)
+    return process, logger_process
 
 
 def classify_object(obj):
