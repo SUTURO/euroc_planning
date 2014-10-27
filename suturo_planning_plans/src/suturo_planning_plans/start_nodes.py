@@ -69,16 +69,12 @@ class StartPerceptionTask6(smach.State):
     def execute(self, userdata):
         rospy.loginfo('Executing state StartPerceptionTask6')
         global perception_process
-        perception_process = subprocess.Popen('roslaunch euroc_launch perception_task6.launch',
-                                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                              shell=True, preexec_fn=os.setsid)
-        userdata.perception_process = perception_process
         global perception_logger_process
-        perception_logger_process = subprocess.Popen('rosrun suturo_planning_startup logger.py "' + utils.log_dir +
-                                                     '/' + userdata.initialization_time + ' Perception.log"',
-                                                     stdin=perception_process.stdout, shell=True, preexec_fn=os.setsid)
+        perception_process, perception_logger_process =\
+            utils.start_node('roslaunch euroc_launch perception_task6.launch', userdata.initialization_time,
+                             'Perception', userdata.log_to_console_only)
+        userdata.perception_process = perception_process
         userdata.perception_logger_process = perception_logger_process
-        time.sleep(8)
         return 'success'
 
 
