@@ -55,7 +55,7 @@ class PoseEstimateObject(smach.State):
         pose_estimated = pose_estimated_objects[corresponding_object_idx]
         rospy.logdebug('Use Result from Object :%s' % str(pose_estimated))
 
-        if pose_estimated is None:
+        if pose_estimated is None or not pose_estimated.mpe_success:
             rospy.logwarn('Poseestimation failed.')
             return 'fail'
 

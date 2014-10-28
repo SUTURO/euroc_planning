@@ -1,10 +1,8 @@
 import smach
-from suturo_planning_plans.stateclassifyobject import ClassifyObjects
 from suturo_planning_plans.statecamtodropzone import CamToDropzone
-from suturo_planning_plans.stategraspobject import GraspObject
+from suturo_planning_plans.statefastgrasp import FastGrasp
 from suturo_planning_plans.stateplaceobject import PlaceObject
 from suturo_planning_plans.statecheckplacement import CheckPlacement
-from suturo_planning_plans.statetask6init import Task6Init
 
 
 class Task6(smach.StateMachine):
@@ -13,14 +11,27 @@ class Task6(smach.StateMachine):
                                     input_keys=['yaml'],
                                     output_keys=[])
 
-        # Foerderband in PS -> Armkamera auf Dropzone -> warten auf Objekt -> Perception triggern ->
+        # Armkamera auf Dropzone -> warten auf Objekt -> Perception triggern ->
         # Wenn Objekt da ist, Manipulation triggern (Berechnung der neuen Pose) -> Pre Grasp -> Graspen bei t_x
         # PlaceObject -> Armkamera auf Dropzone
+        # TODO: Fehlerbehandlung
 
         with self:
-            smach.StateMachine.add('Task6Init', Task6Init(),
-                                   transitions={'success': 'success',
+            smach.StateMachine.add('CamToDropzone', CamToDropzone(),
+                                   transitions={'success': 'FastGrasp',
                                                 'fail': 'fail'})
+            smach.StateMachine.add('FastGrasp', FastGrasp(),
+                                   transitions={'objectGrasped': 'PlaceObject',
+                                                'timeExpired': 'success',
+                                                'fail': 'fail'})
+            smach.StateMachine.add('PlaceObject', PlaceObject(),
+                                   transitions={'success': 'CheckObject',
+                                                'noObjectAttached': 'CamToDropzone',
+                                                'noPlacePosition': 'fail',
+                                                'fail': 'fail'})
+            smach.StateMachine.add('CheckObject', CheckPlacement(),
+                                   transitions={'onTarget': 'CamToDropzone',
+                                                'notOnTarget': 'fail'})
 
 
 

@@ -1,5 +1,6 @@
 import random
 import unittest
+import rospy
 from suturo_planning_search.cell import Cell
 from suturo_planning_search.map import Map
 
@@ -41,6 +42,13 @@ class TestCell(unittest.TestCase):
         self.assertFalse(c.is_free())
 
 class TestMapCleanUp(unittest.TestCase):
+
+    def __init__(self, *args, **kwargs):
+        super(TestMapCleanUp, self).__init__(*args, **kwargs)
+        # self.gen_stubs()
+        rospy.init_node('test_map', anonymous=True)
+
+
     def make_free_map(self):
         m = Map(2)
         for x in xrange(m.num_of_cells):
@@ -198,3 +206,75 @@ class TestMapCleanUp(unittest.TestCase):
         self.assertTrue(m.get_cell_by_index(3,5).is_object())
         self.assertTrue(m.get_cell_by_index(4,5).is_object())
         self.assertTrue(m.get_cell_by_index(3,4).is_object())
+
+    def test5_1(self):
+        '''
+        3 single unknowns
+        '''
+        m = Map(2)
+        self.assertTrue(m.get_percent_cleared() == 0.0, m.get_percent_cleared())
+
+        m = self.make_free_map()
+        self.assertTrue(m.get_percent_cleared() == 1.0, m.get_percent_cleared())
+
+        m.get_cell_by_index(3,4).set_unknown()
+        self.assertTrue(m.get_percent_cleared() < 1.0, m.get_percent_cleared())
+
+    def test6_1(self):
+        '''
+        '''
+
+        m = self.make_free_map()
+        cells = m.get_cells_between(0.01, 0.01, 0.13, 0.09)
+        self.assertTrue(len(cells) == 5)
+        self.assertTrue(m.coordinates_to_index(0.01, 0.01) in cells)
+        self.assertTrue(m.coordinates_to_index(0.13, 0.09) in cells)
+
+        cells = m.get_cells_between(0.13, 0.09, 0.01, 0.01)
+        self.assertTrue(len(cells) == 5)
+        self.assertTrue(m.coordinates_to_index(0.01, 0.01) in cells)
+        self.assertTrue(m.coordinates_to_index(0.13, 0.09) in cells)
+
+        cells = m.get_cells_between(0.01, 0.01, 0.09, 0.09)
+        self.assertTrue(len(cells) == 3)
+        self.assertTrue(m.coordinates_to_index(0.01, 0.01) in cells)
+        self.assertTrue(m.coordinates_to_index(0.09, 0.09) in cells)
+
+    def test7_1(self):
+        m = self.make_free_map()
+
+        m.get_cell_by_index(10,10).set_obstacle()
+        m.get_cell_by_index(10,10).highest_z = 0.5
+        m.get_cell_by_index(10,11).set_obstacle()
+        m.get_cell_by_index(10,11).highest_z = 1
+        m.get_cell_by_index(10,12).set_obstacle()
+        m.get_cell_by_index(10,12).highest_z = 1
+        m.get_cell_by_index(10,13).set_obstacle()
+        m.get_cell_by_index(10,13).highest_z = 1
+        m.get_cell_by_index(10,14).set_obstacle()
+        m.get_cell_by_index(10,14).highest_z = 1
+        m.get_cell_by_index(11,10).set_obstacle()
+        m.get_cell_by_index(11,10).highest_z = 1
+        m.get_cell_by_index(11,11).set_obstacle()
+        m.get_cell_by_index(11,11).highest_z = 1
+        m.get_cell_by_index(11,12).set_obstacle()
+        m.get_cell_by_index(11,12).highest_z = 1
+        m.get_cell_by_index(11,13).set_obstacle()
+        m.get_cell_by_index(11,13).highest_z = 1
+
+        rs = m.get_obstacle_regions()
+        print m.get_cell_volume_by_index(10, 10)
+        self.assertTrue(m.get_cell_volume_by_index(10, 10) == 0.0008)
+        print m.get_region_volume(rs[0])
+        self.assertTrue(abs(m.get_region_volume(rs[0]) - 0.0136) <= 0.00001, m.get_region_volume(rs[0]))
+
+
+
+
+
+
+
+
+
+
+

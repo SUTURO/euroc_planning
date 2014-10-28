@@ -3,7 +3,7 @@ __author__ = 'ichumuh'
 
 from copy import deepcopy
 from math import sqrt, pi, cos, sin, acos
-import numpy
+import numpy as np
 
 import geometry_msgs.msg
 from geometry_msgs.msg._Point import Point
@@ -20,15 +20,13 @@ def get_angle(p1, p2):
     :param p2: Point
     :return: angle as float
     '''
-    muh = scalar_product(p1, p2) / (sqrt(scalar_product(p1, p1)) * sqrt(scalar_product(p2, p2)))
-    # print "muh", muh
-    if muh <= -1.0:
-        muh = -0.9999999999999
-    if muh >= 1.0:
-        muh = 0.9999999999999
-    result = acos(muh)
-    # print result
-    return result
+    v1 = p1
+    if type(p1) is Point:
+        v1 = (p1.x, p1.y, p1.z)
+    v2 = p2
+    if type(p2) is Point:
+        v2 = (p2.x, p2.y, p2.z)
+    return np.arccos(dot_product(v1,v2) / (magnitude(v1) * magnitude(v2)))
 
 
 def three_points_to_quaternion(origin, to, roll=None):
@@ -49,16 +47,16 @@ def three_points_to_quaternion(origin, to, roll=None):
     n = subtract_point(roll, origin)
     n = normalize(n)
 
-    n_2 = subtract_point(n, multiply_point(scalar_product(n, n_1), n_1))
+    n_2 = subtract_point(n, multiply_point(dot_product(n, n_1), n_1))
     n_2 = normalize(n_2)
 
     n_3 = cross_product(n_1, n_2)
     n_3 = normalize(n_3)
 
-    rm = numpy.array(((n_1.x, n_2.x, n_3.x, 0),
+    rm = np.array(((n_1.x, n_2.x, n_3.x, 0),
                       (n_1.y, n_2.y, n_3.y, 0),
                       (n_1.z, n_2.z, n_3.z, 0),
-                      (0, 0, 0, 1)), dtype=numpy.float64)
+                      (0, 0, 0, 1)), dtype=np.float64)
 
     q = quaternion_from_matrix(rm)
     q = Quaternion(*q)
@@ -70,15 +68,17 @@ def three_points_to_quaternion(origin, to, roll=None):
 def subtract_point(p1, p2):
     '''
     p1 - p2
-    :param p1: Point
-    :param p2: Point
+    :param p1: Point / array
+    :param p2: Point / array
     :return: Point
     '''
-    result = geometry_msgs.msg.Point()
-    result.x = p1.x - p2.x
-    result.y = p1.y - p2.y
-    result.z = p1.z - p2.z
-    return result
+    v1 = p1
+    if type(p1) is Point:
+        v1 = (p1.x, p1.y, p1.z)
+    v2 = p2
+    if type(p2) is Point:
+        v2 = (p2.x, p2.y, p2.z)
+    return Point(*np.subtract(v1, v2))
 
 def euclidean_distance(p1, p2):
     return magnitude(subtract_point(p1, p2))
@@ -86,65 +86,70 @@ def euclidean_distance(p1, p2):
 def add_point(p1, p2):
     '''
     p1 + p2
-    :param p1: Point
-    :param p2: Point
+    :param p1: Point / array
+    :param p2: Point / array
     :return: Point
     '''
-    result = geometry_msgs.msg.Point()
-    result.x = p1.x + p2.x
-    result.y = p1.y + p2.y
-    result.z = p1.z + p2.z
-    return result
+    v1 = p1
+    if type(p1) is Point:
+        v1 = (p1.x, p1.y, p1.z)
+    v2 = p2
+    if type(p2) is Point:
+        v2 = (p2.x, p2.y, p2.z)
+    return Point(*np.add(v1, v2))
 
 
 def normalize(p):
     '''
     Normalizes a point.
-    :param p: Point
+    :param p: Point / array
     :return: Point
     '''
-    result = deepcopy(p)
-    if result.x == 0 and result.y == 0 and result.z == 0:
-        return None
-    a = 1 / sqrt((result.x * result.x + result.y * result.y + result.z * result.z))
-    result.x *= a
-    result.y *= a
-    result.z *= a
+    v = p
+    if type(p) is Point:
+        v = (p.x, p.y, p.z)
+
+    l = magnitude(v)
+    result = Point(*(x * 1/l for x in v))
+
     return result
 
 def set_vector_length(l, p):
     '''
     Sets the length of "p" to "l"
     :param l: float
-    :param p: Point
+    :param p: Point / array
     :return:Point
     '''
-    p2 = deepcopy(p)
-    p2 = normalize(p2)
-    return multiply_point(l, p2)
+    return multiply_point(l, normalize(p))
 
 def multiply_point(s, p):
     '''
     p * s
     :param s: float
-    :param p: Point
+    :param p: Point / array
     :return: Point
     '''
-    result = geometry_msgs.msg.Point()
-    result.x = p.x * s
-    result.y = p.y * s
-    result.z = p.z * s
-    return result
+    v = p
+    if type(p) is Point:
+        v = (p.x, p.y, p.z)
+    return Point(*np.multiply(v, s))
 
 
-def scalar_product(p1, p2):
+def dot_product(p1, p2):
     '''
     p1 * p2
-    :param p1: Point
-    :param p2: Point
+    :param p1: Point / array
+    :param p2: Point / array
     :return: scalar product as Point
     '''
-    return p1.x * p2.x + p1.y * p2.y + p1.z * p2.z
+    v1 = p1
+    if type(p1) is Point:
+        v1 = (p1.x, p1.y, p1.z)
+    v2 = p2
+    if type(p2) is Point:
+        v2 = (p2.x, p2.y, p2.z)
+    return np.dot(v1, v2)
 
 
 def magnitude(q):
@@ -153,24 +158,27 @@ def magnitude(q):
     :param q: Quaternion/Point
     :return: lenght as float
     '''
+    v = q
+    if type(q) is Point:
+        v = (q.x, q.y, q.z)
     if type(q) is geometry_msgs.msg.Quaternion:
-        return sqrt(q.x**2 + q.y**2 + q.z**2 + q.w**2)
-    else:
-        return sqrt(q.x**2 + q.y**2 + q.z**2)
-
+        v = (q.x, q.y, q.z, q.w)
+    return np.linalg.norm(v)
 
 def cross_product(p1, p2):
     '''
     p1 x p2
-    :param p1: Point
-    :param p2: Point
+    :param p1: Point / array
+    :param p2: Point / array
     :return: Point
     '''
-    result = geometry_msgs.msg.Point()
-    result.x = p1.y * p2.z - p1.z * p2.y
-    result.y = p1.z * p2.x - p1.x * p2.z
-    result.z = p1.x * p2.y - p1.y * p2.x
-    return result
+    v1 = p1
+    if type(p1) is Point:
+        v1 = (p1.x, p1.y, p1.z)
+    v2 = p2
+    if type(p2) is Point:
+        v2 = (p2.x, p2.y, p2.z)
+    return Point(*np.cross(v1, v2))
 
 def rotate_quaternion(q, roll, pitch, yaw):
     '''

@@ -98,21 +98,21 @@ class Manipulation(object):
         '''
         return self.tf.transform_to(pose_target, target_frame)
 
-    def move_to(self, goal_pose):
+    def move_to(self, goal_pose,blow_up = True):
         '''
         Moves the endeffector to the goal position, without moving the base.
         :param goal_pose: goal position as PoseStamped
         :return: success of the movement
         '''
-        return self.__move_group_to(goal_pose, self.__arm_group)
+        return self.__move_group_to(goal_pose, self.__arm_group, blow_up = blow_up)
 
-    def move_arm_and_base_to(self, goal_pose):
+    def move_arm_and_base_to(self, goal_pose, blow_up = True):
         '''
         Moves the endeffector to the goal position. (Don't use this for Task 1 and 2)
         :param goal_pose: goal position as PoseStamped
         :return: success of the movement
         '''
-        return self.__move_group_to(goal_pose, self.__arm_base_group)
+        return self.__move_group_to(goal_pose, self.__arm_base_group, blow_up = blow_up)
 
     def get_base_origin(self):
         '''
@@ -131,54 +131,60 @@ class Manipulation(object):
         current_pose = self.__arm_group.get_current_pose()
         return current_pose
 
-    def __plan_group_to(self, goal_pose, move_group):
+    def __blow_up_object(self, bobject, factor):
+       """
+        :param bobject: Object to blow up
+        :param factor: Blowup Factor
+        :return: Returns the Blown up object
+        """
+       for primitive in bobject.primitives:
+           dims = []
+           for dimension in primitive.dimensions:
+               dims.append(dimension + factor)
+           primitive.dimensions = dims
+       return bobject
+
+    def __move_group_to(self, goal_pose, move_group, blow_up=True, blow_up_distance = 0.02):
+        """
+         :param goal_pose: the pose which shall be arrived
+         :param move_group: the move group which shall be moved
+         :param blow_up: True if collision objects shall be made bigger
+         :param blow_up_distance: Distance in m
+         :return:
+         """
+
+        original_objects = self.__planning_scene_interface.get_collision_objects()
+        blown_up_objects = []
+        if blow_up:
+            for each in original_objects:
+                if not each.id in self.__planning_scene_interface.safe_objects:
+                    # self.__planning_scene_interface.remove_object(each.id)
+                    bobj = self.__blow_up_object(copy.deepcopy(each), blow_up_distance)
+                    blown_up_objects.append(bobj.id)
+                    self.__planning_scene_interface.add_object(bobj)
         move_group.set_start_state_to_current_state()
         goal = deepcopy(goal_pose)
         if type(goal) is str:
             move_group.set_named_target(goal)
         elif type(goal) is PoseStamped:
             visualize_poses([goal])
-
-            # Rotate the goal so that the gripper points from 0,0,0 to 1,0,0 with a 0,0,0,1 quaternion as orientation.
-            goal.pose.orientation = rotate_quaternion(goal.pose.orientation, pi / 2, pi, pi / 2)
+            #Rotate the goal so that the gripper points from 0,0,0 to 1,0,0 with a 0,0,0,1 quaternion as orientation.
+            goal.pose.orientation = rotate_quaternion(goal.pose.orientation, pi/2, pi, pi/2)
             goal = self.tf.transform_to(goal)
 
             move_group.set_pose_target(goal)
         else:
             move_group.set_joint_value_target(goal)
+
         path = move_group.plan()
-        return path
 
-    def plan_to(self, goal_pose):
-        '''
-        Moves the endeffector to the goal position, without moving the base.
-        :param goal_pose: goal position as PoseStamped
-        :return: success of the movement
-        '''
-        return self.__plan_group_to(goal_pose, self.__arm_group)
+        if blow_up:
+            # for each in blown_up_objects:
+            #     self.__planning_scene_interface.remove_object(each)
+            for each in original_objects:
+                self.__planning_scene_interface.add_object(each)
 
-    def plan_arm_and_base_to(self, goal_pose):
-        '''
-        Moves the endeffector to the goal position. (Don't use this for Task 1 and 2)
-        :param goal_pose: goal position as PoseStamped
-        :return: success of the movement
-        '''
-        return self.__plan_group_to(goal_pose, self.__arm_base_group)
-
-    def __move_group_to(self, goal_pose, move_group):
-        print "started planning"
-        print move_group.get_planning_time()
-        print rospy.Time.now().to_sec()
-        path = self.__plan_group_to(goal_pose, move_group)
-        print "finished planning, calling movement service"
-        print rospy.Time.now().to_sec()
         return self.__manService.move(path)
-
-    def get_timing_to(self, goal_pose):
-        return self.__plan_group_to(goal_pose, self.__arm_group)
-
-    def get_timing_arm_and_base_to(self, goal_pose):
-        return self.__plan_group_to(goal_pose, self.__arm_base_group)
 
     def get_current_joint_state(self):
         '''

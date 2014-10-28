@@ -243,10 +243,31 @@ class Map:
         for x in xrange(self.num_of_cells):
             for y in xrange(self.num_of_cells):
                 if self.get_cell_by_index(x, y).is_unknown():
-                    num_unknowns =+ 1
-        percent = num_unknowns / (self.num_of_cells**2)
-        print percent, " \% cleared."
+                    num_unknowns += 1
+        percent = 1.0 - (num_unknowns / ((self.num_of_cells+0.0)**2.0))
+        rospy.loginfo(str(100 * percent) + " % cleared.")
         return percent
+
+    def get_cells_between(self, x1, y1, x2, y2):
+        (x_1, y_1) = self.index_to_coordinates(*self.coordinates_to_index(x1, y1))
+        (x_2, y_2) = self.index_to_coordinates(*self.coordinates_to_index(x2, y2))
+        p = subtract_point((x_2, y_2, 0), (x_1, y_1, 0))
+        l = magnitude(p)
+        steps = int(l / self.cell_size_x)+2
+        p = set_vector_length(self.cell_size_x, p)
+        cells = []
+        x = x_1
+        y = y_1
+        for i in xrange(steps):
+            c = self.coordinates_to_index(x, y)
+            if not c in cells:
+                cells.append(c)
+                # print c
+            x += p.x
+            y += p.y
+        # cells.append(self.get_cell(x, y))
+
+        return cells
 
     def get_next_point(self, arm_x = 0, arm_y = 0):
         cm = ClusterRegions()
@@ -325,6 +346,21 @@ class Map:
             for y in range(self.num_of_cells):
                 if self.get_cell_by_index(x, y).is_unknown():
                     self.get_cell_by_index(x, y).set_obstacle()
+                    self.get_cell_by_index(x, y).average_z == self.get_average_z_of_surrounded_obstacles(x, y)
+                    if self.get_cell_by_index(x, y).average_z <= 0.01:
+                        self.get_cell_by_index(x, y).average_z = 0.1
+        self.publish_as_marker()
+
+    def get_cell_volume_by_index(self, x, y):
+        c = self.get_cell_by_index(x, y)
+        return c.highest_z * self.cell_size_x * self.cell_size_y
+
+    def get_region_volume(self, region):
+        volume = 0
+        for [x, y] in region.cell_coords:
+            volume += self.get_cell_volume_by_index(x, y)
+
+        return volume
 
     def get_surrounding_cells(self, x, y):
         return self.get_surrounding_cells_by_index(*self.coordinates_to_index(x,y))

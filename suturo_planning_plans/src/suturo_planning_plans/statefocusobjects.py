@@ -70,6 +70,7 @@ class FocusObject(smach.State):
         if userdata.enable_movement:
             move_method = utils.manipulation.move_arm_and_base_to
         else:
+            utils.manipulation.set_planning_time_arm(2)
             move_method = utils.manipulation.move_to
 
         for pose in poses:
@@ -84,6 +85,8 @@ class FocusObject(smach.State):
 
                 self._ctr = 0
                 return 'success'
+
+        utils.manipulation.set_planning_time_arm(5)
 
         if self._ctr < 6:
             self._ctr += 1

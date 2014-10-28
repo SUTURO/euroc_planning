@@ -63,7 +63,7 @@ class Cell:
 
     def update_state(self):
         if not self.is_object() and self.enough_points():
-            if self.average_z <= 0.0125:
+            if self.average_z <= 0.01:
                 self.state = self.Free
             else:
                 self.state = self.Obstacle
