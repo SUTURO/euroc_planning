@@ -2,7 +2,7 @@ import smach
 from suturo_planning_plans.stateclassifyobject import ClassifyObjects
 from suturo_planning_plans.statesearchobject import SearchObject
 from suturo_planning_plans.statetidyupobject import TidyUpObject
-from suturo_planning_plans.statechooseobject import ChooseObject
+from suturo_planning_plans.statechooseobject import ChooseObject, CleanUpPlan
 from suturo_planning_plans.statefocusobjects import FocusObjects, FocusObject, RefocusHandle
 from suturo_planning_plans.stateposeestimateobject import PoseEstimateObject
 from suturo_planning_plans.stateturn import Turn
@@ -17,11 +17,11 @@ class Task1(smach.StateMachine):
         with self:
             smach.StateMachine.add('SearchObject', SearchObject(),
                                    transitions={'searchObject': 'Turn',
-                                                'noObjectsLeft': 'ChooseObject',
+                                                'noObjectsLeft': 'CleanUpPlan',
                                                 'simStopped': 'fail'})
             smach.StateMachine.add('Turn', Turn(),
                                    transitions={'objectFound': 'ClassifyObjects',
-                                                'noObjectsFound': 'ChooseObject',
+                                                'noObjectsFound': 'CleanUpPlan',
                                                 'simStopped': 'fail'})
             smach.StateMachine.add('ClassifyObjects', ClassifyObjects(),
                                    transitions={'objectsClassified': 'FocusObjects',
@@ -50,6 +50,9 @@ class Task1(smach.StateMachine):
             smach.StateMachine.add('PoseEstimateObject', PoseEstimateObject(),
                                    transitions={'success': 'FocusObjects',
                                                 'fail': 'FocusObjects'})
+            smach.StateMachine.add('CleanUpPlan', CleanUpPlan(),
+                                   transitions={'success': 'ChooseObject',
+                                                'fail': 'fail'})
             smach.StateMachine.add('ChooseObject', ChooseObject(),
                                    transitions={'objectChosen': 'TidyUpObject',
                                                 'noObjectsLeft': 'success'})

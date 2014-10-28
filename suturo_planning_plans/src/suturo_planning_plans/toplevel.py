@@ -130,14 +130,14 @@ class InitSimulation(smach.StateMachine):
             # else:
             # rospy.loginfo("Normal Perception started")
             smach.StateMachine.add('StartSimulation', start_nodes.StartSimulation(task_name),
-                                   transitions={'success': 'StartPerception',
-                                                'fail': 'StartSimulation'})
-            smach.StateMachine.add('StartPerception', start_nodes.StartPerception(),
                                    transitions={'success': 'StartManipulation',
-                                                'fail': 'StartPerception'})
+                                                'fail': 'StartSimulation'})
             smach.StateMachine.add('StartManipulation', start_nodes.StartManipulation(),
-                                   transitions={'success': 'StartClassifier',
+                                   transitions={'success': 'StartPerception',
                                                 'fail': 'StartManipulation'})
+            smach.StateMachine.add('StartPerception', start_nodes.StartPerception(),
+                                   transitions={'success': 'StartClassifier',
+                                                'fail': 'StartPerception'})
             smach.StateMachine.add('StartClassifier', start_nodes.StartClassifier(),
                                    transitions={'success': 'success',
                                                 'fail': 'StartClassifier'})

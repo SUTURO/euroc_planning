@@ -14,6 +14,7 @@ from suturo_planning_task_selector import save_task
 from suturo_planning_task_selector import stop_task
 from rosgraph_msgs.msg import Clock
 from actionlib_msgs.msg import GoalStatusArray
+from suturo_perception_msgs.msg import PerceptionNodeStatus
 
 
 perception_process = 0
@@ -61,9 +62,38 @@ class StartPerception(smach.State):
         smach.State.__init__(self, outcomes=['success', 'fail'],
                              input_keys=['initialization_time', 'log_to_console_only'],
                              output_keys=['perception_process', 'perception_logger_process'])
+        self.__subscriber = None
+        self.__perception_ready = False
+        self.__required_nodes = None
+        self.__started_nodes = []
+
+    def wait_for_perception(self, msg):
+        rospy.loginfo('Executing wait_for_perception')
+        if len(msg.required_nodes) > 0 and self.__required_nodes is None:
+            rospy.loginfo('required_nodes: ' + str(msg.required_nodes))
+            self.__required_nodes = msg.required_nodes
+        elif self.__required_nodes is not None and msg.started_node in self.__required_nodes:
+            rospy.loginfo('Started node: ' + str(msg.started_node))
+            self.__started_nodes.append(msg.started_node)
+        else:
+            rospy.loginfo('Unhandled Message:\n' + str(msg))
+
+        if self.__required_nodes is not None:
+            for n in self.__required_nodes:
+                if n not in self.__started_nodes:
+                    rospy.loginfo('Node ' + str(n) + ' has not been started yet. Still waiting.')
+                    return
+            rospy.loginfo('All nodes have been started.')
+            self.__perception_ready = True
+            self.__subscriber.unregister()
+        else:
+            rospy.loginfo('Still waiting for perception.')
 
     def execute(self, userdata):
         rospy.loginfo('Executing state StartPerception')
+        rospy.loginfo('Subscribing to /suturo/perception_node_status.')
+        self.__subscriber = rospy.Subscriber('/suturo/perception_node_status', PerceptionNodeStatus,
+                                             self.wait_for_perception)
         global perception_process
         global perception_logger_process
         perception_process, perception_logger_process =\
@@ -71,7 +101,8 @@ class StartPerception(smach.State):
                              'Perception', userdata.log_to_console_only)
         userdata.perception_process = perception_process
         userdata.perception_logger_process = perception_logger_process
-        time.sleep(8)
+        while not self.__perception_ready:
+            time.sleep(1)
         return 'success'
 
 

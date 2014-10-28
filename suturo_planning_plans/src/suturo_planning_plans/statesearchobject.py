@@ -39,13 +39,14 @@ class SearchObject(smach.State):
                     self._missing_objects.remove(obj.mpe_object.id)
         userdata.objects_found = self._found_objects
 
+        rospy.loginfo('##########################################')
+        rospy.loginfo('Objects found:')
+        for obj in self._found_objects:
+            rospy.loginfo(obj.mpe_object.id)
+        rospy.loginfo('##########################################')
+
         # Check if all objects were found
         if not self._missing_objects:
-            rospy.loginfo('##########################################')
-            rospy.loginfo('Objects found:')
-            for obj in self._found_objects:
-                rospy.loginfo(obj.mpe_object.id)
-            rospy.loginfo('##########################################')
             return 'noObjectsLeft'
 
         return 'searchObject'
