@@ -42,6 +42,7 @@ class Map:
         self.unknown_regions = []
         self.__get_point_array = rospy.ServiceProxy('/suturo/GetPointArray', GetPointArray)
         rospy.sleep(1.0)
+        self.__num_of_updates = 0
 
     def __del__(self):
         pass
@@ -82,18 +83,22 @@ class Map:
         resp = self.__get_point_array(request)
         points = resp.pointArray
 
-        for i in range(0, len(points), 3):
+        # print "Received a PointArray with size:"
+        # print len(points)
+        for i in range(0, len(points), 4):
             x = points[i]
             y = points[i + 1]
             z = points[i + 2]
+            color = points[i + 3]
+            # if color > 100:
+            #     print color
 
-            if isnan(x) or \
-                            x > self.max_x_coord or x < -self.max_x_coord or \
-                            y > self.max_y_coord or y < -self.max_y_coord or \
-                    self.is_point_in_arm2(arm_origin, radius, x, y):
+            if isnan(x) or x > self.max_x_coord or x < -self.max_x_coord or \
+                           y > self.max_y_coord or y < -self.max_y_coord or \
+                           self.is_point_in_arm2(arm_origin, radius, x, y):
                 continue
 
-            self.get_cell(x, y).update_cell(z)
+            self.get_cell(x, y).update_cell(z, color, self.__num_of_updates)
 
         #Set the area around the arms base free
         for x in numpy.arange(arm_origin.x - radius, arm_origin.x + radius + 0.01, self.cell_size_x):
@@ -115,6 +120,7 @@ class Map:
  	 	        arm_origin.y - radius < y < arm_origin.y + radius
 
     def get_cell(self, x, y):
+
         (x_index, y_index) = self.coordinates_to_index(x, y)
         return self.get_cell_by_index(x_index, y_index)
 
@@ -232,10 +238,10 @@ class Map:
             (p.x, p.y) = self.index_to_coordinates(x_index, y_index)
             if self.field[x_index][y_index].is_unknown():
                 sc = self.get_surrounding_cells8_by_index(x_index, y_index)
-                if reduce(lambda free, c: free or c[0].is_free(), sc, False) and reduce(lambda not_free, c: not_free + 1 if not c[0].is_free() else not_free, sc, 0) < 7:
+                #if min 2 neighbors are free
+                if sum(1 for c in sc if c[0].is_free()) > 1:
                     boarder_cells.append(p)
 
-        # boarder_cells.sort()
         return boarder_cells
 
     def get_percent_cleared(self):
@@ -262,44 +268,51 @@ class Map:
             c = self.coordinates_to_index(x, y)
             if not c in cells:
                 cells.append(c)
-                # print c
             x += p.x
             y += p.y
-        # cells.append(self.get_cell(x, y))
 
         return cells
 
-    def get_next_point(self, arm_x = 0, arm_y = 0):
-        cm = ClusterRegions()
-        cm.set_field(self.field)
-        cm.group_regions()
-        regions = cm.get_result_regions()
-        if len(regions) == 0:
-            return None
-        (ax, ay) = self.coordinates_to_index(arm_x, arm_y)
-        next_r = min(regions, key=lambda r: r.euclidean_distance_to_avg(ax, ay))
-
-        boarder_cells = []
-        for i in range(len(next_r.cells)):
-            sc = self.get_surrounding_cells_by_index(*next_r.cell_coords[i])
-            # sc = map(lambda (c, x, y): c.is_free(), sc)
-            if reduce(lambda free, (c, x, y): free or c.is_free, sc, False):
-                boarder_cells.append((next_r.cells, next_r.cell_coords[i][0], next_r.cell_coords[i][1]))
-
-        # boarder_cells = map(lambda  (c, x, y): self.index_to_coordinates(x, y), boarder_cells)
-        return map(lambda bc: Point(*self.index_to_coordinates(*bc[1:3])+(0,)), boarder_cells), Point(*self.index_to_coordinates(*tuple(next_r.get_avg()))+(0,))
-        # (closest_boarder_cell, cx, cy) = min(boarder_cells, key=lambda (c, x, y): euclidean_distance(Point(ax, ay, 0), Point(x, y, 0)))
-        # p = Point()
-        # (p.x, p.y) = self.index_to_coordinates(cx, cy)
-        # return p
-
     def get_obstacle_regions(self):
+        regions = []
         if len(self.obstacle_regions) == 0:
             cm = ClusterRegions()
-            cm.set_region_type(RegionType.obstacles)
+            cm.set_region_type(RegionType.blue)
             cm.set_field(self.field)
             cm.group_regions()
-            self.obstacle_regions = cm.get_result_regions()
+            regions.extend(cm.get_result_regions())
+
+            cm = ClusterRegions()
+            cm.set_region_type(RegionType.green)
+            cm.set_field(self.field)
+            cm.group_regions()
+            regions.extend(cm.get_result_regions())
+
+            cm = ClusterRegions()
+            cm.set_region_type(RegionType.red)
+            cm.set_field(self.field)
+            cm.group_regions()
+            regions.extend(cm.get_result_regions())
+
+            cm = ClusterRegions()
+            cm.set_region_type(RegionType.cyan)
+            cm.set_field(self.field)
+            cm.group_regions()
+            regions.extend(cm.get_result_regions())
+
+            cm = ClusterRegions()
+            cm.set_region_type(RegionType.yellow)
+            cm.set_field(self.field)
+            cm.group_regions()
+            regions.extend(cm.get_result_regions())
+
+            cm = ClusterRegions()
+            cm.set_region_type(RegionType.magenta)
+            cm.set_field(self.field)
+            cm.group_regions()
+            regions.extend(cm.get_result_regions())
+
+            self.obstacle_regions = regions
         return self.obstacle_regions
 
     def get_unknown_regions(self):
@@ -407,6 +420,33 @@ class Map:
     def publish_as_marker(self):
         visualization.publish_marker_array(self.to_marker_array())
 
+
+    def is_more_edge_by_index(self, x1_index, y1_index, x2_index, y2_index):
+        (x1, y1) = self.index_to_coordinates(x1_index, y1_index)
+        (x2, y2) = self.index_to_coordinates(x2_index, y2_index)
+        return self.is_more_edge(x1, y1, x2, y2)
+
+    def is_more_edge(self, x1, y1, x2, y2):
+        surr_c1 = self.get_surrounding_cells8(x1, y1)
+        num_free1 = sum(1 for c in surr_c1 if not c[0].is_free())
+
+        surr_c2 = self.get_surrounding_cells8(x2, y2)
+        num_free2 = sum(1 for c in surr_c2 if not c[0].is_free())
+
+        if num_free1 < num_free2:
+            return 1
+        elif num_free1 > num_free2:
+            return -1
+        else:
+            num_obs1 = sum(1 for c in surr_c1 if c[0].is_obstacle())
+            num_obs2 = sum(1 for c in surr_c2 if c[0].is_obstacle())
+            if num_obs1 > num_obs2:
+                return 1
+            elif num_obs1 < num_obs2:
+                return -1
+            else:
+                return 0
+
     def to_marker_array(self):
         markers = []
 
@@ -429,22 +469,44 @@ class Map:
                 marker.scale.y = self.cell_size_y
                 marker.scale.z = 0.01
                 c = self.get_cell_by_index(x, y)
-                if c.is_object():
+                if c.is_marked():
                     marker.color.r = 1
-                    marker.color.g = 1
+                    marker.color.g = 0.5
                     marker.color.b = 0
-                elif c.is_marked():
-                    marker.color.r = 0
-                    marker.color.g = 0
-                    marker.color.b = 1
                 elif c.is_free():
                     marker.color.r = 1
                     marker.color.g = 1
                     marker.color.b = 1
-                elif c.is_obstacle():
-                    marker.color.r = 1
-                    marker.color.g = 0
-                    marker.color.b = 0
+                elif c.is_obstacle() or c.is_object():
+                    if c.is_blue():
+                        marker.color.r = 0
+                        marker.color.g = 0
+                        marker.color.b = 1
+                    elif c.is_green():
+                        marker.color.r = 0
+                        marker.color.g = 1
+                        marker.color.b = 0
+                    elif c.is_cyan():
+                        marker.color.r = 0
+                        marker.color.g = 1
+                        marker.color.b = 1
+                    elif c.is_red():
+                        marker.color.r = 1
+                        marker.color.g = 0
+                        marker.color.b = 0
+                    elif c.is_magenta():
+                        marker.color.r = 1
+                        marker.color.g = 0
+                        marker.color.b = 1
+                    elif c.is_yellow():
+                        marker.color.r = 1
+                        marker.color.g = 1
+                        marker.color.b = 0
+                    elif c.is_undef():
+                        marker.color.r = 0.5
+                        marker.color.g = 0.5
+                        marker.color.b = 0.5
+
                 else:
                     marker.color.r = 0
                     marker.color.g = 0

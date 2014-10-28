@@ -10,8 +10,6 @@ from suturo_perception_msgs.srv._GetPointArray import GetPointArray, GetPointArr
 from visualization_msgs.msg import Marker, MarkerArray
 from suturo_planning_visualization import visualization
 from suturo_planning_manipulation.transformer import Transformer
-# from suturo_perception_msgs.msg import GetPointArray
-# import pcl
 
 __author__ = 'ichumuh'
 
@@ -23,17 +21,34 @@ class Cell:
     Obstacle = 2
     Object = 3
 
+    BLUE = 255
+    GREEN = 65280
+    CYAN = 65535
+    RED = 16711680
+    MAGENTA = 16711935
+    YELLOW = 16776960
+    UNDEF = -1
+
+    BLUE_ID = 0
+    GREEN_ID = 1
+    CYAN_ID = 2
+    RED_ID = 3
+    MAGENTA_ID = 4
+    YELLOW_ID = 5
+    UNDEF_ID = 6
+
     def __init__(self):
-        self.num_free_points = 0
-        self.num_obstacle_points = 0
         self.average_z = 0
         self.highest_z = 0
-        self.points = 0
+        # self.points = 0
         self.segment_id = 0
         self.threshold_min_points = 15
         self.marked = False
         # self.object = False
         self.state = self.Unknown
+        self.last_update = 0
+
+        self.points = [0 for x in range(7)]
 
     def __del__(self):
         pass
@@ -42,21 +57,34 @@ class Cell:
         return "free: " + str(self.is_free()) + \
                " obstacle: " + str(self.is_obstacle()) + \
                " unknown: " + str(self.is_unknown()) + \
-               " Points: " + str(self.points) + \
+               " Points: " + str(self.get_num_points()) + \
                " segment_id: " + str(self.segment_id) + \
                "z: " + str(self.average_z) + "\n"
-        # "free points: " + str(self.num_free_points) + "\n" + \
-        # "obstacle points: " + str(self.num_obstacle_points) + "\n"
 
     def __eq__(self, other):
         return other.is_obstacle() and self.is_obstacle() or \
                other.is_free() and self.is_free() or \
                other.is_unknown() and self.is_unknown()
 
-    def update_cell(self, z):
-        z2 = self.average_z * self.points
-        self.points += 1
-        self.average_z = (z2 + z) / self.points
+    def update_cell(self, z, color, update_id):
+        self.last_update = update_id
+        z2 = self.average_z * self.get_num_points()
+        if color == self.BLUE:
+            self.points[self.BLUE_ID] += 1
+        elif color == self.GREEN:
+            self.points[self.GREEN_ID] += 1
+        elif color == self.CYAN:
+            self.points[self.CYAN_ID] += 1
+        elif color == self.RED:
+            self.points[self.RED_ID] += 1
+        elif color == self.MAGENTA:
+            self.points[self.MAGENTA_ID] += 1
+        elif color == self.YELLOW:
+            self.points[self.YELLOW_ID] += 1
+        else:
+            self.points[self.UNDEF_ID] += 1
+
+        self.average_z = (z2 + z) / self.get_num_points()
         if z > self.highest_z:
             self.highest_z = z
         self.update_state()
@@ -69,32 +97,40 @@ class Cell:
                 self.state = self.Obstacle
 
     def enough_points(self):
-        return self.points > self.threshold_min_points
+        return self.get_num_points() > self.threshold_min_points
 
     def get_num_points(self):
-        return self.num_free_points + self.num_obstacle_points
+        return sum(self.points)
+
+    def id_to_color(self, id):
+        if id == self.BLUE_ID:
+            return self.BLUE
+        elif id == self.GREEN_ID:
+            return self.GREEN
+        elif id == self.CYAN_ID:
+            return self.CYAN
+        elif id == self.RED_ID:
+            return self.RED
+        elif id == self.MAGENTA_ID:
+            return self.MAGENTA
+        elif id == self.YELLOW_ID:
+            return self.YELLOW
+        else:
+            return self.UNDEF_ID
 
     #setter
 
     def set_free(self):
         self.state = self.Free
-        # self.average_z = 0
-        # self.points = self.threshold_min_points + 1
 
     def set_object(self, is_object=True):
         self.state = self.Object
-        # self.object = is_object
 
     def set_obstacle(self):
         self.state = self.Obstacle
-        # self.points = self.threshold_min_points + 1
-        # self.average_z = 1
-        # self.highest_z = 1
 
     def set_unknown(self):
         self.state = self.Unknown
-        # self.average_z = 0
-        # self.points = 0
 
     def set_mark(self, marked=True):
         self.marked = marked
@@ -119,3 +155,36 @@ class Cell:
     def is_marked(self):
         return self.marked
 
+    def is_updated(self):
+        return self.last_update
+
+    def get_color(self):
+        id = 0
+        for i in range(1, len(self.points) -1):
+            if self.points[i] > self.points[id]:
+                id = i
+        if id == 0 and sum(self.points) == 0:
+            return -1
+
+        return self.id_to_color(id)
+
+    def is_blue(self):
+        return (self.is_obstacle() or self.is_object()) and self.get_color() == self.BLUE
+
+    def is_green(self):
+        return (self.is_obstacle() or self.is_object()) and  self.get_color() == self.GREEN
+
+    def is_red(self):
+        return (self.is_obstacle() or self.is_object()) and  self.get_color() == self.RED
+
+    def is_cyan(self):
+        return (self.is_obstacle() or self.is_object()) and  self.get_color() == self.CYAN
+
+    def is_magenta(self):
+        return (self.is_obstacle() or self.is_object()) and  self.get_color() == self.MAGENTA
+
+    def is_yellow(self):
+        return (self.is_obstacle() or self.is_object()) and  self.get_color() == self.YELLOW
+
+    def is_undef(self):
+        return (self.is_obstacle() or self.is_object()) and  self.get_color() == self.UNDEF

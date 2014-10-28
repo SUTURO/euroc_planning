@@ -33,6 +33,7 @@ class Region:
         self.was_merged = False
         self.last_merge_x = None
         self.is_closed = False
+        self.boarder_cells = []
 
     def __str__(self):
         s =  "Region#: " + str(self.id) + " "
@@ -58,8 +59,11 @@ class Region:
     def get_number_of_cells(self):
         return len(self.cells)
 
-    # def get_boarder_cells(self):
+    def get_boarder_cells(self):
+        return self.boarder_cells
 
+    def set_boarder_cells(self, boarder_cells):
+        self.boarder_cells = boarder_cells
 
     def merge_region(self, other_region,last_merge_x=None):
         """ Copy the cells of other_region with self.cells"""
@@ -91,6 +95,12 @@ class RegionType:
     obstacles = 1
     unknown = 2
     free = 3
+    blue = 4
+    green = 5
+    red = 6
+    yellow = 7
+    cyan = 8
+    magenta = 9
 
 class RegionLineFragment:
 
@@ -230,6 +240,24 @@ class ClusterRegions:
                     self.segmented_field[x][y] = self.SEGMENT_COLORED_FIELD
 
                 if self.type == RegionType.free and self.field[x][y].is_free():
+                    self.segmented_field[x][y] = self.SEGMENT_COLORED_FIELD
+
+                if self.type == RegionType.blue and self.field[x][y].is_blue():
+                    self.segmented_field[x][y] = self.SEGMENT_COLORED_FIELD
+
+                if self.type == RegionType.green and self.field[x][y].is_green():
+                    self.segmented_field[x][y] = self.SEGMENT_COLORED_FIELD
+
+                if self.type == RegionType.red and self.field[x][y].is_red():
+                    self.segmented_field[x][y] = self.SEGMENT_COLORED_FIELD
+
+                if self.type == RegionType.yellow and self.field[x][y].is_yellow():
+                    self.segmented_field[x][y] = self.SEGMENT_COLORED_FIELD
+
+                if self.type == RegionType.cyan and self.field[x][y].is_cyan():
+                    self.segmented_field[x][y] = self.SEGMENT_COLORED_FIELD
+
+                if self.type == RegionType.magenta and self.field[x][y].is_magenta():
                     self.segmented_field[x][y] = self.SEGMENT_COLORED_FIELD
 
 

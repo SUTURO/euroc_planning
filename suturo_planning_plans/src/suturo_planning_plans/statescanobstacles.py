@@ -27,6 +27,7 @@ class ScanObstacles(smach.State):
         rospy.loginfo('Executing state ScanObstacles')
         if len(self.obstacle_cluster) == 0:
             self.obstacle_cluster = utils.map.get_obstacle_regions()
+            rospy.logdebug(str(len(self.obstacle_cluster)) + " regions found.")
             self.obstacle_cluster.sort(key=lambda x: x.get_number_of_cells())
 
         if self.next_cluster >= len(self.obstacle_cluster):

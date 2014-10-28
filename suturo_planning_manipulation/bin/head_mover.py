@@ -107,7 +107,7 @@ if __name__ == '__main__':
     rospy.init_node('head_mover', anonymous=True)
 
     m = Manipulation()
-    m.pan_tilt(0, 0.45)
+    m.pan_tilt(0, 0.3)
     # m.close_gripper()
     # t_point = geometry_msgs.msg.PoseStamped()
     # t_point.header.frame_id = "/odom_combined"
