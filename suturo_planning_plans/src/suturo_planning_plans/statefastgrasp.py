@@ -95,5 +95,5 @@ class FastGrasp(smach.State):
         t_point.position.z += 0.1
         utils.manipulation.direct_move(self.plan_to(t_point))
 
-        # TODO: Prüfen ob etwas in der Hand ist
+        # TODO: Pruefen ob etwas in der Hand ist
         return 'fail'

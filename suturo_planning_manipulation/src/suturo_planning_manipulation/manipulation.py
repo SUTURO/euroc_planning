@@ -476,5 +476,8 @@ class Manipulation(object):
         '''
         return self.__manService.pan_tilt(pan, tilt)
 
+    def set_planning_time_arm(self, time):
+       return self.__arm_group.set_planning_time(time)
+
     def direct_move(self, configuration):
         return self.__manService.direct_move(configuration)
