@@ -33,6 +33,7 @@ class Region:
         self.was_merged = False
         self.last_merge_x = None
         self.is_closed = False
+        self.boarder_cells = []
 
     def __str__(self):
         s =  "Region#: " + str(self.id) + " "
@@ -58,8 +59,11 @@ class Region:
     def get_number_of_cells(self):
         return len(self.cells)
 
-    # def get_boarder_cells(self):
+    def get_boarder_cells(self):
+        return self.boarder_cells
 
+    def set_boarder_cells(self, boarder_cells):
+        self.boarder_cells = boarder_cells
 
     def merge_region(self, other_region,last_merge_x=None):
         """ Copy the cells of other_region with self.cells"""

@@ -268,6 +268,93 @@ class TestMapCleanUp(unittest.TestCase):
         print m.get_region_volume(rs[0])
         self.assertTrue(abs(m.get_region_volume(rs[0]) - 0.0136) <= 0.00001, m.get_region_volume(rs[0]))
 
+    def test8_1(self):
+        m = self.make_free_map()
+
+        m.get_cell_by_index(10,10).set_unknown()
+        m.get_cell_by_index(10,11).set_unknown()
+        m.get_cell_by_index(10,9).set_unknown()
+        m.get_cell_by_index(9,10).set_unknown()
+        m.get_cell_by_index(11,10).set_unknown()
+        m.get_cell_by_index(11,11).set_unknown()
+        m.get_cell_by_index(9,9).set_unknown()
+        m.get_cell_by_index(11,9).set_unknown()
+        # m.get_cell_by_index(11,13).set_unknown()
+
+        rs = m.get_unknown_regions()
+        boarder = m.get_boarder_cells_points(rs[0])
+        self.assertTrue(len(boarder) == 7, str(m) + "\n" + str(len(boarder)))
+
+    def test9_1(self):
+        '''
+        fffffff
+        ffuufff
+        ffuuuff
+        ffuuuff
+        fffffff
+        '''
+        m = self.make_free_map()
+
+        m.get_cell_by_index(10,10).set_unknown()
+        m.get_cell_by_index(10,11).set_unknown()
+        m.get_cell_by_index(10,9).set_unknown()
+        m.get_cell_by_index(9,10).set_unknown()
+        m.get_cell_by_index(11,10).set_unknown()
+        m.get_cell_by_index(11,11).set_unknown()
+        m.get_cell_by_index(9,9).set_unknown()
+        m.get_cell_by_index(11,9).set_unknown()
+
+        self.assertTrue(m.is_more_edge_by_index(10,10,10,11) == -1, m.is_more_edge_by_index(10,10,10,11))
+        self.assertTrue(m.is_more_edge_by_index(11,11,10,10) == 1, m.is_more_edge_by_index(11,11,10,10))
+
+
+    def test10_1(self):
+        '''
+        fffffff
+        ffuufff
+        ffuuuff
+        ffuuuff
+        fffffff
+        '''
+        m = self.make_free_map()
+
+        m.get_cell_by_index(10,10).set_unknown()
+
+        l = m.get_surrounding_cells8_by_index(10, 10)
+        self.assertTrue(len(l) == 8, len(l))
+
+        m.get_cell_by_index(9,9).set_unknown()
+        self.assertTrue(m.get_cell_by_index(9,9) in map(lambda c: c[0], l))
+        m.get_cell_by_index(9,9).set_free()
+
+        m.get_cell_by_index(10,9).set_unknown()
+        self.assertTrue(m.get_cell_by_index(10,9) in map(lambda c: c[0], l))
+        m.get_cell_by_index(10,9).set_free()
+
+        m.get_cell_by_index(11,9).set_unknown()
+        self.assertTrue(m.get_cell_by_index(11,9) in map(lambda c: c[0], l))
+        m.get_cell_by_index(11,9).set_free()
+
+        m.get_cell_by_index(9,10).set_unknown()
+        self.assertTrue(m.get_cell_by_index(9,10) in map(lambda c: c[0], l))
+        m.get_cell_by_index(9,10).set_free()
+
+        m.get_cell_by_index(11,10).set_unknown()
+        self.assertTrue(m.get_cell_by_index(11,10) in map(lambda c: c[0], l))
+        m.get_cell_by_index(11,10).set_free()
+
+        m.get_cell_by_index(9,11).set_unknown()
+        self.assertTrue(m.get_cell_by_index(9,11) in map(lambda c: c[0], l))
+        m.get_cell_by_index(9,11).set_free()
+
+        m.get_cell_by_index(10,11).set_unknown()
+        self.assertTrue(m.get_cell_by_index(10,10) in map(lambda c: c[0], l))
+        m.get_cell_by_index(10,11).set_free()
+
+        m.get_cell_by_index(11,11).set_unknown()
+        self.assertTrue(m.get_cell_by_index(11,11) in map(lambda c: c[0], l))
+        m.get_cell_by_index(11,11).set_free()
+
 
 
 

@@ -42,6 +42,7 @@ class Map:
         self.unknown_regions = []
         self.__get_point_array = rospy.ServiceProxy('/suturo/GetPointArray', GetPointArray)
         rospy.sleep(1.0)
+        self.__num_of_updates = 0
 
     def __del__(self):
         pass
@@ -87,13 +88,12 @@ class Map:
             y = points[i + 1]
             z = points[i + 2]
 
-            if isnan(x) or \
-                            x > self.max_x_coord or x < -self.max_x_coord or \
-                            y > self.max_y_coord or y < -self.max_y_coord or \
-                    self.is_point_in_arm2(arm_origin, radius, x, y):
+            if isnan(x) or x > self.max_x_coord or x < -self.max_x_coord or \
+                           y > self.max_y_coord or y < -self.max_y_coord or \
+                           self.is_point_in_arm2(arm_origin, radius, x, y):
                 continue
 
-            self.get_cell(x, y).update_cell(z)
+            self.get_cell(x, y).update_cell(z, self.__num_of_updates)
 
         #Set the area around the arms base free
         for x in numpy.arange(arm_origin.x - radius, arm_origin.x + radius + 0.01, self.cell_size_x):
@@ -115,6 +115,7 @@ class Map:
  	 	        arm_origin.y - radius < y < arm_origin.y + radius
 
     def get_cell(self, x, y):
+
         (x_index, y_index) = self.coordinates_to_index(x, y)
         return self.get_cell_by_index(x_index, y_index)
 
@@ -232,10 +233,10 @@ class Map:
             (p.x, p.y) = self.index_to_coordinates(x_index, y_index)
             if self.field[x_index][y_index].is_unknown():
                 sc = self.get_surrounding_cells8_by_index(x_index, y_index)
-                if reduce(lambda free, c: free or c[0].is_free(), sc, False) and reduce(lambda not_free, c: not_free + 1 if not c[0].is_free() else not_free, sc, 0) < 7:
+                #if min 2 neighbors are free
+                if sum(1 for c in sc if c[0].is_free()) > 1:
                     boarder_cells.append(p)
 
-        # boarder_cells.sort()
         return boarder_cells
 
     def get_percent_cleared(self):
@@ -406,6 +407,33 @@ class Map:
 
     def publish_as_marker(self):
         visualization.publish_marker_array(self.to_marker_array())
+
+
+    def is_more_edge_by_index(self, x1_index, y1_index, x2_index, y2_index):
+        (x1, y1) = self.index_to_coordinates(x1_index, y1_index)
+        (x2, y2) = self.index_to_coordinates(x2_index, y2_index)
+        return self.is_more_edge(x1, y1, x2, y2)
+
+    def is_more_edge(self, x1, y1, x2, y2):
+        surr_c1 = self.get_surrounding_cells8(x1, y1)
+        num_free1 = sum(1 for c in surr_c1 if not c[0].is_free())
+
+        surr_c2 = self.get_surrounding_cells8(x2, y2)
+        num_free2 = sum(1 for c in surr_c2 if not c[0].is_free())
+
+        if num_free1 < num_free2:
+            return 1
+        elif num_free1 > num_free2:
+            return -1
+        else:
+            num_obs1 = sum(1 for c in surr_c1 if c[0].is_obstacle())
+            num_obs2 = sum(1 for c in surr_c2 if c[0].is_obstacle())
+            if num_obs1 > num_obs2:
+                return 1
+            elif num_obs1 < num_obs2:
+                return -1
+            else:
+                return 0
 
     def to_marker_array(self):
         markers = []

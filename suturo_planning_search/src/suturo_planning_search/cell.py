@@ -34,6 +34,7 @@ class Cell:
         self.marked = False
         # self.object = False
         self.state = self.Unknown
+        self.last_update = 0
 
     def __del__(self):
         pass
@@ -53,7 +54,8 @@ class Cell:
                other.is_free() and self.is_free() or \
                other.is_unknown() and self.is_unknown()
 
-    def update_cell(self, z):
+    def update_cell(self, z, update_id):
+        self.last_update = update_id
         z2 = self.average_z * self.points
         self.points += 1
         self.average_z = (z2 + z) / self.points
@@ -118,4 +120,7 @@ class Cell:
 
     def is_marked(self):
         return self.marked
+
+    def is_updated(self):
+        return self.last_update
 
