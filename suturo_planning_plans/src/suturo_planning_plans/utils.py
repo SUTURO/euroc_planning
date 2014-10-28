@@ -1,3 +1,4 @@
+from copy import deepcopy
 import rospy
 import os
 import struct
@@ -13,6 +14,8 @@ from math import pi
 
 
 # Holds the manipulation object
+from suturo_planning_manipulation import mathemagie
+
 manipulation = None
 map = None
 log_dir = '/tmp/euroc_c2'
@@ -160,3 +163,14 @@ def is_handle(name, yaml):
             return True
 
     return False
+
+
+def in_target_zone(euroc_object, yaml):
+    for target_zone in yaml.target_zones:
+        centroid = deepcopy(euroc_object.c_centroid)
+        centroid.z = 0
+        dist = mathemagie.euclidean_distance(centroid, target_zone.target_position)
+        if dist < target_zone.max_distance:
+            return target_zone
+
+    return None
