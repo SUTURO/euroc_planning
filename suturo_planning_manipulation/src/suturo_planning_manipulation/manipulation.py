@@ -29,9 +29,11 @@ from suturo_planning_visualization.visualization import visualize_poses
 from transformer import Transformer
 from euroc_c2_msgs.msg import *
 from euroc_c2_msgs.srv import *
+from sensor_msgs.msg import JointState
 
 
 class Manipulation(object):
+
     def __init__(self):
         self.tf = Transformer()
 
@@ -165,6 +167,7 @@ class Manipulation(object):
 
     def __move_group_to(self, goal_pose, move_group):
         print "started planning"
+        print move_group.get_planning_time()
         print rospy.Time.now().to_sec()
         path = self.__plan_group_to(goal_pose, move_group)
         print "finished planning, calling movement service"
@@ -182,6 +185,10 @@ class Manipulation(object):
         :return: current joint state as list of floats
         '''
         return self.__arm_base_group.get_current_joint_values()
+
+    def get_current_lwr_joint_state(self):
+        print self.__arm_group.get_joints()
+        return self.__arm_group.get_current_joint_values()
 
     def open_gripper(self, position=gripper_max_pose):
         '''
@@ -462,3 +469,6 @@ class Manipulation(object):
         :return: success of the movement
         '''
         return self.__manService.pan_tilt(pan, tilt)
+
+    def direct_move(self, configuration):
+        return self.__manService.direct_move(configuration)

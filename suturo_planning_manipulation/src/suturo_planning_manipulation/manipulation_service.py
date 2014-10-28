@@ -79,6 +79,39 @@ class ManipulationService(object):
             return True
         raise ManipulationServiceException(resp.error_message)
 
+    def direct_move(self, configuration):
+        cartesian_limits = CartesianLimits()
+        cartesian_limits.translational.max_velocity = 0.165
+        cartesian_limits.translational.max_acceleration = 4
+        cartesian_limits.rotational.max_velocity = 10 * pi / 180.0
+        cartesian_limits.rotational.max_acceleration = 100 * pi / 180.0
+
+        joint_limits = []
+        joint_names = []
+        # for every joint in the list, create the appropriate limits and store them
+        for i in range(1, 8):
+            limit = Limits()
+            joint_name = "lwr_joint_" + i.__str__()
+            limit.max_velocity = 90 * pi / 180.0
+            limit.max_acceleration = 500 * pi / 180.0
+            joint_limits.append(limit)
+            joint_names.append(joint_name)
+
+        ros_start_time = rospy.Time()
+        ros_start_time.from_seconds(0)
+
+        # call the service and store the response
+        print "time before movement"
+        print rospy.Time.now().to_sec()
+        resp = self.__move_service(joint_names, [configuration], ros_start_time, joint_limits, cartesian_limits)
+        print "time after movement"
+        print rospy.Time.now().to_sec()
+        if resp.error_message:
+            raise ManipulationServiceException(resp.error_message)
+        if resp.stop_reason == "path finished":
+            return True
+        raise ManipulationServiceException(resp.error_message)
+
     def get_timing(self, path):
         # check if moveit generated a trajectory
         if len(path.joint_trajectory.points) == 0:
