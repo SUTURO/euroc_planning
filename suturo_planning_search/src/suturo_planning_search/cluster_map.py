@@ -95,6 +95,12 @@ class RegionType:
     obstacles = 1
     unknown = 2
     free = 3
+    blue = 4
+    green = 5
+    red = 6
+    yellow = 7
+    cyan = 8
+    magenta = 9
 
 class RegionLineFragment:
 
@@ -234,6 +240,24 @@ class ClusterRegions:
                     self.segmented_field[x][y] = self.SEGMENT_COLORED_FIELD
 
                 if self.type == RegionType.free and self.field[x][y].is_free():
+                    self.segmented_field[x][y] = self.SEGMENT_COLORED_FIELD
+
+                if self.type == RegionType.blue and self.field[x][y].is_blue():
+                    self.segmented_field[x][y] = self.SEGMENT_COLORED_FIELD
+
+                if self.type == RegionType.green and self.field[x][y].is_green():
+                    self.segmented_field[x][y] = self.SEGMENT_COLORED_FIELD
+
+                if self.type == RegionType.red and self.field[x][y].is_red():
+                    self.segmented_field[x][y] = self.SEGMENT_COLORED_FIELD
+
+                if self.type == RegionType.yellow and self.field[x][y].is_yellow():
+                    self.segmented_field[x][y] = self.SEGMENT_COLORED_FIELD
+
+                if self.type == RegionType.cyan and self.field[x][y].is_cyan():
+                    self.segmented_field[x][y] = self.SEGMENT_COLORED_FIELD
+
+                if self.type == RegionType.magenta and self.field[x][y].is_magenta():
                     self.segmented_field[x][y] = self.SEGMENT_COLORED_FIELD
 
 

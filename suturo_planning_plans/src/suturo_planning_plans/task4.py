@@ -21,7 +21,7 @@ class Task4(smach.StateMachine):
                                    transitions={'mapScanned': 'ScanMapArmCam'})
 
             smach.StateMachine.add('ScanMapArmCam', ScanMapArmCam(),
-                                   transitions={'mapScanned': 'success',
+                                   transitions={'mapScanned': 'SearchObject',
                                                 'newImage' : 'ScanMapArmCam'})
 
             smach.StateMachine.add('ScanObstacles', ScanObstacles(),
