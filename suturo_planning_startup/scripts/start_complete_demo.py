@@ -68,7 +68,7 @@ def start_demo(wait, tasks, log_to_console_only):
         print('Finished task ' + str(task))
         if not log_to_console_only:
             print('Killing logger.')
-            exterminate(logger_process.perception_process.pid, signal.SIGKILL)
+            exterminate(logger_process.pid, signal.SIGKILL)
 
 
 def main(argv):

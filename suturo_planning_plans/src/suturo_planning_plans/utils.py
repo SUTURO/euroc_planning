@@ -40,7 +40,6 @@ def start_node(command, initialization_time, log_name, log_to_console_only):
                                           stdin=process.stdout, shell=True, preexec_fn=os.setsid)
     else:
         logger_process = 0
-    time.sleep(8)
     return process, logger_process
 
 

@@ -13,6 +13,7 @@ from suturo_planning_plans import utils
 from suturo_planning_task_selector import save_task
 from suturo_planning_task_selector import stop_task
 from rosgraph_msgs.msg import Clock
+from actionlib_msgs.msg import GoalStatusArray
 
 
 perception_process = 0
@@ -28,6 +29,13 @@ class StartManipulation(smach.State):
         smach.State.__init__(self, outcomes=['success', 'fail'],
                              input_keys=['initialization_time', 'log_to_console_only'],
                              output_keys=['manipulation_process', 'manipulation_logger_process'])
+        self.__move_group_status = False
+        self.__move_group_status_subscriber = None
+
+    def wait_for_move_group_status(self, msg):
+        self.__move_group_status_subscriber.unregister()
+        rospy.loginfo('/move_group/status has been published.')
+        self.__move_group_status = True
 
     def execute(self, userdata):
         rospy.loginfo('Executing TestNode init.')
@@ -40,6 +48,11 @@ class StartManipulation(smach.State):
                              'Manipulation', userdata.log_to_console_only)
         userdata.manipulation_process = manipulation_process
         userdata.manipulation_logger_process = manipulation_logger_process
+        rospy.loginfo('Waiting for /move_group/status topic.')
+        self.__move_group_status_subscriber = rospy.Subscriber('/move_group/status', GoalStatusArray,
+                                                               self.wait_for_move_group_status)
+        while not self.__move_group_status:
+            time.sleep(1)
         return 'success'
 
 
@@ -58,6 +71,7 @@ class StartPerception(smach.State):
                              'Perception', userdata.log_to_console_only)
         userdata.perception_process = perception_process
         userdata.perception_logger_process = perception_logger_process
+        time.sleep(8)
         return 'success'
 
 
@@ -103,11 +117,15 @@ class StartSimulation(smach.State):
     def __init__(self, task_name):
         self.task_name = task_name
         self.new_clock = False
-        self.lock = threading.Lock()
         self.clock = None
         smach.State.__init__(self, outcomes=['success', 'fail'],
                              input_keys=[],
                              output_keys=['yaml', 'objects_found'])
+
+    def wait_for_clock(self, msg):
+        rospy.loginfo('Clock has been published.')
+        self.clock.unregister()
+        self.new_clock = True
 
     def execute(self, userdata):
         rospy.loginfo('Executing state StartSimulation')
@@ -115,21 +133,10 @@ class StartSimulation(smach.State):
         rospy.loginfo('Got YAML description')
         userdata.objects_found = []
         rospy.loginfo('Waiting for clock.')
-        self.clock = rospy.Subscriber('clock', Clock, self.wait_for_clock())
-        self.lock.acquire()
+        self.clock = rospy.Subscriber('clock', Clock, self.wait_for_clock)
         while not self.new_clock:
-            self.lock.release()
-            rospy.sleep(1)
-            self.lock.acquire()
-        self.lock.release()
-        self.clock.unregister()
+            time.sleep(1)
         return 'success'
-
-    def wait_for_clock(self):
-        rospy.loginfo('Clock has been published.')
-        self.lock.acquire()
-        self.new_clock = True
-        self.lock.release()
 
 
 class StopSimulation(smach.State):
