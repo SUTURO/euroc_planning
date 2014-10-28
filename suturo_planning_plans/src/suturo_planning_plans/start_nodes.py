@@ -157,16 +157,7 @@ def check_node(initialization_time, log_to_console_only):
     test_node.wait()
     if test_node_logger != 0:
         rospy.loginfo('Killing TestNode logger with pid ' + str(test_node_logger.pid) + '.')
-        test_node_logger.terminate()
-        #os.killpg(os.getpgid(test_node_logger.pid), signal.SIGTERM)
-        time.sleep(1)
-        if test_node_logger.poll() is not None:
-            rospy.loginfo('Test node logger is still running. Sending SIGINT.')
-            try:
-                #os.killpg(os.getpgid(test_node_logger.pid), signal.SIGINT)
-                test_node_logger.kill()
-            except:
-                rospy.loginfo('Could not kill logger.')
+        exterminate(test_node_logger.pid, signal.SIGKILL)
 
 
 class StopNodes(smach.State):

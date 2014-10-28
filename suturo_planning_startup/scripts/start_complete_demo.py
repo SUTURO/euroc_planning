@@ -68,15 +68,7 @@ def start_demo(wait, tasks, log_to_console_only):
         print('Finished task ' + str(task))
         if not log_to_console_only:
             print('Killing logger.')
-            try:
-                logger_process.terminate()
-            except:
-                print('Could not kill logger with pid ' + str(logger_process.pid))
-                print('Trying to force kill.')
-                try:
-                    logger_process.kill()
-                except:
-                    print('Still not possible to kill logger.')
+            exterminate(logger_process.perception_process.pid, signal.SIGKILL)
 
 
 def main(argv):
