@@ -3,7 +3,7 @@ from sets import Set
 import signal
 from subprocess import check_output
 
-__author__ = 'moritz'
+__author__ = 'moritz bleibuntreu'
 
 
 
