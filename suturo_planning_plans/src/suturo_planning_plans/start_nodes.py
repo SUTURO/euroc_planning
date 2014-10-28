@@ -209,15 +209,15 @@ def exit_handler():
     global manipulation_logger_process
     if manipulation_logger_process != 0:
         print('Killing manipulation logger with pid ' + str(manipulation_logger_process.pid) + '.')
-        manipulation_logger_process.terminate()
+        exterminate(manipulation_logger_process.pid, signal.SIGKILL)
     global perception_logger_process
     if perception_logger_process != 0:
         print('Killing perception logger with pid ' + str(perception_logger_process.pid) + '.')
-        perception_logger_process.terminate()
+        exterminate(perception_logger_process.pid, signal.SIGKILL)
     global classifier_logger_process
     if classifier_logger_process != 0:
         print('Killing classifier logger with pid' + str(classifier_logger_process.pid) + '.')
-        classifier_logger_process.terminate()
+        exterminate(classifier_logger_process.pid, signal.SIGKILL)
 
 
 atexit.register(exit_handler)

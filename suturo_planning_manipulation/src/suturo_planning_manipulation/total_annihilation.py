@@ -1,21 +1,32 @@
-from mercurial.match import exact
 from os import kill
+from sets import Set
+import signal
+from subprocess import check_output
+
 __author__ = 'moritz'
 
-from subprocess import check_output, CalledProcessError
 
 
 def exterminate(killme, signal):
     if killme == '':
         return
-    pids=[]
-    try:
-        pids = check_output(["pgrep", "-P", str(killme)]).split('\n')
-    except:
-        pids=[]
+    pids = Set()
+    killedpids = Set()
+    getpids(pids, killme)
     for pid in pids:
-        exterminate(pid, signal)
+        try:
+            kill(int(pid), signal)
+        except OSError, e:
+            print "ASDException: fgsfds " + e.strerror
+
+def getpids(pidset, pid):
+    pids = []
     try:
-        kill(int(killme), signal)
+        pids = check_output(["pgrep", "-P", str(pid)]).split('\n')
     except:
-        print killme + " was already killed"
+        pids = []
+    for childpid in pids:
+        if childpid == '':
+            continue
+        getpids(pidset, childpid)
+    pidset.add(pid)
