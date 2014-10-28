@@ -16,7 +16,7 @@ class ScanMapMastCam(smach.State):
 
     def __init__(self):
         smach.State.__init__(self, outcomes=['mapScanned'],
-                             input_keys=[],
+                             input_keys=['enable_movement'],
                              output_keys=[])
 
     def execute(self, userdata):
@@ -50,6 +50,10 @@ class ScanMapMastCam(smach.State):
         # utils.manipulation.pan_tilt(0, 0.6)
         # rospy.sleep(5)
         utils.map.add_point_cloud(scene_cam=True)
+
+        if not userdata.enable_movement:
+            return 'mapScanned'
+
         co = utils.map.to_collision_object()
         utils.manipulation.get_planning_scene().add_object(co)
         n = 8
