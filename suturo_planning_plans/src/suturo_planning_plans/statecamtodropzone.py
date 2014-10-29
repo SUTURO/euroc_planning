@@ -12,7 +12,7 @@ class CamToDropzone(smach.State):
                              output_keys=[])
 
     def execute(self, userdata):
-        rospy.loginfo('Executing state CamToDropzone')
+        rospy.loginfo('CamToDropzone: Executing state CamToDropzone')
 
         listener = TransformListener()
 
@@ -27,9 +27,9 @@ class CamToDropzone(smach.State):
             rospy.loginfo("wait for mdl_middle frame")
             rospy.sleep(1)
 
-        m = utils.manipulation
-        if m.scan_conveyor_pose():
-            rospy.loginfo('ScanPoseReached')
+        if utils.manipulation.scan_conveyor_pose():
+            rospy.loginfo('CamToDropzone: ScanPoseReached')
             return 'scanPoseReached'
         else:
+            rospy.loginfo('CamToDropzone: Cant reach ScanPose')
             return 'fail'

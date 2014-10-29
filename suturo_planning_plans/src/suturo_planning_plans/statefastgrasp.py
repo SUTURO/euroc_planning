@@ -22,6 +22,7 @@ class FastGrasp(smach.State):
                              output_keys=[])
 
     def plan_to(self, pose):
+        rospy.loginfo('FastGrasp: Start planning ik')
         service = rospy.ServiceProxy("/euroc_interface_node/search_ik_solution", SearchIkSolution)
         config = Configuration()
         list = utils.manipulation.get_current_lwr_joint_state()
@@ -30,12 +31,15 @@ class FastGrasp(smach.State):
         resp = service(config, pose)
         if resp.error_message:
             raise Exception(resp.error_message)
+        rospy.loginfo('FastGrasp: Return ik')
         return resp.solution
 
     def percieve_object(self, t):
+        rospy.loginfo('FastGrasp: Start percieving Object')
         # create service
         service = rospy.ServiceProxy("/suturo/GetGripper", GetGripper)
         # get the first perception
+        rospy.loginfo('FastGrasp: call Perception Service')
         resp = service("firstConveyorCall,centroid,cuboid")
         if len(resp.objects) == 0:
             return -1
@@ -68,10 +72,11 @@ class FastGrasp(smach.State):
         pose_comp.primitive_poses[0].position.x += dir_13[0]
         pose_comp.primitive_poses[0].position.y += dir_13[1]
         pose_comp.id = "red_cube"
+        rospy.loginfo('FastGrasp: Return Object')
         return pose_comp
 
     def execute(self, userdata):
-        rospy.loginfo('Executing state FastGrasp')
+        rospy.loginfo('FastGrasp: Executing state FastGrasp')
         # TODO: Nach ?? Sekunden time expired werfen
 
         utils.manipulation.open_gripper()
@@ -93,6 +98,7 @@ class FastGrasp(smach.State):
         t_point.orientation = rotate_quaternion(quat, -pi/2, 0, 0)
         # t_point.orientation = quat
         # TODO: Was passiert wen kein Plan gefunden werden kann?
+        rospy.loginfo('FastGrasp: Begin movement')
         utils.manipulation.direct_move(self.plan_to(t_point))
 
         # TODO: Timing zum Zupacken bestimmen!!!

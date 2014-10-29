@@ -481,7 +481,7 @@ class Manipulation(object):
         return self.__manService.direct_move(configuration)
 
     def scan_conveyor_pose(self):
-        # Get the data!
+        # Initialize DropPoint
         dp = geometry_msgs.msg.PoseStamped()
         dp.pose.position.x = 0
         dp.pose.position.y = 0
@@ -489,6 +489,7 @@ class Manipulation(object):
         dp.header.frame_id = "/drop_point"
         dp.pose.orientation = geometry_msgs.msg.Quaternion(0.0, 0.0, 0.0, 1.0)
 
+        rospy.loginfo('ScanConveyorPose: Transform DropPoint to odom')
         dp_odom = self.transform_to(dp)
 
         # Get x and y point from object
@@ -502,6 +503,8 @@ class Manipulation(object):
         scan_conveyor_pose.pose.position.x = 0
         scan_conveyor_pose.pose.position.y = 0
         scan_conveyor_pose.pose.position.z = 0
+
+        rospy.loginfo('ScanConveyorPose: Transform mdl_middle to odom')
         mdl_middle_odom = self.transform_to(scan_conveyor_pose)
 
         scan_conveyor_pose.pose.position.z = mdl_middle_odom.pose.position.z + 0.3
@@ -517,6 +520,7 @@ class Manipulation(object):
         roll.pose.position.y = y2
         roll.pose.position.z = dp_odom.pose.position.z
 
+        rospy.loginfo('ScanConveyorPose: Transform scan_conveyor_pose to odom')
         scan_conveyor_pose = self.transform_to(scan_conveyor_pose)
 
         # calculate the quaternion
@@ -524,6 +528,8 @@ class Manipulation(object):
         dp_points.pose.position.x = dp_odom.pose.position.x
         dp_points.pose.position.y = dp_odom.pose.position.y
         dp_points.pose.position.z = dp_odom.pose.position.z
+
+        rospy.loginfo('ScanConveyorPose: Calculate quaternion')
         quaternion = three_points_to_quaternion(scan_conveyor_pose.pose.position, dp_points.pose.position,
                                                 roll.pose.position)
 
@@ -531,6 +537,7 @@ class Manipulation(object):
 
         rospy.loginfo(scan_conveyor_pose)
 
+        rospy.loginfo('ScanConveyorPose: Move arm to scan_conveyor_pose')
         self.move_to(scan_conveyor_pose)
 
         return True
