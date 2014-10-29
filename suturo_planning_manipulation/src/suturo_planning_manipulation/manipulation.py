@@ -501,13 +501,13 @@ class Manipulation(object):
         mdl_middle_odom = self.transform_to(scan_conveyor_pose)
 
         # x = point_x - mp.pose.position.x
-        y = point_y - mdl_middle_odom.pose.position.y
+        # y = point_y - mdl_middle_odom.pose.position.y
         # w = math.sqrt(x**2 + y**2)
 
-        v = y
-        l = v / math.cos(alpha)
-        z = l * math.sin(alpha)
-
+        # v = y
+        # l = v / math.cos(alpha)
+        # z = l * math.sin(alpha)
+        z = mdl_middle_odom.pose.position.z + 0.3
         # get sin_beta
         #if point_x == 0:
         #    sin_beta = 0
@@ -549,6 +549,6 @@ class Manipulation(object):
 
         scan_conveyor_pose.pose.orientation = quaternion
 
-        self.move_arm_and_base_to(scan_conveyor_pose)
+        self.move_to(scan_conveyor_pose)
 
         return scan_conveyor_pose
