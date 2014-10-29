@@ -3,6 +3,7 @@ from asyncore import dispatcher
 from docutils.parsers.rst.roles import role
 from math import pi
 from pdb import post_mortem
+from scipy.stats.distributions import geom_gen
 
 import sys
 import copy
@@ -65,7 +66,7 @@ class Manipulation(object):
 
         self.__manService = ManipulationService()
 
-        rospy.loginfo( "Manipulation started.")
+        rospy.loginfo("Manipulation started.")
 
     def __del__(self):
         if moveit_commander is not None:
@@ -98,21 +99,21 @@ class Manipulation(object):
         '''
         return self.tf.transform_to(pose_target, target_frame)
 
-    def move_to(self, goal_pose,blow_up = True):
+    def move_to(self, goal_pose, blow_up=True):
         '''
         Moves the endeffector to the goal position, without moving the base.
         :param goal_pose: goal position as PoseStamped
         :return: success of the movement
         '''
-        return self.__move_group_to(goal_pose, self.__arm_group, blow_up = blow_up)
+        return self.__move_group_to(goal_pose, self.__arm_group, blow_up=blow_up)
 
-    def move_arm_and_base_to(self, goal_pose, blow_up = True):
+    def move_arm_and_base_to(self, goal_pose, blow_up=True):
         '''
         Moves the endeffector to the goal position. (Don't use this for Task 1 and 2)
         :param goal_pose: goal position as PoseStamped
         :return: success of the movement
         '''
-        return self.__move_group_to(goal_pose, self.__arm_base_group, blow_up = blow_up)
+        return self.__move_group_to(goal_pose, self.__arm_base_group, blow_up=blow_up)
 
     def get_base_origin(self):
         '''
@@ -144,7 +145,7 @@ class Manipulation(object):
            primitive.dimensions = dims
        return bobject
 
-    def __move_group_to(self, goal_pose, move_group, blow_up=True, blow_up_distance = 0.02):
+    def __move_group_to(self, goal_pose, move_group, blow_up=True, blow_up_distance=0.02):
         """
          :param goal_pose: the pose which shall be arrived
          :param move_group: the move group which shall be moved
@@ -162,14 +163,24 @@ class Manipulation(object):
                     bobj = self.__blow_up_object(copy.deepcopy(each), blow_up_distance)
                     blown_up_objects.append(bobj.id)
                     self.__planning_scene_interface.add_object(bobj)
+<<<<<<< HEAD
+=======
+
+>>>>>>> added publisher for conveyor_frames, added calculation for camposition to look at dropzone, still some fail...
         move_group.set_start_state_to_current_state()
         goal = deepcopy(goal_pose)
         if type(goal) is str:
             move_group.set_named_target(goal)
         elif type(goal) is PoseStamped:
             visualize_poses([goal])
+<<<<<<< HEAD
             #Rotate the goal so that the gripper points from 0,0,0 to 1,0,0 with a 0,0,0,1 quaternion as orientation.
             goal.pose.orientation = rotate_quaternion(goal.pose.orientation, pi/2, pi, pi/2)
+=======
+
+            # Rotate the goal so that the gripper points from 0,0,0 to 1,0,0 with a 0,0,0,1 quaternion as orientation.
+            goal.pose.orientation = rotate_quaternion(goal.pose.orientation, pi / 2, pi, pi / 2)
+>>>>>>> added publisher for conveyor_frames, added calculation for camposition to look at dropzone, still some fail...
             goal = self.tf.transform_to(goal)
 
             move_group.set_pose_target(goal)
@@ -180,7 +191,7 @@ class Manipulation(object):
 
         if blow_up:
             # for each in blown_up_objects:
-            #     self.__planning_scene_interface.remove_object(each)
+            # self.__planning_scene_interface.remove_object(each)
             for each in original_objects:
                 self.__planning_scene_interface.add_object(each)
 
@@ -224,13 +235,13 @@ class Manipulation(object):
             rospy.sleep(1.0)
             # (egal, id) = get_grasped_part(object, self.tf.transform_to)
             id = 0
-            #TODO: only works for cubes and cylinders and only "sometimes" for object compositions
+            # TODO: only works for cubes and cylinders and only "sometimes" for object compositions
             if object.primitives[id].type == shape_msgs.msg.SolidPrimitive.BOX:
                 length = min(object.primitives[id].dimensions)
-                self.__gripper_group.set_joint_value_target([-(length/2), length/2])
+                self.__gripper_group.set_joint_value_target([-(length / 2), length / 2])
             elif object.primitives[id].type == shape_msgs.msg.SolidPrimitive.CYLINDER:
                 radius = object.primitives[id].dimensions[shape_msgs.msg.SolidPrimitive.CYLINDER_RADIUS]
-                self.__gripper_group.set_joint_value_target([-radius+0.005, radius-0.005])
+                self.__gripper_group.set_joint_value_target([-radius + 0.005, radius - 0.005])
         else:
             self.__gripper_group.set_joint_value_target([0.0, 0.0])
         path = self.__gripper_group.plan()
@@ -262,7 +273,6 @@ class Manipulation(object):
 
         grasp_positions = calculate_grasp_position(collision_object, self.tf.transform_to)
 
-
         grasp_positions = self.filter_invalid_grasps(grasp_positions)
 
         if len(grasp_positions) == 0:
@@ -286,10 +296,10 @@ class Manipulation(object):
                 if com is None:
                     rospy.logwarn("TF failed")
                     return False
-                self.load_object(self.calc_object_weight(collision_object, object_density), Vector3(com.point.x, com.point.y, com.point.z))
+                self.load_object(self.calc_object_weight(collision_object, object_density),
+                                 Vector3(com.point.x, com.point.y, com.point.z))
 
                 rospy.loginfo("grasped " + collision_object_name)
-
 
                 self.__grasp = self.tf.transform_to(grasp)
                 v1 = deepcopy(self.__grasp.pose.position)
@@ -298,7 +308,7 @@ class Manipulation(object):
                 v2.z = 0
                 a = magnitude(subtract_point(v1, v2))
                 b = abs(self.__grasp.pose.position.z - collision_object.primitive_poses[0].position.z)
-                c = sqrt(a**2 + b**2)
+                c = sqrt(a ** 2 + b ** 2)
                 self.__d = abs(c)
                 print c
 
@@ -318,7 +328,7 @@ class Manipulation(object):
         :param pose2: second pose as PoseStamped
         :return: pose1 > pose2
         '''
-        #TODO:richtigen abstand zum center berechnen
+        # TODO:richtigen abstand zum center berechnen
         center = self.get_center_of_mass(collision_object)
         odom_pose1 = self.tf.transform_to(pose1)
         odom_pose2 = self.tf.transform_to(pose2)
@@ -337,11 +347,11 @@ class Manipulation(object):
         :param list_of_grasps: list of PoseStamped
         :return: filtered list of PoseStamped
         '''
-        #TODO: assumes odom_combined as frame id
+        # TODO: assumes odom_combined as frame id
         if len(list_of_grasps) == 0:
             return list_of_grasps
 
-        return filter(lambda x : self.tf.transform_to(x).pose.position.z > min_grasp_height, list_of_grasps)
+        return filter(lambda x: self.tf.transform_to(x).pose.position.z > min_grasp_height, list_of_grasps)
 
     def calc_object_weight(self, collision_object, density):
         '''
@@ -464,7 +474,7 @@ class Manipulation(object):
         return self.__arm_base_group
 
     # def set_height_constraint(self, t=True):
-    #     if t:
+    # if t:
     #         self.__planning_scene_interface.add_ground(0.95)
     #     else:
     #         self.__planning_scene_interface.remove_object("ground0.95")
@@ -479,7 +489,13 @@ class Manipulation(object):
         return self.__manService.pan_tilt(pan, tilt)
 
     def set_planning_time_arm(self, time):
+<<<<<<< HEAD
        return self.__arm_group.set_planning_time(time)
 
     def direct_move(self, configuration):
         return self.__manService.direct_move(configuration)
+=======
+        return self.__arm_group.set_planning_time(time)
+
+    
+>>>>>>> added publisher for conveyor_frames, added calculation for camposition to look at dropzone, still some fail...

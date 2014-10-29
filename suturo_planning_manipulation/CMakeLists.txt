@@ -154,6 +154,9 @@ install(PROGRAMS bin/head_mover2
 install(PROGRAMS bin/print_joint_values
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
+install(PROGRAMS src/suturo_planning_manipulation/publish_conveyor_frames.py
+        DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
 #############
 ## Testing ##
 #############
@@ -166,3 +169,4 @@ install(PROGRAMS bin/print_joint_values
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
