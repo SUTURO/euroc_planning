@@ -516,8 +516,6 @@ class Manipulation(object):
         rospy.logdebug('ScanConveyorPose: Calculate quaternion')
         quaternion = three_points_to_quaternion(scan_conveyor_pose.pose.position, dp_odom.pose.position)
 
-        quaternion = rotate_quaternion(quaternion, pi, 0, 0)
-
         scan_conveyor_pose.pose.orientation = quaternion
 
         rospy.logdebug(scan_conveyor_pose)
