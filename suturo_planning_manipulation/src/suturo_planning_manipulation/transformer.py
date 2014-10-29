@@ -64,7 +64,6 @@ class Transformer:
             rospy.sleep(0.5)
 
             i += 1
-            # print pose_target
             rospy.logdebug("tf fail nr. " + str(i))
 
         if odom_pose is None:

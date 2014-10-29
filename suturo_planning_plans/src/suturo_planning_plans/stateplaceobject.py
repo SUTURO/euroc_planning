@@ -29,11 +29,13 @@ class PlaceObject(smach.State):
         if co is None:
             return 'noObjectAttached'
         co = co.object
+        rospy.logdebug("Placeing: " + str(co))
 
         destination = utils.manipulation.transform_to(destination)
         place_poses = get_place_position(co, destination, utils.manipulation.transform_to, userdata.dist_to_obj, userdata.grasp)
-
         for place_pose in place_poses:
+            rospy.logdebug("Try to place at: " + str(place_pose))
+
             if not move_to_func(get_pre_place_position(place_pose)):
                 rospy.logwarn("Can't reach preplaceposition.")
                 continue
@@ -54,8 +56,6 @@ class PlaceObject(smach.State):
             rospy.sleep(1)
 
             post_place_pose = utils.manipulation.transform_to(place_pose, co.id)
-            # post_place_pose.header.frame_id = "/tcp"
-            # post_place_pose.pose.position = Point(0, 0, -post_place_length)
 
             if not move_to_func(get_pre_grasp(post_place_pose), blow_up = False):
                 rospy.logwarn("Can't reach postplaceposition. Continue anyway")
@@ -68,6 +68,7 @@ class PlaceObject(smach.State):
             return 'success'
 
         #try to place the object where it currently is
+        rospy.logdebug("Placement failed, to to place where we are.")
         userdata.place_position = self.new_place_position()
 
         return 'noPlacePosition'

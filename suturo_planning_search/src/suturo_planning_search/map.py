@@ -51,27 +51,31 @@ class Map:
         s = "\n"
         for x in xrange(len(self.field)):
             for y in xrange(len(self.field[x])):
-                if self.field[x][y].is_free(): s += "F"
-                elif self.field[x][y].is_object(): s += "O"
+                if self.field[x][y].is_free(): s += "FF "
+                elif self.field[x][y].is_object(): s += "OO "
                 elif self.field[x][y].is_obstacle():
-                    if self.field[x][y].is_blue(): s += "B"
-                    elif self.field[x][y].is_green(): s += "G"
-                    elif self.field[x][y].is_red(): s += "R"
-                    elif self.field[x][y].is_yellow(): s += "Y"
-                    elif self.field[x][y].is_cyan(): s += "C"
-                    elif self.field[x][y].is_magenta(): s += "M"
-                    else: s += "U"
-                elif self.field[x][y].is_unknown(): s += " "
-            s += "\n\n" + self.get_height_map()
+                    if self.field[x][y].is_blue(): s += "BB "
+                    elif self.field[x][y].is_green(): s += "GG "
+                    elif self.field[x][y].is_red(): s += "RR "
+                    elif self.field[x][y].is_yellow(): s += "YY "
+                    elif self.field[x][y].is_cyan(): s += "CC "
+                    elif self.field[x][y].is_magenta(): s += "MM "
+                    else: s += "UU "
+                elif self.field[x][y].is_unknown(): s += ".. "
+            s += "\n"
         return s
 
-    def get_height_map(self):
+    def print_height_map(self):
         s = ""
         for x in xrange(len(self.field)):
             for y in xrange(len(self.field[x])):
-                s += str(int(self.get_cell_by_index(x, y).average_z * 100)) + " "
+                i = int(self.get_cell_by_index(x, y).highest_z * 100)
+                if i < 10:
+                    s += "0" + str(i) + " "
+                else:
+                    s += str(i) + " "
             s += "\n"
-        return s
+        print s
 
     def reset(self):
         self.field = [[Cell() for i in range(self.num_of_cells)] for j in range(self.num_of_cells)]
@@ -94,19 +98,14 @@ class Map:
         else:
             request.pointCloudName = GetPointArrayRequest.TCP
 
-        # request.publishToPlanningScene = True
         resp = self.__get_point_array(request)
         points = resp.pointArray
 
-        # print "Received a PointArray with size:"
-        # print len(points)
         for i in range(0, len(points), 4):
             x = points[i]
             y = points[i + 1]
             z = points[i + 2]
             color = points[i + 3]
-            # if color > 100:
-            #     print color
 
             if isnan(x) or x > self.max_x_coord or x < -self.max_x_coord or \
                            y > self.max_y_coord or y < -self.max_y_coord or \
@@ -129,8 +128,9 @@ class Map:
         self.clean_up_map()
         self.publish_as_marker()
 
-        print "Scan complete:"
-        print self
+        rospy.logdebug("Scan complete")
+        rospy.logdebug(self)
+        self.print_height_map()
         return not self.field == oldmap
 
     def is_point_in_arm2(self, arm_origin, radius, x, y):
@@ -212,7 +212,7 @@ class Map:
                     cell.set_obstacle()
                     cell.average_z == self.get_average_z_of_surrounded_obstacles(x, y)
                     if cell.average_z <= 0.01:
-                        cell.average_z = 0.1
+                        cell.average_z = 0.5
                     obs = self.get_surrounding_obstacles(x, y)
                     if len(obs) > 0:
                         c = obs[0][0]
@@ -316,6 +316,7 @@ class Map:
         return self.get_surrounding_cells8_by_index(*self.coordinates_to_index(x,y))
 
     def get_average_z_of_surrounded_obstacles(self, x_index, y_index):
+
         (z, n) = reduce(lambda (z, n), x: (z + x[0].highest_z, n+1) if x[0].is_obstacle() else (z,n), self.get_surrounding_cells8_by_index(x_index, y_index), (0.0, 0.0))
         if z == 0:
             return 1
@@ -439,6 +440,10 @@ class Map:
 
             cm.set_region_type(RegionType.undef)
             cm.group_regions()
+
+            rospy.logdebug("Clustering results:")
+            rospy.logdebug(cm.print_segmented_field())
+            rospy.logdebug(cm.print_field())
 
             self.obstacle_regions = cm.get_result_regions()
         return self.obstacle_regions

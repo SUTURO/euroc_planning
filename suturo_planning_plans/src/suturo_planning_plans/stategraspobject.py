@@ -32,6 +32,8 @@ class GraspObject(smach.State):
             rospy.logwarn("Collision Object " + collision_object_name + " is not in planningscene.")
             return 'objectNotInPlanningscene'
 
+        rospy.logdebug("Grasping: " + str(collision_object))
+
         grasp_positions = calculate_grasp_position(collision_object, utils.manipulation.transform_to)
 
         #filter out some invalid grasps
@@ -43,15 +45,16 @@ class GraspObject(smach.State):
 
         #sort to try the best grasps first
         grasp_positions.sort(cmp=lambda x, y: utils.manipulation.cmp_pose_stamped(collision_object, x, y))
-        # visualize_poses(grasp_positions)
-        # print grasp_positions
 
         utils.manipulation.open_gripper()
         for grasp in grasp_positions:
             if move_to_func(get_pre_grasp(grasp)):
+                rospy.logdebug("Pregraspposition taken")
 
                 if not move_to_func(grasp, blow_up=False):
+                    rospy.logdebug("Failed to take Graspposition")
                     continue
+                rospy.logdebug("Graspposition taken")
 
                 rospy.sleep(1)
                 utils.manipulation.close_gripper(collision_object)
@@ -73,6 +76,7 @@ class GraspObject(smach.State):
 
                 rospy.loginfo("grasped " + collision_object_name)
 
+                #save grasp data for placing
                 grasp_2 = utils.manipulation.transform_to(grasp)
                 userdata.grasp = grasp_2
                 v1 = deepcopy(grasp_2.pose.position)
