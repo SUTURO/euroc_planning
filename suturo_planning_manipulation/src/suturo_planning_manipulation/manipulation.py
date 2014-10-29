@@ -335,7 +335,7 @@ class Manipulation(object):
     def filter_invalid_grasps(self, list_of_grasps):
         '''
         Filters out positions that are very close to the ground.
-        :param list_of_grasps: list of PoseStamped
+        :param list_of_grasps: list of PoseStamped in odom_combined
         :return: filtered list of PoseStamped
         '''
         # TODO: assumes odom_combined as frame id

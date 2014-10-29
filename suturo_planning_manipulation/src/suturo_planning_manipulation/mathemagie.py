@@ -34,7 +34,7 @@ def three_points_to_quaternion(origin, to, roll=None):
     Calculates a quaternion that points from "origin" to "to" and lies in the plane defined by "origin", "to" and "roll".
     :param origin: Point
     :param to: Point
-    :param roll: Point
+    :param roll: Point, optional camera is on top, when None
     :return: Quaternion
     '''
     muh = False
@@ -61,7 +61,7 @@ def three_points_to_quaternion(origin, to, roll=None):
     q = quaternion_from_matrix(rm)
     q = Quaternion(*q)
     if muh :
-        q = rotate_quaternion(q, pi/2, 0, 0)
+        q = rotate_quaternion(q, -pi/2, 0, 0)
     return q
 
 

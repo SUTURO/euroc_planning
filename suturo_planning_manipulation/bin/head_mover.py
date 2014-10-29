@@ -107,15 +107,15 @@ if __name__ == '__main__':
     rospy.init_node('head_mover', anonymous=True)
 
     m = Manipulation()
-    m.pan_tilt(0, 0.3)
+    # m.pan_tilt(0, 0.3)
     # m.close_gripper()
-    # t_point = geometry_msgs.msg.PoseStamped()
-    # t_point.header.frame_id = "/odom_combined"
-    # p = Point(1,1,0)
-    # t_point.pose.position = p
-    # t_point.pose.orientation = three_points_to_quaternion(p, Point(0,0,1))
-    # visualize_poses([t_point])
-    # m.move_to(t_point)
+    t_point = geometry_msgs.msg.PoseStamped()
+    t_point.header.frame_id = "/odom_combined"
+    p = Point(0.3,0.3,0.5)
+    t_point.pose.position = p
+    t_point.pose.orientation = three_points_to_quaternion(p, Point(0,0,0))
+    visualize_poses([t_point])
+    m.move_arm_and_base_to(t_point)
 
 
     # x_axis_unit = Point(1, 0, 0)
