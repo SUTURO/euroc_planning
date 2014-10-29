@@ -66,6 +66,10 @@ def start_demo(wait, tasks, logging):
     if len(tasks_to_execute) == 0:
         tasks_to_execute = task_names
     print('Going to execute the following tasks: ' + str(tasks_to_execute))
+    if logging in [2]:
+        dont_print = False
+    else:
+        dont_print = True
     for task in tasks_to_execute:
         if __quit:
             print('Demo has been aborted. Exiting (1)')
@@ -80,7 +84,7 @@ def start_demo(wait, tasks, logging):
         subproc, logger_process = utils.start_node('rosrun suturo_planning_startup start_task.py ' + task +
                                                    ' --plan --init --save --no-ts --inittime="' + init_time + '"' +
                                                    ' --logging="' + str(logging) + '"', init_time, 'Complete', logging,
-                                                   dont_print=True, print_prefix_to_stdout=True)
+                                                   dont_print=dont_print, print_prefix_to_stdout=False)
         print('Waiting for task ' + task + ' to terminate.')
         subproc.wait()
         print('Waiting for logger to terminate.')

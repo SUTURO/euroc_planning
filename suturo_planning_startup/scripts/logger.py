@@ -48,6 +48,7 @@ signal.signal(signal.SIGTERM, exit_handler)
 signal.signal(signal.SIGINT, exit_handler)
 atexit.register(exit_handler)
 
+
 def check_for_input():
     global __no_input_counter
     global node

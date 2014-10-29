@@ -3,12 +3,30 @@ import rospy
 import smach
 import smach_ros
 import threading
+import subprocess
 import time
 import task1
 import task4
 import task6
 import start_nodes
+import signal
+import atexit
+from suturo_planning_manipulation.total_annihilation import exterminate
 from suturo_msgs.msg import Task
+from suturo_planning_plans import utils
+
+__logger_process = None
+
+
+def exit_handler(signum=None, frame=None):
+    print('toplevel: exit_handler')
+    if __logger_process is not None:
+        print 'Killing planning logger process.'
+        exterminate(__logger_process.pid, signal.SIGINT)
+
+signal.signal(signal.SIGTERM, exit_handler)
+signal.signal(signal.SIGINT, exit_handler)
+atexit.register(exit_handler)
 
 
 def handle_uncaught_exception(e, initialization_time, logging):
@@ -19,8 +37,17 @@ def handle_uncaught_exception(e, initialization_time, logging):
 
 
 def toplevel_plan(init_sim, task_list, savelog, initialization_time, logging):
-    __initialization_time = initialization_time
-    # Create a SMACH state machine
+    #Create a SMACH state machine
+    global __logger_process
+    print('toplevel: logging: ' + str(logging))
+    if logging == 1:
+        print('Logging planning to console.')
+    else:
+        print('Logging planning to files.')
+        __logger_process = utils.start_logger(subprocess.PIPE, initialization_time, 'Planning', logging)
+        sys.stderr = sys.stdout
+        sys.stdout = __logger_process.stdin
+
     toplevel = smach.StateMachine(outcomes=['success', 'fail'])
 
     # Open the container

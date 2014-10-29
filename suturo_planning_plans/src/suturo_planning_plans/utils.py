@@ -40,15 +40,18 @@ def start_node(command, initialization_time, log_name, logging, dont_print=False
         stderr = subprocess.STDOUT
     process = subprocess.Popen(command, stdout=stdout, stderr=stderr, shell=True, preexec_fn=os.setsid)
     if logging != 1:
-        print('Creating logger process.')
-        logger_process = subprocess.Popen('rosrun suturo_planning_startup logger.py "' + log_dir + '/' +
-                                          initialization_time + ' ' + log_name + '.log"' + ' "' + log_name + '"' +
-                                          ' ' + str(logging) + ' ' + str(dont_print) + ' ' +
-                                          str(print_prefix_to_stdout),
-                                          stdin=process.stdout, shell=True, preexec_fn=os.setsid)
+        logger_process = start_logger(process.stdout, initialization_time, log_name, logging, dont_print=dont_print,
+                                      print_prefix_to_stdout=print_prefix_to_stdout)
     else:
         logger_process = 0
     return process, logger_process
+
+
+def start_logger(stdin, initialization_time, log_name, logging, dont_print=False, print_prefix_to_stdout=True):
+    print('Creating logger process: ' + log_name)
+    return subprocess.Popen('rosrun suturo_planning_startup logger.py "' + log_dir + '/' + initialization_time + ' ' +
+                            log_name + '.log"' + ' "' + log_name + '"' + ' ' + str(logging) + ' ' + str(dont_print) +
+                            ' ' + str(print_prefix_to_stdout), stdin=stdin, shell=True, preexec_fn=os.setsid)
 
 
 def classify_object(obj):
