@@ -494,7 +494,7 @@ class Manipulation(object):
         dp.header.frame_id = "/drop_point"
         dp.pose.orientation = geometry_msgs.msg.Quaternion(0.0, 0.0, 0.0, 1.0)
 
-        rospy.loginfo('ScanConveyorPose: Transform DropPoint to odom')
+        rospy.logdebug('ScanConveyorPose: Transform DropPoint to odom')
         dp_odom = self.transform_to(dp)
 
         scan_conveyor_pose = geometry_msgs.msg.PoseStamped()
@@ -505,24 +505,24 @@ class Manipulation(object):
         scan_conveyor_pose.pose.position.y = 0
         scan_conveyor_pose.pose.position.z = 0
 
-        rospy.loginfo('ScanConveyorPose: Transform mdl_middle to odom')
+        rospy.logdebug('ScanConveyorPose: Transform mdl_middle to odom')
         mdl_middle_odom = self.transform_to(scan_conveyor_pose)
 
         scan_conveyor_pose.pose.position.z = mdl_middle_odom.pose.position.z + 0.3
 
-        rospy.loginfo('ScanConveyorPose: Transform scan_conveyor_pose to odom')
+        rospy.logdebug('ScanConveyorPose: Transform scan_conveyor_pose to odom')
         scan_conveyor_pose = self.transform_to(scan_conveyor_pose)
 
-        rospy.loginfo('ScanConveyorPose: Calculate quaternion')
+        rospy.logdebug('ScanConveyorPose: Calculate quaternion')
         quaternion = three_points_to_quaternion(scan_conveyor_pose.pose.position, dp_odom.pose.position)
 
         quaternion = rotate_quaternion(quaternion, pi, 0, 0)
 
         scan_conveyor_pose.pose.orientation = quaternion
 
-        rospy.loginfo(scan_conveyor_pose)
+        rospy.logdebug(scan_conveyor_pose)
 
-        rospy.loginfo('ScanConveyorPose: Move arm to scan_conveyor_pose')
+        rospy.logdebug('ScanConveyorPose: Move arm to scan_conveyor_pose')
         self.move_to(scan_conveyor_pose)
 
         return True

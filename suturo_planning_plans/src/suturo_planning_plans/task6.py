@@ -11,6 +11,7 @@ class Task6(smach.StateMachine):
                                     input_keys=['yaml'],
                                     output_keys=[])
 
+        # TODO: Fehlerbehandlung
         with self:
             smach.StateMachine.add('CamToDropzone', CamToDropzone(),
                                    transitions={'scanPoseReached': 'FastGrasp',

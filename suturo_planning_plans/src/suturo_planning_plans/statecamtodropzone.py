@@ -12,7 +12,7 @@ class CamToDropzone(smach.State):
                              output_keys=[])
 
     def execute(self, userdata):
-        rospy.loginfo('CamToDropzone: Executing state CamToDropzone')
+        rospy.logdebug('CamToDropzone: Executing state CamToDropzone')
 
         listener = TransformListener()
 
@@ -20,15 +20,16 @@ class CamToDropzone(smach.State):
             utils.manipulation = Manipulation()
             rospy.sleep(2)
 
+        # TODO: Irgend ne Abbruchbedingung machen (nach x Sekunden)
         while not listener.frameExists("drop_point"):
             rospy.loginfo("wait for drop_point frame")
-            rospy.sleep(1)
+            rospy.sleep(2.)
         while not listener.frameExists("mdl_middle"):
             rospy.loginfo("wait for mdl_middle frame")
-            rospy.sleep(1)
+            rospy.sleep(2.)
 
         if utils.manipulation.scan_conveyor_pose():
-            rospy.loginfo('CamToDropzone: ScanPoseReached')
+            rospy.logdebug('CamToDropzone: ScanPoseReached')
             return 'scanPoseReached'
         else:
             rospy.loginfo('CamToDropzone: Cant reach ScanPose')
