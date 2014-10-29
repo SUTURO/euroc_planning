@@ -13,7 +13,7 @@ def start_task(scene):
 
     try:
         start_simulator = rospy.ServiceProxy('euroc_c2_task_selector/start_simulator', StartSimulator)
-        yaml_description = start_simulator('DefinitelyNotZoidberg', scene).description_yaml
+        yaml_description = start_simulator('C2T03#8112895', scene).description_yaml
         yaml_parser = YamlPars0r()
         # signal.signal(signal.SIGINT, lambda sig, frame: yaml_parser.kill(sig, frame))
         return yaml_parser.parse_and_publish(yaml_description)
