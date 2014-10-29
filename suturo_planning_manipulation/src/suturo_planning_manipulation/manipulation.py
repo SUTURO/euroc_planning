@@ -481,3 +481,74 @@ class Manipulation(object):
  
    def direct_move(self, configuration):
        return self.__manService.direct_move(configuration)
+
+   def scan_conveyor_pose(self, drop_point, angle):
+        # Get the data!
+        alpha = angle
+        dp = drop_point
+
+        # Get x and y point from object
+        point_x = dp.x
+        point_y = dp.y
+
+        scan_conveyor_pose = geometry_msgs.msg.PoseStamped()
+        scan_conveyor_pose.header.frame_id = "/mdl_middle"
+        scan_conveyor_pose.pose.orientation = geometry_msgs.msg.Quaternion(0.0, 0.0, 0.0, 1.0)
+
+        scan_conveyor_pose.pose.position.x = 0
+        scan_conveyor_pose.pose.position.y = 0
+        scan_conveyor_pose.pose.position.z = 0
+        mdl_middle_odom = self.transform_to(scan_conveyor_pose)
+
+        # x = point_x - mp.pose.position.x
+        y = point_y - mdl_middle_odom.pose.position.y
+        # w = math.sqrt(x**2 + y**2)
+
+        v = y
+        l = v / math.cos(alpha)
+        z = l * math.sin(alpha)
+
+        # get sin_beta
+        #if point_x == 0:
+        #    sin_beta = 0
+        #else:
+        # sin_beta = (point_y / point_x)
+        # # get diagonal from the middle of the table to the object
+        # v = math.sqrt((point_x**2) + (point_y**2))
+        # initialize cam_pose and roll objects
+
+        roll = geometry_msgs.msg.PoseStamped()
+
+        # calculate the distance from the object to the desired cam_pose
+        # w = math.cos(alpha) * dist
+        #if point_x == 0:
+        #    beta = 0
+        #else:
+        # beta = math.atan(point_y / point_x)
+
+        # set value...
+        scan_conveyor_pose.pose.position.z = z
+
+        x1 = -point_x
+        y1 = -point_y
+        x2 = 1
+        y2 = -x1 / y1
+
+        roll.pose.position.x = x2
+        roll.pose.position.y = y2
+        roll.pose.position.z = dp.z
+
+        scan_conveyor_pose = self.transform_to(scan_conveyor_pose)
+
+        # calculate the quaternion
+        dp_points = geometry_msgs.msg.PoseStamped()
+        dp_points.pose.position.x = dp.x
+        dp_points.pose.position.y = dp.y
+        dp_points.pose.position.z = dp.z
+        quaternion = three_points_to_quaternion(scan_conveyor_pose.pose.position, dp_points.pose.position, roll.pose.position)
+
+        scan_conveyor_pose.pose.orientation = quaternion
+
+        self.move_arm_and_base_to(scan_conveyor_pose)
+
+        return scan_conveyor_pose
