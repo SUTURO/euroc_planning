@@ -11,29 +11,25 @@ class Task6(smach.StateMachine):
                                     input_keys=['yaml'],
                                     output_keys=[])
 
-        # Armkamera auf Dropzone -> warten auf Objekt -> Perception triggern ->
-        # Wenn Objekt da ist, Manipulation triggern (Berechnung der neuen Pose) -> Pre Grasp -> Graspen bei t_x
-        # PlaceObject -> Armkamera auf Dropzone
-        # TODO: Fehlerbehandlung
-
         with self:
             smach.StateMachine.add('CamToDropzone', CamToDropzone(),
-                                   transitions={'success': 'FastGrasp',
+                                   transitions={'scanPoseReached': 'FastGrasp',
                                                 'fail': 'fail'})
+
             smach.StateMachine.add('FastGrasp', FastGrasp(),
                                    transitions={'objectGrasped': 'PlaceObject',
                                                 'timeExpired': 'success',
                                                 'fail': 'fail'})
+
             smach.StateMachine.add('PlaceObject', PlaceObject(),
                                    transitions={'success': 'CheckObject',
                                                 'noObjectAttached': 'CamToDropzone',
                                                 'noPlacePosition': 'fail',
                                                 'fail': 'fail'})
+
             smach.StateMachine.add('CheckObject', CheckPlacement(),
                                    transitions={'onTarget': 'CamToDropzone',
                                                 'notOnTarget': 'fail'})
-
-
 
         self.userdata.objects_found = []
         self.userdata.pending_objects = []
