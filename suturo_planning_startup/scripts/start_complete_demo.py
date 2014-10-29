@@ -88,6 +88,7 @@ def start_demo(wait, tasks, logging):
         print('Waiting for task ' + task + ' to terminate.')
         subproc.wait()
         print('Waiting for logger to terminate.')
+        exterminate(logger_process.pid, signal.SIGINT)
         logger_process.wait()
         if __quit:
             print('Demo has been aborted. Exiting (2)')
