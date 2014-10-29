@@ -19,6 +19,20 @@ class TestCell(unittest.TestCase):
         self.assertTrue(c.is_obstacle())
         self.assertFalse(c.is_marked())
         self.assertFalse(c.is_free())
+        self.assertFalse(c.is_blue())
+        self.assertFalse(c.is_red())
+        self.assertTrue(c.is_undef(), c.get_color_id())
+        self.assertTrue(c.get_color() == c.UNDEF)
+
+        c.set_blue()
+        self.assertFalse(c.is_unknown())
+        self.assertFalse(c.is_object())
+        self.assertTrue(c.is_obstacle())
+        self.assertFalse(c.is_marked())
+        self.assertFalse(c.is_free())
+        self.assertTrue(c.is_blue())
+        self.assertFalse(c.is_red())
+        self.assertFalse(c.is_undef())
 
         c.set_free()
         self.assertFalse(c.is_unknown())
@@ -26,6 +40,8 @@ class TestCell(unittest.TestCase):
         self.assertFalse(c.is_obstacle())
         self.assertFalse(c.is_marked())
         self.assertTrue(c.is_free())
+        self.assertFalse(c.is_blue())
+        self.assertFalse(c.is_red())
 
         c.set_object()
         self.assertFalse(c.is_unknown())
@@ -33,6 +49,9 @@ class TestCell(unittest.TestCase):
         self.assertFalse(c.is_obstacle())
         self.assertFalse(c.is_marked())
         self.assertFalse(c.is_free())
+        self.assertTrue(c.is_blue())
+        self.assertFalse(c.is_red())
+        self.assertFalse(c.is_undef())
 
         c.set_mark()
         self.assertFalse(c.is_unknown())
@@ -40,6 +59,8 @@ class TestCell(unittest.TestCase):
         self.assertFalse(c.is_obstacle())
         self.assertTrue(c.is_marked())
         self.assertFalse(c.is_free())
+        self.assertTrue(c.is_blue())
+        self.assertFalse(c.is_red())
 
 class TestMapCleanUp(unittest.TestCase):
 
@@ -68,7 +89,7 @@ class TestMapCleanUp(unittest.TestCase):
         m.get_cell_by_index(5,4).set_obstacle()
         m.get_cell_by_index(3,4).set_obstacle()
 
-        self.assertTrue(m.is_cell_surrounded_by_obstacles(4,4))
+        self.assertTrue(m.get_surrounding_obstacles(4,4))
 
         m.clean_up_map()
         self.assertTrue(m.get_cell_by_index(4,4).is_obstacle())
@@ -85,24 +106,24 @@ class TestMapCleanUp(unittest.TestCase):
         m.get_cell_by_index(4,5).set_obstacle()
         m.get_cell_by_index(5,4).set_obstacle()
 
-        self.assertTrue(m.is_cell_surrounded_by_obstacles(4,4))
+        self.assertTrue(len(m.get_surrounding_obstacles(4,4)) == 3)
 
         m.clean_up_map()
         self.assertTrue(m.get_cell_by_index(4,4).is_obstacle())
 
-    def test1_3(self):
-        '''
-        unknown surrounded by 3 obstacles
-        '''
-        m = self.make_free_map()
-
-        m.get_cell_by_index(0,0).set_unknown()
-        m.get_cell_by_index(0,1).set_obstacle()
-
-        self.assertTrue(m.is_cell_surrounded_by_obstacles(0,0))
-
-        m.clean_up_map()
-        self.assertTrue(m.get_cell_by_index(0,1).is_obstacle())
+    # def test1_3(self):
+    #     '''
+    #     unknown surrounded by 3 obstacles
+    #     '''
+    #     m = self.make_free_map()
+    #
+    #     m.get_cell_by_index(0,0).set_unknown()
+    #     m.get_cell_by_index(0,1).set_obstacle()
+    #
+    #     self.assertTrue(m.is_cell_surrounded_by_obstacles(0,0))
+    #
+    #     m.clean_up_map()
+    #     self.assertTrue(m.get_cell_by_index(0,1).is_obstacle())
 
     def test1_4(self):
         '''
@@ -113,11 +134,11 @@ class TestMapCleanUp(unittest.TestCase):
         m.get_cell_by_index(5,5).set_unknown()
         m.get_cell_by_index(4,5).set_obstacle()
 
-        self.assertFalse(m.is_cell_surrounded_by_obstacles(5,5))
+        # self.assertFalse(m.is_cell_surrounded_by_obstacles(5,5))
         self.assertFalse(m.is_cell_alone(5,5))
 
         m.clean_up_map()
-        self.assertTrue(m.get_cell_by_index(5,5).is_unknown())
+        self.assertTrue(m.get_cell_by_index(5,5).is_unknown(), m)
 
     def test1_5(self):
         '''
@@ -129,7 +150,7 @@ class TestMapCleanUp(unittest.TestCase):
         m.get_cell_by_index(4,3).set_obstacle()
         m.get_cell_by_index(4,5).set_obstacle()
 
-        self.assertFalse(m.is_cell_surrounded_by_obstacles(4,4))
+        # self.assertFalse(m.is_cell_surrounded_by_obstacles(4,4))
 
         m.clean_up_map()
         self.assertTrue(m.get_cell_by_index(4,4).is_unknown())
@@ -144,10 +165,12 @@ class TestMapCleanUp(unittest.TestCase):
         m.get_cell_by_index(0,5).set_unknown()
         m.get_cell_by_index(4,5).set_unknown()
 
+        # print m
         self.assertTrue(m.get_cell_by_index(0,1).is_free())
-        self.assertTrue(m.is_cell_alone(0,0))
-        self.assertTrue(m.is_cell_alone(0,5))
-        self.assertTrue(m.is_cell_alone(4,5))
+        self.assertTrue(m.is_cell_alone(4,5), m)
+        self.assertTrue(m.is_cell_alone(0,0), m)
+        self.assertTrue(m.is_cell_alone(0,5), m)
+
 
 
         m.clean_up_map()
@@ -203,9 +226,9 @@ class TestMapCleanUp(unittest.TestCase):
 
         m.mark_region_as_object_under_point(*m.index_to_coordinates(4,5))
 
-        self.assertTrue(m.get_cell_by_index(3,5).is_object())
-        self.assertTrue(m.get_cell_by_index(4,5).is_object())
-        self.assertTrue(m.get_cell_by_index(3,4).is_object())
+        self.assertTrue(m.get_cell_by_index(3,5).is_object(), m)
+        self.assertTrue(m.get_cell_by_index(4,5).is_object(), m)
+        self.assertTrue(m.get_cell_by_index(3,4).is_object(), m)
 
     def test5_1(self):
         '''

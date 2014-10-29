@@ -115,8 +115,23 @@ class Cell:
             return self.MAGENTA
         elif id == self.YELLOW_ID:
             return self.YELLOW
+        return self.UNDEF
+
+    def color_to_id(self, id):
+        if id == self.BLUE:
+            return self.BLUE_ID
+        elif id == self.GREEN:
+            return self.GREEN_ID
+        elif id == self.CYAN:
+            return self.CYAN_ID
+        elif id == self.RED:
+            return self.RED_ID
+        elif id == self.MAGENTA:
+            return self.MAGENTA_ID
+        elif id == self.YELLOW:
+            return self.YELLOW_ID
         else:
-            return self.UNDEF_ID
+            return self.UNDEF
 
     #setter
 
@@ -134,6 +149,42 @@ class Cell:
 
     def set_mark(self, marked=True):
         self.marked = marked
+
+    def set_blue(self):
+        for x in range(len(self.points)):
+            self.points[x] = 0
+        self.points[self.BLUE_ID] = 50
+
+    def set_green(self):
+        for x in range(len(self.points)):
+            self.points[x] = 0
+        self.points[self.GREEN_ID] = 50
+
+    def set_red(self):
+        for x in range(len(self.points)):
+            self.points[x] = 0
+        self.points[self.RED_ID] = 50
+
+    def set_yellow(self):
+        for x in range(len(self.points)):
+            self.points[x] = 0
+        self.points[self.YELLOW_ID] = 50
+
+    def set_cyan(self):
+        for x in range(len(self.points)):
+            self.points[x] = 0
+        self.points[self.CYAN_ID] = 50
+
+    def set_magenta(self):
+        for x in range(len(self.points)):
+            self.points[x] = 0
+        self.points[self.MAGENTA_ID] = 50
+
+    def set_color(self, color_id):
+        for x in range(len(self.points)):
+            self.points[x] = 0
+        self.points[color_id] = 50
+
 
     #getter
 
@@ -159,32 +210,34 @@ class Cell:
         return self.last_update
 
     def get_color(self):
-        id = 0
-        for i in range(1, len(self.points) -1):
-            if self.points[i] > self.points[id]:
-                id = i
-        if id == 0 and sum(self.points) == 0:
-            return -1
+        return self.id_to_color(self.get_color_id())
 
-        return self.id_to_color(id)
+    def get_color_id(self):
+        id = -1
+        for i in range(0, len(self.points)-1):
+            if (self.points[i] > 0 and id == -1) or self.points[i] > self.points[id]:
+                id = i
+        if id == -1:
+            return self.UNDEF_ID
+        return id
 
     def is_blue(self):
-        return (self.is_obstacle() or self.is_object()) and self.get_color() == self.BLUE
+        return (self.is_obstacle() or self.is_object()) and self.get_color_id() == self.BLUE_ID
 
     def is_green(self):
-        return (self.is_obstacle() or self.is_object()) and  self.get_color() == self.GREEN
+        return (self.is_obstacle() or self.is_object()) and  self.get_color_id() == self.GREEN_ID
 
     def is_red(self):
-        return (self.is_obstacle() or self.is_object()) and  self.get_color() == self.RED
+        return (self.is_obstacle() or self.is_object()) and  self.get_color_id() == self.RED_ID
 
     def is_cyan(self):
-        return (self.is_obstacle() or self.is_object()) and  self.get_color() == self.CYAN
+        return (self.is_obstacle() or self.is_object()) and  self.get_color_id() == self.CYAN_ID
 
     def is_magenta(self):
-        return (self.is_obstacle() or self.is_object()) and  self.get_color() == self.MAGENTA
+        return (self.is_obstacle() or self.is_object()) and  self.get_color_id() == self.MAGENTA_ID
 
     def is_yellow(self):
-        return (self.is_obstacle() or self.is_object()) and  self.get_color() == self.YELLOW
+        return (self.is_obstacle() or self.is_object()) and  self.get_color_id() == self.YELLOW_ID
 
     def is_undef(self):
-        return (self.is_obstacle() or self.is_object()) and  self.get_color() == self.UNDEF
+        return (self.is_obstacle() or self.is_object()) and  self.get_color_id() == self.UNDEF_ID

@@ -49,17 +49,24 @@ class Map:
 
     def __str__(self):
         s = ""
-        for x in range(0, len(self.field)):
-            for y in range(0, len(self.field[x])):
-                s = s + str("f" if self.field[x][y].is_free() else "o" if self.field[x][y].is_obstacle() else " ")
-            s = s + "\n"
+        for x in xrange(len(self.field)):
+            for y in xrange(len(self.field[x])):
+                if self.field[x][y].is_free(): s += "F"
+                elif self.field[x][y].is_object(): s += "O"
+                elif self.field[x][y].is_obstacle():
+                    if self.field[x][y].is_blue(): s += "B"
+                    elif self.field[x][y].is_green(): s += "G"
+                    elif self.field[x][y].is_red(): s += "R"
+                    elif self.field[x][y].is_yellow(): s += "Y"
+                    elif self.field[x][y].is_cyan(): s += "C"
+                    elif self.field[x][y].is_magenta(): s += "M"
+                    else: s += "U"
+                elif self.field[x][y].is_unknown(): s += " "
+            s += "\n"
         return s
 
     def reset(self):
         self.field = [[Cell() for i in range(self.num_of_cells)] for j in range(self.num_of_cells)]
-
-    def get_field(self):
-        return self.field
 
     def add_point_cloud(self, arm_origin=Point(0, 0, 0), radius=0.1, scene_cam=True):
         '''
@@ -119,30 +126,6 @@ class Map:
         return arm_origin.x - radius < x < arm_origin.x + radius and \
  	 	        arm_origin.y - radius < y < arm_origin.y + radius
 
-    def get_cell(self, x, y):
-
-        (x_index, y_index) = self.coordinates_to_index(x, y)
-        return self.get_cell_by_index(x_index, y_index)
-
-    def get_cell_by_index(self, x, y):
-        x2 = x
-        y2 = y
-        warn = lambda : rospy.logwarn("Index out auf range: " + str(x) + " " + str(y))
-        if x < 0:
-            warn()
-            x2 = 0
-        if y < 0:
-            warn()
-            y2 = 0
-        if x >= len(self.field):
-            warn()
-            x2 = len(self.field) - 1
-        if y >= len(self.field):
-            warn()
-            y2 = len(self.field) - 1
-
-        return self.field[x2][y2]
-
     def coordinates_to_index(self, x, y):
         x_index = int((x + (self.size_x / 2)) / self.cell_size_x)
         y_index = int((y + (self.size_y / 2)) / self.cell_size_y)
@@ -164,21 +147,18 @@ class Map:
             cell_changed = False
             for x in range(0, len(self.field)):
                 for y in range(0, len(self.field[x])):
-                    if self.get_cell_by_index(x, y).is_unknown():
-                        if self.is_cell_surrounded_by_obstacles(x, y):
-                            self.get_cell_by_index(x, y).set_obstacle()
+                    cell = self.get_cell_by_index(x, y)
+                    if cell.is_unknown():
+                        obstacles = self.get_surrounding_obstacles(x, y)
+                        if len(obstacles) >= 3:
+                            cell.set_obstacle()
+                            c = obstacles[0]
+                            cell.set_color(c[0].get_color_id())
                             cell_changed = True
                         elif self.is_cell_alone(x, y):
                             self.get_cell_by_index(x, y).set_free()
                             cell_changed = True
         self.publish_as_marker()
-
-    def is_cell_alone(self, x_index, y_index):
-        return reduce(lambda yes, c: yes and c[0].is_free(), self.get_surrounding_cells_by_index(x_index, y_index), True)
-
-    def is_cell_surrounded_by_obstacles(self, x_index, y_index):
-        sc = self.get_surrounding_cells_by_index(x_index, y_index)
-        return len(sc)-1 <= reduce(lambda num_of_obstacles, c: num_of_obstacles + 1  if c[0].is_obstacle() else num_of_obstacles, sc, 0)
 
     def to_collision_object(self):
         '''
@@ -208,6 +188,121 @@ class Map:
                 co.primitive_poses.append(pose)
 
         return co
+
+    def mark_cell(self, x, y, marked=True):
+        self.get_cell(x, y).set_mark(marked)
+        self.publish_as_marker()
+
+    def all_unknowns_to_obstacle(self):
+        for x in range(self.num_of_cells):
+            for y in range(self.num_of_cells):
+                cell = self.get_cell_by_index(x, y)
+                if cell.is_unknown():
+                    cell.set_obstacle()
+                    cell.average_z == self.get_average_z_of_surrounded_obstacles(x, y)
+                    if cell.average_z <= 0.01:
+                        cell.average_z = 0.1
+                    obs = self.get_surrounding_obstacles(x, y)
+                    if len(obs) > 0:
+                        c = obs[0][0]
+                        cell.set_color(c.get_color_id())
+
+        self.publish_as_marker()
+
+    def is_more_edge_by_index(self, x1_index, y1_index, x2_index, y2_index):
+        (x1, y1) = self.index_to_coordinates(x1_index, y1_index)
+        (x2, y2) = self.index_to_coordinates(x2_index, y2_index)
+        return self.is_more_edge(x1, y1, x2, y2)
+
+    def is_more_edge(self, x1, y1, x2, y2):
+        surr_c1 = self.get_surrounding_cells8(x1, y1)
+        num_free1 = sum(1 for c in surr_c1 if not c[0].is_free())
+
+        surr_c2 = self.get_surrounding_cells8(x2, y2)
+        num_free2 = sum(1 for c in surr_c2 if not c[0].is_free())
+
+        if num_free1 < num_free2:
+            return 1
+        elif num_free1 > num_free2:
+            return -1
+        else:
+            num_obs1 = sum(1 for c in surr_c1 if c[0].is_obstacle())
+            num_obs2 = sum(1 for c in surr_c2 if c[0].is_obstacle())
+            if num_obs1 > num_obs2:
+                return 1
+            elif num_obs1 < num_obs2:
+                return -1
+            else:
+                return 0
+
+    #GETTER
+
+    def get_field(self):
+        return self.field
+
+
+    def get_cell(self, x, y):
+
+        (x_index, y_index) = self.coordinates_to_index(x, y)
+        return self.get_cell_by_index(x_index, y_index)
+
+    def get_surrounding_cells_by_index(self, x_index, y_index):
+        cells = []
+        if not x_index - 1 < 0:
+            cells.append((self.field[x_index-1][y_index], x_index-1, y_index))
+
+        if not y_index - 1 < 0:
+            cells.append((self.field[x_index][y_index-1], x_index, y_index-1))
+
+        if not x_index + 1 >= self.num_of_cells:
+            cells.append((self.field[x_index+1][y_index], x_index+1, y_index))
+
+        if not y_index + 1 >= self.num_of_cells:
+            cells.append((self.field[x_index][y_index+1], x_index, y_index+1))
+
+        return cells
+
+    def get_surrounding_cells(self, x, y):
+        return self.get_surrounding_cells_by_index(*self.coordinates_to_index(x,y))
+
+    def get_surrounding_cells8_by_index(self, x_index, y_index):
+        cells = []
+        xm1 = False
+        xp1 = False
+        ym1 = False
+        yp1 = False
+        if not x_index - 1 < 0:
+            cells.append((self.field[x_index-1][y_index],) + self.index_to_coordinates(x_index-1, y_index))
+            xm1 = True
+
+        if not y_index - 1 < 0:
+            cells.append((self.field[x_index][y_index-1],) + self.index_to_coordinates(x_index, y_index-1))
+            ym1 = True
+
+        if not x_index + 1 >= self.num_of_cells:
+            cells.append((self.field[x_index+1][y_index],) + self.index_to_coordinates(x_index+1, y_index))
+            xp1 = True
+
+        if not y_index + 1 >= self.num_of_cells:
+            cells.append((self.field[x_index][y_index+1],) + self.index_to_coordinates(x_index, y_index+1))
+            yp1 = True
+
+        if xm1 and ym1:
+            cells.append((self.field[x_index-1][y_index-1],) + self.index_to_coordinates(x_index-1, y_index-1))
+
+        if xm1 and yp1:
+            cells.append((self.field[x_index-1][y_index+1],) + self.index_to_coordinates(x_index-1, y_index+1))
+
+        if xp1 and ym1:
+            cells.append((self.field[x_index+1][y_index-1],) + self.index_to_coordinates(x_index+1, y_index-1))
+
+        if xp1 and yp1:
+            cells.append((self.field[x_index+1][y_index+1],) + self.index_to_coordinates(x_index+1, y_index+1))
+
+        return cells
+
+    def get_surrounding_cells8(self, x, y):
+        return self.get_surrounding_cells8_by_index(*self.coordinates_to_index(x,y))
 
     def get_average_z_of_surrounded_obstacles(self, x_index, y_index):
         (z, n) = reduce(lambda (z, n), x: (z + x[0].highest_z, n+1) if x[0].is_obstacle() else (z,n), self.get_surrounding_cells8_by_index(x_index, y_index), (0.0, 0.0))
@@ -273,46 +368,68 @@ class Map:
 
         return cells
 
+    def get_cell_by_index(self, x, y):
+        x2 = x
+        y2 = y
+        warn = lambda : rospy.logwarn("Index out auf range: " + str(x) + " " + str(y))
+        if x < 0:
+            warn()
+            x2 = 0
+        if y < 0:
+            warn()
+            y2 = 0
+        if x >= len(self.field):
+            warn()
+            x2 = len(self.field) - 1
+        if y >= len(self.field):
+            warn()
+            y2 = len(self.field) - 1
+
+        return self.field[x2][y2]
+
+    def is_cell_alone(self, x_index, y_index):
+        sc = self.get_surrounding_cells_by_index(x_index, y_index)
+        return len([c for c in sc if c[0].is_free()]) == len(sc)
+
+    def get_surrounding_obstacles(self, x_index, y_index):
+        sc = self.get_surrounding_cells_by_index(x_index, y_index)
+        return [c for c in sc if c[0].is_obstacle()]
+
+
+    # def is_cell_surrounded_by_obstacles(self, x_index, y_index):
+        # sc = self.get_surrounding_cells_by_index(x_index, y_index)
+        # return len(self.get_surrounding_obstacles(x_index, y_index)) >= 4
+        # return len(sc)-1 <= reduce(lambda num_of_obstacles, c: num_of_obstacles + 1  if c[0].is_obstacle() else num_of_obstacles, sc, 0)
+
+    #REGION SHIT
+
     def get_obstacle_regions(self):
-        regions = []
         if len(self.obstacle_regions) == 0:
             cm = ClusterRegions()
+            cm.set_field(self.field)
+
             cm.set_region_type(RegionType.blue)
-            cm.set_field(self.field)
             cm.group_regions()
-            regions.extend(cm.get_result_regions())
 
-            cm = ClusterRegions()
             cm.set_region_type(RegionType.green)
-            cm.set_field(self.field)
             cm.group_regions()
-            regions.extend(cm.get_result_regions())
 
-            cm = ClusterRegions()
             cm.set_region_type(RegionType.red)
-            cm.set_field(self.field)
             cm.group_regions()
-            regions.extend(cm.get_result_regions())
 
-            cm = ClusterRegions()
             cm.set_region_type(RegionType.cyan)
-            cm.set_field(self.field)
             cm.group_regions()
-            regions.extend(cm.get_result_regions())
 
-            cm = ClusterRegions()
             cm.set_region_type(RegionType.yellow)
-            cm.set_field(self.field)
             cm.group_regions()
-            regions.extend(cm.get_result_regions())
 
-            cm = ClusterRegions()
             cm.set_region_type(RegionType.magenta)
-            cm.set_field(self.field)
             cm.group_regions()
-            regions.extend(cm.get_result_regions())
 
-            self.obstacle_regions = regions
+            cm.set_region_type(RegionType.undef)
+            cm.group_regions()
+
+            self.obstacle_regions = cm.get_result_regions()
         return self.obstacle_regions
 
     def get_unknown_regions(self):
@@ -323,46 +440,6 @@ class Map:
             cm.group_regions()
             self.unknown_regions = cm.get_result_regions()
         return self.unknown_regions
-
-    def mark_region_as_object_under_point(self, x, y):
-        (x_index, y_index) = self.coordinates_to_index(x, y)
-        for r in self.get_obstacle_regions():
-            if [x_index, y_index] in r.cell_coords:
-                for coords in r.cell_coords:
-                    self.get_cell_by_index(*coords).set_object()
-                self.publish_as_marker()
-                return True
-        return False
-
-    def mark_cell(self, x, y, marked=True):
-        self.get_cell(x, y).set_mark(marked)
-        self.publish_as_marker()
-
-    def get_surrounding_cells_by_index(self, x_index, y_index):
-        cells = []
-        if not x_index - 1 < 0:
-            cells.append((self.field[x_index-1][y_index], x_index-1, y_index))
-
-        if not y_index - 1 < 0:
-            cells.append((self.field[x_index][y_index-1], x_index, y_index-1))
-
-        if not x_index + 1 >= self.num_of_cells:
-            cells.append((self.field[x_index+1][y_index], x_index+1, y_index))
-
-        if not y_index + 1 >= self.num_of_cells:
-            cells.append((self.field[x_index][y_index+1], x_index, y_index+1))
-
-        return cells
-
-    def all_unknowns_to_obstacle(self):
-        for x in range(self.num_of_cells):
-            for y in range(self.num_of_cells):
-                if self.get_cell_by_index(x, y).is_unknown():
-                    self.get_cell_by_index(x, y).set_obstacle()
-                    self.get_cell_by_index(x, y).average_z == self.get_average_z_of_surrounded_obstacles(x, y)
-                    if self.get_cell_by_index(x, y).average_z <= 0.01:
-                        self.get_cell_by_index(x, y).average_z = 0.1
-        self.publish_as_marker()
 
     def get_cell_volume_by_index(self, x, y):
         c = self.get_cell_by_index(x, y)
@@ -375,77 +452,20 @@ class Map:
 
         return volume
 
-    def get_surrounding_cells(self, x, y):
-        return self.get_surrounding_cells_by_index(*self.coordinates_to_index(x,y))
+    def mark_region_as_object_under_point(self, x, y):
+        (x_index, y_index) = self.coordinates_to_index(x, y)
+        for r in self.get_obstacle_regions():
+            if [x_index, y_index] in r.cell_coords:
+                for coords in r.cell_coords:
+                    self.get_cell_by_index(*coords).set_object()
+                self.publish_as_marker()
+                return True
+        return False
 
-    def get_surrounding_cells8(self, x, y):
-        return self.get_surrounding_cells8_by_index(*self.coordinates_to_index(x,y))
-
-    def get_surrounding_cells8_by_index(self, x_index, y_index):
-        cells = []
-        xm1 = False
-        xp1 = False
-        ym1 = False
-        yp1 = False
-        if not x_index - 1 < 0:
-            cells.append((self.field[x_index-1][y_index],) + self.index_to_coordinates(x_index-1, y_index))
-            xm1 = True
-
-        if not y_index - 1 < 0:
-            cells.append((self.field[x_index][y_index-1],) + self.index_to_coordinates(x_index, y_index-1))
-            ym1 = True
-
-        if not x_index + 1 >= self.num_of_cells:
-            cells.append((self.field[x_index+1][y_index],) + self.index_to_coordinates(x_index+1, y_index))
-            xp1 = True
-
-        if not y_index + 1 >= self.num_of_cells:
-            cells.append((self.field[x_index][y_index+1],) + self.index_to_coordinates(x_index, y_index+1))
-            yp1 = True
-
-        if xm1 and ym1:
-            cells.append((self.field[x_index-1][y_index-1],) + self.index_to_coordinates(x_index-1, y_index-1))
-
-        if xm1 and yp1:
-            cells.append((self.field[x_index-1][y_index+1],) + self.index_to_coordinates(x_index-1, y_index+1))
-
-        if xp1 and ym1:
-            cells.append((self.field[x_index+1][y_index-1],) + self.index_to_coordinates(x_index+1, y_index-1))
-
-        if xp1 and yp1:
-            cells.append((self.field[x_index+1][y_index+1],) + self.index_to_coordinates(x_index+1, y_index+1))
-
-        return cells
+    #OTHER SHIT
 
     def publish_as_marker(self):
         visualization.publish_marker_array(self.to_marker_array())
-
-
-    def is_more_edge_by_index(self, x1_index, y1_index, x2_index, y2_index):
-        (x1, y1) = self.index_to_coordinates(x1_index, y1_index)
-        (x2, y2) = self.index_to_coordinates(x2_index, y2_index)
-        return self.is_more_edge(x1, y1, x2, y2)
-
-    def is_more_edge(self, x1, y1, x2, y2):
-        surr_c1 = self.get_surrounding_cells8(x1, y1)
-        num_free1 = sum(1 for c in surr_c1 if not c[0].is_free())
-
-        surr_c2 = self.get_surrounding_cells8(x2, y2)
-        num_free2 = sum(1 for c in surr_c2 if not c[0].is_free())
-
-        if num_free1 < num_free2:
-            return 1
-        elif num_free1 > num_free2:
-            return -1
-        else:
-            num_obs1 = sum(1 for c in surr_c1 if c[0].is_obstacle())
-            num_obs2 = sum(1 for c in surr_c2 if c[0].is_obstacle())
-            if num_obs1 > num_obs2:
-                return 1
-            elif num_obs1 < num_obs2:
-                return -1
-            else:
-                return 0
 
     def to_marker_array(self):
         markers = []

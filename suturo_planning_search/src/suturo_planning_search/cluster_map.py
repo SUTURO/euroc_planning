@@ -101,6 +101,7 @@ class RegionType:
     yellow = 7
     cyan = 8
     magenta = 9
+    undef = 10
 
 class RegionLineFragment:
 
@@ -183,8 +184,15 @@ class ClusterRegions:
         for x in xrange(len(self.field)):
             for y in xrange(len(self.field[0])):
                 if self.field[x][y].is_free(): sys.stdout.write(str("F"))
-                if self.field[x][y].is_obstacle(): sys.stdout.write(str("O"))
-                if self.field[x][y].is_unknown(): sys.stdout.write(str("U"))
+                elif self.field[x][y].is_obstacle():
+                    if self.field[x][y].is_blue(): sys.stdout.write(str("B"))
+                    elif self.field[x][y].is_green(): sys.stdout.write(str("G"))
+                    elif self.field[x][y].is_red(): sys.stdout.write(str("R"))
+                    elif self.field[x][y].is_yellow(): sys.stdout.write(str("Y"))
+                    elif self.field[x][y].is_cyan(): sys.stdout.write(str("C"))
+                    elif self.field[x][y].is_magenta(): sys.stdout.write(str("M"))
+                    else: sys.stdout.write(str("X"))
+                elif self.field[x][y].is_unknown(): sys.stdout.write(str("U"))
             print ""
 
     def print_segmented_field(self):
@@ -242,22 +250,25 @@ class ClusterRegions:
                 if self.type == RegionType.free and self.field[x][y].is_free():
                     self.segmented_field[x][y] = self.SEGMENT_COLORED_FIELD
 
-                if self.type == RegionType.blue and self.field[x][y].is_blue():
+                if self.type == RegionType.blue and self.field[x][y].is_blue() and self.field[x][y].is_obstacle():
                     self.segmented_field[x][y] = self.SEGMENT_COLORED_FIELD
 
-                if self.type == RegionType.green and self.field[x][y].is_green():
+                if self.type == RegionType.green and self.field[x][y].is_green() and self.field[x][y].is_obstacle():
                     self.segmented_field[x][y] = self.SEGMENT_COLORED_FIELD
 
-                if self.type == RegionType.red and self.field[x][y].is_red():
+                if self.type == RegionType.red and self.field[x][y].is_red() and self.field[x][y].is_obstacle():
                     self.segmented_field[x][y] = self.SEGMENT_COLORED_FIELD
 
-                if self.type == RegionType.yellow and self.field[x][y].is_yellow():
+                if self.type == RegionType.yellow and self.field[x][y].is_yellow() and self.field[x][y].is_obstacle():
                     self.segmented_field[x][y] = self.SEGMENT_COLORED_FIELD
 
-                if self.type == RegionType.cyan and self.field[x][y].is_cyan():
+                if self.type == RegionType.cyan and self.field[x][y].is_cyan() and self.field[x][y].is_obstacle():
                     self.segmented_field[x][y] = self.SEGMENT_COLORED_FIELD
 
-                if self.type == RegionType.magenta and self.field[x][y].is_magenta():
+                if self.type == RegionType.magenta and self.field[x][y].is_magenta() and self.field[x][y].is_obstacle():
+                    self.segmented_field[x][y] = self.SEGMENT_COLORED_FIELD
+
+                if self.type == RegionType.undef and self.field[x][y].is_undef() and self.field[x][y].is_obstacle():
                     self.segmented_field[x][y] = self.SEGMENT_COLORED_FIELD
 
 

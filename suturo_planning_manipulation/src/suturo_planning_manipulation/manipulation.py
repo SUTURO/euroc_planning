@@ -78,16 +78,17 @@ class Manipulation(object):
         :return: success of the movement
         '''
         goal = [goal_pose.pose.position.x, goal_pose.pose.position.y]
+        rospy.logdebug("Move base to: " + str(goal))
         m = self.__base_group.get_current_joint_values()
         d1 = goal[0] - m[0]
         d2 = goal[1] - m[1]
         if 0 <= abs(d1) <= 0.01 and 0 <= abs(d2) <= 0.01:
-            rospy.loginfo("No movement required.")
-            return True
+           rospy.loginfo("No movement required.")
+           return True
         self.__base_group.set_joint_value_target(goal)
         path = self.__base_group.plan()
         return self.__manService.move(path)
-
+ 
     def transform_to(self, pose_target, target_frame="/odom_combined"):
         '''
         Transforms the pose_target into the target_frame.

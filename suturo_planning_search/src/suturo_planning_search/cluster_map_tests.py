@@ -1,4 +1,5 @@
-from suturo_planning_search.cluster_map import ClusterRegions, Region, RegionLineFragment
+from copy import deepcopy
+from suturo_planning_search.cluster_map import ClusterRegions, Region, RegionLineFragment, RegionType
 from suturo_planning_search.cell import Cell
 
 __author__ = 'pmania'
@@ -7,31 +8,29 @@ import random
 import unittest
 
 class TestClusterRegionsSplitAndCubify(unittest.TestCase):
+
+    def make_free_map(self):
+        c = Cell()
+        c.set_free()
+        test_field = [[deepcopy(c) for x in xrange(15)] for y in xrange(15)]
+        return test_field
+
     def test1(self):
         """ Split the following form into regions:
            xxx
            x x
            x x
         """
-        c = Cell()
-        c.set_free()
-        test_field3 = [[c for x in xrange(15)] for x in xrange(15)]
+        test_field3 = self.make_free_map()
 
-        test_field3[0][6] = Cell()
         test_field3[0][6].set_unknown()
-        test_field3[0][7] = Cell()
         test_field3[0][7].set_unknown()
-        test_field3[0][8] = Cell()
         test_field3[0][8].set_unknown()
 
-        test_field3[1][6] = Cell()
         test_field3[1][6].set_unknown()
-        test_field3[2][6] = Cell()
         test_field3[2][6].set_unknown()
 
-        test_field3[1][8] = Cell()
         test_field3[1][8].set_unknown()
-        test_field3[2][8] = Cell()
         test_field3[2][8].set_unknown()
         cm = ClusterRegions()
         cm.set_field(test_field3)
@@ -54,32 +53,29 @@ class TestClusterRegionsSplitAndCubify(unittest.TestCase):
         # Check the cells of the splitted regions
         regions = sorted(regions_not_sorted)
         self.assertEquals(len(regions), 3)
-        self.assertEquals(regions[0].cell_coords, [[0,6],[0,7],[0,8]])
-        self.assertEquals(regions[1].cell_coords, [[1,6],[2,6]])
-        self.assertEquals(regions[2].cell_coords, [[1,8],[2,8]])
+
+        muh = [[[0,6],[0,7],[0,8]], [[1,6],[2,6]], [[1,8],[2,8]]]
+        self.assertTrue(regions[0].cell_coords in muh)
+        self.assertTrue(regions[1].cell_coords in muh)
+        self.assertTrue(regions[2].cell_coords in muh)
+        # self.assertEquals(regions[2].cell_coords, [[0,6],[0,7],[0,8]])
+        # self.assertEquals(regions[1].cell_coords, [[1,6],[2,6]])
+        # self.assertEquals(regions[0].cell_coords, [[1,8],[2,8]])
 
     def test2(self):
-        print "test2"
         """ Split the following form into one region:
            xxx
            xxx
         """
-        c = Cell()
-        c.set_free()
-        test_field3 = [[c for x in xrange(15)] for x in xrange(15)]
+        print "test2"
+        test_field3 = self.make_free_map()
 
-        test_field3[0][6] = Cell()
         test_field3[0][6].set_unknown()
-        test_field3[0][7] = Cell()
         test_field3[0][7].set_unknown()
-        test_field3[0][8] = Cell()
         test_field3[0][8].set_unknown()
 
-        test_field3[1][6] = Cell()
         test_field3[1][6].set_unknown()
-        test_field3[1][7] = Cell()
         test_field3[1][7].set_unknown()
-        test_field3[1][8] = Cell()
         test_field3[1][8].set_unknown()
         cm = ClusterRegions()
         cm.set_field(test_field3)
@@ -102,32 +98,24 @@ class TestClusterRegionsSplitAndCubify(unittest.TestCase):
         regions = sorted(regions_not_sorted)
         self.assertEquals(len(regions), 1)
         self.assertEquals(regions[0].cell_coords, [[0,6],[0,7],[0,8],[1,6],[1,7],[1,8]])
+
     def test3(self):
-        print "test3"
         """ Split the following form into regions:
              x
              x
            xxxxx
         """
-        c = Cell()
-        c.set_free()
-        test_field3 = [[c for x in xrange(15)] for x in xrange(15)]
+        print "test3"
+        test_field3 = self.make_free_map()
 
 
-        test_field3[0][7] = Cell()
         test_field3[0][7].set_unknown()
-        test_field3[1][7] = Cell()
         test_field3[1][7].set_unknown()
 
-        test_field3[2][5] = Cell()
         test_field3[2][5].set_unknown()
-        test_field3[2][6] = Cell()
         test_field3[2][6].set_unknown()
-        test_field3[2][7] = Cell()
         test_field3[2][7].set_unknown()
-        test_field3[2][8] = Cell()
         test_field3[2][8].set_unknown()
-        test_field3[2][9] = Cell()
         test_field3[2][9].set_unknown()
 
         cm = ClusterRegions()
@@ -156,33 +144,22 @@ class TestClusterRegionsSplitAndCubify(unittest.TestCase):
         self.assertEquals(regions[0].cell_coords, [[2,5],[2,6],[2,7],[2,8],[2,9]])
 
     def test4(self):
-        print "test4"
         """ Split the following form into regions:
             xxxx
             x
             xxxx
         """
-        c = Cell()
-        c.set_free()
-        test_field3 = [[c for x in xrange(15)] for x in xrange(15)]
+        print "test4"
+        test_field3 = self.make_free_map()
 
-        test_field3[0][5] = Cell()
         test_field3[0][5].set_unknown()
-        test_field3[0][6] = Cell()
         test_field3[0][6].set_unknown()
-        test_field3[0][7] = Cell()
         test_field3[0][7].set_unknown()
-        test_field3[0][8] = Cell()
         test_field3[0][8].set_unknown()
-        test_field3[1][5] = Cell()
         test_field3[1][5].set_unknown()
-        test_field3[2][5] = Cell()
         test_field3[2][5].set_unknown()
-        test_field3[2][6] = Cell()
         test_field3[2][6].set_unknown()
-        test_field3[2][7] = Cell()
         test_field3[2][7].set_unknown()
-        test_field3[2][8] = Cell()
         test_field3[2][8].set_unknown()
 
 
@@ -208,37 +185,26 @@ class TestClusterRegionsSplitAndCubify(unittest.TestCase):
         self.assertEquals(len(regions), 3)
         # self.assertEquals(regions[0].cell_coords, [[0,7],[1,7]])
         # self.assertEquals(regions[1].cell_coords, [[2,5],[2,6],[2,7],[2,8],[2,9]])
+
     def test5(self):
-        print "test5"
         """ Split the following form into regions:
             xxxx
             x
             x
             xxxx
         """
-        c = Cell()
-        c.set_free()
-        test_field3 = [[c for x in xrange(15)] for x in xrange(15)]
+        print "test5"
+        test_field3 = self.make_free_map()
 
-        test_field3[0][5] = Cell()
         test_field3[0][5].set_unknown()
-        test_field3[0][6] = Cell()
         test_field3[0][6].set_unknown()
-        test_field3[0][7] = Cell()
         test_field3[0][7].set_unknown()
-        test_field3[0][8] = Cell()
         test_field3[0][8].set_unknown()
-        test_field3[1][5] = Cell()
         test_field3[1][5].set_unknown()
-        test_field3[2][5] = Cell()
         test_field3[2][5].set_unknown()
-        test_field3[3][5] = Cell()
         test_field3[3][5].set_unknown()
-        test_field3[3][6] = Cell()
         test_field3[3][6].set_unknown()
-        test_field3[3][7] = Cell()
         test_field3[3][7].set_unknown()
-        test_field3[3][8] = Cell()
         test_field3[3][8].set_unknown()
 
 
@@ -268,6 +234,62 @@ class TestClusterRegionsSplitAndCubify(unittest.TestCase):
 
         # self.assertEquals(regions[1].cell_coords, [[2,5],[2,6],[2,7],[2,8],[2,9]])
 
+    def test6(self):
+        test_field = self.make_free_map()
+
+        test_field[1][2].set_obstacle()
+        test_field[1][2].set_blue()
+        test_field[1][3].set_obstacle()
+        test_field[1][3].set_blue()
+        test_field[1][4].set_obstacle()
+        test_field[1][4].set_blue()
+        test_field[1][5].set_obstacle()
+        test_field[1][5].set_blue()
+        test_field[1][6].set_obstacle()
+        test_field[1][6].set_green()
+
+        test_field[2][2].set_obstacle()
+        test_field[2][2].set_blue()
+        test_field[2][3].set_obstacle()
+        test_field[2][3].set_green()
+        test_field[2][4].set_obstacle()
+        test_field[2][4].set_green()
+        test_field[2][5].set_obstacle()
+        test_field[2][5].set_green()
+        test_field[2][6].set_obstacle()
+        test_field[2][6].set_green()
+
+        cm = ClusterRegions(True)
+        cm.set_field(test_field)
+        cm.print_field()
+
+        cm.set_region_type(RegionType.blue)
+        cm.group_regions()
+
+        cm.set_region_type(RegionType.green)
+        cm.group_regions()
+
+        cm.set_region_type(RegionType.red)
+        cm.group_regions()
+
+        cm.set_region_type(RegionType.cyan)
+        cm.group_regions()
+
+        cm.set_region_type(RegionType.yellow)
+        cm.group_regions()
+
+        cm.set_region_type(RegionType.magenta)
+        cm.group_regions()
+
+        regions = cm.get_result_regions()
+
+        for r in regions:
+            print r
+
+        muh = [[[1, 2], [2, 2], [1, 3], [1, 4], [1, 5]], [[1, 6], [2, 6], [2, 5], [2, 4], [2, 3]]]
+
+        self.assertTrue(regions[0].cell_coords in muh)
+        self.assertTrue(regions[1].cell_coords in muh)
 
 class TestRegion(unittest.TestCase):
     def test_line_fragment_to_region(self):

@@ -113,6 +113,7 @@ class ScanMapArmCam(smach.State):
         rospy.loginfo("can't update map any further")
         utils.map.all_unknowns_to_obstacle()
         self.finished = True
+        rospy.logdebug("Map after arm Scan: " + str(utils.map))
         return 'mapScanned'
 
 
