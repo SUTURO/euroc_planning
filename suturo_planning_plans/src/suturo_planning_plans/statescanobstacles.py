@@ -39,19 +39,18 @@ class ScanObstacles(smach.State):
 
         rospy.logdebug("current region: " + str(self.next_cluster) + "\n" + str(current_region))
 
-        region_centroid = Point(*(utils.map.index_to_coordinates(*current_region.get_avg()))+(-0.05,))
+        region_centroid = Point(*(utils.map.index_to_coordinates(*current_region.get_avg()))+(-0.065,))
 
-        poses = make_scan_pose(region_centroid, 0.7, 0.8, n=16)
+        poses = make_scan_pose(region_centroid, 0.75, 0.9, n=16)
         visualize_poses(poses)
         for pose in poses:
             if utils.manipulation.move_arm_and_base_to(pose):
 
                 rospy.logdebug('Wait for clock')
-                time.sleep(1)
-
-                rospy.logdebug('Wait for tf again.')
-                rospy.sleep(4)
-                # userdata.region = current_region.cell_coords
+                time.sleep(3)
+                #
+                # rospy.logdebug('Wait for tf again.')
+                # rospy.sleep(4)
                 return 'newImage'
 
         return 'mapScanned'

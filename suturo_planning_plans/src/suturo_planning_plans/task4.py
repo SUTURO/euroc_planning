@@ -1,5 +1,5 @@
 import smach
-from suturo_planning_plans.statechooseobject import ChooseObject
+from suturo_planning_plans.statechooseobject import ChooseObject, CleanUpPlan
 from suturo_planning_plans.stateclassifyobject import ClassifyObjects
 from suturo_planning_plans.statefocusobjects import FocusObject, FocusObjects
 from suturo_planning_plans.stateposeestimateobject import PoseEstimateObject
@@ -25,13 +25,13 @@ class Task4(smach.StateMachine):
                                                 'newImage' : 'ScanMapArmCam'})
 
             smach.StateMachine.add('ScanObstacles', ScanObstacles(),
-                                   transitions={'mapScanned': 'ChooseObject',
+                                   transitions={'mapScanned': 'CleanUpPlan',
                                                 'newImage' : 'ClassifyObjects',
-                                                'noRegionLeft' : 'ChooseObject'})
+                                                'noRegionLeft' : 'CleanUpPlan'})
 
             smach.StateMachine.add('SearchObject', SearchObject(),
                                    transitions={'searchObject': 'ScanObstacles',
-                                                'noObjectsLeft': 'ChooseObject',
+                                                'noObjectsLeft': 'CleanUpPlan',
                                                 'simStopped': 'fail'})
 
             smach.StateMachine.add('ClassifyObjects', ClassifyObjects(),
@@ -49,6 +49,10 @@ class Task4(smach.StateMachine):
                                    transitions={'success': 'FocusObjects',
                                                 'fail': 'FocusObjects'},
                                    remapping={'focused_object': 'object_to_focus'})
+
+            smach.StateMachine.add('CleanUpPlan', CleanUpPlan(),
+                                   transitions={'success': 'ChooseObject',
+                                                'fail': 'fail'})
 
             smach.StateMachine.add('ChooseObject', ChooseObject(),
                                    transitions={'objectChosen': 'TidyUpObject',

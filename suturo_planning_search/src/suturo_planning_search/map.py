@@ -48,7 +48,7 @@ class Map:
         pass
 
     def __str__(self):
-        s = ""
+        s = "\n"
         for x in xrange(len(self.field)):
             for y in xrange(len(self.field[x])):
                 if self.field[x][y].is_free(): s += "F"
@@ -62,6 +62,14 @@ class Map:
                     elif self.field[x][y].is_magenta(): s += "M"
                     else: s += "U"
                 elif self.field[x][y].is_unknown(): s += " "
+            s += "\n\n" + self.get_height_map()
+        return s
+
+    def get_height_map(self):
+        s = ""
+        for x in xrange(len(self.field)):
+            for y in xrange(len(self.field[x])):
+                s += str(int(self.get_cell_by_index(x, y).average_z * 100)) + " "
             s += "\n"
         return s
 
@@ -120,6 +128,9 @@ class Map:
         #remove unknown surrounded by obstacles (or the and of the map)
         self.clean_up_map()
         self.publish_as_marker()
+
+        print "Scan complete:"
+        print self
         return not self.field == oldmap
 
     def is_point_in_arm2(self, arm_origin, radius, x, y):

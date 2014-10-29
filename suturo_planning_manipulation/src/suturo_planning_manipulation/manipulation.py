@@ -191,9 +191,8 @@ class Manipulation(object):
         :return: current joint state as list of floats
         '''
         return self.__arm_base_group.get_current_joint_values()
-
+ 
     def get_current_lwr_joint_state(self):
-        print self.__arm_group.get_joints()
         return self.__arm_group.get_current_joint_values()
 
     def open_gripper(self, position=gripper_max_pose):
@@ -202,38 +201,43 @@ class Manipulation(object):
         :param position: the desired finger position, max value if not specified.
         :return: success of the movement
         '''
+
         self.__gripper_group.set_joint_value_target([-position, position])
         path = self.__gripper_group.plan()
         if self.__manService.move(path):
-            self.__gripper_group.detach_object()
-            self.load_object(0, Vector3(0, 0, 0))
-            return True
+           self.__gripper_group.detach_object()
+           self.load_object(0, Vector3(0, 0, 0))
+           rospy.logdebug("Gripper opened")
+           return True
         else:
-            return False
-
+           rospy.logdebug("Gripper failed to open")
+           return False
+ 
     def close_gripper(self, object=None):
         '''
         Closes the gripper completely or far enough to hold the object, when one is given
         :param object: Object that will be grasped.
         :return: success of the movement
         '''
+
+        rospy.logdebug("Closing Gripper")
         if type(object) is CollisionObject:
-            self.__gripper_group.attach_object(object.id, "gp", ["gp", "finger1", "finger2"])
-            rospy.sleep(1.0)
-            # (egal, id) = get_grasped_part(object, self.tf.transform_to)
-            id = 0
-            # TODO: only works for cubes and cylinders and only "sometimes" for object compositions
-            if object.primitives[id].type == shape_msgs.msg.SolidPrimitive.BOX:
-                length = min(object.primitives[id].dimensions)
-                self.__gripper_group.set_joint_value_target([-(length / 2), length / 2])
-            elif object.primitives[id].type == shape_msgs.msg.SolidPrimitive.CYLINDER:
-                radius = object.primitives[id].dimensions[shape_msgs.msg.SolidPrimitive.CYLINDER_RADIUS]
-                self.__gripper_group.set_joint_value_target([-radius + 0.005, radius - 0.005])
+           self.__gripper_group.attach_object(object.id, "gp", ["gp", "finger1", "finger2"])
+           rospy.sleep(1.0)
+           # (egal, id) = get_grasped_part(object, self.tf.transform_to)
+           id = 0
+           #TODO: only works for cubes and cylinders and only "sometimes" for object compositions
+           if object.primitives[id].type == shape_msgs.msg.SolidPrimitive.BOX:
+               length = min(object.primitives[id].dimensions)
+               self.__gripper_group.set_joint_value_target([-(length/2), length/2])
+           elif object.primitives[id].type == shape_msgs.msg.SolidPrimitive.CYLINDER:
+               radius = object.primitives[id].dimensions[shape_msgs.msg.SolidPrimitive.CYLINDER_RADIUS]
+               self.__gripper_group.set_joint_value_target([-radius+0.005, radius-0.005])
         else:
-            self.__gripper_group.set_joint_value_target([0.0, 0.0])
+           self.__gripper_group.set_joint_value_target([0.0, 0.0])
         path = self.__gripper_group.plan()
         return self.__manService.move(path)
-
+ 
     def grasp(self, collision_object, object_density=1):
         '''
         Deprecated. For testing only
