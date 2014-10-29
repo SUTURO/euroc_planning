@@ -1,7 +1,4 @@
 import smach
-from suturo_planning_plans.statefocustargetzone import FocusTargetZone
-from suturo_planning_plans.statefocustargetzone import ExamineTargetZones
-from suturo_planning_plans.statefocustargetzone import LookForObjects
 from suturo_planning_plans.stateclassifyobject import ClassifyObjects
 from suturo_planning_plans.statesearchobject import SearchObject
 from suturo_planning_plans.statetidyupobject import TidyUpObject
