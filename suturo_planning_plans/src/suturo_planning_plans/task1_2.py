@@ -26,7 +26,7 @@ class Task1(smach.StateMachine):
                                                 'fail': 'fail'})
 
             smach.StateMachine.add('ScanObstacles', ScanObstacles(),
-                                   transitions={'mapScanned': 'CleanUpPlan',
+                                   transitions={'mapScanned': 'ScanObstacles',
                                                 'newImage': 'ClassifyObjects',
                                                 'noRegionLeft': 'CleanUpPlan'})
 

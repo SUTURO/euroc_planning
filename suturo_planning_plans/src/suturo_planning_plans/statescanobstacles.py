@@ -3,6 +3,7 @@ import smach
 import rospy
 from geometry_msgs.msg import PoseStamped
 import time
+from suturo_planning_manipulation import mathemagie
 from suturo_planning_manipulation.calc_grasp_position import make_scan_pose
 from suturo_planning_search.map import Map
 from suturo_planning_visualization.visualization import visualize_poses
@@ -20,7 +21,7 @@ class ScanObstacles(smach.State):
 
     def __init__(self):
         smach.State.__init__(self, outcomes=['mapScanned', 'noRegionLeft', 'newImage'],
-                             input_keys=[],
+                             input_keys=['enable_movement'],
                              output_keys=[])
 
     def execute(self, userdata):
@@ -41,10 +42,34 @@ class ScanObstacles(smach.State):
 
         region_centroid = Point(*(utils.map.index_to_coordinates(*current_region.get_avg()))+(-0.065,))
 
-        poses = make_scan_pose(region_centroid, 0.75, 0.9, n=16)
+        dist_to_region = mathemagie.euclidean_distance(Point(0,0,0), region_centroid)
+
+        # If the arm cannot move ignore distant regions
+        # TODO find the best max distance
+        if not userdata.enable_movement:
+            rospy.logdebug('Distance of the current region to the arm: %s' % str(dist_to_region))
+            if dist_to_region > 1.1:
+                rospy.logwarn('Current region is out of reach. Ignoring it.')
+                return 'mapScanned'
+
+        angle = (pi / 2) - (dist_to_region / 1)
+        distance = 0.7
+
+        rospy.logdebug('Focusing point: %s' % str(region_centroid))
+        rospy.logdebug('Angle: %s' % str(angle))
+        rospy.logdebug('Distance: %s' % str(distance))
+        poses = make_scan_pose(region_centroid, distance, angle, n=16)
         visualize_poses(poses)
+
+        if userdata.enable_movement:
+            move = utils.manipulation.move_arm_and_base_to
+        else:
+            move = utils.manipulation.move_to
+
         for pose in poses:
-            if utils.manipulation.move_arm_and_base_to(pose):
+            utils.manipulation.set_planning_time_arm(2)
+            if move(pose):
+                utils.manipulation.set_planning_time_arm(5)
 
                 rospy.logdebug('Wait for clock')
                 time.sleep(3)
@@ -54,4 +79,3 @@ class ScanObstacles(smach.State):
                 return 'newImage'
 
         return 'mapScanned'
-

@@ -5,6 +5,7 @@ import smach_ros
 import threading
 import subprocess
 import time
+from suturo_planning_plans import task1_2
 import task1
 import task4
 import task6
@@ -96,8 +97,8 @@ class EurocTask(smach.StateMachine):
         self.userdata.initialization_time = initialization_time
         self.userdata.logging = logging
         # Associate the task name with a state machine
-        plans = {'task1': task1.Task1,
-                 'task2': task1.Task1,
+        plans = {'task1': task1_2.Task1,
+                 'task2': task1_2.Task1,
                  'task3': task1.Task1,
                  'task4': task4.Task4,
                  'task5': task4.Task4,
