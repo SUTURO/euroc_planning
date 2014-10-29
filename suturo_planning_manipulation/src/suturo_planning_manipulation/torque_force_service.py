@@ -14,21 +14,23 @@ class TorqueForceService(object):
         servicename = '/euroc_interface_node/get_estimated_external_force'
         rospy.wait_for_service(servicename)
         self.__service = rospy.ServiceProxy(servicename, GetEstimatedExternalForce)
-        self.__value = geometry_msgs.msg.Wrench()
-        self.__pub = rospy.Publisher('suturo/torque_force_service', geometry_msgs.msg.Wrench)
 
     def get_values(self):
         resp = self.__service()
         if not resp.error_message:
             self.__value = resp.external_force
-            self.__pub.publish(self.__value)
             return self.__value
         else:
             print resp.error_message
 
     def is_free(self):
-        self.get_values()
-        force = abs(self.__value.torque.x) + abs(self.__value.torque.y) + abs(self.__value.torque.z)
-        if force > 3:
-            return False
-        return True
+        resp = self.__service()
+        if not resp.error_message:
+            force = abs(resp.external_force.torque.x) + abs(resp.external_force.torque.y) + abs(resp.external_force.torque.z)
+            force += abs(resp.external_force.force.x) + abs(resp.external_force.force.y) + abs(resp.external_force.force.z)
+            print resp
+            if force > 3:
+                return False
+            return True
+        else:
+            print resp.error_message

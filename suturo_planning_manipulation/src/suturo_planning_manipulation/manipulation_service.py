@@ -101,11 +101,7 @@ class ManipulationService(object):
         ros_start_time.from_seconds(0)
 
         # call the service and store the response
-        print "time before movement"
-        print rospy.Time.now().to_sec()
         resp = self.__move_service(joint_names, [configuration], ros_start_time, joint_limits, cartesian_limits)
-        print "time after movement"
-        print rospy.Time.now().to_sec()
         if resp.error_message:
             raise ManipulationServiceException(resp.error_message)
         if resp.stop_reason == "path finished":

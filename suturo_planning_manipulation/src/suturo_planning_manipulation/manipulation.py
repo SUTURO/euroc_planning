@@ -193,7 +193,9 @@ class Manipulation(object):
         return self.__arm_base_group.get_current_joint_values()
 
     def get_current_lwr_joint_state(self):
-        print self.__arm_group.get_joints()
+        '''
+        :return: current joint state of the lwr as list of floats
+        '''
         return self.__arm_group.get_current_joint_values()
 
     def open_gripper(self, position=gripper_max_pose):
