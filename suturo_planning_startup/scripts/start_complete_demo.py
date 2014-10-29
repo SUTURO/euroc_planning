@@ -63,8 +63,6 @@ def start_demo(wait, tasks, logging):
         for task in tasks.split(','):
             if task in task_names:
                 tasks_to_execute.append(task)
-    if len(tasks_to_execute) == 0:
-        tasks_to_execute = task_names
     print('Going to execute the following tasks: ' + str(tasks_to_execute))
     if logging in [2]:
         dont_print = False
