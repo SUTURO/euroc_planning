@@ -8,6 +8,8 @@ __author__ = 'moritz bleibuntreu'
 
 
 def exterminate(killme, signal):
+    print('Executing exterminate')
+    print('killme: ' + str(killme))
     if killme == '':
         return
     pids = Set()
@@ -15,6 +17,7 @@ def exterminate(killme, signal):
     getpids(pids, killme)
     for pid in pids:
         try:
+            print('Killing process ' + str(pid))
             kill(int(pid), signal)
         except OSError, e:
             print "ASDException: fgsfds " + e.strerror

@@ -26,20 +26,25 @@ if not os.path.exists(log_dir):
 focus_poses = [[0.7, pi / 5.0], [0.6, pi / 4.0], [0.6, pi / 3.0], [0.7, pi / 4.0], [0.5, pi / 4.0], [0.4, pi / 4.0]]
 
 
-def start_node(command, initialization_time, log_name, log_to_console_only):
+def start_node(command, initialization_time, log_name, logging, dont_print=False,print_prefix_to_stdout=True):
     print('Starting node.')
     print('command: ' + command)
-    print('log_to_console_only: ' + str(log_to_console_only))
-    if log_to_console_only:
+    print('logging mode: ' + str(logging))
+    if logging == 1:
+        print('Logging to console.')
         stdout = sys.stdout
         stderr = sys.stderr
     else:
+        print('Logging to files.')
         stdout = subprocess.PIPE
         stderr = subprocess.STDOUT
     process = subprocess.Popen(command, stdout=stdout, stderr=stderr, shell=True, preexec_fn=os.setsid)
-    if not log_to_console_only:
-        logger_process = subprocess.Popen('rosrun suturo_planning_startup logger.py "' + log_dir
-                                          + '/' + initialization_time + ' ' + log_name + '.log"',
+    if logging != 1:
+        print('Creating logger process.')
+        logger_process = subprocess.Popen('rosrun suturo_planning_startup logger.py "' + log_dir + '/' +
+                                          initialization_time + ' ' + log_name + '.log"' + ' "' + log_name + '"' +
+                                          ' ' + str(logging) + ' ' + str(dont_print) + ' ' +
+                                          str(print_prefix_to_stdout),
                                           stdin=process.stdout, shell=True, preexec_fn=os.setsid)
     else:
         logger_process = 0

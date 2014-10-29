@@ -1,4 +1,7 @@
 import smach
+from suturo_planning_plans.statefocustargetzone import FocusTargetZone
+from suturo_planning_plans.statefocustargetzone import ExamineTargetZones
+from suturo_planning_plans.statefocustargetzone import LookForObjects
 from suturo_planning_plans.stateclassifyobject import ClassifyObjects
 from suturo_planning_plans.statesearchobject import SearchObject
 from suturo_planning_plans.statetidyupobject import TidyUpObject
@@ -67,3 +70,4 @@ class Task1(smach.StateMachine):
         self.userdata.enable_movement = enable_movement
         self.userdata.task = task
         self.userdata.cell_coords = []
+        self.userdata.target_zone_to_focus = None

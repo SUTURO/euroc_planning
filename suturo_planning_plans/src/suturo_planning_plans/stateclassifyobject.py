@@ -50,8 +50,9 @@ class ClassifyObjects(smach.State):
 
             if matched_obj.c_type == EurocObject.OBJECT:
                 # check if the object was already placed
+                rospy.loginfo('Matched object ' + str(matched_obj.object.id) + '.')
                 if matched_obj.object.id in found_object_names:
-                    rospy.logdebug('Object %s was already seen.' % matched_obj.object.id)
+                    rospy.loginfo('Object %s was already seen.' % matched_obj.object.id)
                 else:
                     utils.euroc_object_to_odom_combined(matched_obj)
                     matched_objects.append(matched_obj)
