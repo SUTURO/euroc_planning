@@ -48,7 +48,8 @@ def start_demo(wait, tasks, log_to_console_only):
         for task in tasks.split(','):
             if task in task_names:
                 tasks_to_execute.append(task)
-
+    if len(tasks_to_execute) == 0:
+        tasks_to_execute = task_names
     print('Going to execute the following tasks: ' + str(tasks_to_execute))
     for task in tasks_to_execute:
         init_time = __initialization_time + ' ' + task
