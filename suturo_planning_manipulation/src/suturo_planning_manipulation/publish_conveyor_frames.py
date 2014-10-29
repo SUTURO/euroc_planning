@@ -1,5 +1,5 @@
-__author__ = 'thocar'
 #!/usr/bin/env python
+__author__ = 'thocar'
 
 import rospy
 from suturo_msgs.msg import Task
