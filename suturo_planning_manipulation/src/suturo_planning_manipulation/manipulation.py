@@ -523,4 +523,26 @@ class Manipulation(object):
         rospy.logdebug('ScanConveyorPose: Move arm to scan_conveyor_pose')
         self.move_to(scan_conveyor_pose)
 
+        # scp = geometry_msgs.msg.Pose()
+        # scp.position = scan_conveyor_pose.pose.position
+        # scp.orientation = scan_conveyor_pose.pose.orientation
+        #
+        # rospy.logdebug("ScanConveyorPose: scp")
+        # rospy.logdebug(scp)
+        #
+        # self.direct_move(self.plan_to(scp))
+
         return True
+
+    def plan_to(self, pose):
+        rospy.logdebug('PlanTo: Start planning ik')
+        service = rospy.ServiceProxy("/euroc_interface_node/search_ik_solution", SearchIkSolution)
+        config = Configuration()
+        list = self.get_current_lwr_joint_state()
+        for i in range(len(list)):
+                    config.q.append(list[i])
+        resp = service(config, pose)
+        if resp.error_message:
+            raise Exception(resp.error_message)
+        rospy.logdebug('PlanTo: Return ik')
+        return resp.solution

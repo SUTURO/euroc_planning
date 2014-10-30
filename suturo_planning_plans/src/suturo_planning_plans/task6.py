@@ -12,6 +12,7 @@ class Task6(smach.StateMachine):
                                     output_keys=[])
 
         # TODO: Fehlerbehandlung
+        # TODO: Check auf richtiges Placement einbauen
         with self:
             smach.StateMachine.add('CamToDropzone', CamToDropzone(),
                                    transitions={'scanPoseReached': 'FastGrasp',
