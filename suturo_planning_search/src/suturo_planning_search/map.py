@@ -69,11 +69,14 @@ class Map:
         s = ""
         for x in xrange(len(self.field)):
             for y in xrange(len(self.field[x])):
-                i = int(self.get_cell_by_index(x, y).highest_z * 100)
-                if i < 10:
-                    s += "0" + str(i) + " "
+                if not self.get_cell_by_index(x, y).is_free():
+                    i = int(self.get_cell_by_index(x, y).highest_z * 100)
+                    if i < 10:
+                        s += "0" + str(i) + " "
+                    else:
+                        s += str(i) + " "
                 else:
-                    s += str(i) + " "
+                    s += "00 "
             s += "\n"
         print s
 
@@ -205,18 +208,37 @@ class Map:
         self.publish_as_marker()
 
     def all_unknowns_to_obstacle(self):
+        rospy.logdebug("removing all unknowns")
+        while True:
+            unknowns = self.get_all_unknowns()
+            old_l = len(unknowns)
+            i = 0
+            while len(unknowns) > i:
+                (x, y) = unknowns[i]
+                obs = self.get_surrounding_obstacles(x, y)
+                #filter unknown obstacles
+                obs = [o for o in obs if o[0].get_color_id() != Cell.UNDEF_ID]
+                if len(obs) > 0:
+                    o = obs[0][0]
+                    cell = self.get_cell_by_index(x, y)
+                    cell.set_obstacle()
+                    cell.highest_z = o.highest_z
+                    cell.set_color(o.get_color_id())
+                    unknowns.remove(unknowns[i])
+                i += 1
+
+            if old_l == len(unknowns):
+                break
+
         for x in range(self.num_of_cells):
             for y in range(self.num_of_cells):
                 cell = self.get_cell_by_index(x, y)
                 if cell.is_unknown():
                     cell.set_obstacle()
-                    cell.average_z == self.get_average_z_of_surrounded_obstacles(x, y)
-                    if cell.average_z <= 0.01:
-                        cell.average_z = 0.5
-                    obs = self.get_surrounding_obstacles(x, y)
-                    if len(obs) > 0:
-                        c = obs[0][0]
-                        cell.set_color(c.get_color_id())
+                    # cell.highest_z = self.get_average_z_of_surrounded_obstacles(x, y)
+                    # if cell.highest_z <= 0.02:
+                    cell.highest_z = 0.05
+                    cell.set_color(Cell.UNDEF_ID)
 
         self.publish_as_marker()
 
@@ -314,6 +336,14 @@ class Map:
 
     def get_surrounding_cells8(self, x, y):
         return self.get_surrounding_cells8_by_index(*self.coordinates_to_index(x,y))
+
+    def get_all_unknowns(self):
+        unknowns = []
+        for x in range(len(self.field)):
+            for y in range(len(self.field[x])):
+                if self.get_cell_by_index(x,y).is_unknown():
+                    unknowns.append((x, y))
+        return unknowns
 
     def get_average_z_of_surrounded_obstacles(self, x_index, y_index):
 

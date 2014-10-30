@@ -5,6 +5,7 @@ from geometry_msgs.msg import PoseStamped
 import time
 from suturo_planning_manipulation import mathemagie
 from suturo_planning_manipulation.calc_grasp_position import make_scan_pose
+from suturo_planning_manipulation.mathemagie import subtract_point, get_angle
 from suturo_planning_search.map import Map
 from suturo_planning_visualization.visualization import visualize_poses
 
@@ -19,24 +20,30 @@ class ScanObstacles(smach.State):
     obstacle_cluster = []
     next_cluster = 0
 
+
     def __init__(self):
         smach.State.__init__(self, outcomes=['mapScanned', 'noRegionLeft', 'newImage'],
-                             input_keys=['enable_movement'],
-                             output_keys=[])
+                             input_keys=['enable_movement', 'sec_try'],
+                             output_keys=['sec_try_done'])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state ScanObstacles')
-        if len(self.obstacle_cluster) == 0:
-            self.obstacle_cluster = utils.map.get_obstacle_regions()
-            rospy.logdebug(str(len(self.obstacle_cluster)) + " regions found.")
-            self.obstacle_cluster.sort(key=lambda x: x.get_number_of_cells())
+        userdata.sec_try_done = False
+        if userdata.sec_try:
+            current_region = self.obstacle_cluster[self.next_cluster-1]
+            userdata.sec_try_done = True
+        else:
+            if len(self.obstacle_cluster) == 0:
+                self.obstacle_cluster = utils.map.get_obstacle_regions()
+                rospy.logdebug(str(len(self.obstacle_cluster)) + " regions found.")
+                self.obstacle_cluster.sort(key=lambda x: x.get_number_of_cells())
 
-        if self.next_cluster >= len(self.obstacle_cluster):
-            rospy.loginfo("searched all cluster")
-            return 'noRegionLeft'
+            if self.next_cluster >= len(self.obstacle_cluster):
+                rospy.loginfo("searched all cluster")
+                return 'noRegionLeft'
 
-        current_region = self.obstacle_cluster[self.next_cluster]
-        self.next_cluster += 1
+            current_region = self.obstacle_cluster[self.next_cluster]
+            self.next_cluster += 1
 
         rospy.logdebug("current region: " + str(self.next_cluster) + "\n" + str(current_region))
 
@@ -52,13 +59,26 @@ class ScanObstacles(smach.State):
                 rospy.logwarn('Current region is out of reach. Ignoring it.')
                 return 'mapScanned'
 
-        angle = (pi / 2) - (dist_to_region / 1)
-        distance = 0.7
+        # angle = (pi / 2) - (dist_to_region / 1)
+        angle = 1
+        distance = 0.6 + current_region.get_number_of_cells()*0.01
 
         rospy.logdebug('Focusing point: %s' % str(region_centroid))
         rospy.logdebug('Angle: %s' % str(angle))
         rospy.logdebug('Distance: %s' % str(distance))
         poses = make_scan_pose(region_centroid, distance, angle, n=16)
+
+        if not userdata.enable_movement:
+            c_to_base = subtract_point(Point(0,0,0), region_centroid)
+            poses = [pose for pose in poses if get_angle(subtract_point(Point(pose.pose.position.x, pose.pose.position.y, 0), region_centroid), c_to_base) > pi/5]
+
+        if userdata.sec_try:
+            current_pose = utils.manipulation.get_eef_position().pose.position
+            current_pose.z = 0
+            region_to_eef = subtract_point(region_centroid, current_pose)
+
+            poses.sort(key=lambda pose: abs(get_angle(region_to_eef, subtract_point(Point(pose.pose.position.x, pose.pose.position.y, 0), region_centroid)) - pi/2))
+
         visualize_poses(poses)
 
         if userdata.enable_movement:

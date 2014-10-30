@@ -9,11 +9,12 @@ from suturo_perception_msgs.msg import EurocObject
 class ClassifyObjects(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['noObject', 'objectsClassified'],
-                             input_keys=['yaml', 'placed_objects', 'objects_found'],
-                             output_keys=['classified_objects'])
+                             input_keys=['yaml', 'placed_objects', 'objects_found', 'sec_try_done'],
+                             output_keys=['classified_objects', 'sec_try'])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state ClassifyObject')
+        userdata.sec_try = False
 
         rospy.loginfo('Using simple perception.')
         get_gripper = perception.get_gripper_perception()
@@ -23,7 +24,11 @@ class ClassifyObjects(smach.State):
         perceived_objects = get_valid_objects(get_gripper)
         rospy.logdebug('Found ' + str(len(get_gripper)) + ' objects, ' + str(len(perceived_objects)) + ' are valid.')
         if not perceived_objects:
+            if not userdata.sec_try_done:
+                userdata.sec_try = True
             return 'noObject'
+            # else:
+            #     return 'secTry'
 
         collision_objects = []
         matched_objects = []
@@ -64,4 +69,8 @@ class ClassifyObjects(smach.State):
         if matched_objects:
             return 'objectsClassified'
         else:
+            if not userdata.sec_try_done:
+                userdata.sec_try = True
             return 'noObject'
+            # else:
+            #     return 'secTry'

@@ -7,12 +7,13 @@ from suturo_planning_perception import perception
 class PoseEstimateObject(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['success', 'fail'],
-                             input_keys=['focused_object', 'yaml'],
-                             output_keys=['fitted_object'])
+                             input_keys=['focused_object', 'yaml', 'sec_try_done'],
+                             output_keys=['fitted_object', 'sec_try'])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state PoseEstimateObject')
 
+        userdata.sec_try = False
         userdata.fitted_object = None
 
         # Get the ID of the classified object from the YAML file
@@ -25,10 +26,14 @@ class PoseEstimateObject(smach.State):
 
         if pose_estimated_objects is None:
             rospy.logwarn('Couldn\'t get gripper perception.')
+            if not userdata.sec_try_done:
+                userdata.sec_try = True
             return 'fail'
 
         if not pose_estimated_objects:
             rospy.logdebug('No object found for pose estimation.')
+            if not userdata.sec_try_done:
+                userdata.sec_try = True
             return 'fail'
 
         # Convert the poses to odom_combined
@@ -50,6 +55,8 @@ class PoseEstimateObject(smach.State):
         # TODO Call the perception again
         if corresponding_object_idx is None:
             rospy.logdebug('Couldn\'t find the desired object on the next lookup again')
+            if not userdata.sec_try_done:
+                userdata.sec_try = True
             return 'fail'
 
         pose_estimated = pose_estimated_objects[corresponding_object_idx]
@@ -57,6 +64,8 @@ class PoseEstimateObject(smach.State):
 
         if pose_estimated is None or not pose_estimated.mpe_success:
             rospy.logwarn('Poseestimation failed.')
+            if not userdata.sec_try_done:
+                userdata.sec_try = True
             return 'fail'
 
         userdata.fitted_object = pose_estimated
