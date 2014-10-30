@@ -1,9 +1,6 @@
 import copy
 from math import pi
 import numpy
-import euroc_c2_msgs
-from euroc_c2_msgs.srv import SearchIkSolution
-from euroc_c2_msgs.msg import Configuration
 from geometry_msgs.msg import Quaternion
 import smach
 import rospy
@@ -11,8 +8,8 @@ from suturo_planning_manipulation.mathemagie import rotate_quaternion
 from suturo_planning_manipulation.torque_force_service import TorqueForceService
 import utils
 from rospy.rostime import Duration
-
 from suturo_perception_msgs.srv import GetGripper, geometry_msgs
+from euroc_c2_msgs.srv import RequestNextObject
 
 
 class FastGrasp(smach.State):
@@ -56,8 +53,12 @@ class FastGrasp(smach.State):
         # statefastgrasp.py", line 46, in percieve_object
         # dir = numpy.array([(pose2.primitive_poses[0].position.x - pose1.primitive_poses[0].position.x), (
         # IndexError: list index out of range
-        dir = numpy.array([(pose2.primitive_poses[0].position.x - pose1.primitive_poses[0].position.x), (
-            pose2.primitive_poses[0].position.y - pose1.primitive_poses[0].position.y)])
+        if (pose2.primitive_poses.__len__() > 0) & (pose1.primitive_poses.__len__() > 0):
+        #if pose2 is not None & pose1 is not None:
+            dir = numpy.array([(pose2.primitive_poses[0].position.x - pose1.primitive_poses[0].position.x),
+                               (pose2.primitive_poses[0].position.y - pose1.primitive_poses[0].position.y)])
+        else:
+            rospy.logerr("FastGrasp: pose2 out of range!!!")
         # dir_dist = sqrt(pow(dir[0], 2) + pow(dir[1], 2))
         # get the duration between the two looks
         time_12 = time2 - time1
@@ -78,13 +79,17 @@ class FastGrasp(smach.State):
     def execute(self, userdata):
         rospy.logdebug('FastGrasp: Executing state FastGrasp')
         # TODO: Nach ?? Sekunden time expired werfen
-
         utils.manipulation.open_gripper()
 
         # make sure that calculation succeeded
         pose_comp = self.percieve_object(10)
+        i = 0
         while pose_comp == -1:
+            if i == 2:
+                # TODO: Zeit anpassen, ab wann gecalled wird
+                rospy.ServiceProxy("/euroc_interface_node/request_next_object", RequestNextObject).call()
             pose_comp = self.percieve_object(10)
+            i += 1
         # TODO: Was passiert wenn das Objekt nur einmal gesehen wurde
         # extract the point from the object
         t_point = geometry_msgs.msg.Pose()
@@ -95,7 +100,7 @@ class FastGrasp(smach.State):
         quat.y = pose_comp.primitive_poses[0].orientation.y
         quat.z = pose_comp.primitive_poses[0].orientation.z
         quat.w = pose_comp.primitive_poses[0].orientation.w
-        t_point.orientation = rotate_quaternion(quat, -pi/2, 0, 0)
+        t_point.orientation = rotate_quaternion(quat, -pi / 2, 0, 0)
         # t_point.orientation = quat
         # TODO: Was passiert wen kein Plan gefunden werden kann?
         rospy.logdebug('FastGrasp: Begin movement, Plan 1')

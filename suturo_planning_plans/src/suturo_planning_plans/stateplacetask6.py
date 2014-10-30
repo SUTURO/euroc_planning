@@ -11,6 +11,7 @@ from math import pi
 from suturo_planning_manipulation.mathemagie import rotate_quaternion
 import random
 
+
 class PlaceTask6(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['success', 'fail'],
@@ -32,8 +33,10 @@ class PlaceTask6(smach.State):
             rospy.sleep(2.)
 
         target_zone_pose = geometry_msgs.msg.PoseStamped()
-        target_zone_pose.pose.position.x = random.uniform(-0.25, 0.25)
-        target_zone_pose.pose.position.y = random.uniform(-0.25, 0.25)
+        target_zone_pose.pose.position.x = random.uniform(-userdata.yaml.target_zones[0].max_distance / 2,
+                                                          userdata.yaml.target_zones[0].max_distance / 2)
+        target_zone_pose.pose.position.y = random.uniform(-userdata.yaml.target_zones[0].max_distance / 2,
+                                                          userdata.yaml.target_zones[0].max_distance / 2)
         target_zone_pose.pose.position.z = 0
         target_zone_pose.pose.orientation = geometry_msgs.msg.Quaternion(0.0, 0.0, 0.0, 1.0)
         target_zone_pose.header.frame_id = "/target_zone"
@@ -46,7 +49,8 @@ class PlaceTask6(smach.State):
         place_pose.orientation = rotate_quaternion(target_zone_odom.pose.orientation, -pi, 0, 0)
         # place_pose.orientation = target_zone_odom.pose.orientation
 
-        rospy.logdebug('PlaceTask6: Move Arm to Place Pose' + str(place_pose))
+        rospy.logdebug('PlaceTask6: Move Arm to Place Pose')
+        rospy.logdebug(place_pose)
         utils.manipulation.direct_move(utils.manipulation.plan_to(place_pose))
         rospy.logdebug('PlaceTask6: OpenGripper')
         utils.manipulation.open_gripper()
