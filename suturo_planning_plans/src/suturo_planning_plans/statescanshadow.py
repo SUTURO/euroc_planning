@@ -30,6 +30,8 @@ class ScanShadow(smach.State):
 
         # Creating planning scene from map
         rospy.logdebug('Creating planning scene from map')
+        utils.map.all_unknowns_to_obstacle()
+        rospy.logdebug(str(utils.map))
         co = utils.map.to_collision_object()
         utils.manipulation.get_planning_scene().add_object(co)
 

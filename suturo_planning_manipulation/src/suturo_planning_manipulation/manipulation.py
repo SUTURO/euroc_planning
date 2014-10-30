@@ -71,6 +71,12 @@ class Manipulation(object):
             moveit_commander.roscpp_shutdown()
             moveit_commander.os._exit(0)
 
+    def print_manipulation(self):
+        rospy.logdebug("current joint state")
+        rospy.logdebug(str(self.get_current_joint_state()))
+        rospy.logdebug("current planning scene")
+        rospy.logdebug(str(self.get_planning_scene().get_planning_scene()))
+
     def move_base(self, goal_pose):
         '''
         Moves the arm's base to the goal position. (Don't use this for Task 1 and 2)
