@@ -502,7 +502,7 @@ class Manipulation(object):
         scan_conveyor_pose.pose.orientation = geometry_msgs.msg.Quaternion(0.0, 0.0, 0.0, 1.0)
 
         scan_conveyor_pose.pose.position.x = 0
-        scan_conveyor_pose.pose.position.y = 0
+        scan_conveyor_pose.pose.position.y = -0.2
         scan_conveyor_pose.pose.position.z = 0
 
         rospy.logdebug('ScanConveyorPose: Transform mdl_middle to odom')

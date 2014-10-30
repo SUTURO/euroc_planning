@@ -1,7 +1,7 @@
 import smach
 from suturo_planning_plans.statecamtodropzone import CamToDropzone
 from suturo_planning_plans.statefastgrasp import FastGrasp
-from suturo_planning_plans.stateplaceobject import PlaceObject
+from suturo_planning_plans.stateplacetask6 import PlaceTask6
 from suturo_planning_plans.statecheckplacement import CheckPlacement
 
 
@@ -22,10 +22,8 @@ class Task6(smach.StateMachine):
                                                 'timeExpired': 'success',
                                                 'fail': 'fail'})
 
-            smach.StateMachine.add('PlaceObject', PlaceObject(),
-                                   transitions={'success': 'CheckObject',
-                                                'noObjectAttached': 'CamToDropzone',
-                                                'noPlacePosition': 'fail',
+            smach.StateMachine.add('PlaceObject', PlaceTask6(),
+                                   transitions={'success': 'CamToDropzone',
                                                 'fail': 'fail'})
 
             smach.StateMachine.add('CheckObject', CheckPlacement(),
