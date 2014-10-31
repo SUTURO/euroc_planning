@@ -499,7 +499,7 @@ class Manipulation(object):
         dp = geometry_msgs.msg.PoseStamped()
         dp.pose.position.x = 0
         dp.pose.position.y = 0
-        dp.pose.position.z = 0
+        dp.pose.position.z = -0.4
         dp.header.frame_id = "/drop_point"
         dp.pose.orientation = geometry_msgs.msg.Quaternion(0.0, 0.0, 0.0, 1.0)
 
@@ -529,8 +529,8 @@ class Manipulation(object):
 
         rospy.logdebug(scan_conveyor_pose)
 
-        rospy.logdebug('ScanConveyorPose: Move arm to scan_conveyor_pose')
-        self.move_to(scan_conveyor_pose)
+        # rospy.logdebug('ScanConveyorPose: Move arm to scan_conveyor_pose')
+        # self.move_to(scan_conveyor_pose)
 
         # scp = geometry_msgs.msg.Pose()
         # scp.position = scan_conveyor_pose.pose.position
@@ -541,7 +541,7 @@ class Manipulation(object):
         #
         # self.direct_move(self.plan_to(scp))
 
-        return True
+        return scan_conveyor_pose
 
     def plan_to(self, pose):
         rospy.logdebug('PlanTo: Start planning ik')
@@ -555,3 +555,11 @@ class Manipulation(object):
             raise Exception(resp.error_message)
         rospy.logdebug('PlanTo: Return ik')
         return resp.solution
+
+    def is_gripper_open(self):
+        states = self.__gripper_group.get_current_joint_values()
+        print "Finger: " + str(states)
+        if states[0] < -0.03:
+            return True
+        # print states
+        return False

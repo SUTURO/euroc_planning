@@ -1,3 +1,4 @@
+import os
 import sys
 import rospy
 import smach
@@ -13,6 +14,7 @@ import start_nodes
 import signal
 import atexit
 from suturo_planning_manipulation.total_annihilation import exterminate
+from suturo_planning_task_selector import task_selector
 from suturo_msgs.msg import Task
 from suturo_planning_plans import utils
 
@@ -53,7 +55,7 @@ def toplevel_plan(init_sim, task_list, savelog, initialization_time, logging):
         print('toplevel: Logging planning to console.')
     else:
         print('toplevel: Logging planning to files.')
-        __logger_process = utils.start_logger(subprocess.PIPE, initialization_time, 'Planning', logging)
+        __logger_process = utils.start_logger(os.getpid(), subprocess.PIPE, initialization_time, 'Planning', logging)
         sys.stderr = sys.stdout
         sys.stdout = __logger_process.stdin
 
@@ -159,8 +161,10 @@ class InitSimulation(smach.StateMachine):
         smach.StateMachine.__init__(self, outcomes=['success', 'fail'],
                                     input_keys=['initialization_time', 'logging'],
                                     output_keys=['objects_found', 'yaml', 'perception_process', 'manipulation_process',
-                                                 'classifier_process', 'perception_logger_process',
-                                                 'manipulation_logger_process', 'classifier_logger_process'])
+                                                 'manipulation_conveyor_frames_process', 'classifier_process',
+                                                 'perception_logger_process', 'manipulation_logger_process',
+                                                 'manipulation_conveyor_frames_logger_process',
+                                                 'classifier_logger_process'])
         with self:
             smach.StateMachine.add('StartSimulation', start_nodes.StartSimulation(task_name),
                                    transitions={'success': 'StartManipulation',

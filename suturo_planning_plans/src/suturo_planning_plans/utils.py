@@ -20,7 +20,7 @@ manipulation = None
 map = None
 log_dir = '/tmp/euroc_c2'
 
-waiting_time_before_scan = 4
+waiting_time_before_scan = 10
 
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
@@ -44,7 +44,7 @@ def wait_for_process(process, t=None):
         return True
 
 
-def start_node(command, initialization_time, log_name, logging, dont_print=False,print_prefix_to_stdout=True):
+def start_node(command, initialization_time, logging, log_name='', dont_print=False,print_prefix_to_stdout=True):
     print('Starting node.')
     print('command: ' + command)
     print('logging mode: ' + str(logging))
@@ -58,18 +58,19 @@ def start_node(command, initialization_time, log_name, logging, dont_print=False
         stderr = subprocess.STDOUT
     process = subprocess.Popen(command, stdout=stdout, stderr=stderr, shell=True, preexec_fn=os.setsid)
     if logging != 1:
-        logger_process = start_logger(process.stdout, initialization_time, log_name, logging, dont_print=dont_print,
-                                      print_prefix_to_stdout=print_prefix_to_stdout)
+        logger_process = start_logger(process.pid, process.stdout, initialization_time, log_name, logging,
+                                      dont_print=dont_print, print_prefix_to_stdout=print_prefix_to_stdout)
     else:
         logger_process = None
     return process, logger_process
 
 
-def start_logger(stdin, initialization_time, log_name, logging, dont_print=False, print_prefix_to_stdout=True):
+def start_logger(prt_pid, stdin, initialization_time, log_name, logging, dont_print=False, print_prefix_to_stdout=True):
     print('Creating logger process: ' + log_name)
     return subprocess.Popen('rosrun suturo_planning_startup logger.py "' + log_dir + '/' + initialization_time + '-' +
                             log_name + '.log"' + ' "' + log_name + '"' + ' ' + str(logging) + ' ' + str(dont_print) +
-                            ' ' + str(print_prefix_to_stdout), stdin=stdin, shell=True, preexec_fn=os.setsid)
+                            ' ' + str(print_prefix_to_stdout) + ' ' + str(prt_pid),
+                            stdin=stdin, shell=True, preexec_fn=os.setsid)
 
 
 def classify_object(obj):

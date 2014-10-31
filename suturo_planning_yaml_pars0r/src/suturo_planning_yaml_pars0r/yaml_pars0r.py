@@ -2,6 +2,7 @@
 from jinja2.nodes import Concat
 import yaml
 from geometry_msgs.msg._Quaternion import Quaternion
+import time
 import rospy
 import re
 import sys
@@ -52,6 +53,7 @@ class YamlPars0r:
         return val
 
     def parse_and_publish(self, data):
+        rospy.loginfo('parse_and_publish')
         try:
             msg = self.parse_yaml(data)
             rospy.logdebug('parse_and_publish: Publishing message: ' + str(msg))
@@ -120,6 +122,7 @@ class YamlPars0r:
 
     @staticmethod
     def parse_conveyor_belt(belt):
+        rospy.loginfo('parse_conveyor_belt')
         belt_msg = ConveyorBelt()
         if belt is None:
             return belt_msg
@@ -179,6 +182,7 @@ class YamlPars0r:
 
     @staticmethod
     def parse_task_type(task):
+        rospy.loginfo('parse_task_type')
         if re.match('task 1', task) is not None:
             return Task.TASK_1
         elif re.match('task 2', task) is not None:
@@ -196,6 +200,7 @@ class YamlPars0r:
 
     @staticmethod
     def parse_target_zones(zones):
+        rospy.loginfo('parse_target_zones')
         parsed_target_zones = []
         if zones is None:
             return parsed_target_zones
@@ -226,6 +231,7 @@ class YamlPars0r:
 
     @staticmethod
     def parse_sensors(sensors):
+        rospy.loginfo('parse_sensors')
         parsed_sensors = []
         if sensors is None:
             return parsed_sensors
@@ -278,6 +284,7 @@ class YamlPars0r:
 
     @staticmethod
     def parse_twist_stamped(twist_stamped):
+        rospy.loginfo('twist_stamped')
         rospy.logdebug('parse_twist_stamped: parsing ' + str(twist_stamped))
         f_from = YamlPars0r.get_dict_value(twist_stamped, 'from')
         f_pose = YamlPars0r.get_dict_value(twist_stamped, 'pose')
@@ -294,6 +301,7 @@ class YamlPars0r:
 
     @staticmethod
     def parse_twist(twist):
+        rospy.loginfo('parse_twist')
         rospy.logdebug('parse_twist: parsing ' + str(twist))
         f_linear = Vector3(float('inf'), float('inf'), float('inf'))
         f_angular = Vector3(float('inf'), float('inf'), float('inf'))
@@ -329,6 +337,7 @@ class YamlPars0r:
 
     @staticmethod
     def parse_pose(pose):
+        rospy.loginfo('parse_pose')
         f_pose = Pose()
         f_pose.position.x = pose[0]
         f_pose.position.y = pose[1]
@@ -338,6 +347,7 @@ class YamlPars0r:
 
     @staticmethod
     def parse_objects(objects):
+        rospy.loginfo('parse_objects')
         parsed_objects = []
         if objects is None:
             return parsed_objects
@@ -353,12 +363,6 @@ class YamlPars0r:
                 raise e
             f_material = YamlPars0r.get_dict_value(objects[obj], 'surface_material')
 
-            if f_material == 'aluminium':
-                f_material = Object.ALUMINIUM
-            elif f_material is None:
-                pass
-            else:
-                raise UnhandledValue('Unhandled surface_material: ' + str(f_material))
             rospy.logdebug('parse_objects: f_color: %s', f_color)
             rospy.logdebug('parse_objects: f_description: %s', f_description)
             rospy.logdebug('parse_objects: f_primitives: %s', f_primitives)
@@ -379,6 +383,7 @@ class YamlPars0r:
 
     @staticmethod
     def parse_primitives(primitives):
+        rospy.loginfo('parse_primitives')
         rospy.logdebug('parse_shapes: parsing primitives: %s', primitives)
         parsed_primitives = []
         primitive_poses = []
@@ -435,3 +440,6 @@ class YamlPars0r:
         self._subscriber.unregister()
         rospy.signal_shutdown("Shutting down YAML pars0r")
         sys.exit()
+
+    def __del__(self):
+        print('YAML destruct0r.')

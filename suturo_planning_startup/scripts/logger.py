@@ -8,21 +8,29 @@ import select
 import errno
 
 __loop = True
-__no_input_counter = 0
 
 
 def exit_handler(signum=None, frame=None):
     if signum is not None:
         global __loop
-        global __no_input_counter
+        global parent_dead
         print('[LOGGER] #################################################################')
-        print('[LOGGER] Exit handler for logger ' + f + ' on signal ' + str(signum) + '.')
-        if __no_input_counter < 1000:
-            print('[LOGGER] Emptying input buffer.')
-        while __no_input_counter < 1000:
-            check_for_input()
+        print('[LOGGER] Exit handler for logger ' + node + ' on signal ' + str(signum) + '.')
         print('[LOGGER] Setting __loop to False.')
         __loop = False
+        print('[LOGGER] Emptying input buffer.')
+        no_input_counter = 0
+        while no_input_counter < 13337:
+            r, l = check_for_input()
+            # print('[LOGGER] ' + node + ': parent_dead: ' + str(parent_dead))
+            # print('[LOGGER] ' + node + ': ret: ' + str(r))
+            # print('[LOGGER] ' + node + ': line: "' + str(l) + '"')
+            if parent_dead and r == return_values['NO_INPUT']:
+                break
+            elif parent_dead and r == return_values['EMPTY_INPUT']:
+                no_input_counter += 1
+            else:
+                no_input_counter = 0
         print('[LOGGER] Closing file.')
         try:
             h.write('THIS LOGGER TERMINATED CORRECTLY.')
@@ -46,25 +54,39 @@ if sys.argv[5] == 'True':
     stdout_prefix = '[' + node + '] '
 else:
     stdout_prefix = ''
+
+parent_pid = int(sys.argv[6])
 h = open(f, 'w')
 signal.signal(signal.SIGTERM, exit_handler)
 signal.signal(signal.SIGINT, exit_handler)
 atexit.register(exit_handler)
 
+parent_dead = False
+return_values = {'GOT_INPUT': 0, 'NO_INPUT': 1, 'EMPTY_INPUT': 2, 'EXCEPTION': 3}
+
+
+def is_alive(pid):
+    try:
+        os.kill(pid, 0)
+    except OSError:
+        return False
+    else:
+        return True
+
 
 def check_for_input():
-    global __no_input_counter
     global node
     global logging
+    global parent_pid
+    global parent_dead
     try:
         if select.select([sys.stdin], [], [], 0.0)[0]:
             try:
                 line = sys.stdin.readline().rstrip()
                 try:
                     if line == '':
-                        __no_input_counter += 1
+                        return return_values['EMPTY_INPUT'], line
                     else:
-                        __no_input_counter = 0
                         if logging in [0, 2]:
                             h.write(line + '\n')
                             h.flush()
@@ -75,6 +97,7 @@ def check_for_input():
                 if line != '' and not dont_print:
                     print(stdout_prefix + line)
                     sys.stdout.flush()
+                return return_values['GOT_INPUT'], line
             except IOError, e:
                 if e.errno != errno.EINTR:
                     raise
@@ -83,8 +106,7 @@ def check_for_input():
                     print('[LOGGER] Caught exception while reading stdin:')
                     print('[LOGGER] ' + str(e))
         else:
-            __no_input_counter += 1
-            time.sleep(0.05)
+            return return_values['NO_INPUT'], None
     except select.error, e:
         if e[0] != errno.EINTR:
             print('[LOGGER] Uncaught exception while doing select on stdin.')
@@ -92,8 +114,16 @@ def check_for_input():
         else:
             print('[LOGGER] Caught exception while doing select on stdin:')
             print('[LOGGER] ' + str(e))
+    finally:
+        if not parent_dead:
+            if is_alive(parent_pid):
+                parent_dead = True
+            else:
+                print('[LOGGER] ' + node + ': Parent process with pid ' + str(parent_pid) + ' died.')
 
 while __loop:
-    check_for_input()
+    ret, line = check_for_input()
+    if ret != return_values['GOT_INPUT']:
+        time.sleep(0.05)
 
-print('[LOGGER] Exiting.')
+print('[LOGGER] ' + node + ': Exiting.')
