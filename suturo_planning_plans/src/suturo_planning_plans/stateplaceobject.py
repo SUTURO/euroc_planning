@@ -35,7 +35,7 @@ class PlaceObject(smach.State):
         rospy.logdebug("at::: " + str(destination))
         place_poses = get_place_position(co, destination, utils.manipulation.transform_to, userdata.dist_to_obj, userdata.grasp)
         print place_poses
-        place_poses = utils.map.filter_invalid_poses3(destination.point.x, destination.point.y, place_poses)
+        # place_poses = utils.map.filter_invalid_poses3(destination.point.x, destination.point.y, place_poses)
 
         for place_pose in place_poses:
             rospy.logdebug("Try to place at: " + str(place_pose))
