@@ -10,6 +10,7 @@ from tf.listener import TransformListener
 from math import pi
 from suturo_planning_manipulation.mathemagie import rotate_quaternion
 import random
+import time
 
 
 class PlaceTask6(smach.State):
@@ -27,10 +28,14 @@ class PlaceTask6(smach.State):
             utils.manipulation = Manipulation()
             rospy.sleep(2)
 
-        # TODO: Irgend ne Abbruchbedingung machen (nach x Sekunden)
-        while not listener.frameExists("target_zone"):
+        # TODO: Exception schmeissen wenn abort_after vergangen ist
+        abort_after = 15
+        then = int(time.time())
+        now = int(time.time())
+        while not now - then < abort_after and not listener.frameExists("target_zone"):
             rospy.loginfo("wait for target_zone frame")
             rospy.sleep(2.)
+            now = int(time.time())
 
         place_pose = self.get_place_point(userdata)
 
