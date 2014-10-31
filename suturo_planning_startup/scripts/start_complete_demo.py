@@ -27,16 +27,17 @@ def abort_current_task():
     print('start_complete_demo: abort_current_task')
     global subproc
     global logger_process
-    try:
-        print('Killing subproc with pid ' + str(subproc.pid))
-        exterminate(subproc.pid, signal.SIGINT)
-        print('Waiting for subproc to terminate. Please be patient.')
-        subproc.wait()
-        if subproc.poll() is None:
-            print('Could not kill task process. Forcing!')
-            exterminate(subproc.pid, signal.SIGKILL)
-    except Exception, e:
-        print(e)
+    if subproc is not None:
+        try:
+            print('Killing subproc with pid ' + str(subproc.pid))
+            exterminate(subproc.pid, signal.SIGINT)
+            print('Waiting for subproc to terminate. Please be patient.')
+            subproc.wait()
+            if subproc.poll() is None:
+                print('Could not kill task process. Forcing!')
+                exterminate(subproc.pid, signal.SIGKILL)
+        except Exception, e:
+            print(e)
     if logger_process is not None:
         try:
             print('Killing logger with pid ' + str(logger_process.pid))
@@ -68,10 +69,6 @@ def exit_handler(signum=None, frame=None):
     __quit = True
     print('start_complete_demo: exiting exit_handler')
 
-atexit.register(exit_handler)
-signal.signal(signal.SIGTERM, exit_handler)
-signal.signal(signal.SIGINT, exit_handler)
-
 
 def start_demo(wait, tasks, logging):
     global __quit
@@ -79,22 +76,22 @@ def start_demo(wait, tasks, logging):
     global __time_started_task
     global subproc
     global logger_process
-    print('Getting available task names.')
     rospy.init_node('start_complete_demo')
-    rospy.wait_for_service('euroc_c2_task_selector/list_scenes')
-    service = rospy.ServiceProxy('euroc_c2_task_selector/list_scenes', ListScenes)
-    available_tasks = service()
-    task_names = []
+    atexit.register(exit_handler)
+    signal.signal(signal.SIGTERM, exit_handler)
+    signal.signal(signal.SIGINT, exit_handler)
+    print('Getting available task names.')
     tasks_to_execute = []
-    for t in available_tasks.scenes:
-        task_names.append(t.name)
-    task_names.sort()
+    task_names = get_available_task_names()
     print('Available task names: ' + str(task_names))
     #start_task.main(task_names[:2], True, True, True, True)
     if re.search('^\d*:\d*$', tasks):
         tasks_to_execute = eval('task_names[' + tasks + ']')
     elif re.search('^\d+$', tasks):
         tasks_to_execute = [task_names[int(tasks)]]
+    elif re.search('^(\d+,?)+$', tasks):
+        for num in tasks.split(','):
+            tasks_to_execute.append(task_names[int(num)])
     else:
         for task in tasks.split(','):
             if task in task_names:
@@ -132,6 +129,22 @@ def start_demo(wait, tasks, logging):
             print('Demo has been aborted. Exiting (2)')
             return
         print('Finished task ' + str(task))
+    rospy.signal_shutdown('Finished complete demo.')
+
+
+def get_available_tasks():
+    rospy.wait_for_service('euroc_c2_task_selector/list_scenes')
+    service = rospy.ServiceProxy('euroc_c2_task_selector/list_scenes', ListScenes)
+    return service().scenes
+
+
+def get_available_task_names():
+    available_tasks = get_available_tasks()
+    task_names = []
+    for t in available_tasks:
+        task_names.append(t.name)
+    task_names.sort()
+    return task_names
 
 
 def handle_clock(msg):
@@ -198,17 +211,20 @@ def handle_clock(msg):
 
 
 def main(argv):
-    usage = 'usage: start_complete_demo [--tasks=<tasks you want to execute>] [--logging=<logging mode>] [-w]\n\n' \
-            '\t--tasks\t\tA range like \'[:2]\' or a comma-separated list of task names.\n' \
+    usage = 'usage: start_complete_demo [-t] [-w] [--tasks=<tasks you want to execute>] [--logging=<logging mode>]\n\n' \
+            '\t-t\t\tPrints a list of all available tasks.\n' \
+            '\t-w\t\tThe user has to press ENTER after each task.\n' \
+            '\t--tasks\t\tA range like \':2\' (python slice and index notation)\n' \
+            '\t\t\tor a comma-separated list of task names\n' \
+            '\t\t\tor a comma-separated list of indices (as shown by -t).\n' \
             '\t--logging\t0 - Logs to files only (Default value).\n' \
             '\t\t\t1 - Logs to console only.\n' \
-            '\t\t\t2 - Logs to files and console.\n' \
-            '\t-w\t\tThe user has to press ENTER after each task.\n'
+            '\t\t\t2 - Logs to files and console.'
     wait = False
     tasks = ':'
     logging = 0
     try:
-        opts, args = getopt.getopt(argv, 'hwc', ['tasks=', 'logging='])
+        opts, args = getopt.getopt(argv, 'hwct', ['tasks=', 'logging='])
         #print ('opts: ' + str(opts))
         #print ('args: ' + str(args))
     except getopt.GetoptError:
@@ -217,6 +233,16 @@ def main(argv):
     for opt, arg in opts:
         if opt == '-h':
             print usage
+            sys.exit()
+        elif opt == '-t':
+            task_names = get_available_task_names()
+            print('Available tasks:\n')
+            print('  Index     Task name')
+            print(' ---------------------------')
+            i = 0
+            for t in task_names:
+                print('  %3d       %s' % (i, t))
+                i += 1
             sys.exit()
         elif opt in ['-w']:
             wait = True
