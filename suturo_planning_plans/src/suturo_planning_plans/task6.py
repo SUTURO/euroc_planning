@@ -36,4 +36,5 @@ class Task6(smach.StateMachine):
         self.userdata.placed_objects = []
         self.userdata.enable_movement = True
         self.userdata.task = task
+        self.userdata.scan_conveyor_pose = []
         self.placement_failed = False

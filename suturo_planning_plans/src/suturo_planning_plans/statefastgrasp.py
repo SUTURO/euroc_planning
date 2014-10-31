@@ -24,41 +24,36 @@ class FastGrasp(smach.State):
         service = rospy.ServiceProxy("/suturo/GetGripper", GetGripper)
         # get the first perception
         rospy.logdebug('FastGrasp: call Perception Service')
-        resp = service("firstConveyorCall,centroid,cuboid")
-        if len(resp.objects) == 0:
+        resp = service("firstConveyorCall,cuboid")
+        if len(resp.objects) == 0 or not resp.objects[0].c_cuboid_success:
+            rospy.logdebug('FastGrasp: objects empty or no cuboid 1')
             return -1
         object1 = resp.objects[0].object
+        # rospy.logdebug("FastGrasp: objects")
+        # rospy.logdebug(resp.objects[0])
         time1 = resp.stamp
         # wait some time until the second perception
         rospy.sleep(Duration.from_sec(0.5))
-        resp = service("centroid,cuboid")
-        if len(resp.objects) == 0:
+        resp = service("cuboid")
+        if len(resp.objects) == 0 or not resp.objects[0].c_cuboid_success:
+            rospy.logdebug('FastGrasp: objects empty or no cuboid 2')
             return -2
         object2 = resp.objects[0].object
         time2 = resp.stamp
+        # rospy.logdebug(resp.objects[0])
         # transform the points into odom_combined
         pose1 = utils.manipulation.transform_to(object1)
         pose2 = utils.manipulation.transform_to(object2)
+        # rospy.logdebug("FastGrasp: poses")
+        # rospy.logdebug(pose1)
+        # rospy.logdebug(pose2)
         # calculate the vector from the points of first and second perception
-        # TODO: @Benny: Hab nen paar mal hier nen Fehler bekommen:
-        # [ERROR] [WallTime: 1414688958.643406] [127.782000] InvalidUserCodeError: Could not execute state 'FastGrasp'
-        # of type '<suturo_planning_plans.statefastgrasp.FastGrasp object at 0xa0bcc2c>':
-        # Traceback (most recent call last):
-        # File "/opt/ros/hydro/lib/python2.7/dist-packages/smach/state_machine.py", line 241, in _update_once
-        # self._remappings[self._current_label]))
-        # File "/home/thocar/euroc_ws/src/euroc_planning/suturo_planning_plans/src/suturo_planning_plans/
-        # statefastgrasp.py", line 72, in execute
-        # pose_comp = self.percieve_object(10)
-        # File "/home/thocar/euroc_ws/src/euroc_planning/suturo_planning_plans/src/suturo_planning_plans/
-        # statefastgrasp.py", line 46, in percieve_object
-        # dir = numpy.array([(pose2.primitive_poses[0].position.x - pose1.primitive_poses[0].position.x), (
-        # IndexError: list index out of range
-        if (pose2.primitive_poses.__len__() > 0) & (pose1.primitive_poses.__len__() > 0):
-        #if pose2 is not None & pose1 is not None:
-            dir = numpy.array([(pose2.primitive_poses[0].position.x - pose1.primitive_poses[0].position.x),
+        # if (pose2.primitive_poses.__len__() > 0) & (pose1.primitive_poses.__len__() > 0):
+        # if pose2 is not None & pose1 is not None:
+        dir = numpy.array([(pose2.primitive_poses[0].position.x - pose1.primitive_poses[0].position.x),
                                (pose2.primitive_poses[0].position.y - pose1.primitive_poses[0].position.y)])
-        else:
-            rospy.logerr("FastGrasp: pose2 out of range!!!")
+        # else:
+        #     rospy.logerr("FastGrasp: pose1 or pose2 empty!!!")
         # dir_dist = sqrt(pow(dir[0], 2) + pow(dir[1], 2))
         # get the duration between the two looks
         time_12 = time2 - time1
@@ -76,10 +71,13 @@ class FastGrasp(smach.State):
         rospy.logdebug('FastGrasp: Return Object')
         return pose_comp
 
+    # TODO: Abfangen, falls kein Plan zum Hochfahren des Armes, dann erst zurueck und dann hoch
     def execute(self, userdata):
         rospy.logdebug('FastGrasp: Executing state FastGrasp')
         # TODO: Nach ?? Sekunden time expired werfen
-        utils.manipulation.open_gripper()
+        if utils.manipulation.is_gripper_open():
+            rospy.logdebug('FastGrasp: Open Gripper')
+            utils.manipulation.open_gripper()
 
         # make sure that calculation succeeded
         pose_comp = self.percieve_object(10)
@@ -87,6 +85,7 @@ class FastGrasp(smach.State):
         while pose_comp == -1:
             if i == 2:
                 # TODO: Zeit anpassen, ab wann gecalled wird
+                rospy.logdebug('FastGrasp: Request next object')
                 rospy.ServiceProxy("/euroc_interface_node/request_next_object", RequestNextObject).call()
             pose_comp = self.percieve_object(10)
             i += 1
@@ -117,6 +116,7 @@ class FastGrasp(smach.State):
         rospy.sleep(Duration.from_sec(0.5))
         tfs = TorqueForceService()
         if tfs.is_free():
+            rospy.logdebug("FastGrasp: Grasp Fail")
             return 'fail'
         rospy.logdebug("FastGrasp: objectGrasped, finished")
         return 'objectGrasped'

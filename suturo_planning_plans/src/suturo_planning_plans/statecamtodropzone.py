@@ -8,8 +8,8 @@ from tf.listener import TransformListener
 class CamToDropzone(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['scanPoseReached', 'fail'],
-                             input_keys=['yaml'],
-                             output_keys=[])
+                             input_keys=['yaml', 'scan_conveyor_pose'],
+                             output_keys=['scan_conveyor_pose'])
 
     def execute(self, userdata):
         rospy.logdebug('CamToDropzone: Executing state CamToDropzone')
@@ -20,6 +20,8 @@ class CamToDropzone(smach.State):
             utils.manipulation = Manipulation()
             rospy.sleep(2)
 
+        # utils.manipulation.is_gripper_open()
+
         # TODO: Irgend ne Abbruchbedingung machen (nach x Sekunden)
         while not listener.frameExists("drop_point"):
             rospy.loginfo("wait for drop_point frame")
@@ -28,9 +30,21 @@ class CamToDropzone(smach.State):
             rospy.loginfo("wait for mdl_middle frame")
             rospy.sleep(2.)
 
-        if utils.manipulation.scan_conveyor_pose():
-            rospy.logdebug('CamToDropzone: ScanPoseReached')
-            return 'scanPoseReached'
+        if len(userdata.scan_conveyor_pose) == 0:
+            rospy.logdebug('CamToDropzone: No scanPose, calculate now...')
+            p = utils.manipulation.scan_conveyor_pose()
+            userdata.scan_conveyor_pose.append(p)
         else:
-            rospy.loginfo('CamToDropzone: Cant reach ScanPose')
-            return 'fail'
+            rospy.logdebug('CamToDropzone: scanPose found!')
+            p = userdata.scan_conveyor_pose[0]
+
+        rospy.logdebug('CamToDropzone: Move arm to scan_conveyor_pose')
+        utils.manipulation.move_to(p)
+
+        return 'scanPoseReached'
+        # if utils.manipulation.scan_conveyor_pose():
+        #     rospy.logdebug('CamToDropzone: ScanPoseReached')
+        #     return 'scanPoseReached'
+        # else:
+        #     rospy.loginfo('CamToDropzone: Cant reach ScanPose')
+        #     return 'fail'
