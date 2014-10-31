@@ -286,13 +286,13 @@ class StopNodes(smach.State):
     def execute(self, userdata):
         rospy.loginfo('Stopping Nodes')
         if userdata.perception_process is not None:
-            exterminate(userdata.perception_process.pid, signal.SIGKILL)
+            exterminate(userdata.perception_process.pid, signal.SIGKILL, r=True)
         if userdata.manipulation_process is not None:
-            exterminate(userdata.manipulation_process.pid, signal.SIGKILL)
+            exterminate(userdata.manipulation_process.pid, signal.SIGKILL, r=True)
         if userdata.manipulation_conveyor_frames_process is not None:
-            exterminate(userdata.manipulation_conveyor_frames_process.pid, signal.SIGKILL)
+            exterminate(userdata.manipulation_conveyor_frames_process.pid, signal.SIGKILL, r=True)
         if userdata.classifier_process is not None:
-            exterminate(userdata.classifier_process.pid, signal.SIGKILL)
+            exterminate(userdata.classifier_process.pid, signal.SIGKILL, r=True)
         if userdata.perception_logger_process is not None:
             exterminate(userdata.perception_logger_process.pid, signal.SIGINT)
         if userdata.manipulation_logger_process is not None:
@@ -316,19 +316,19 @@ def exit_handler(signum=None, frame=None):
     global manipulation_process
     if manipulation_process is not None:
         print 'Killing manipulation'
-        exterminate(manipulation_process.pid, signal.SIGINT)
+        exterminate(manipulation_process.pid, signal.SIGKILL, , r=True)
     global manipulation_conveyor_frames_process
     if manipulation_conveyor_frames_process is not None:
         print('Killing manipulation_conveyor_frames_process.')
-        exterminate(manipulation_conveyor_frames_process.pid, signal.SIGKILL)
+        exterminate(manipulation_conveyor_frames_process.pid, signal.SIGKILL, r=True)
     global perception_process
     if perception_process is not None:
         print 'Killing perception'
-        exterminate(perception_process.pid, signal.SIGINT)
+        exterminate(perception_process.pid, signal.SIGKILL, r=True)
     global classifier_process
     if classifier_process is not None:
         print 'Killing classifier'
-        exterminate(classifier_process.pid, signal.SIGINT)
+        exterminate(classifier_process.pid, signal.SIGKILL, r=True)
     global manipulation_logger_process
     if manipulation_logger_process is not None:
         print('Killing manipulation logger with pid ' + str(manipulation_logger_process.pid) + '.')
