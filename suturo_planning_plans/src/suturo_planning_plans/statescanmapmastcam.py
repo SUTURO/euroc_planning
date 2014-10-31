@@ -27,26 +27,29 @@ class ScanMapMastCam(smach.State):
 
         utils.map = Map(2)
         # arm_base = utils.manipulation.get_base_origin()
+        # rospy.sleep(4)
+
+        wait = 10
 
         utils.manipulation.pan_tilt(0.2, 0.5)
-        rospy.sleep(4)
+        rospy.sleep(wait)
         utils.map.add_point_cloud(scene_cam=True)
 
         utils.manipulation.pan_tilt(0.2825, 0.775)
-        rospy.sleep(4)
+        rospy.sleep(wait)
         utils.map.add_point_cloud(scene_cam=True)
 
         utils.manipulation.pan_tilt(0, 1.1)
-        rospy.sleep(4)
+        rospy.sleep(wait)
         utils.map.add_point_cloud(scene_cam=True)
 
         utils.manipulation.pan_tilt(-0.2825, 0.775)
-        rospy.sleep(4)
+        rospy.sleep(wait)
         utils.map.add_point_cloud(scene_cam=True)
 
 
         utils.manipulation.pan_tilt(-0.2, 0.5)
-        rospy.sleep(4)
+        rospy.sleep(wait)
         # utils.manipulation.pan_tilt(0, 0.6)
         # rospy.sleep(5)
         utils.map.add_point_cloud(scene_cam=True)
@@ -72,7 +75,7 @@ class ScanMapMastCam(smach.State):
             goal_base_pose.pose.orientation.w = 1
 
             if utils.manipulation.move_base(goal_base_pose):
-                rospy.sleep(4)
+                rospy.sleep(wait)
                 utils.map.add_point_cloud(arm_origin=utils.manipulation.get_base_origin().point, scene_cam=True)
                 break
 
