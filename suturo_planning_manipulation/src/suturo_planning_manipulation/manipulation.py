@@ -554,8 +554,9 @@ class Manipulation(object):
         return resp.solution
 
     def is_gripper_open(self):
-        states = self.get_current_joint_state()
-        if states[8] < -0.3:
+        states = self.__gripper_group.get_current_joint_values()
+        print "Finger: " + str(states)
+        if states[0] < -0.03:
             return True
         # print states
         return False

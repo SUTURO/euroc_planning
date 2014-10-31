@@ -75,18 +75,22 @@ class FastGrasp(smach.State):
     def execute(self, userdata):
         rospy.logdebug('FastGrasp: Executing state FastGrasp')
         # TODO: Nach ?? Sekunden time expired werfen
-        if utils.manipulation.is_gripper_open():
+        if not utils.manipulation.is_gripper_open():
             rospy.logdebug('FastGrasp: Open Gripper')
             utils.manipulation.open_gripper()
-
+        print utils.manipulation.is_gripper_open()
         # make sure that calculation succeeded
         pose_comp = self.percieve_object(10)
         i = 0
+        serviceCall = False
         while pose_comp == -1:
             if i == 2:
                 # TODO: Zeit anpassen, ab wann gecalled wird
                 rospy.logdebug('FastGrasp: Request next object')
-                rospy.ServiceProxy("/euroc_interface_node/request_next_object", RequestNextObject).call()
+                # rospy.ServiceProxy("/euroc_interface_node/request_next_object", RequestNextObject).call()
+                serviceCall = True
+            if i == 10 and serviceCall:
+                return 'timeExpired'
             pose_comp = self.percieve_object(10)
             i += 1
         # TODO: Was passiert wenn das Objekt nur einmal gesehen wurde

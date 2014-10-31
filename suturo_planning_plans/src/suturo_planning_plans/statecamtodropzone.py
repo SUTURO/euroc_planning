@@ -21,8 +21,6 @@ class CamToDropzone(smach.State):
             utils.manipulation = Manipulation()
             rospy.sleep(2)
 
-        # utils.manipulation.is_gripper_open()
-
         # TODO: Irgend ne Abbruchbedingung machen (nach x Sekunden)
         abort_after = 15
         then = int(time.time())
