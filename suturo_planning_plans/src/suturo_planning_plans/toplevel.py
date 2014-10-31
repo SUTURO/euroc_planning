@@ -1,3 +1,4 @@
+import os
 import sys
 import rospy
 import smach
@@ -13,6 +14,7 @@ import start_nodes
 import signal
 import atexit
 from suturo_planning_manipulation.total_annihilation import exterminate
+from suturo_planning_task_selector import task_selector
 from suturo_msgs.msg import Task
 from suturo_planning_plans import utils
 
@@ -41,6 +43,9 @@ def handle_uncaught_exception(e, initialization_time, logging):
     print('Uncaught exception: ' + str(e))
     if not start_nodes.executed_test_node_check:
         start_nodes.check_node(initialization_time, logging)
+    if task_selector.yaml_parser is not None:
+        print('Interrupting YAML pars0r.')
+        task_selector.yaml_parser.interrupt()
     print('Terminating task.')
     rospy.signal_shutdown('Terminating Task due to unhandled exception.')
 
@@ -53,7 +58,7 @@ def toplevel_plan(init_sim, task_list, savelog, initialization_time, logging):
         print('toplevel: Logging planning to console.')
     else:
         print('toplevel: Logging planning to files.')
-        __logger_process = utils.start_logger(subprocess.PIPE, initialization_time, 'Planning', logging)
+        __logger_process = utils.start_logger(os.getpid(), subprocess.PIPE, initialization_time, 'Planning', logging)
         sys.stderr = sys.stdout
         sys.stdout = __logger_process.stdin
 

@@ -104,14 +104,17 @@ class StartManipulation(smach.State):
 
         task_type = userdata.yaml.task_type
         if task_type == Task.TASK_6:
-            rospy.loginfo('Starting publish_conveyor_frames.')
             global manipulation_conveyor_frames_process
             global manipulation_conveyor_frames_logger_process
+            rospy.loginfo('Starting publish_conveyor_frames.')
             manipulation_conveyor_frames_process, manipulation_conveyor_frames_logger_process =\
                 utils.start_node('rosrun suturo_planning_manipulation publish_conveyor_frames.py',
                                  userdata.initialization_time, userdata.logging, 'Conveyor frames')
             userdata.manipulation_conveyor_frames_process = manipulation_conveyor_frames_process
             userdata.manipulation_conveyor_frames_logger_process = manipulation_conveyor_frames_logger_process
+        else:
+            userdata.manipulation_conveyor_frames_process = None
+            userdata.manipulation_conveyor_frames_logger_process = None
         return 'success'
 
 
@@ -126,34 +129,34 @@ class StartPerception(smach.State):
         self.__started_nodes = []
 
     def wait_for_perception(self, msg):
-        rospy.loginfo('Executing wait_for_perception')
+        rospy.loginfo('per: Executing wait_for_perception')
         if len(msg.required_nodes) > 0 and \
                 msg.started_node == PerceptionNodeStatus.REQUIRED_NODES_INCOMING and \
                 self.__required_nodes is None:
 
-            rospy.loginfo('required_nodes: ' + str(msg.required_nodes))
+            rospy.loginfo('per: required_nodes: ' + str(msg.required_nodes))
             self.__required_nodes = msg.required_nodes
         elif self.__required_nodes is not None and msg.started_node in self.__required_nodes:
-            rospy.loginfo('Started node: ' + str(msg.started_node))
+            rospy.loginfo('per: Started node: ' + str(msg.started_node))
             self.__started_nodes.append(msg.started_node)
         else:
-            rospy.loginfo('Unhandled Message:\n' + str(msg))
+            rospy.loginfo('per: Unhandled Message:\n' + str(msg))
 
         if self.__required_nodes is not None:
             for n in self.__required_nodes:
                 if n not in self.__started_nodes:
-                    rospy.loginfo('Node ' + str(n) + ' has not been started yet. Still waiting.')
+                    rospy.loginfo('per: Node ' + str(n) + ' has not been started yet. Still waiting.')
                     return
-            rospy.loginfo('All nodes have been started.')
+            rospy.loginfo('per: All nodes have been started.')
             if True:
                 self.__perception_ready = True
                 try:
                     self.__subscriber.unregister()
                 except AssertionError, e:
-                    rospy.loginfo('Accidentally tried to unregister already unregistered subscriber.')
+                    rospy.loginfo('per: Accidentally tried to unregister already unregistered subscriber.')
                     rospy.loginfo(e)
         else:
-            rospy.loginfo('Still waiting for perception.')
+            rospy.loginfo('per: Still waiting for perception.')
 
     def execute(self, userdata):
         rospy.loginfo('Executing state StartPerception')

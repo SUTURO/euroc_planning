@@ -32,10 +32,10 @@ def abort_current_task():
             print('Killing subproc with pid ' + str(subproc.pid))
             exterminate(subproc.pid, signal.SIGINT)
             print('Waiting for subproc to terminate. Please be patient.')
-            subproc.wait()
+            utils.wait_for_process(subproc, 90)
             if subproc.poll() is None:
                 print('Could not kill task process. Forcing!')
-                exterminate(subproc.pid, signal.SIGKILL)
+                exterminate(subproc.pid, signal.SIGKILL, r=True)
         except Exception, e:
             print(e)
     if logger_process is not None:
