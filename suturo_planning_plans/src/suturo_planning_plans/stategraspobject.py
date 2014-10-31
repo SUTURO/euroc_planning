@@ -51,6 +51,9 @@ class GraspObject(smach.State):
         #sort to try the best grasps first
         grasp_positions.sort(cmp=lambda x, y: utils.manipulation.cmp_pose_stamped(collision_object, x, y))
         visualize_poses(grasp_positions)
+        rospy.logdebug("grasppositions:")
+        rospy.logdebug(str(grasp_positions))
+
         utils.manipulation.open_gripper()
         for grasp in grasp_positions:
             if move_to_func(get_pre_grasp(grasp)):
