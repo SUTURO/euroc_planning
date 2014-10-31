@@ -316,7 +316,7 @@ def exit_handler(signum=None, frame=None):
     global manipulation_process
     if manipulation_process is not None:
         print 'Killing manipulation'
-        exterminate(manipulation_process.pid, signal.SIGKILL, , r=True)
+        exterminate(manipulation_process.pid, signal.SIGKILL, r=True)
     global manipulation_conveyor_frames_process
     if manipulation_conveyor_frames_process is not None:
         print('Killing manipulation_conveyor_frames_process.')
