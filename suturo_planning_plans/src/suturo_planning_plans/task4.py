@@ -69,3 +69,5 @@ class Task4(smach.StateMachine):
         self.userdata.enable_movement = True
         self.userdata.task = task
         self.userdata.cell_coords = []
+        self.userdata.sec_try = False
+        self.userdata.sec_try_done = False
