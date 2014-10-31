@@ -36,7 +36,6 @@ def abort_current_task():
             print('Could not kill task process. Forcing!')
             exterminate(subproc.pid, signal.SIGKILL)
     except Exception, e:
-        print('FICKPENIS')
         print(e)
     if logger_process is not None:
         try:
@@ -49,7 +48,6 @@ def abort_current_task():
                 #print('Could not kill logger process. Forcing!')
                 #exterminate(logger_process.pid, signal.SIGKILL)
         except Exception, e:
-            print('FICKFOTZE')
             print(e)
 
 

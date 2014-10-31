@@ -15,6 +15,7 @@ from suturo_planning_task_selector import stop_task
 from rosgraph_msgs.msg import Clock
 from actionlib_msgs.msg import GoalStatusArray
 from suturo_perception_msgs.msg import PerceptionNodeStatus
+from suturo_msgs.msg import Task
 
 
 perception_process = None
@@ -62,7 +63,7 @@ class StartManipulation(smach.State):
 class StartPerception(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['success', 'fail'],
-                             input_keys=['initialization_time', 'logging'],
+                             input_keys=['initialization_time', 'logging', 'yaml'],
                              output_keys=['perception_process', 'perception_logger_process'])
         self.__subscriber = None
         self.__perception_ready = False
@@ -101,33 +102,22 @@ class StartPerception(smach.State):
         rospy.loginfo('Subscribing to /suturo/perception_node_status.')
         self.__subscriber = rospy.Subscriber('/suturo/perception_node_status', PerceptionNodeStatus,
                                              self.wait_for_perception)
+        task_type = userdata.yaml.task_type
+        if task_type == Task.TASK_4:
+            task_num = '4'
+        elif task_type == Task.TASK_6:
+            task_num = '6'
+        else:
+            task_num = '1'
         global perception_process
         global perception_logger_process
         perception_process, perception_logger_process =\
-            utils.start_node('roslaunch euroc_launch perception_task1.launch', userdata.initialization_time,
+            utils.start_node('roslaunch euroc_launch perception_task' + task_num + '.launch', userdata.initialization_time,
                              'Perception', userdata.logging)
         userdata.perception_process = perception_process
         userdata.perception_logger_process = perception_logger_process
         while not self.__perception_ready:
             time.sleep(1)
-        return 'success'
-
-
-class StartPerceptionTask6(smach.State):
-    def __init__(self):
-        smach.State.__init__(self, outcomes=['success', 'fail'],
-                             input_keys=['initialization_time'],
-                             output_keys=['perception_process', 'perception_logger_process'])
-
-    def execute(self, userdata):
-        rospy.loginfo('Executing state StartPerceptionTask6')
-        global perception_process
-        global perception_logger_process
-        perception_process, perception_logger_process =\
-            utils.start_node('roslaunch euroc_launch perception_task6.launch', userdata.initialization_time,
-                             'Perception', userdata.logging)
-        userdata.perception_process = perception_process
-        userdata.perception_logger_process = perception_logger_process
         return 'success'
 
 
