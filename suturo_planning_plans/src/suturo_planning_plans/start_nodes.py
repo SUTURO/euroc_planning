@@ -15,11 +15,14 @@ from suturo_planning_task_selector import stop_task
 from rosgraph_msgs.msg import Clock
 from actionlib_msgs.msg import GoalStatusArray
 from suturo_perception_msgs.msg import PerceptionNodeStatus
+from suturo_manipulation_msgs.msg import ManipulationNodeStatus
 from suturo_msgs.msg import Task
 
 
 perception_process = None
 manipulation_process = None
+manipulation_conveyor_frames_process = None
+manipulation_conveyor_frames_logger_process = None
 classifier_process = None
 perception_logger_process = None
 manipulation_logger_process = None
@@ -31,10 +34,46 @@ __handling_exit = False
 class StartManipulation(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['success', 'fail'],
-                             input_keys=['initialization_time', 'logging'],
-                             output_keys=['manipulation_process', 'manipulation_logger_process'])
+                             input_keys=['initialization_time', 'logging', 'yaml'],
+                             output_keys=['manipulation_process', 'manipulation_logger_process',
+                                          'manipulation_conveyor_frames_process',
+                                          'manipulation_conveyor_frames_logger_process'])
         self.__move_group_status = False
         self.__move_group_status_subscriber = None
+        self.__nodes_subscriber = None
+        self.__manipulation_nodes_ready = False
+        self.__required_nodes = None
+        self.__started_nodes = []
+
+    def wait_for_manipulation(self, msg):
+        rospy.loginfo('Executing wait_for_manipulation')
+        if len(msg.required_nodes) > 0 and \
+                msg.started_node == ManipulationNodeStatus.REQUIRED_NODES_INCOMING and \
+                self.__required_nodes is None:
+
+            rospy.loginfo('man: required_nodes: ' + str(msg.required_nodes))
+            self.__required_nodes = msg.required_nodes
+        elif self.__required_nodes is not None and msg.started_node in self.__required_nodes:
+            rospy.loginfo('man: Started node: ' + str(msg.started_node))
+            self.__started_nodes.append(msg.started_node)
+        else:
+            rospy.loginfo('man: Unhandled Message:\n' + str(msg))
+
+        if self.__required_nodes is not None:
+            for n in self.__required_nodes:
+                if n not in self.__started_nodes:
+                    rospy.loginfo('man: Node ' + str(n) + ' has not been started yet. Still waiting.')
+                    return
+            rospy.loginfo('man: All nodes have been started.')
+            if True:
+                self.__manipulation_nodes_ready = True
+                try:
+                    self.__nodes_subscriber.unregister()
+                except AssertionError, e:
+                    rospy.loginfo('man: Accidentally tried to unregister already unregistered subscriber.')
+                    rospy.loginfo(e)
+        else:
+            rospy.loginfo('Still waiting for manipulation.')
 
     def wait_for_move_group_status(self, msg):
         self.__move_group_status_subscriber.unregister()
@@ -45,18 +84,34 @@ class StartManipulation(smach.State):
         rospy.loginfo('Executing TestNode init.')
         subprocess.Popen('rosrun euroc_launch TestNode --init', shell=True)
         rospy.loginfo('Executing state StartManipulation')
+        rospy.loginfo('Subscribing to /suturo/manipulation_node_status.')
+        self.__nodes_subscriber = rospy.Subscriber('/suturo/manipulation_node_status', ManipulationNodeStatus,
+                                             self.wait_for_manipulation)
+        rospy.loginfo('Subscribign to /move_group/status topic.')
+        rospy.sleep(1)
+        self.__move_group_status_subscriber = rospy.Subscriber('/move_group/status', GoalStatusArray,
+                                                               self.wait_for_move_group_status)
         global manipulation_process
         global manipulation_logger_process
         manipulation_process, manipulation_logger_process =\
             utils.start_node('roslaunch euroc_launch manipulation.launch', userdata.initialization_time,
-                             'Manipulation', userdata.logging)
+                             userdata.logging, 'Manipulation')
         userdata.manipulation_process = manipulation_process
         userdata.manipulation_logger_process = manipulation_logger_process
-        rospy.loginfo('Waiting for /move_group/status topic.')
-        self.__move_group_status_subscriber = rospy.Subscriber('/move_group/status', GoalStatusArray,
-                                                               self.wait_for_move_group_status)
-        while not self.__move_group_status:
+
+        while not self.__move_group_status and not self.__manipulation_nodes_ready:
             time.sleep(1)
+
+        task_type = userdata.yaml.task_type
+        if task_type == Task.TASK_6:
+            rospy.loginfo('Starting publish_conveyor_frames.')
+            global manipulation_conveyor_frames_process
+            global manipulation_conveyor_frames_logger_process
+            manipulation_conveyor_frames_process, manipulation_conveyor_frames_logger_process =\
+                utils.start_node('rosrun suturo_planning_manipulation publish_conveyor_frames.py',
+                                 userdata.initialization_time, userdata.logging, 'Conveyor frames')
+            userdata.manipulation_conveyor_frames_process = manipulation_conveyor_frames_process
+            userdata.manipulation_conveyor_frames_logger_process = manipulation_conveyor_frames_logger_process
         return 'success'
 
 
@@ -72,7 +127,10 @@ class StartPerception(smach.State):
 
     def wait_for_perception(self, msg):
         rospy.loginfo('Executing wait_for_perception')
-        if len(msg.required_nodes) > 0 and self.__required_nodes is None:
+        if len(msg.required_nodes) > 0 and \
+                msg.started_node == PerceptionNodeStatus.REQUIRED_NODES_INCOMING and \
+                self.__required_nodes is None:
+
             rospy.loginfo('required_nodes: ' + str(msg.required_nodes))
             self.__required_nodes = msg.required_nodes
         elif self.__required_nodes is not None and msg.started_node in self.__required_nodes:
@@ -102,6 +160,7 @@ class StartPerception(smach.State):
         rospy.loginfo('Subscribing to /suturo/perception_node_status.')
         self.__subscriber = rospy.Subscriber('/suturo/perception_node_status', PerceptionNodeStatus,
                                              self.wait_for_perception)
+        rospy.sleep(1)
         task_type = userdata.yaml.task_type
         if task_type == Task.TASK_4:
             task_num = '4'
@@ -113,7 +172,7 @@ class StartPerception(smach.State):
         global perception_logger_process
         perception_process, perception_logger_process =\
             utils.start_node('roslaunch euroc_launch perception_task' + task_num + '.launch', userdata.initialization_time,
-                             'Perception', userdata.logging)
+                             userdata.logging, 'Perception')
         userdata.perception_process = perception_process
         userdata.perception_logger_process = perception_logger_process
         while not self.__perception_ready:
@@ -133,7 +192,7 @@ class StartClassifier(smach.State):
         global classifier_logger_process
         classifier_process, classifier_logger_process =\
             utils.start_node('rosrun suturo_perception_classifier classifier.py', userdata.initialization_time,
-                             'Classifier', userdata.logging)
+                             userdata.logging, 'Classifier')
         userdata.classifier_process = classifier_process
         userdata.classifier_logger_process = classifier_logger_process
         return 'success'
@@ -188,7 +247,7 @@ def check_node(initialization_time, logging):
     global executed_test_node_check
     rospy.loginfo('Executing TestNode check.')
     test_node, test_node_logger = utils.start_node('rosrun euroc_launch TestNode --check', initialization_time,
-                                                   'TestNode check', logging)
+                                                   logging, 'TestNode check')
     rospy.loginfo('Waiting for TestNode check to terminate. PID: ' + str(test_node.pid))
     if not utils.wait_for_process(test_node, 15):
         rospy.loginfo('Killing TestNode check.')
@@ -204,9 +263,10 @@ def check_node(initialization_time, logging):
 class StopNodes(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['success', 'fail'],
-                             input_keys=['perception_process', 'manipulation_process', 'classifier_process',
+                             input_keys=['perception_process', 'manipulation_process',
+                                         'manipulation_conveyor_frames_process', 'classifier_process',
                                          'perception_logger_process', 'manipulation_logger_process',
-                                         'classifier_logger_process'],
+                                         'manipulation_conveyor_frames_logger_process', 'classifier_logger_process'],
                              output_keys=[])
 
     def execute(self, userdata):
@@ -215,12 +275,16 @@ class StopNodes(smach.State):
             exterminate(userdata.perception_process.pid, signal.SIGKILL)
         if userdata.manipulation_process is not None:
             exterminate(userdata.manipulation_process.pid, signal.SIGKILL)
+        if userdata.manipulation_conveyor_frames_process is not None:
+            exterminate(userdata.manipulation_conveyor_frames_process.pid, signal.SIGKILL)
         if userdata.classifier_process is not None:
             exterminate(userdata.classifier_process.pid, signal.SIGKILL)
         if userdata.perception_logger_process is not None:
             exterminate(userdata.perception_logger_process.pid, signal.SIGINT)
         if userdata.manipulation_logger_process is not None:
             exterminate(userdata.manipulation_logger_process.pid, signal.SIGINT)
+        if userdata.manipulation_conveyor_frames_logger_process is not None:
+            exterminate(userdata.manipulation_conveyor_frames_logger_process, signal.SIGINT)
         if userdata.classifier_logger_process is not None:
             exterminate(userdata.classifier_logger_process.pid, signal.SIGINT)
         rospy.signal_shutdown('Finished plan. Shutting down Node.')
@@ -239,6 +303,10 @@ def exit_handler(signum=None, frame=None):
     if manipulation_process is not None:
         print 'Killing manipulation'
         exterminate(manipulation_process.pid, signal.SIGINT)
+    global manipulation_conveyor_frames_process
+    if manipulation_conveyor_frames_process is not None:
+        print('Killing manipulation_conveyor_frames_process.')
+        exterminate(manipulation_conveyor_frames_process.pid, signal.SIGKILL)
     global perception_process
     if perception_process is not None:
         print 'Killing perception'
@@ -251,6 +319,11 @@ def exit_handler(signum=None, frame=None):
     if manipulation_logger_process is not None:
         print('Killing manipulation logger with pid ' + str(manipulation_logger_process.pid) + '.')
         exterminate(manipulation_logger_process.pid, signal.SIGINT)
+    global manipulation_conveyor_frames_logger_process
+    if manipulation_conveyor_frames_logger_process is not None:
+        print('Killing manipulation conveyour logger with pid ' +
+              str(manipulation_conveyor_frames_logger_process.pid) + '.')
+        exterminate(manipulation_conveyor_frames_logger_process.pid, signal.SIGKILL)
     global perception_logger_process
     if perception_logger_process is not None:
         print('Killing perception logger with pid ' + str(perception_logger_process.pid) + '.')

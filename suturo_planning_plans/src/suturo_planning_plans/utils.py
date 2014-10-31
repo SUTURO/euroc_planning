@@ -42,7 +42,7 @@ def wait_for_process(process, t=None):
         return True
 
 
-def start_node(command, initialization_time, log_name, logging, dont_print=False,print_prefix_to_stdout=True):
+def start_node(command, initialization_time, logging, log_name='', dont_print=False,print_prefix_to_stdout=True):
     print('Starting node.')
     print('command: ' + command)
     print('logging mode: ' + str(logging))

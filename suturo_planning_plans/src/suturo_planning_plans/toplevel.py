@@ -159,8 +159,10 @@ class InitSimulation(smach.StateMachine):
         smach.StateMachine.__init__(self, outcomes=['success', 'fail'],
                                     input_keys=['initialization_time', 'logging'],
                                     output_keys=['objects_found', 'yaml', 'perception_process', 'manipulation_process',
-                                                 'classifier_process', 'perception_logger_process',
-                                                 'manipulation_logger_process', 'classifier_logger_process'])
+                                                 'manipulation_conveyor_frames_process', 'classifier_process',
+                                                 'perception_logger_process', 'manipulation_logger_process',
+                                                 'manipulation_conveyor_frames_logger_process',
+                                                 'classifier_logger_process'])
         with self:
             smach.StateMachine.add('StartSimulation', start_nodes.StartSimulation(task_name),
                                    transitions={'success': 'StartManipulation',

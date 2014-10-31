@@ -114,7 +114,7 @@ def start_demo(wait, tasks, logging):
         global logger_process
         subproc, logger_process = utils.start_node('rosrun suturo_planning_startup start_task.py ' + task +
                                                    ' --plan --init --save --no-ts --inittime="' + init_time + '"' +
-                                                   ' --logging="' + str(logging) + '"', init_time, 'Complete', logging,
+                                                   ' --logging="' + str(logging) + '"', init_time, logging, 'Complete',
                                                    dont_print=dont_print, print_prefix_to_stdout=False)
         __time_started_task = int(time.time())
         print('Subscribing to clock.')
