@@ -20,6 +20,8 @@ manipulation = None
 map = None
 log_dir = '/tmp/euroc_c2'
 
+waiting_time_before_scan = 4
+
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 

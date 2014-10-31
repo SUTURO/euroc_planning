@@ -12,7 +12,6 @@ from math import pi
 class ScanMapArmCam(smach.State):
 
     finished = False
-    last_scanned_point = None
     min_num_of_cells = 2
 
     def __init__(self):
@@ -22,21 +21,13 @@ class ScanMapArmCam(smach.State):
 
     def execute(self, userdata):
         rospy.loginfo('Executing state ScanMapArmCam')
-        wait = 10
 
         if self.finished:
             return 'mapScanned'
 
         regions = utils.map.get_unknown_regions()
 
-        last_point = self.last_scanned_point
-        if last_point is None:
-            eef_pose = utils.manipulation.get_eef_position()
-            last_point = eef_pose.pose.position
-
         #evt nach groesse sortieren?
-        # regions.sort(key=lambda r: euclidean_distance( Point(*(utils.map.index_to_coordinates(*r.get_avg())+(0,))), last_point))
-        # regions = filter(lambda r: r.get_number_of_cells > self.min_num_of_cells, regions)
         regions.sort(key=lambda r: -r.get_number_of_cells())
 
         for r in regions:
@@ -45,7 +36,7 @@ class ScanMapArmCam(smach.State):
         i = 0
         r_id = 0
 
-        while len(regions) > 0 and utils.map.get_percent_cleared() < 0.99:
+        while len(regions) > 0 and utils.map.get_percent_cleared() < 0.985:
             if len(regions[r_id].get_boarder_cells()) < self.min_num_of_cells:
                 regions.remove(regions[r_id])
                 r_id = r_id % len(regions)
@@ -64,27 +55,10 @@ class ScanMapArmCam(smach.State):
             cell_x = next_point.x
             cell_y = next_point.y
             utils.map.mark_cell(cell_x, cell_y, True)
-            next_point.z = 0.1
-            poses = make_scan_pose(next_point, 0.9, 0.8, n=16)
-            for (c, x, y) in utils.map.get_surrounding_cells8(cell_x, cell_y):
-                if not c.is_free():
-                    p = Point(x, y, 0)
-                    p2 = Point(cell_x, cell_y, 0)
-                    cell_to_p = subtract_point(p, p2)
-                    for pose in poses:
-                        #filter poses that are pointing to unknowns or obstacles
-                        if get_angle(cell_to_p, subtract_point(Point(pose.pose.position.x, pose.pose.position.y, 0), p2)) < pi/4:
-                            poses.remove(pose)
-                        #filter poses that are outside of the table
-                        elif not (-1.25 <= pose.pose.position.x <= 1.25 and -1.25 <= pose.pose.position.y <= 1.25):
-                            poses.remove(pose)
-                        #filter poses that are above unknowns
-                        elif -1.0 <= pose.pose.position.x <= 1.0 and -1.0 <= pose.pose.position.y <= 1.0 :
-                            cell = utils.map.get_cell(pose.pose.position.x, pose.pose.position.y)
-                            if cell.is_unknown():
-                                poses.remove(pose)
-                            elif cell.is_obstacle() and cell.highest_z >= pose.pose.position.z - 0.05:
-                                poses.remove(pose)
+            next_point.z = 0.2
+            poses = make_scan_pose(next_point, 0.7, 0.8, n=16)
+            poses = utils.map.filter_invalid_poses(cell_x, cell_y, poses)
+            poses = utils.map.filter_invalid_poses2(cell_x, cell_y, poses)
 
             poses.sort(key=lambda pose: -euclidean_distance( Point(*(utils.map.index_to_coordinates(*regions[r_id].get_avg())+(0,))), Point(pose.pose.position.x, pose.pose.position.y, 0)))
             visualize_poses(poses)
@@ -94,7 +68,7 @@ class ScanMapArmCam(smach.State):
                 move_successfull = utils.manipulation.move_arm_and_base_to(poses[j])
                 j += 1
             if move_successfull:
-                rospy.sleep(wait)
+                rospy.sleep(utils.waiting_time_before_scan)
                 arm_base = utils.manipulation.get_base_origin()
                 map_updated = utils.map.add_point_cloud(arm_base.point, scene_cam=False)
                 if not map_updated:

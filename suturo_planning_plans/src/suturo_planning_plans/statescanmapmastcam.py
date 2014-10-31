@@ -29,30 +29,27 @@ class ScanMapMastCam(smach.State):
         # arm_base = utils.manipulation.get_base_origin()
         # rospy.sleep(4)
 
-        wait = 10
-
         utils.manipulation.pan_tilt(0.2, 0.5)
-        rospy.sleep(wait)
+        rospy.sleep(utils.waiting_time_before_scan)
         utils.map.add_point_cloud(scene_cam=True)
 
         utils.manipulation.pan_tilt(0.2825, 0.775)
-        rospy.sleep(wait)
+        rospy.sleep(utils.waiting_time_before_scan)
         utils.map.add_point_cloud(scene_cam=True)
 
         utils.manipulation.pan_tilt(0, 1.1)
-        rospy.sleep(wait)
+        rospy.sleep(utils.waiting_time_before_scan)
         utils.map.add_point_cloud(scene_cam=True)
 
         utils.manipulation.pan_tilt(-0.2825, 0.775)
-        rospy.sleep(wait)
+        rospy.sleep(utils.waiting_time_before_scan)
         utils.map.add_point_cloud(scene_cam=True)
 
 
         utils.manipulation.pan_tilt(-0.2, 0.5)
-        rospy.sleep(wait)
-        # utils.manipulation.pan_tilt(0, 0.6)
-        # rospy.sleep(5)
+        rospy.sleep(utils.waiting_time_before_scan)
         utils.map.add_point_cloud(scene_cam=True)
+        utils.manipulation.pan_tilt(0, 0.45)
 
         if not userdata.enable_movement:
             return 'mapScanned'
@@ -60,7 +57,6 @@ class ScanMapMastCam(smach.State):
         co = utils.map.to_collision_object()
         utils.manipulation.get_planning_scene().add_object(co)
         n = 8
-        utils.manipulation.pan_tilt(0, 0.45)
         for i in range(0, n):
             a = 2 * pi * ((i + 0.0) / (n + 0.0))
 
@@ -75,7 +71,7 @@ class ScanMapMastCam(smach.State):
             goal_base_pose.pose.orientation.w = 1
 
             if utils.manipulation.move_base(goal_base_pose):
-                rospy.sleep(wait)
+                rospy.sleep(utils.waiting_time_before_scan)
                 utils.map.add_point_cloud(arm_origin=utils.manipulation.get_base_origin().point, scene_cam=True)
                 break
 

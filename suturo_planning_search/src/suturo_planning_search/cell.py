@@ -59,7 +59,8 @@ class Cell:
                " unknown: " + str(self.is_unknown()) + \
                " Points: " + str(self.get_num_points()) + \
                " segment_id: " + str(self.segment_id) + \
-               "z: " + str(self.average_z) + "\n"
+               "z: " + str(self.average_z) + \
+               "max z: " + str(self.highest_z) + "\n"
 
     def __eq__(self, other):
         return other.is_obstacle() and self.is_obstacle() or \

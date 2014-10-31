@@ -60,7 +60,7 @@ class ScanObstacles(smach.State):
                 return 'mapScanned'
 
         # angle = (pi / 2) - (dist_to_region / 1)
-        angle = 1
+        angle = 1.2
         distance = 0.6 + current_region.get_number_of_cells()*0.01
 
         rospy.logdebug('Focusing point: %s' % str(region_centroid))
@@ -70,7 +70,9 @@ class ScanObstacles(smach.State):
 
         if not userdata.enable_movement:
             c_to_base = subtract_point(Point(0,0,0), region_centroid)
-            poses = [pose for pose in poses if get_angle(subtract_point(Point(pose.pose.position.x, pose.pose.position.y, 0), region_centroid), c_to_base) > pi/5]
+            poses = [pose for pose in poses if get_angle(subtract_point(Point(pose.pose.position.x, pose.pose.position.y, 0), region_centroid), c_to_base) > pi/4]
+
+        poses = utils.map.filter_invalid_poses2(region_centroid.x, region_centroid.y, poses)
 
         if userdata.sec_try:
             current_pose = utils.manipulation.get_eef_position().pose.position

@@ -141,7 +141,7 @@ def visualize_poses(poses):
     # r = rospy.Rate(1)  # 10hz
 
     marker = Marker()
-    marker.header.stamp = rospy.get_rostime()
+    # marker.header.stamp = rospy.get_rostime()
     marker.ns = "mani"
     marker.type = Marker.ARROW
     marker.action = Marker.ADD

@@ -1,6 +1,7 @@
 import rospy
 from euroc_c2_msgs.srv import *
 from suturo_planning_yaml_pars0r.yaml_pars0r import YamlPars0r
+from suturo_planning_plans import utils
 
 task_stopped = False
 task_saved = False
@@ -22,6 +23,9 @@ def start_task(scene):
 
 def stop_task():
     print 'Stopping task'
+    if utils.manipulation is not None:
+        print "Print Manipulation Shit:"
+        utils.manipulation.print_manipulation()
     print('Waiting for service euroc_c2_task_selector/stop_simulator.')
     rospy.wait_for_service('euroc_c2_task_selector/stop_simulator')
     print('Service euroc_c2_task_selector/stop_simulator ready.')

@@ -67,15 +67,16 @@ class Manipulation(object):
         rospy.loginfo("Manipulation started.")
 
     def __del__(self):
+        # self.print_manipulation()
         if moveit_commander is not None:
             moveit_commander.roscpp_shutdown()
             moveit_commander.os._exit(0)
 
     def print_manipulation(self):
-        rospy.logdebug("current joint state")
-        rospy.logdebug(str(self.get_current_joint_state()))
-        rospy.logdebug("current planning scene")
-        rospy.logdebug(str(self.get_planning_scene().get_planning_scene()))
+        print "current joint state"
+        print self.get_current_joint_state()
+        print "current planning scene"
+        print self.get_planning_scene().get_planning_scene()
 
     def move_base(self, goal_pose):
         '''
@@ -160,11 +161,13 @@ class Manipulation(object):
          """
 
         original_objects = self.__planning_scene_interface.get_collision_objects()
+        # aco = self.__planning_scene_interface.get_attached_object()
+        # if not aco is None:
+        #     original_objects.append(aco.object)
         blown_up_objects = []
         if blow_up:
             for each in original_objects:
                 if not each.id in self.__planning_scene_interface.safe_objects:
-                    # self.__planning_scene_interface.remove_object(each.id)
                     bobj = self.__blow_up_object(copy.deepcopy(each), blow_up_distance)
                     blown_up_objects.append(bobj.id)
                     self.__planning_scene_interface.add_object(bobj)
@@ -176,7 +179,8 @@ class Manipulation(object):
             visualize_poses([goal])
             # Rotate the goal so that the gripper points from 0,0,0 to 1,0,0 with a 0,0,0,1 quaternion as orientation.
             goal.pose.orientation = rotate_quaternion(goal.pose.orientation, pi / 2, pi, pi / 2)
-            goal = self.tf.transform_to(goal)
+            if goal.header.frame_id != "/odom_combined":
+                goal = self.tf.transform_to(goal)
 
             move_group.set_pose_target(goal)
         else:
@@ -186,7 +190,6 @@ class Manipulation(object):
 
         if blow_up:
             # for each in blown_up_objects:
-            # self.__planning_scene_interface.remove_object(each)
             for each in original_objects:
                 self.__planning_scene_interface.add_object(each)
 

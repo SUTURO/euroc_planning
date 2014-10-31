@@ -249,16 +249,19 @@ class TestMapCleanUp(unittest.TestCase):
 
         m = self.make_free_map()
         cells = m.get_cells_between(0.01, 0.01, 0.13, 0.09)
+        cells = map(lambda (c,x,y): (x,y), cells)
         self.assertTrue(len(cells) == 5)
         self.assertTrue(m.coordinates_to_index(0.01, 0.01) in cells)
         self.assertTrue(m.coordinates_to_index(0.13, 0.09) in cells)
 
         cells = m.get_cells_between(0.13, 0.09, 0.01, 0.01)
+        cells = map(lambda (c,x,y): (x,y), cells)
         self.assertTrue(len(cells) == 5)
         self.assertTrue(m.coordinates_to_index(0.01, 0.01) in cells)
         self.assertTrue(m.coordinates_to_index(0.13, 0.09) in cells)
 
         cells = m.get_cells_between(0.01, 0.01, 0.09, 0.09)
+        cells = map(lambda (c,x,y): (x,y), cells)
         self.assertTrue(len(cells) == 3)
         self.assertTrue(m.coordinates_to_index(0.01, 0.01) in cells)
         self.assertTrue(m.coordinates_to_index(0.09, 0.09) in cells)

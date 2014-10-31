@@ -195,6 +195,7 @@ class Map:
                     primitive.dimensions[primitive.BOX_Z] = self.get_cell_by_index(x, y).highest_z * 2
                 else:
                     primitive.dimensions[primitive.BOX_Z] = self.get_average_z_of_surrounded_obstacles(x, y) * 2
+                primitive.dimensions[primitive.BOX_Z] += 0.02
                 co.primitives.append(deepcopy(primitive))
                 pose = Pose()
                 (pose.position.x, pose.position.y) = self.index_to_coordinates(x, y)
@@ -267,6 +268,78 @@ class Map:
                 return -1
             else:
                 return 0
+
+    def filter_invalid_poses(self, cell_x, cell_y, pose_list):
+        poses = deepcopy(pose_list)
+        surr_cells = self.get_surrounding_cells8(cell_x, cell_y)
+        for (c, x, y) in surr_cells:
+            if not c.is_free():
+                p = Point(x, y, 0)
+                p2 = Point(cell_x, cell_y, 0)
+                cell_to_p = subtract_point(p, p2)
+                for pose in poses:
+                    x_under_pose = pose.pose.position.x
+                    y_under_pose = pose.pose.position.y
+                    #filter poses that are pointing to unknowns or obstacles
+                    if get_angle(cell_to_p, subtract_point(Point(x_under_pose, y_under_pose, 0), p2)) < pi/4:
+                        poses.remove(pose)
+        return poses
+
+    def filter_invalid_poses2(self, cell_x, cell_y, pose_list):
+        poses = deepcopy(pose_list)
+
+        for pose in poses:
+            x_under_pose = pose.pose.position.x
+            y_under_pose = pose.pose.position.y
+            #filter poses that are outside of the table
+            if not (-1.15 <= x_under_pose <= 1.15 and -1.15 <= y_under_pose <= 1.15):
+                poses.remove(pose)
+                continue
+            #filter poses that are above unknowns
+            if -1.0 <= x_under_pose <= 1.0 and -1.0 <= y_under_pose <= 1.0:
+                cells = self.get_surrounding_cells8(x_under_pose, y_under_pose)
+                cells.append(((self.get_cell(x_under_pose, y_under_pose),) +(x_under_pose, y_under_pose)))
+                removed = False
+                for (c, x, y) in cells:
+                    if c.is_unknown() or (c.is_obstacle() and c.highest_z >= pose.pose.position.z - 0.1):
+                        removed = True
+                        poses.remove(pose)
+                        break
+                if removed:
+                    continue
+            cell_between = self.get_cells_between(cell_x, cell_y, x_under_pose, y_under_pose)
+            not_frees = [c[0].highest_z for c in cell_between if not c[0].is_free()]
+            max_z = 0
+            if len(not_frees) > 0:
+                max_z = max(not_frees)
+            #filter pose if the cell to the cells are to high on average
+            if max_z > pose.pose.position.z/3.5:
+                poses.remove(pose)
+        return poses
+
+    def filter_invalid_poses3(self, cell_x, cell_y, pose_list):
+        poses = deepcopy(pose_list)
+
+        for pose in poses:
+            x_under_pose = pose.pose.position.x
+            y_under_pose = pose.pose.position.y
+            #filter poses that are outside of the table
+            if not (-1.15 <= x_under_pose <= 1.15 and -1.15 <= y_under_pose <= 1.15):
+                poses.remove(pose)
+                continue
+            #filter poses that are above unknowns
+            if -1.0 <= x_under_pose <= 1.0 and -1.0 <= y_under_pose <= 1.0:
+                cells = self.get_surrounding_cells8(x_under_pose, y_under_pose)
+                cells.append(((self.get_cell(x_under_pose, y_under_pose),) +(x_under_pose, y_under_pose)))
+                removed = False
+                for (c, x, y) in cells:
+                    if c.is_unknown() or (c.is_obstacle() and c.highest_z >= pose.pose.position.z - 0.85):
+                        removed = True
+                        poses.remove(pose)
+                        break
+                if removed:
+                    continue
+        return poses
 
     #GETTER
 
@@ -392,17 +465,29 @@ class Map:
         return percent
 
     def get_cells_between(self, x1, y1, x2, y2):
+        '''
+
+        :param x1:
+        :param y1:
+        :param x2:
+        :param y2:
+        :return: [(x_index, y_index)] list of cell coordinates
+        '''
+
         (x_1, y_1) = self.index_to_coordinates(*self.coordinates_to_index(x1, y1))
         (x_2, y_2) = self.index_to_coordinates(*self.coordinates_to_index(x2, y2))
         p = subtract_point((x_2, y_2, 0), (x_1, y_1, 0))
         l = magnitude(p)
         steps = int(l / self.cell_size_x)+2
         p = set_vector_length(self.cell_size_x, p)
+        if isnan(p.x) or isnan(p.y) or isnan(p.z):
+            return []
         cells = []
         x = x_1
         y = y_1
         for i in xrange(steps):
             c = self.coordinates_to_index(x, y)
+            c = ((self.get_cell_by_index(*c),) + c)
             if not c in cells:
                 cells.append(c)
             x += p.x

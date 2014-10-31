@@ -133,7 +133,7 @@ class PlanningSceneInterface(object):
             rospy.logerr("No objects attached!")
             return None
         else:
-            return self.get_planning_scene().robot_state.attached_collision_objects[0]
+            return acos[0]
 
     def get_planning_scene(self):
         '''

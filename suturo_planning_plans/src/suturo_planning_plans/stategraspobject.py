@@ -7,6 +7,7 @@ import smach
 import rospy
 from suturo_planning_manipulation.mathemagie import magnitude, subtract_point
 from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_position, get_pre_grasp
+from suturo_planning_visualization.visualization import visualize_poses
 import utils
 
 
@@ -39,13 +40,17 @@ class GraspObject(smach.State):
         #filter out some invalid grasps
         grasp_positions = utils.manipulation.filter_invalid_grasps(grasp_positions)
 
+        centroid = utils.manipulation.get_center_of_mass(collision_object)
+
+        grasp_positions = utils.map.filter_invalid_poses3(centroid.point.x, centroid.point.y, grasp_positions)
+
         if len(grasp_positions) == 0:
             rospy.logwarn("No grasppositions found for " + collision_object_name)
             return 'noGraspPosition'
 
         #sort to try the best grasps first
         grasp_positions.sort(cmp=lambda x, y: utils.manipulation.cmp_pose_stamped(collision_object, x, y))
-
+        visualize_poses(grasp_positions)
         utils.manipulation.open_gripper()
         for grasp in grasp_positions:
             if move_to_func(get_pre_grasp(grasp)):
@@ -92,7 +97,7 @@ class GraspObject(smach.State):
                 # userdata.grasp = utils.manipulation.make_grasp_vector(collision_object_name)
 
                 rospy.logdebug("lift object")
-                if not move_to_func(get_pre_grasp(grasp)):
+                if not move_to_func(get_pre_grasp(grasp), blow_up=False):
                     rospy.logwarn("couldnt lift object. continue anyway")
 
                 return 'success'
