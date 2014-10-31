@@ -89,7 +89,7 @@ class FastGrasp(smach.State):
                 rospy.logdebug('FastGrasp: Request next object')
                 # rospy.ServiceProxy("/euroc_interface_node/request_next_object", RequestNextObject).call()
                 serviceCall = True
-            if i == 10 and serviceCall:
+            if i == 9 and serviceCall:
                 return 'timeExpired'
             pose_comp = self.percieve_object(10)
             i += 1
