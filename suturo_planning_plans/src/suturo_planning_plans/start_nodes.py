@@ -15,14 +15,17 @@ from suturo_planning_task_selector import stop_task
 from rosgraph_msgs.msg import Clock
 from actionlib_msgs.msg import GoalStatusArray
 from suturo_perception_msgs.msg import PerceptionNodeStatus
+from suturo_msgs.msg import Task
 
 
-perception_process = 0
-manipulation_process = 0
-classifier_process = 0
-perception_logger_process = 0
-manipulation_logger_process = 0
-classifier_logger_process = 0
+perception_process = None
+manipulation_process = None
+classifier_process = None
+perception_logger_process = None
+manipulation_logger_process = None
+classifier_logger_process = None
+executed_test_node_check = False
+__handling_exit = False
 
 
 class StartManipulation(smach.State):
@@ -60,7 +63,7 @@ class StartManipulation(smach.State):
 class StartPerception(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['success', 'fail'],
-                             input_keys=['initialization_time', 'logging'],
+                             input_keys=['initialization_time', 'logging', 'yaml'],
                              output_keys=['perception_process', 'perception_logger_process'])
         self.__subscriber = None
         self.__perception_ready = False
@@ -84,8 +87,13 @@ class StartPerception(smach.State):
                     rospy.loginfo('Node ' + str(n) + ' has not been started yet. Still waiting.')
                     return
             rospy.loginfo('All nodes have been started.')
-            self.__perception_ready = True
-            self.__subscriber.unregister()
+            if True:
+                self.__perception_ready = True
+                try:
+                    self.__subscriber.unregister()
+                except AssertionError, e:
+                    rospy.loginfo('Accidentally tried to unregister already unregistered subscriber.')
+                    rospy.loginfo(e)
         else:
             rospy.loginfo('Still waiting for perception.')
 
@@ -94,33 +102,22 @@ class StartPerception(smach.State):
         rospy.loginfo('Subscribing to /suturo/perception_node_status.')
         self.__subscriber = rospy.Subscriber('/suturo/perception_node_status', PerceptionNodeStatus,
                                              self.wait_for_perception)
+        task_type = userdata.yaml.task_type
+        if task_type == Task.TASK_4:
+            task_num = '4'
+        elif task_type == Task.TASK_6:
+            task_num = '6'
+        else:
+            task_num = '1'
         global perception_process
         global perception_logger_process
         perception_process, perception_logger_process =\
-            utils.start_node('roslaunch euroc_launch perception_task1.launch', userdata.initialization_time,
+            utils.start_node('roslaunch euroc_launch perception_task' + task_num + '.launch', userdata.initialization_time,
                              'Perception', userdata.logging)
         userdata.perception_process = perception_process
         userdata.perception_logger_process = perception_logger_process
         while not self.__perception_ready:
             time.sleep(1)
-        return 'success'
-
-
-class StartPerceptionTask6(smach.State):
-    def __init__(self):
-        smach.State.__init__(self, outcomes=['success', 'fail'],
-                             input_keys=['initialization_time'],
-                             output_keys=['perception_process', 'perception_logger_process'])
-
-    def execute(self, userdata):
-        rospy.loginfo('Executing state StartPerceptionTask6')
-        global perception_process
-        global perception_logger_process
-        perception_process, perception_logger_process =\
-            utils.start_node('roslaunch euroc_launch perception_task6.launch', userdata.initialization_time,
-                             'Perception', userdata.logging)
-        userdata.perception_process = perception_process
-        userdata.perception_logger_process = perception_logger_process
         return 'success'
 
 
@@ -188,14 +185,20 @@ class StopSimulation(smach.State):
 
 
 def check_node(initialization_time, logging):
+    global executed_test_node_check
     rospy.loginfo('Executing TestNode check.')
-
     test_node, test_node_logger = utils.start_node('rosrun euroc_launch TestNode --check', initialization_time,
                                                    'TestNode check', logging)
-    test_node.wait()
-    if test_node_logger != 0:
+    rospy.loginfo('Waiting for TestNode check to terminate. PID: ' + str(test_node.pid))
+    if not utils.wait_for_process(test_node, 15):
+        rospy.loginfo('Killing TestNode check.')
+        exterminate(test_node.pid, signal.SIGKILL)
+    #test_node.wait()
+    if test_node_logger is not None:
         rospy.loginfo('Killing TestNode logger with pid ' + str(test_node_logger.pid) + '.')
         exterminate(test_node_logger.pid, signal.SIGINT)
+    executed_test_node_check = True
+    rospy.loginfo('Finished TestNode check.')
 
 
 class StopNodes(smach.State):
@@ -208,14 +211,17 @@ class StopNodes(smach.State):
 
     def execute(self, userdata):
         rospy.loginfo('Stopping Nodes')
-        exterminate(userdata.perception_process.pid, signal.SIGINT)
-        exterminate(userdata.manipulation_process.pid, signal.SIGINT)
-        exterminate(userdata.classifier_process.pid, signal.SIGINT)
-        if userdata.perception_logger_process != 0:
+        if userdata.perception_process is not None:
+            exterminate(userdata.perception_process.pid, signal.SIGKILL)
+        if userdata.manipulation_process is not None:
+            exterminate(userdata.manipulation_process.pid, signal.SIGKILL)
+        if userdata.classifier_process is not None:
+            exterminate(userdata.classifier_process.pid, signal.SIGKILL)
+        if userdata.perception_logger_process is not None:
             exterminate(userdata.perception_logger_process.pid, signal.SIGINT)
-        if userdata.manipulation_logger_process != 0:
+        if userdata.manipulation_logger_process is not None:
             exterminate(userdata.manipulation_logger_process.pid, signal.SIGINT)
-        if userdata.classifier_logger_process != 0:
+        if userdata.classifier_logger_process is not None:
             exterminate(userdata.classifier_logger_process.pid, signal.SIGINT)
         rospy.signal_shutdown('Finished plan. Shutting down Node.')
         time.sleep(3)
@@ -224,31 +230,37 @@ class StopNodes(smach.State):
 
 def exit_handler(signum=None, frame=None):
     print('start_nodes: exit_handler')
+    global __handling_exit
+    if __handling_exit:
+        print('start_nodes: Already handling exit.')
+        return
+    __handling_exit = True
     global manipulation_process
-    if manipulation_process != 0:
+    if manipulation_process is not None:
         print 'Killing manipulation'
         exterminate(manipulation_process.pid, signal.SIGINT)
     global perception_process
-    if perception_process != 0:
+    if perception_process is not None:
         print 'Killing perception'
         exterminate(perception_process.pid, signal.SIGINT)
     global classifier_process
-    if classifier_process != 0:
+    if classifier_process is not None:
         print 'Killing classifier'
         exterminate(classifier_process.pid, signal.SIGINT)
     global manipulation_logger_process
-    if manipulation_logger_process != 0:
+    if manipulation_logger_process is not None:
         print('Killing manipulation logger with pid ' + str(manipulation_logger_process.pid) + '.')
         exterminate(manipulation_logger_process.pid, signal.SIGINT)
     global perception_logger_process
-    if perception_logger_process != 0:
+    if perception_logger_process is not None:
         print('Killing perception logger with pid ' + str(perception_logger_process.pid) + '.')
         exterminate(perception_logger_process.pid, signal.SIGINT)
     global classifier_logger_process
-    if classifier_logger_process != 0:
+    if classifier_logger_process is not None:
         print('Killing classifier logger with pid' + str(classifier_logger_process.pid) + '.')
         exterminate(classifier_logger_process.pid, signal.SIGINT)
+    print('start_nodes: Exiting exit_handler')
 
 
 atexit.register(exit_handler)
-signal.signal(signal.SIGINT, exit_handler)
+signal.signal(signal.SIGINT,  exit_handler)

@@ -22,6 +22,7 @@ class ScanMapArmCam(smach.State):
 
     def execute(self, userdata):
         rospy.loginfo('Executing state ScanMapArmCam')
+        wait = 10
 
         if self.finished:
             return 'mapScanned'
@@ -93,7 +94,7 @@ class ScanMapArmCam(smach.State):
                 move_successfull = utils.manipulation.move_arm_and_base_to(poses[j])
                 j += 1
             if move_successfull:
-                rospy.sleep(4)
+                rospy.sleep(wait)
                 arm_base = utils.manipulation.get_base_origin()
                 map_updated = utils.map.add_point_cloud(arm_base.point, scene_cam=False)
                 if not map_updated:

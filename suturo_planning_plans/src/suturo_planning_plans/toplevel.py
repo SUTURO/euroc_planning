@@ -17,13 +17,20 @@ from suturo_msgs.msg import Task
 from suturo_planning_plans import utils
 
 __logger_process = None
+__handling_exit = False
 
 
 def exit_handler(signum=None, frame=None):
     print('toplevel: exit_handler')
+    global __handling_exit
+    if __handling_exit:
+        print('toplevel: Already handling exit.')
+        return
+    __handling_exit = True
     if __logger_process is not None:
         print 'Killing planning logger process.'
         exterminate(__logger_process.pid, signal.SIGINT)
+    print('toplevel: Exiting exit_handler.')
 
 signal.signal(signal.SIGTERM, exit_handler)
 signal.signal(signal.SIGINT, exit_handler)
@@ -32,7 +39,8 @@ atexit.register(exit_handler)
 
 def handle_uncaught_exception(e, initialization_time, logging):
     print('Uncaught exception: ' + str(e))
-    start_nodes.check_node(initialization_time, logging)
+    if not start_nodes.executed_test_node_check:
+        start_nodes.check_node(initialization_time, logging)
     print('Terminating task.')
     rospy.signal_shutdown('Terminating Task due to unhandled exception.')
 
@@ -42,9 +50,9 @@ def toplevel_plan(init_sim, task_list, savelog, initialization_time, logging):
     global __logger_process
     print('toplevel: logging: ' + str(logging))
     if logging == 1:
-        print('Logging planning to console.')
+        print('toplevel: Logging planning to console.')
     else:
-        print('Logging planning to files.')
+        print('toplevel: Logging planning to files.')
         __logger_process = utils.start_logger(subprocess.PIPE, initialization_time, 'Planning', logging)
         sys.stderr = sys.stdout
         sys.stdout = __logger_process.stdin
@@ -75,19 +83,23 @@ def toplevel_plan(init_sim, task_list, savelog, initialization_time, logging):
             handle_uncaught_exception(sys.exc_info()[0], initialization_time, logging)
 
     smach_thread = threading.Thread(target=execute_task)
+    rospy.loginfo('toplevel: Starting smach thread.')
     smach_thread.start()
-
+    rospy.loginfo('toplevel: Waiting for smach thread to terminate.')
     # Wait for ctrl-c
     rospy.spin()
+    rospy.loginfo('toplevel: Interrupting smach thread.')
 
-    # Request the container to preempt
-    rospy.loginfo('Request the container to preempt.')
-    toplevel.request_preempt()
-
-    # Block until everything is preempted
-    # (you could do something more complicated to get the execution outcome if you want it)
-    rospy.loginfo('Block until everything is preempted.')
+    # # Request the container to preempt
+    # rospy.loginfo('Request the container to preempt.')
+    # toplevel.request_preempt()
+    #
+    # # Block until everything is preempted
+    # rospy.loginfo('Block until everything is preempted.')
+    rospy.loginfo('toplevel: Joining smach thread.')
+    start_nodes.exit_handler()
     smach_thread.join()
+    rospy.loginfo('toplevel: smach thread terminated.')
 
 
 class EurocTask(smach.StateMachine):
@@ -150,13 +162,6 @@ class InitSimulation(smach.StateMachine):
                                                  'classifier_process', 'perception_logger_process',
                                                  'manipulation_logger_process', 'classifier_logger_process'])
         with self:
-            # if task_name.split('_')[0] == 'task6':
-            #    rospy.loginfo("Task 6 Perception started")
-            #    smach.StateMachine.add('StartPerceptionTask6', start_nodes.StartPerceptionTask6(),
-            #                           transitions={'success': 'StartSimulation',
-            #                                        'fail': 'StartPerception'})
-            # else:
-            # rospy.loginfo("Normal Perception started")
             smach.StateMachine.add('StartSimulation', start_nodes.StartSimulation(task_name),
                                    transitions={'success': 'StartManipulation',
                                                 'fail': 'StartSimulation'})

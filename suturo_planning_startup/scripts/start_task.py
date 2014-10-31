@@ -7,20 +7,47 @@ import atexit
 from datetime import datetime
 import sys
 import rospy
-import moveit_commander
+#import moveit_commander
 from suturo_planning_task_selector import start_task, stop_task, save_task
 from suturo_planning_plans.toplevel import toplevel_plan
 from suturo_planning_task_selector import task_selector
 from suturo_planning_manipulation.total_annihilation import exterminate
+from suturo_planning_plans import toplevel
+from suturo_planning_plans import start_nodes
 
 
 _pro_task_selector = None
-
 _save_log = False
+__handling_exit = False
+
+
+def exit_handler(signum=None, frame=None):
+    print('start_task: exit_handler')
+    global __handling_exit
+    global _save_log
+    print 'rospy.is_shutdown() = ' + str(rospy.is_shutdown())
+    if __handling_exit:
+        print('start_task: Already handling exit.')
+        return
+    __handling_exit = True
+    print('start_task: Checking for task selector.')
+    global _pro_task_selector
+    if _pro_task_selector is not None:
+        print 'Stopping TaskSelector'
+        print 'Stopping gazebo'
+        exterminate(_pro_task_selector.pid, signal.SIGINT)
+    #print('Exiting moveit_commander.')
+    #moveit_commander.os._exit(0)
+    print('start_task: Exiting exit_handler')
+
+
+signal.signal(signal.SIGINT, exit_handler)
+signal.signal(signal.SIGTERM, exit_handler)
+atexit.register(exit_handler)
 
 
 def main(task, with_plan, init_sim, savelog, no_taskselector, initialization_time, logging):
-
+    print('start_task: main')
     if init_sim and not no_taskselector:
         #Taskselector
         print "Starting task_selector"
@@ -47,28 +74,16 @@ def main(task, with_plan, init_sim, savelog, no_taskselector, initialization_tim
 def rospy_exit_handler():
     print('start_task: rospy_exit_handler')
     global _save_log
-    print 'Exithandler: save_log = ' + str(_save_log) + ', rospy.is_shutdown() = ' + str(rospy.is_shutdown())
+    if not start_nodes.executed_test_node_check:
+        start_nodes.check_node(initialization_time, logging)
+    print 'save_log = ' + str(_save_log) + ', rospy.is_shutdown() = ' + str(rospy.is_shutdown())
     if _save_log and not task_selector.task_saved:
         rospy.loginfo('Going to save log')
         save_task()
     if not task_selector.task_stopped:
         stop_task()
     rospy.sleep(2)
-
-
-def exit_handler(signum=None, frame=None):
-    print('start_task: exit_handler')
-    global _pro_task_selector
-    if _pro_task_selector is not None:
-        print 'Stopping TaskSelector'
-        print 'Stopping gazebo'
-        exterminate(_pro_task_selector.pid, signal.SIGINT)
-    print('Exiting moveit_commander.')
-    #moveit_commander.os._exit(0)
-
-signal.signal(signal.SIGINT, exit_handler)
-signal.signal(signal.SIGTERM, exit_handler)
-atexit.register(exit_handler)
+    print('start_task: Exiting rospy_exit_handler.')
 
 if __name__ == '__main__':
     task = sys.argv[1]
@@ -96,6 +111,6 @@ if __name__ == '__main__':
                 logging = l
 
     if initialization_time is None:
-        initialization_time = datetime.now().isoformat(' ')
+        initialization_time = datetime.now().isoformat('-')
     main(task, '--plan' in sys.argv, '--init' in sys.argv, _save_log, '--no-ts' in sys.argv, initialization_time,
          logging)

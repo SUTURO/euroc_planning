@@ -14,6 +14,7 @@ class ScanShadow(smach.State):
 
     def execute(self, userdata):
         rospy.loginfo('Executing state ScanShadow')
+        wait = 10
 
         scan_poses = ['shadow_pose1', 'shadow_pose2']
 
@@ -21,7 +22,7 @@ class ScanShadow(smach.State):
 
             rospy.loginfo('Taking pose: %s' % scan_pose)
             utils.manipulation.move_to(scan_pose)
-            rospy.sleep(4)
+            rospy.sleep(wait)
 
             # Add pc to map
             rospy.logdebug('Adding current point cloud to map')
