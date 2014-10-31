@@ -32,22 +32,12 @@ class YamlPars0r:
         self.pub = rospy.Publisher('suturo/yaml_pars0r', Task, queue_size=10, latch=True)
         #rospy.init_node('yaml_pars0r_node', anonymous=True, log_level=rospy.INFO)
         self._subscriber = rospy.Subscriber("suturo/yaml_pars0r_input", String, self.get_input)
-        self.__interrupted = False
         rospy.loginfo('Initialised YAML parser.')
 
     def get_input(self, msg):
         rospy.loginfo('Received input.')
         rospy.logdebug('get_input: ' + str(msg))
         self.parse_and_publish(msg.data)
-
-    def interrupt(self):
-        rospy.loginfo('They interrupted me!')
-        self.__interrupted = True
-
-    def run(self):
-        while not self.__interrupted:
-            time.sleep(1)
-        rospy.loginfo('Terminating YAML pars0r thread.')
 
     @staticmethod
     def get_dict_value(dictionary, key, val_type=None):

@@ -43,9 +43,6 @@ def handle_uncaught_exception(e, initialization_time, logging):
     print('Uncaught exception: ' + str(e))
     if not start_nodes.executed_test_node_check:
         start_nodes.check_node(initialization_time, logging)
-    if task_selector.yaml_parser is not None:
-        print('Interrupting YAML pars0r.')
-        task_selector.yaml_parser.interrupt()
     print('Terminating task.')
     rospy.signal_shutdown('Terminating Task due to unhandled exception.')
 

@@ -43,11 +43,11 @@ def abort_current_task():
             print('Killing logger with pid ' + str(logger_process.pid))
             exterminate(logger_process.pid, signal.SIGINT)
             print('Waiting for logger process to terminate. Please be patient.')
-            logger_process.wait()
-            #utils.wait_for_process(logger_process, 20)
-            #if logger_process.poll() is None:
-                #print('Could not kill logger process. Forcing!')
-                #exterminate(logger_process.pid, signal.SIGKILL)
+            #logger_process.wait()
+            utils.wait_for_process(logger_process, 240)
+            if logger_process.poll() is None:
+                print('Could not kill logger process. Forcing!')
+                exterminate(logger_process.pid, signal.SIGKILL)
         except Exception, e:
             print(e)
 

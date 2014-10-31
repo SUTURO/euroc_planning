@@ -17,6 +17,8 @@ from actionlib_msgs.msg import GoalStatusArray
 from suturo_perception_msgs.msg import PerceptionNodeStatus
 from suturo_manipulation_msgs.msg import ManipulationNodeStatus
 from suturo_msgs.msg import Task
+from suturo_planning_yaml_pars0r.yaml_pars0r import YamlPars0r
+from suturo_planning_task_selector import task_selector
 
 
 perception_process = None
@@ -238,7 +240,8 @@ class StopSimulation(smach.State):
 
     def execute(self, userdata):
         rospy.loginfo('Executing state StopSimulation')
-        check_node(userdata.initialization_time, userdata.logging)
+        if not executed_test_node_check:
+            check_node(userdata.initialization_time, userdata.logging)
         if self.savelog:
             save_task()
         stop_task()
@@ -249,8 +252,11 @@ class StopSimulation(smach.State):
 def check_node(initialization_time, logging):
     global executed_test_node_check
     rospy.loginfo('Executing TestNode check.')
+    rospy.loginfo('rospy.is_shutdown(): ' + str(rospy.is_shutdown()))
     test_node, test_node_logger = utils.start_node('rosrun euroc_launch TestNode --check', initialization_time,
                                                    logging, 'TestNode check')
+    pensi_pars0r = YamlPars0r()
+    pensi_pars0r.parse_and_publish(task_selector.yaml_description)
     rospy.loginfo('Waiting for TestNode check to terminate. PID: ' + str(test_node.pid))
     if not utils.wait_for_process(test_node, 15):
         rospy.loginfo('Killing TestNode check.')
@@ -259,6 +265,11 @@ def check_node(initialization_time, logging):
     if test_node_logger is not None:
         rospy.loginfo('Killing TestNode logger with pid ' + str(test_node_logger.pid) + '.')
         exterminate(test_node_logger.pid, signal.SIGINT)
+        if not utils.wait_for_process(test_node_logger, 15):
+            rospy.loginfo('Killing TestNode logger.')
+            exterminate(test_node_logger.pid, signal.SIGKILL)
+    else:
+        rospy.loginfo('There is no TestNode logger I could kill.')
     executed_test_node_check = True
     rospy.loginfo('Finished TestNode check.')
 

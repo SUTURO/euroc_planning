@@ -5,12 +5,12 @@ from suturo_planning_yaml_pars0r.yaml_pars0r import YamlPars0r
 
 task_stopped = False
 task_saved = False
-yaml_parser = None
+yaml_description = None
 
 
 def start_task(scene):
     print 'Starting ' + scene
-    global yaml_parser
+    global yaml_description
     rospy.wait_for_service('euroc_c2_task_selector/start_simulator')
 
     try:
@@ -18,8 +18,6 @@ def start_task(scene):
         yaml_description = start_simulator('C2T03#8112895', scene).description_yaml
         rospy.loginfo('Starting YAML pars0r.')
         yaml_parser = YamlPars0r()
-        yaml_thread = threading.Thread(target=yaml_parser.run)
-        yaml_thread.start()
         rospy.loginfo('Started YAML pars0r.')
         # signal.signal(signal.SIGINT, lambda sig, frame: yaml_parser.kill(sig, frame))
         return yaml_parser.parse_and_publish(yaml_description)
