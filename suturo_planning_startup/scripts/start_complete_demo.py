@@ -110,7 +110,7 @@ def start_demo(wait, tasks, logging):
         if __quit:
             print('Demo has been aborted. Exiting (1)')
             return
-        init_time = __initialization_time + ' ' + task
+        init_time = __initialization_time + '-' + task
         if wait:
             raw_input('Starting task ' + str(task) + '. Press ENTER.')
         print('Starting task ' + str(task))
