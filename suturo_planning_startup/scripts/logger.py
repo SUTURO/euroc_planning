@@ -25,10 +25,13 @@ def exit_handler(signum=None, frame=None):
         __loop = False
         print('[LOGGER] Closing file.')
         try:
+            h.write('THIS LOGGER TERMINATED CORRECTLY.')
+            h.flush()
+            os.fsync(h.fileno())
             h.close()
         except:
             print('[LOGGER] Error closing file ' + str(h))
-        print('[LOGGER] Exiting.')
+        print('[LOGGER] Exiting exit_handler.')
         print('[LOGGER] #################################################################')
 
 
@@ -92,3 +95,5 @@ def check_for_input():
 
 while __loop:
     check_for_input()
+
+print('[LOGGER] Exiting.')

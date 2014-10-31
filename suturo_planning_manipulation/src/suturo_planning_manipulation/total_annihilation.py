@@ -1,4 +1,4 @@
-from os import kill
+import os
 from sets import Set
 import signal
 from subprocess import check_output
@@ -6,21 +6,35 @@ from subprocess import check_output
 __author__ = 'moritz bleibuntreu'
 
 
+def exterminate(killme, signal, r=False):
+    #print('Executing exterminate')
+    #print('killme: ' + str(killme))
+    if r:
+        pids = Set()
+        getpids(pids, killme)
+        for pid in pids:
+            try:
+                #print('Killing process ' + str(pid))
+                os.kill(int(pid), signal)
+            except OSError, e:
+                #print "ASDException: fgsfds " + e.strerror
+                pass
+    else:
+        if killme == '':
+            print('Nix zu killen!')
+            return
+        else:
+            try:
+                os.killpg(os.getpgid(killme), signal)
+            except Exception, e:
+                print('FDO on killpg: ' + str(e))
+                print(e)
+            try:
+                os.kill(killme, signal)
+            except Exception, e:
+                print('FDO on kill: ' + str(e))
+                print(e)
 
-def exterminate(killme, signal):
-    print('Executing exterminate')
-    print('killme: ' + str(killme))
-    if killme == '':
-        return
-    pids = Set()
-    killedpids = Set()
-    getpids(pids, killme)
-    for pid in pids:
-        try:
-            print('Killing process ' + str(pid))
-            kill(int(pid), signal)
-        except OSError, e:
-            print "ASDException: fgsfds " + e.strerror
 
 def getpids(pidset, pid):
     pids = []

@@ -26,6 +26,22 @@ if not os.path.exists(log_dir):
 focus_poses = [[0.7, pi / 5.0], [0.6, pi / 4.0], [0.6, pi / 3.0], [0.7, pi / 4.0], [0.5, pi / 4.0], [0.4, pi / 4.0]]
 
 
+def wait_for_process(process, t=None):
+    if t is None:
+        process.wait()
+    else:
+        then = int(time.time())
+        now = int(time.time())
+        while now - then < t and process.poll() is None:
+            time.sleep(1)
+            now = int(time.time())
+    if process.poll() is None:
+        print('wait_for_process: Sorry, process ' + str(process.pid) + ' is still alive.')
+        return False
+    else:
+        return True
+
+
 def start_node(command, initialization_time, log_name, logging, dont_print=False,print_prefix_to_stdout=True):
     print('Starting node.')
     print('command: ' + command)
@@ -35,7 +51,7 @@ def start_node(command, initialization_time, log_name, logging, dont_print=False
         stdout = sys.stdout
         stderr = sys.stderr
     else:
-        print('Logging to files.')
+        print('Logging to file.')
         stdout = subprocess.PIPE
         stderr = subprocess.STDOUT
     process = subprocess.Popen(command, stdout=stdout, stderr=stderr, shell=True, preexec_fn=os.setsid)
@@ -43,13 +59,13 @@ def start_node(command, initialization_time, log_name, logging, dont_print=False
         logger_process = start_logger(process.stdout, initialization_time, log_name, logging, dont_print=dont_print,
                                       print_prefix_to_stdout=print_prefix_to_stdout)
     else:
-        logger_process = 0
+        logger_process = None
     return process, logger_process
 
 
 def start_logger(stdin, initialization_time, log_name, logging, dont_print=False, print_prefix_to_stdout=True):
     print('Creating logger process: ' + log_name)
-    return subprocess.Popen('rosrun suturo_planning_startup logger.py "' + log_dir + '/' + initialization_time + ' ' +
+    return subprocess.Popen('rosrun suturo_planning_startup logger.py "' + log_dir + '/' + initialization_time + '-' +
                             log_name + '.log"' + ' "' + log_name + '"' + ' ' + str(logging) + ' ' + str(dont_print) +
                             ' ' + str(print_prefix_to_stdout), stdin=stdin, shell=True, preexec_fn=os.setsid)
 
