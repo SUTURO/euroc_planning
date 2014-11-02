@@ -67,21 +67,21 @@ def test_task1_v2(mani):
     # dest.point = Point(-0.5, -0.5, 0.00)
     # mani.place(dest)
 
-    mani.grasp("cyan_cylinder")
-
-    dest = PointStamped()
-    dest.header.frame_id = "/odom_combined"
-    dest.point = Point(-0.5, 0, 0)
-    mani.place(dest)
-
-    # mani.grasp("yellow_handle")
+    # mani.grasp("cyan_cylinder")
     #
+    # dest = PointStamped()
+    # dest.header.frame_id = "/odom_combined"
+    # dest.point = Point(-0.5, 0, 0)
+    # mani.place(dest)
+
+    mani.grasp("yellow_handle")
+
     # dest = PointStamped()
     # dest.header.frame_id = "/odom_combined"
     # dest.point = Point(0.5, -0.5, 0)
     # mani.place(dest)
-
-    mani.grasp_and_move("blue_handle")
+    #
+    # mani.grasp_and_move("blue_handle")
 
 def test_task3(mani):
     dest = PointStamped()
@@ -108,16 +108,29 @@ if __name__ == '__main__':
     rospy.init_node('head_mover', anonymous=True)
 
     m = Manipulation()
-    m2 = Map(2)
-    m.pan_tilt(0.2825, 0.5)
-    rospy.sleep(3)
-    m2.add_point_cloud(scene_cam=True)
-    m.pan_tilt(0, 1.1)
-    rospy.sleep(3)
-    m2.add_point_cloud(scene_cam=True)
-    m.pan_tilt(-0.2825, 0.5)
-    rospy.sleep(3)
-    m2.add_point_cloud(scene_cam=True)
+    rospy.sleep(2)
+    # test_task1_v2(m)
+
+    print m.get_eef_position()
+
+    t_point = geometry_msgs.msg.PoseStamped()
+    t_point.header.frame_id = "/odom_combined"
+    # p = Point(0.66,0.91,0.37341)
+    p = Point(0.91,0.66,0.37341)
+    t_point.pose.position = p
+    t_point.pose.orientation = euler_to_quaternion(0, pi/2, pi/4)
+    visualize_poses([t_point])
+    m.move_arm_and_base_to(t_point)
+    # m2 = Map(2)
+    # m.pan_tilt(0.2825, 0.5)
+    # rospy.sleep(3)
+    # m2.add_point_cloud(scene_cam=True)
+    # m.pan_tilt(0, 1.1)
+    # rospy.sleep(3)
+    # m2.add_point_cloud(scene_cam=True)
+    # m.pan_tilt(-0.2825, 0.5)
+    # rospy.sleep(3)
+    # m2.add_point_cloud(scene_cam=True)
     # m.pan_tilt(0, 0.45)
     # utils.manipulation.pan_tilt(0.2, 0.5)
     # rospy.sleep(utils.waiting_time_before_scan)
@@ -139,13 +152,6 @@ if __name__ == '__main__':
     # utils.manipulation.pan_tilt(-0.2, 0.5)
     # rospy.sleep(utils.waiting_time_before_scan)
     # m.close_gripper()
-    # t_point = geometry_msgs.msg.PoseStamped()
-    # t_point.header.frame_id = "/odom_combined"
-    # p = Point(0.3,0.3,0.5)
-    # t_point.pose.position = p
-    # t_point.pose.orientation = three_points_to_quaternion(p, Point(0,0,0))
-    # visualize_poses([t_point])
-    # m.move_arm_and_base_to(t_point)
 
 
     # x_axis_unit = Point(1, 0, 0)

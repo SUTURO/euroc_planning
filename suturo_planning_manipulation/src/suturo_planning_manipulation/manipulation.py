@@ -73,10 +73,11 @@ class Manipulation(object):
             moveit_commander.os._exit(0)
 
     def print_manipulation(self):
-        print "current joint state"
-        print self.get_current_joint_state()
-        print "current planning scene"
-        print self.get_planning_scene().get_planning_scene()
+        # print "current joint state"
+        # print self.get_current_joint_state()
+        # print "current planning scene"
+        # print self.get_planning_scene().get_planning_scene()
+        pass
 
     def move_base(self, goal_pose):
         '''
