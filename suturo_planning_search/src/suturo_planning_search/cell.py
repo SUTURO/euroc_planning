@@ -37,6 +37,8 @@ class Cell:
     YELLOW_ID = 5
     UNDEF_ID = 6
 
+    min_z_value = 0.01
+
     def __init__(self):
         self.average_z = 0
         self.highest_z = 0
@@ -70,18 +72,21 @@ class Cell:
     def update_cell(self, z, color, update_id):
         self.last_update = update_id
         z2 = self.average_z * self.get_num_points()
-        if color == self.BLUE:
-            self.points[self.BLUE_ID] += 1
-        elif color == self.GREEN:
-            self.points[self.GREEN_ID] += 1
-        elif color == self.CYAN:
-            self.points[self.CYAN_ID] += 1
-        elif color == self.RED:
-            self.points[self.RED_ID] += 1
-        elif color == self.MAGENTA:
-            self.points[self.MAGENTA_ID] += 1
-        elif color == self.YELLOW:
-            self.points[self.YELLOW_ID] += 1
+        if z > self.min_z_value:
+            if color == self.BLUE:
+                self.points[self.BLUE_ID] += 1
+            elif color == self.GREEN:
+                self.points[self.GREEN_ID] += 1
+            elif color == self.CYAN:
+                self.points[self.CYAN_ID] += 1
+            elif color == self.RED:
+                self.points[self.RED_ID] += 1
+            elif color == self.MAGENTA:
+                self.points[self.MAGENTA_ID] += 1
+            elif color == self.YELLOW:
+                self.points[self.YELLOW_ID] += 1
+            else:
+                self.points[self.UNDEF_ID] += 1
         else:
             self.points[self.UNDEF_ID] += 1
 
@@ -92,7 +97,7 @@ class Cell:
 
     def update_state(self):
         if not self.is_object() and self.enough_points():
-            if self.average_z <= 0.01:
+            if self.average_z <= self.min_z_value:
                 self.state = self.Free
             else:
                 self.state = self.Obstacle

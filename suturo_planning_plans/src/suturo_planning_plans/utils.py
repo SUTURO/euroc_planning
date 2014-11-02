@@ -29,6 +29,7 @@ focus_poses = [[0.7, pi / 5.0], [0.6, pi / 4.0], [0.6, pi / 3.0], [0.7, pi / 4.0
 
 
 def wait_for_process(process, t=None):
+    print('Waiting for process ' + str(process.pid))
     if t is None:
         process.wait()
     else:

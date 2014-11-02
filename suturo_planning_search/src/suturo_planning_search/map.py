@@ -301,7 +301,7 @@ class Map:
                 cells.append(((self.get_cell(x_under_pose, y_under_pose),) +(x_under_pose, y_under_pose)))
                 removed = False
                 for (c, x, y) in cells:
-                    if c.is_unknown() or (c.is_obstacle() and c.highest_z >= pose.pose.position.z - 0.1):
+                    if c.is_unknown() or (c.is_obstacle() and c.highest_z >= pose.pose.position.z - 0.085):
                         removed = True
                         poses.remove(pose)
                         break
@@ -331,14 +331,14 @@ class Map:
             if -1.0 <= x_under_pose <= 1.0 and -1.0 <= y_under_pose <= 1.0:
                 cells = self.get_surrounding_cells8(x_under_pose, y_under_pose)
                 cells.append(((self.get_cell(x_under_pose, y_under_pose),) +(x_under_pose, y_under_pose)))
-                removed = False
+                # removed = False
                 for (c, x, y) in cells:
-                    if c.is_unknown() or (c.is_obstacle() and c.highest_z >= pose.pose.position.z - 0.85):
-                        removed = True
+                    if c.is_unknown() or (c.is_obstacle() and c.highest_z >= pose.pose.position.z - 0.085):
+                        # removed = True
                         poses.remove(pose)
                         break
-                if removed:
-                    continue
+                # if removed:
+                #     continue
         return poses
 
     #GETTER

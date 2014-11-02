@@ -81,6 +81,7 @@ def rospy_exit_handler():
         rospy.loginfo('Going to save log')
         save_task()
     if not task_selector.task_stopped:
+        rospy.loginfo('Going to stop task.')
         stop_task()
     rospy.sleep(2)
     print('start_task: Exiting rospy_exit_handler.')

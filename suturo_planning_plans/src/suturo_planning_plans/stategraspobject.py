@@ -42,7 +42,7 @@ class GraspObject(smach.State):
 
         centroid = utils.manipulation.get_center_of_mass(collision_object)
 
-        # grasp_positions = utils.map.filter_invalid_poses3(centroid.point.x, centroid.point.y, grasp_positions)
+        grasp_positions = utils.map.filter_invalid_poses3(centroid.point.x, centroid.point.y, grasp_positions)
 
         if len(grasp_positions) == 0:
             rospy.logwarn("No grasppositions found for " + collision_object_name)
@@ -66,6 +66,7 @@ class GraspObject(smach.State):
 
                 rospy.sleep(1)
                 utils.manipulation.close_gripper(collision_object)
+                rospy.sleep(1.5)
 
                 #calculate the center of mass and weight of the object and call the load object service
                 com = utils.manipulation.get_center_of_mass(collision_object)
