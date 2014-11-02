@@ -20,6 +20,7 @@ class Task6(smach.StateMachine):
 
             smach.StateMachine.add('FastGrasp', FastGrasp(),
                                    transitions={'objectGrasped': 'PlaceObject',
+                                                'noPlanFound': 'CamToDropzone',
                                                 'timeExpired': 'success',
                                                 'fail': 'fail'})
 

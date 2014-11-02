@@ -19,7 +19,6 @@ class CamToDropzone(smach.State):
 
         if utils.manipulation is None:
             utils.manipulation = Manipulation()
-            rospy.sleep(2)
 
         # TODO: Exception schmeissen wenn abort_after vergangen ist
         abort_after = 15
