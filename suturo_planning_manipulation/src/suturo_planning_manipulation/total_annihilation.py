@@ -8,7 +8,7 @@ __author__ = 'moritz bleibuntreu'
 
 def exterminate(killme, signal, r=False):
     #print('Executing exterminate')
-    #print('killme: ' + str(killme))
+    print('exterminate. Kill pid: ' + str(killme) + ' with signal ' + str(signal))
     if r:
         pids = Set()
         getpids(pids, killme)
