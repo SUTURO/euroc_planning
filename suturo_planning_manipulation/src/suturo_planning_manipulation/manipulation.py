@@ -620,7 +620,7 @@ class Manipulation(object):
                     config.q.append(list[i])
         resp = service(config, pose)
         if resp.error_message:
-            raise Exception(resp.error_message)
+            raise PlanningException(resp.error_message)
         rospy.logdebug('PlanTo: Return ik')
         return resp.solution
 
@@ -631,3 +631,7 @@ class Manipulation(object):
             return True
         # print states
         return False
+
+# class for our own exception
+class PlanningException(Exception):
+    pass
