@@ -22,7 +22,7 @@ class Task6(smach.StateMachine):
                                    transitions={'objectGrasped': 'PlaceObject',
                                                 'noPlanFound': 'CamToDropzone',
                                                 'timeExpired': 'success',
-                                                'fail': 'fail'})
+                                                'graspingFailed': 'CamToDropzone'})
 
             smach.StateMachine.add('PlaceObject', PlaceTask6(),
                                    transitions={'success': 'CamToDropzone',
@@ -39,3 +39,4 @@ class Task6(smach.StateMachine):
         self.userdata.task = task
         self.userdata.scan_conveyor_pose = []
         self.placement_failed = False
+        self.userdata.request_second_object = False
