@@ -147,12 +147,12 @@ class FastGrasp(smach.State):
         self.__t_point.position.z += 0.1
         rospy.logdebug("FastGrasp: Plan 3")
         # TODO: Bei Exception irgendwie ne andere Pose finden
-        for i in range(0, 4):
+        for k in range(0, 4):
             try:
                 utils.manipulation.direct_move(utils.manipulation.plan_to(self.__t_point))
                 break
             except PlanningException:
-                rospy.logdebug("FastGrasp: Plan 3: Cant lift")
+                rospy.logdebug("FastGrasp: Plan 3: Cant lift: " + str(k))
                 if self.__t_point.position.y > 0:
                     self.__t_point.position.y -= 0.1
                 else:
@@ -161,7 +161,7 @@ class FastGrasp(smach.State):
                     self.__t_point.position.x -= 0.1
                 else:
                     self.__t_point.position.x += 0.1
-            if i == 3:
+            if k == 3:
                 rospy.logdebug("FastGrasp: No Plan found to lift object")
                 return 'noPlanFound'
 
