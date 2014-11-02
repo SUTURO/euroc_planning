@@ -20,7 +20,7 @@ manipulation = None
 map = None
 log_dir = '/tmp/euroc_c2'
 
-waiting_time_before_scan = 2
+waiting_time_before_scan = 5
 
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
@@ -29,6 +29,7 @@ focus_poses = [[0.7, pi / 5.0], [0.6, pi / 4.0], [0.6, pi / 3.0], [0.7, pi / 4.0
 
 
 def wait_for_process(process, t=None):
+    print('Waiting for process ' + str(process.pid))
     if t is None:
         process.wait()
     else:

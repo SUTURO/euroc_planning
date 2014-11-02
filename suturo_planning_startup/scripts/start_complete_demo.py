@@ -19,12 +19,15 @@ __clock_subscriber = None
 __time_started_task = None
 __time_limit = 600
 __handling_exit = False
+__aborting_task = False
 subproc = None
 logger_process = None
 
 
 def abort_current_task():
     print('start_complete_demo: abort_current_task')
+    global __aborting_task
+    __aborting_task = True
     global subproc
     global logger_process
     if subproc is not None:
@@ -32,9 +35,11 @@ def abort_current_task():
             print('Killing subproc with pid ' + str(subproc.pid))
             exterminate(subproc.pid, signal.SIGINT)
             print('Waiting for subproc to terminate. Please be patient.')
-            utils.wait_for_process(subproc, 90)
-            if subproc.poll() is None:
-                print('Could not kill task process. Forcing!')
+            utils.wait_for_process(subproc, 120)
+            poll = subproc.poll()
+            if poll is None:
+                print('Could not kill task process. Forcing!'
+                      ' (pid: ' + str(subproc.pid) + ', subproc.poll(): ' + str(poll) + ')')
                 exterminate(subproc.pid, signal.SIGKILL, r=True)
         except Exception, e:
             print(e)
@@ -45,11 +50,14 @@ def abort_current_task():
             print('Waiting for logger process to terminate. Please be patient.')
             #logger_process.wait()
             utils.wait_for_process(logger_process, 240)
-            if logger_process.poll() is None:
-                print('Could not kill logger process. Forcing!')
+            poll = logger_process.poll()
+            if poll is None:
+                print('Could not kill logger process. Forcing!'
+                      ' (pid: ' + str(logger_process.pid) + ', logger_process.poll(): ' + str(poll) + ')')
                 exterminate(logger_process.pid, signal.SIGKILL)
         except Exception, e:
             print(e)
+    __aborting_task = False
 
 
 def exit_handler(signum=None, frame=None):
@@ -74,6 +82,7 @@ def start_demo(wait, tasks, logging):
     global __quit
     global __clock_subscriber
     global __time_started_task
+    global __aborting_task
     global subproc
     global logger_process
     rospy.init_node('start_complete_demo')
@@ -122,13 +131,26 @@ def start_demo(wait, tasks, logging):
         print('Waiting for task ' + task + ' to terminate.')
         subproc.wait()
         if logger_process is not None and logger_process.poll() is None:
-            print('Waiting for logger to terminate.')
-            exterminate(logger_process.pid, signal.SIGINT)
-            logger_process.wait()
+            if __aborting_task:
+                print('Already aborting task. Won\'t kill logger')
+                while __aborting_task:
+                    time.sleep(1)
+            else:
+                print('Killing logger.')
+                exterminate(logger_process.pid, signal.SIGINT)
+                print('Waiting for logger to terminate.')
+                utils.wait_for_process(logger_process, 240)
+                poll = logger_process.poll()
+                if poll is None:
+                    print('Could not kill logger process. Forcing!'
+                          ' (pid: ' + str(logger_process.pid) + ', logger_process.poll(): ' + str(poll) + ')')
+                    exterminate(logger_process.pid, signal.SIGKILL)
         if __quit:
             print('Demo has been aborted. Exiting (2)')
             return
         print('Finished task ' + str(task))
+        if task != tasks_to_execute[-1]:
+            time.sleep(5)
     rospy.signal_shutdown('Finished complete demo.')
 
 
@@ -154,55 +176,7 @@ def handle_clock(msg):
     now = int(time.time())
     if msg.clock.secs > __time_limit:
         if now - __time_started_task >= __time_limit:
-            print('----------------------------------------------')
-            print('| Ten minutes time limit has been succeeded. |')
-            print('|             Terminating Task.              |')
-            print('|                                            |')
-            print('│  ─│─│───│─│───│───│─│─│─│───────│───│─│─   |')
-            print('|  ─│─│──╫▓▓▓╫──│─────│─│─│──────╫▓▓╫│──│─│  |')
-            print('|  ──│─▓███████▓─╫╫╫╫╫╫╫╫╫╫╫╫╫│▓███████╫──   |')
-            print('|  ───██████████████████████████████████▓─   |')
-            print('|  │─████████████│─│─│─│─────▓███████████╫   |')
-            print('|  ─╫███████▓╫││╫─────│───│─││╫││╫████████│  |')
-            print('|  ─▓██████────│─│───────│─│─│─│─│─╫██████│  |')
-            print('|  ─██████│─│───│───│─│─│───│───────│█████▓  |')
-            print('|  ╫█████────│───│─│───│─────│─│─│───╫████▓  |')
-            print('|  │████▓─│─│─│───│───│─────│───│─────████▓  |')
-            print('|  │████│──│───│───│─│───│───────│─│─│▓███╫  |')
-            print('|  ─▓███│───────│─▓██───│╫██╫─│─│─│───▓███│  |')
-            print('|  ──███─│──────╫████▓───█████────────▓███─  |')
-            print('|  ──╫██──│─│──╫██████│─│██████─│─────▓██─│  |')
-            print('|  │─│▓█││─│─││███▓▓██─│─██▓▓███─│─│──▓█─│─  |')
-            print('|  ────█│─│───███╫▓▓█▓│──█▓▓▓▓██▓─────▓█───  |')
-            print('|  │─││█││───▓███╫██▓╫─│─▓▓█▓▓███─────▓█───  |')
-            print('|  ─│─╫█│─│─│████▓╫▓▓─────█▓╫████▓──│─▓█───  |')
-            print('|  │─││█╫│─││███████─│██╫│▓███████─│─│██─│─  |')
-            print('|  ─│─│█▓╫╫─▓██████╫│─▓█│──▓██████│╫╫│██│─│  |')
-            print('|  │─│─██│╫│▓█████╫│───▓───│▓█████╫╫╫╫█▓──   |')
-            print('|  ─│─│▓█╫││╫████╫│││╫██▓││││▓████│╫─▓█╫│─│  |')
-            print('|  │─│─│██│││╫▓▓││╫╫╫╫╫▓╫╫╫╫╫│╫▓▓╫││╫██──│─  |')
-            print('|  ─│───▓██╫─────││││││─││││││────│▓██│────  |')
-            print('|  │─│─│─▓██▓╫╫╫╫╫╫╫╫▓▓▓▓▓╫╫╫╫╫╫╫▓███│────   |')
-            print('|  ───────╫██████████▓▓▓▓▓██████████│────│   |')
-            print('|  │─│─│───▓█████████╫─│─▓█████████│─│─│─│   |')
-            print('|  ─────────██████████──│█████████╫─│───││   |')
-            print('|  │─│─│───│▓█╫███████││▓███████╫█││─│─│─│   |')
-            print('|  ───────│─██─╫██████▓─███████││█╫───│──│   |')
-            print('|  │───│───│██─││█████▓─█████▓─│╫█╫│──────   |')
-            print('|  ─│─│───│─▓█──│─╫▓██│─▓██▓│─│─▓█│───────   |')
-            print('|  │───│─│─│─██────│─│───│─────│██───│─│─│   |')
-            print('|  ─│─│───│─│▓██╫─│─│─────│─│─▓██││─│───│─│  |')
-            print('|  │───────│─│██████████████████▓│─│─│─│─│   |')
-            print('|  ─│───│─│───│███████▓▓████████│─│───│──│   |')
-            print('|  │─│───│─│─│─│██████╫─▓█████▓────│─│─│──   |')
-            print('|  ─────│─────╫│╫▓████▓─█████▓│╫╫───────│    |')
-            print('|  │─│───│───╫─╫╫╫╫███╫╫╫██▓╫│╫╫╫│─│─────    |')
-            print('|  ───│─│──────││───────│─│───│─│─│───│─│    |')
-            print('|                                            |')
-            print('|                                            |')
-            print('|             Sad panda is sad.              |')
-            print('|                                            |')
-            print('----------------------------------------------')
+            print_panda()
             __clock_subscriber.unregister()
             abort_current_task()
         else:
@@ -213,8 +187,60 @@ def handle_clock(msg):
             print('__time_limit: ' + str(__time_limit))
 
 
+def print_panda():
+    print('----------------------------------------------')
+    print('| Ten minutes time limit has been succeeded. |')
+    print('|             Terminating Task.              |')
+    print('|                                            |')
+    print('│  ─│─│───│─│───│───│─│─│─│───────│───│─│─   |')
+    print('|  ─│─│──╫▓▓▓╫──│─────│─│─│──────╫▓▓╫│──│─│  |')
+    print('|  ──│─▓███████▓─╫╫╫╫╫╫╫╫╫╫╫╫╫│▓███████╫──   |')
+    print('|  ───██████████████████████████████████▓─   |')
+    print('|  │─████████████│─│─│─│─────▓███████████╫   |')
+    print('|  ─╫███████▓╫││╫─────│───│─││╫││╫████████│  |')
+    print('|  ─▓██████────│─│───────│─│─│─│─│─╫██████│  |')
+    print('|  ─██████│─│───│───│─│─│───│───────│█████▓  |')
+    print('|  ╫█████────│───│─│───│─────│─│─│───╫████▓  |')
+    print('|  │████▓─│─│─│───│───│─────│───│─────████▓  |')
+    print('|  │████│──│───│───│─│───│───────│─│─│▓███╫  |')
+    print('|  ─▓███│───────│─▓██───│╫██╫─│─│─│───▓███│  |')
+    print('|  ──███─│──────╫████▓───█████────────▓███─  |')
+    print('|  ──╫██──│─│──╫██████│─│██████─│─────▓██─│  |')
+    print('|  │─│▓█││─│─││███▓▓██─│─██▓▓███─│─│──▓█─│─  |')
+    print('|  ────█│─│───███╫▓▓█▓│──█▓▓▓▓██▓─────▓█───  |')
+    print('|  │─││█││───▓███╫██▓╫─│─▓▓█▓▓███─────▓█───  |')
+    print('|  ─│─╫█│─│─│████▓╫▓▓─────█▓╫████▓──│─▓█───  |')
+    print('|  │─││█╫│─││███████─│██╫│▓███████─│─│██─│─  |')
+    print('|  ─│─│█▓╫╫─▓██████╫│─▓█│──▓██████│╫╫│██│─│  |')
+    print('|  │─│─██│╫│▓█████╫│───▓───│▓█████╫╫╫╫█▓──   |')
+    print('|  ─│─│▓█╫││╫████╫│││╫██▓││││▓████│╫─▓█╫│─│  |')
+    print('|  │─│─│██│││╫▓▓││╫╫╫╫╫▓╫╫╫╫╫│╫▓▓╫││╫██──│─  |')
+    print('|  ─│───▓██╫─────││││││─││││││────│▓██│────  |')
+    print('|  │─│─│─▓██▓╫╫╫╫╫╫╫╫▓▓▓▓▓╫╫╫╫╫╫╫▓███│────   |')
+    print('|  ───────╫██████████▓▓▓▓▓██████████│────│   |')
+    print('|  │─│─│───▓█████████╫─│─▓█████████│─│─│─│   |')
+    print('|  ─────────██████████──│█████████╫─│───││   |')
+    print('|  │─│─│───│▓█╫███████││▓███████╫█││─│─│─│   |')
+    print('|  ───────│─██─╫██████▓─███████││█╫───│──│   |')
+    print('|  │───│───│██─││█████▓─█████▓─│╫█╫│──────   |')
+    print('|  ─│─│───│─▓█──│─╫▓██│─▓██▓│─│─▓█│───────   |')
+    print('|  │───│─│─│─██────│─│───│─────│██───│─│─│   |')
+    print('|  ─│─│───│─│▓██╫─│─│─────│─│─▓██││─│───│─│  |')
+    print('|  │───────│─│██████████████████▓│─│─│─│─│   |')
+    print('|  ─│───│─│───│███████▓▓████████│─│───│──│   |')
+    print('|  │─│───│─│─│─│██████╫─▓█████▓────│─│─│──   |')
+    print('|  ─────│─────╫│╫▓████▓─█████▓│╫╫───────│    |')
+    print('|  │─│───│───╫─╫╫╫╫███╫╫╫██▓╫│╫╫╫│─│─────    |')
+    print('|  ───│─│──────││───────│─│───│─│─│───│─│    |')
+    print('|                                            |')
+    print('|                                            |')
+    print('|             Sad panda is sad.              |')
+    print('|                                            |')
+    print('----------------------------------------------')
+
+
 def main(argv):
-    usage = 'usage: start_complete_demo [-t] [-w] [--tasks=<tasks you want to execute>] [--logging=<logging mode>]\n\n' \
+    usage = 'usage: start_complete_demo [-t] [-w] [--tasks=<tasks you want to execute>] [--logging=<logging mode>]\n\n'\
             '\t-t\t\tPrints a list of all available tasks.\n' \
             '\t-w\t\tThe user has to press ENTER after each task.\n' \
             '\t--tasks\t\tA range like \':2\' (python slice and index notation)\n' \
@@ -227,14 +253,14 @@ def main(argv):
     tasks = ':'
     logging = 0
     try:
-        opts, args = getopt.getopt(argv, 'hwct', ['tasks=', 'logging='])
+        opts, args = getopt.getopt(argv, 'hwct', ['tasks=', 'logging=', 'help'])
         #print ('opts: ' + str(opts))
         #print ('args: ' + str(args))
     except getopt.GetoptError:
         print usage
         sys.exit(2)
     for opt, arg in opts:
-        if opt == '-h':
+        if opt in ['-h', '--help']:
             print usage
             sys.exit()
         elif opt == '-t':

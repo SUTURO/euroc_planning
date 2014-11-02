@@ -31,10 +31,10 @@ def stop_task():
     if utils.manipulation is not None:
         print "Print Manipulation Shit:"
         utils.manipulation.print_manipulation()
-    print('Waiting for service euroc_c2_task_selector/stop_simulator.')
-    rospy.wait_for_service('euroc_c2_task_selector/stop_simulator')
-    print('Service euroc_c2_task_selector/stop_simulator ready.')
     try:
+        print('Waiting for service euroc_c2_task_selector/stop_simulator.')
+        rospy.wait_for_service('euroc_c2_task_selector/stop_simulator', timeout=30)
+        print('Service euroc_c2_task_selector/stop_simulator ready.')
         stop_simulator = rospy.ServiceProxy('euroc_c2_task_selector/stop_simulator', StopSimulator)
         global task_stopped
         task_stopped = True
@@ -42,6 +42,8 @@ def stop_task():
         return stop_simulator()
     except rospy.ServiceException, e:
         print "Service call to stop task failed: %s"%e
+    except rospy.ROSException, e:
+        print('Waiting for service service euroc_c2_task_selector/stop_simulator timed out.')
 
 
 def save_task():

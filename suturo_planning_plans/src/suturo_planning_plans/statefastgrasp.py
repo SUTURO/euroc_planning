@@ -14,11 +14,17 @@ from euroc_c2_msgs.srv import RequestNextObject
 
 class FastGrasp(smach.State):
     def __init__(self):
-        smach.State.__init__(self, outcomes=['objectGrasped', 'timeExpired', 'fail'],
+        smach.State.__init__(self, outcomes=['objectGrasped', 'timeExpired', 'noPlanFound', 'fail'],
                              input_keys=['yaml'],
                              output_keys=[])
+        self.__perceived_pose = 0
+        self.__perceived_pose_time = rospy.Time()
+        self.__time_between_poses = rospy.Duration()
+        self.__direction = 0
+        self.__pose_comp = 0
+        self.__t_point = geometry_msgs.msg.Pose()
 
-    def percieve_object(self, t):
+    def percieve_object(self):
         rospy.logdebug('FastGrasp: Start percieving Object')
         # create service
         service = rospy.ServiceProxy("/suturo/GetGripper", GetGripper)
@@ -31,7 +37,7 @@ class FastGrasp(smach.State):
         object1 = resp.objects[0].object
         # rospy.logdebug("FastGrasp: objects")
         # rospy.logdebug(resp.objects[0])
-        time1 = resp.stamp
+        self.__perceived_pose_time = resp.stamp
         # wait some time until the second perception
         rospy.sleep(Duration.from_sec(0.5))
         resp = service("cuboid")
@@ -42,81 +48,109 @@ class FastGrasp(smach.State):
         time2 = resp.stamp
         # rospy.logdebug(resp.objects[0])
         # transform the points into odom_combined
-        pose1 = utils.manipulation.transform_to(object1)
+        self.__perceived_pose = utils.manipulation.transform_to(object1)
         pose2 = utils.manipulation.transform_to(object2)
         # rospy.logdebug("FastGrasp: poses")
-        # rospy.logdebug(pose1)
+        # rospy.logdebug(__perceived_pose)
         # rospy.logdebug(pose2)
         # calculate the vector from the points of first and second perception
-        # if (pose2.primitive_poses.__len__() > 0) & (pose1.primitive_poses.__len__() > 0):
-        # if pose2 is not None & pose1 is not None:
-        dir = numpy.array([(pose2.primitive_poses[0].position.x - pose1.primitive_poses[0].position.x),
-                               (pose2.primitive_poses[0].position.y - pose1.primitive_poses[0].position.y)])
+        self.__direction = numpy.array([(pose2.primitive_poses[0].position.x - self.__perceived_pose.primitive_poses[0].position.x),
+                               (pose2.primitive_poses[0].position.y - self.__perceived_pose.primitive_poses[0].position.y)])
         # else:
-        #     rospy.logerr("FastGrasp: pose1 or pose2 empty!!!")
+        #     rospy.logerr("FastGrasp: __perceived_pose or pose2 empty!!!")
         # dir_dist = sqrt(pow(dir[0], 2) + pow(dir[1], 2))
         # get the duration between the two looks
-        time_12 = time2 - time1
-        # TODO: Extrapolation auslagern
-        # set the time in n secs
-        t_5 = rospy.Time.now() + rospy.Duration(t)
-        time_13 = t_5 - time1
-        diff_time = float(time_13.to_sec()) / float(time_12.to_sec())
-        dir_13 = numpy.array([diff_time * dir[0], diff_time * dir[1]])
-        # add this new vector on the points from the first perception
-        pose_comp = copy.deepcopy(pose1)
-        pose_comp.primitive_poses[0].position.x += dir_13[0]
-        pose_comp.primitive_poses[0].position.y += dir_13[1]
-        pose_comp.id = "red_cube"
+        self.__time_between_poses = time2 - self.__perceived_pose_time
+
         rospy.logdebug('FastGrasp: Return Object')
-        return pose_comp
+
+        return 0
+
+    def extrapolate(self, step):
+        # set the time in n secs
+        t = 5
+        t_5 = rospy.Time.now() + rospy.Duration(t)
+        time_13 = t_5 - self.__perceived_pose_time
+        diff_time = float(time_13.to_sec()) / float(self.__time_between_poses.to_sec())
+        dir_13 = numpy.array([diff_time * self.__direction[0], diff_time * self.__direction[1]])
+        # add this new vector on the points from the first perception
+        self.__pose_comp = copy.deepcopy(self.__perceived_pose)
+        self.__pose_comp.primitive_poses[0].position.x += dir_13[0]
+        self.__pose_comp.primitive_poses[0].position.y += dir_13[1]
+        self.__pose_comp.id = "red_cube"
 
     # TODO: Abfangen, falls kein Plan zum Hochfahren des Armes, dann erst zurueck und dann hoch
-    def execute(self, userdata):
-        rospy.logdebug('FastGrasp: Executing state FastGrasp')
-        # TODO: Nach ?? Sekunden time expired werfen
-        if not utils.manipulation.is_gripper_open():
-            rospy.logdebug('FastGrasp: Open Gripper')
-            utils.manipulation.open_gripper()
-        print utils.manipulation.is_gripper_open()
-        # make sure that calculation succeeded
-        pose_comp = self.percieve_object(10)
-        i = 0
-        serviceCall = False
-        while pose_comp == -1:
-            if i == 2:
-                # TODO: Zeit anpassen, ab wann gecalled wird
-                rospy.logdebug('FastGrasp: Request next object')
-                # rospy.ServiceProxy("/euroc_interface_node/request_next_object", RequestNextObject).call()
-                serviceCall = True
-            if i == 9 and serviceCall:
-                return 'timeExpired'
-            pose_comp = self.percieve_object(10)
-            i += 1
-        # TODO: Was passiert wenn das Objekt nur einmal gesehen wurde
-        # extract the point from the object
-        t_point = geometry_msgs.msg.Pose()
-        t_point.position = pose_comp.primitive_poses[0].position
-        t_point.position.z += 0.3
+    def calculate_target_point(self, pose_comp):
+        self.__t_point = geometry_msgs.msg.Pose()
+        self.__t_point.position = pose_comp.primitive_poses[0].position
+        self.__t_point.position.z += 0.3
         quat = Quaternion()
         quat.x = pose_comp.primitive_poses[0].orientation.x
         quat.y = pose_comp.primitive_poses[0].orientation.y
         quat.z = pose_comp.primitive_poses[0].orientation.z
         quat.w = pose_comp.primitive_poses[0].orientation.w
-        t_point.orientation = rotate_quaternion(quat, -pi / 2, 0, 0)
+        self.__t_point.orientation = rotate_quaternion(quat, -pi / 2, 0, 0)
+
+    def execute(self, userdata):
+        rospy.logdebug('FastGrasp: Executing state FastGrasp')
+        # TODO: Nach ?? Sekunden time expired werfen
+
+        if not utils.manipulation.is_gripper_open():
+            rospy.logdebug('FastGrasp: Open Gripper')
+            utils.manipulation.open_gripper()
+        print utils.manipulation.is_gripper_open()
+
+        r = self.percieve_object()
+        i = 0
+        serviceCall = False
+
+        while r == -1:
+            if i == 2:
+                # TODO: Zeit anpassen, ab wann gecalled wird
+                rospy.logdebug('FastGrasp: Request next object')
+                rospy.ServiceProxy("/euroc_interface_node/request_next_object", RequestNextObject).call()
+                serviceCall = True
+            if i == 9 and serviceCall:
+                rospy.logdebug('FastGrasp: Time Expired')
+                return 'timeExpired'
+            r = self.percieve_object()
+            i += 1
+        # TODO: Was passiert wenn das Objekt nur einmal gesehen wurde
+        # extract the point from the object
         # t_point.orientation = quat
         # TODO: Was passiert wen kein Plan gefunden werden kann?
         rospy.logdebug('FastGrasp: Begin movement, Plan 1')
-        utils.manipulation.direct_move(utils.manipulation.plan_to(t_point))
+        for j in range(0, 4):
+            self.extrapolate(j)
+            self.calculate_target_point(self.__pose_comp)
+            if j <= 2:
+                try:
+                    utils.manipulation.direct_move(utils.manipulation.plan_to(self.__t_point))
+                    break
+                except:
+                    rospy.logdebug("FastGrasp: Plan 1: No Plan fount in step " + str(j))
+            else:
+                return 'noPlanFound'
 
         # TODO: Timing zum Zupacken bestimmen!!!
-        t_point.position.z -= 0.07
+        self.__t_point.position.z -= 0.07
         rospy.logdebug("FastGrasp: Plan 2")
-        utils.manipulation.direct_move(utils.manipulation.plan_to(t_point))
-        utils.manipulation.close_gripper(pose_comp)
-        t_point.position.z += 0.1
+        try:
+            utils.manipulation.direct_move(utils.manipulation.plan_to(self.__t_point))
+        except:
+            rospy.logdebug("FastGrasp: Plan 2: Cant grasp")
+            return 'noPlanFound'
+
+        utils.manipulation.close_gripper(self.__pose_comp)
+        self.__t_point.position.z += 0.1
         rospy.logdebug("FastGrasp: Plan 3")
-        utils.manipulation.direct_move(utils.manipulation.plan_to(t_point))
+        # TODO: Bei Exception irgendwie ne andere Pose finden
+        try:
+            utils.manipulation.direct_move(utils.manipulation.plan_to(self.__t_point))
+        except:
+            rospy.logdebug("FastGrasp: Plan 3: Cant lift")
+            return 'noPlanFound'
+
         rospy.sleep(Duration.from_sec(0.5))
         tfs = TorqueForceService()
         if tfs.is_free():

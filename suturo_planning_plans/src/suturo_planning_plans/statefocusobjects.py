@@ -2,7 +2,7 @@ import smach
 import rospy
 import time
 from suturo_planning_plans import utils
-from suturo_planning_manipulation import calc_grasp_position
+from suturo_planning_manipulation import calc_grasp_position, mathemagie
 
 
 class FocusObjects(smach.State):
@@ -12,7 +12,7 @@ class FocusObjects(smach.State):
 
     def __init__(self):
         smach.State.__init__(self, outcomes=['success', 'fail', 'focusObject', 'focusHandle'],
-                             input_keys=['yaml', 'objects_to_focus', 'fitted_object'],
+                             input_keys=['yaml', 'objects_to_focus', 'fitted_object', 'focused_point'],
                              output_keys=['object_to_focus', 'fitted_objects'])
 
     def execute(self, userdata):
@@ -20,6 +20,14 @@ class FocusObjects(smach.State):
         # Read the objects_to_focus if this is the first iteration
         if self._objects_to_focus is None:
             self._objects_to_focus = userdata.objects_to_focus
+
+            if not userdata.focused_point is None:
+                object_to_focus = None
+                min_dist = 100
+                for obj in self._objects_to_focus:
+                    if mathemagie.euclidean_distance(obj.c_centroid, userdata.focused_point) < min_dist:
+                        object_to_focus = obj
+                self._objects_to_focus = [object_to_focus]
 
         # Remember the fitted objects
         elif not userdata.fitted_object is None:

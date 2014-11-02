@@ -68,3 +68,4 @@ class Task1(smach.StateMachine):
         self.userdata.task = task
         self.userdata.cell_coords = []
         self.userdata.target_zone_to_focus = None
+        self.userdata.focused_point = None

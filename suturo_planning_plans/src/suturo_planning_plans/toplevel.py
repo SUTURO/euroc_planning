@@ -113,7 +113,7 @@ class EurocTask(smach.StateMachine):
         # Associate the task name with a state machine
         plans = {'task1': task1_2.Task1,
                  'task2': task1_2.Task1,
-                 'task3': task1.Task1,
+                 'task3': task4.Task4,
                  'task4': task4.Task4,
                  'task5': task4.Task4,
                  'task6': task6.Task6}
@@ -121,7 +121,7 @@ class EurocTask(smach.StateMachine):
         # Associate the task name with the parameter for the state machine
         plan_args = {'task1': [False, 'task1'],
                      'task2': [False, 'task2'],
-                     'task3': [True, 'task3'],
+                     'task3': ['task3'],
                      'task4': ['task4'],
                      'task5': ['task5'],
                      'task6': ['task6']}
