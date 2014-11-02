@@ -14,8 +14,8 @@ def exit_handler(signum=None, frame=None):
     if signum is not None:
         global __loop
         global parent_dead
-        print('[LOGGER] #################################################################')
-        print('[LOGGER] Exit handler for logger ' + node + ' on signal ' + str(signum) + '.')
+        print('[LOGGER] #####################################################################################################')
+        print('[LOGGER] Exit handler for logger ' + f + ' on signal ' + str(signum) + '.')
         print('[LOGGER] Setting __loop to False.')
         __loop = False
         print('[LOGGER] Emptying input buffer.')
@@ -40,7 +40,7 @@ def exit_handler(signum=None, frame=None):
         except:
             print('[LOGGER] Error closing file ' + str(h))
         print('[LOGGER] Exiting exit_handler.')
-        print('[LOGGER] #################################################################')
+        print('[LOGGER] #####################################################################################################')
 
 
 f = sys.argv[1]

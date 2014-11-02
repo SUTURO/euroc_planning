@@ -255,9 +255,6 @@ def check_node(initialization_time, logging):
     rospy.loginfo('rospy.is_shutdown(): ' + str(rospy.is_shutdown()))
     test_node, test_node_logger = utils.start_node('rosrun euroc_launch TestNode --check', initialization_time,
                                                    logging, 'TestNode check')
-    pensi_pars0r = YamlPars0r()
-    pensi_pars0r.parse_and_publish(task_selector.yaml_description)
-    rospy.loginfo('Waiting for TestNode check to terminate. PID: ' + str(test_node.pid))
     if not utils.wait_for_process(test_node, 15):
         rospy.loginfo('Killing TestNode check.')
         exterminate(test_node.pid, signal.SIGKILL)

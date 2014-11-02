@@ -20,11 +20,10 @@ class ScanObstacles(smach.State):
     obstacle_cluster = []
     next_cluster = 0
 
-
     def __init__(self):
         smach.State.__init__(self, outcomes=['mapScanned', 'noRegionLeft', 'newImage'],
                              input_keys=['enable_movement', 'sec_try'],
-                             output_keys=['sec_try_done'])
+                             output_keys=['sec_try_done', 'focused_point'])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state ScanObstacles')
@@ -49,7 +48,7 @@ class ScanObstacles(smach.State):
 
         region_centroid = Point(*(utils.map.index_to_coordinates(*current_region.get_avg()))+(-0.065,))
 
-        dist_to_region = mathemagie.euclidean_distance(Point(0,0,0), region_centroid)
+        dist_to_region = mathemagie.euclidean_distance(Point(0, 0, 0), region_centroid)
 
         # If the arm cannot move ignore distant regions
         # TODO find the best max distance
@@ -69,7 +68,7 @@ class ScanObstacles(smach.State):
         poses = make_scan_pose(region_centroid, distance, angle, n=16)
 
         if not userdata.enable_movement:
-            c_to_base = subtract_point(Point(0,0,0), region_centroid)
+            c_to_base = subtract_point(Point(0, 0, 0), region_centroid)
             poses = [pose for pose in poses if get_angle(subtract_point(Point(pose.pose.position.x, pose.pose.position.y, 0), region_centroid), c_to_base) > pi/4]
 
         poses = utils.map.filter_invalid_poses2(region_centroid.x, region_centroid.y, poses)
@@ -92,6 +91,7 @@ class ScanObstacles(smach.State):
             utils.manipulation.set_planning_time_arm(2)
             if move(pose):
                 utils.manipulation.set_planning_time_arm(5)
+                userdata.focused_point = region_centroid
 
                 rospy.logdebug('Wait for clock')
                 time.sleep(3)
