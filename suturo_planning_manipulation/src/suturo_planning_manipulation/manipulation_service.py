@@ -94,8 +94,8 @@ class ManipulationService(object):
         for i in range(1, 8):
             limit = Limits()
             joint_name = "lwr_joint_" + i.__str__()
-            limit.max_velocity = 10 * pi / 180.0
-            limit.max_acceleration = 200 * pi / 180.0
+            limit.max_velocity = 20 * pi / 180.0
+            limit.max_acceleration = 400 * pi / 180.0
             joint_limits.append(limit)
             joint_names.append(joint_name)
 

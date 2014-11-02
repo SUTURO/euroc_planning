@@ -72,7 +72,7 @@ class FastGrasp(smach.State):
             t = 2
         else:
             t = 1
-        self.__t_point_time = rospy.Time.now() + rospy.Duration(7) + rospy.Duration(t * step)
+        self.__t_point_time = rospy.Time.now() + rospy.Duration(8) + rospy.Duration(t * step)
         time_13 = self.__t_point_time - self.__perceived_pose_time
         diff_time = float(time_13.to_sec()) / float(self.__time_between_poses.to_sec())
         dir_13 = numpy.array([diff_time * self.__direction[0], diff_time * self.__direction[1]])
@@ -132,7 +132,7 @@ class FastGrasp(smach.State):
             else:
                 return 'noPlanFound'
 
-        while rospy.Time.now() < self.__t_point_time - rospy.Duration(0.5):
+        while rospy.Time.now() < self.__t_point_time - rospy.Duration(2):
             rospy.sleep(0.01)
         # TODO: Timing zum Zupacken bestimmen!!!
         self.__t_point.position.z -= 0.07
