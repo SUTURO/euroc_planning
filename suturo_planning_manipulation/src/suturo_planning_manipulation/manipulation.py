@@ -98,12 +98,12 @@ class Manipulation(object):
         d1 = goal[0] - m[0]
         d2 = goal[1] - m[1]
         if 0 <= abs(d1) <= 0.01 and 0 <= abs(d2) <= 0.01:
-           rospy.loginfo("No movement required.")
-           return True
+            rospy.loginfo("No movement required.")
+            return True
         self.__base_group.set_joint_value_target(goal)
         path = self.__base_group.plan()
         return self.__manService.move(path)
- 
+
     def transform_to(self, pose_target, target_frame="/odom_combined"):
         '''
         Transforms the pose_target into the target_frame.
@@ -181,6 +181,7 @@ class Manipulation(object):
                     self.__planning_scene_interface.add_object(bobj)
         move_group.set_start_state_to_current_state()
         goal = deepcopy(goal_pose)
+
         if type(goal) is str:
             move_group.set_named_target(goal)
         elif type(goal) is PoseStamped:
@@ -194,8 +195,10 @@ class Manipulation(object):
         else:
             move_group.set_joint_value_target(goal)
 
-        # path = move_group.plan()
-        path = self.plan(move_group, goal)
+        path = move_group.plan()
+        # path = self.plan(move_group, goal)
+        # if path is None:
+        #     return False
 
         if blow_up:
             # for each in blown_up_objects:
@@ -207,30 +210,63 @@ class Manipulation(object):
     def plan(self, move_group, goal):
         request = GetMotionPlanRequest()
         request.motion_plan_request.start_state.is_diff = True
-        request.motion_plan_request.allowed_planning_time = 10
+        request.motion_plan_request.allowed_planning_time = move_group.get_planning_time()
         request.motion_plan_request.group_name = move_group.get_name()
-        # self.__arm_base_group.get_end_effector_link()
         request.motion_plan_request.num_planning_attempts = 1
-        # request.motion_plan_request.goal_constraints.joint_ = Constraints()
-        # request.motion_plan_request.goal_constraints
 
         constraint = Constraints()
-        constraint.name = "muh"
+        constraint.name = "muh23"
+
+        if type(goal) is PoseStamped:
+            goal = self.__make_position_goal(move_group, goal)
+            constraint.position_constraints.append(goal[0])
+            constraint.orientation_constraints.append(goal[1])
+        elif type(goal) is JointState:
+            rospy.logwarn("TODO test this")
+            goal = self.__make_joint_state_goal(move_group, goal)
+            constraint.joint_constraints.append(goal)
+        else:
+            rospy.logwarn("DANGER, named targets might fail.")
+            return move_group.plan()
+
+        request.motion_plan_request.goal_constraints.append(constraint)
+
+        request.motion_plan_request.planner_id = ""
+
+        resp = self.__plan_service(request)
+        if resp.motion_plan_response.error_code == 1:
+            # self.__set_object_load_srv(request)
+            return resp.motion_plan_response.trajectory
+
+    def __make_joint_state_goal(self, move_group, goal):
+        joint_goal = JointConstraint()
+        self.__arm_group.get_joints()
+        joint_goal.joint_name = move_group.get_joints()
+        joint_goal.position = goal.position
+        joint_goal.tolerance_above = 0.0001
+        joint_goal.tolerance_above = 0.0001
+
+        joint_goal.weight = 1.0
+        return joint_goal
+
+    def __make_position_goal(self, move_group, goal):
+
+        position_tolerance = 0.001
+        orientation_tolerance = 0.002
 
         position_goal = PositionConstraint()
         position_goal.header = goal.header
         position_goal.link_name = move_group.get_end_effector_link()
-        # position_goal.
         position_goal.target_point_offset = Vector3()
-        position_goal.target_point_offset.x = 0.005
-        position_goal.target_point_offset.y = 0.005
-        position_goal.target_point_offset.z = 0.005
+        position_goal.target_point_offset.x = position_tolerance
+        position_goal.target_point_offset.y = position_tolerance
+        position_goal.target_point_offset.z = position_tolerance
 
         primitive = SolidPrimitive()
         primitive.type = SolidPrimitive.BOX
-        primitive.dimensions.append(0.005)
-        primitive.dimensions.append(0.005)
-        primitive.dimensions.append(0.005)
+        primitive.dimensions.append(position_tolerance)
+        primitive.dimensions.append(position_tolerance)
+        primitive.dimensions.append(position_tolerance)
 
         position_goal.constraint_region.primitives.append(primitive)
         p = Pose()
@@ -240,35 +276,23 @@ class Manipulation(object):
         p.orientation.w = 1
         position_goal.constraint_region.primitive_poses.append(p)
         position_goal.weight = 1.0
-        # request.motion_plan_request.goal_constraints.append(position_goal)
-        constraint.position_constraints.append(position_goal)
 
         orientation_goal = OrientationConstraint()
         orientation_goal.header = goal.header
         orientation_goal.link_name = move_group.get_end_effector_link()
-        orientation_goal.absolute_x_axis_tolerance = 0.01
-        orientation_goal.absolute_y_axis_tolerance = 0.01
-        orientation_goal.absolute_z_axis_tolerance = 0.01
+        orientation_goal.absolute_x_axis_tolerance = orientation_tolerance
+        orientation_goal.absolute_y_axis_tolerance = orientation_tolerance
+        orientation_goal.absolute_z_axis_tolerance = orientation_tolerance
         orientation_goal.orientation = goal.pose.orientation
         orientation_goal.weight = 1.0
-
-        # request.motion_plan_request.goal_constraints.append(orientation_goal)
-        constraint.orientation_constraints.append(orientation_goal)
-
-        request.motion_plan_request.goal_constraints.append(constraint)
-
-        request.motion_plan_request.planner_id = ""
-
-        resp = self.__plan_service.call(request)
-        print resp
-        return resp.motion_plan_response.trajectory
+        return (position_goal, orientation_goal)
 
     def get_current_joint_state(self):
         '''
         :return: current joint state as list of floats
         '''
         return self.__arm_base_group.get_current_joint_values()
- 
+
     def get_current_lwr_joint_state(self):
         return self.__arm_group.get_current_joint_values()
 
@@ -282,14 +306,14 @@ class Manipulation(object):
         self.__gripper_group.set_joint_value_target([-position, position])
         path = self.__gripper_group.plan()
         if self.__manService.move(path):
-           self.__gripper_group.detach_object()
-           self.load_object(0, Vector3(0, 0, 0))
-           rospy.logdebug("Gripper opened")
-           return True
+            self.__gripper_group.detach_object()
+            self.load_object(0, Vector3(0, 0, 0))
+            rospy.logdebug("Gripper opened")
+            return True
         else:
-           rospy.logdebug("Gripper failed to open")
-           return False
- 
+            rospy.logdebug("Gripper failed to open")
+            return False
+
     def close_gripper(self, object=None):
         '''
         Closes the gripper completely or far enough to hold the object, when one is given
@@ -299,22 +323,22 @@ class Manipulation(object):
 
         rospy.logdebug("Closing Gripper")
         if type(object) is CollisionObject:
-           self.__gripper_group.attach_object(object.id, "gp", ["gp", "finger1", "finger2"])
-           rospy.sleep(1.0)
-           # (egal, id) = get_grasped_part(object, self.tf.transform_to)
-           id = 0
-           #TODO: only works for cubes and cylinders and only "sometimes" for object compositions
-           if object.primitives[id].type == shape_msgs.msg.SolidPrimitive.BOX:
-               length = min(object.primitives[id].dimensions)
-               self.__gripper_group.set_joint_value_target([-(length/2), length/2])
-           elif object.primitives[id].type == shape_msgs.msg.SolidPrimitive.CYLINDER:
-               radius = object.primitives[id].dimensions[shape_msgs.msg.SolidPrimitive.CYLINDER_RADIUS]
-               self.__gripper_group.set_joint_value_target([-radius+0.005, radius-0.005])
+            self.__gripper_group.attach_object(object.id, "gp", ["gp", "finger1", "finger2"])
+            rospy.sleep(1.0)
+            # (egal, id) = get_grasped_part(object, self.tf.transform_to)
+            id = 0
+            #TODO: only works for cubes and cylinders and only "sometimes" for object compositions
+            if object.primitives[id].type == shape_msgs.msg.SolidPrimitive.BOX:
+                length = min(object.primitives[id].dimensions)
+                self.__gripper_group.set_joint_value_target([-(length/2), length/2])
+            elif object.primitives[id].type == shape_msgs.msg.SolidPrimitive.CYLINDER:
+                radius = object.primitives[id].dimensions[shape_msgs.msg.SolidPrimitive.CYLINDER_RADIUS]
+                self.__gripper_group.set_joint_value_target([-radius+0.005, radius-0.005])
         else:
-           self.__gripper_group.set_joint_value_target([0.0, 0.0])
+            self.__gripper_group.set_joint_value_target([0.0, 0.0])
         path = self.__gripper_group.plan()
         return self.__manService.move(path)
- 
+
     def grasp(self, collision_object, object_density=1):
         '''
         Deprecated. For testing only
@@ -354,7 +378,7 @@ class Manipulation(object):
         for grasp in grasp_positions:
             if self.__move_group_to(get_pre_grasp(grasp), move_group):
 
-                if not self.__move_group_to(grasp, move_group):
+                if not self.__move_group_to(grasp, move_group, blow_up=False):
                     continue
                 rospy.sleep(1)
                 self.close_gripper(collision_object)
@@ -617,7 +641,7 @@ class Manipulation(object):
         config = Configuration()
         list = self.get_current_lwr_joint_state()
         for i in range(len(list)):
-                    config.q.append(list[i])
+            config.q.append(list[i])
         resp = service(config, pose)
         if resp.error_message:
             raise PlanningException(resp.error_message)
