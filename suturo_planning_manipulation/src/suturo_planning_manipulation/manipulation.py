@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from Crypto.Random.OSRNG import posix
 from asyncore import dispatcher
 from docutils.parsers.rst.roles import role
 from math import pi
@@ -13,11 +14,13 @@ from geometry_msgs.msg._Vector3 import Vector3
 from geometry_msgs.msg._Vector3Stamped import Vector3Stamped
 from moveit_commander import planning_scene_interface
 from moveit_msgs.msg import *
+from moveit_msgs.srv._GetMotionPlan import GetMotionPlan, GetMotionPlanRequest
 from numpy.core.multiarray import ndarray
 import rospy
 import moveit_commander
 import moveit_msgs.msg
 import geometry_msgs.msg
+from shape_msgs.msg import _SolidPrimitive
 from calc_grasp_position import *
 from place import get_place_position, get_pre_place_position, pre_place_length, post_place_length, get_grasped_part
 from planningsceneinterface import *
@@ -30,6 +33,7 @@ from transformer import Transformer
 from euroc_c2_msgs.msg import *
 from euroc_c2_msgs.srv import *
 from sensor_msgs.msg import JointState
+from shape_msgs.msg._SolidPrimitive import SolidPrimitive
 
 
 class Manipulation(object):
@@ -48,8 +52,11 @@ class Manipulation(object):
         self.__arm_base_group = moveit_commander.MoveGroupCommander("arm_base")
         self.__arm_base_group.set_planning_time(10)
 
-        rospy.wait_for_service('/euroc_interface_node/move_along_joint_path')
-        self.__service = rospy.ServiceProxy('/euroc_interface_node/move_along_joint_path', MoveAlongJointPath)
+        # rospy.wait_for_service('/euroc_interface_node/move_along_joint_path')
+        # self.__service = rospy.ServiceProxy('/euroc_interface_node/move_along_joint_path', MoveAlongJointPath)
+
+        rospy.wait_for_service('/plan_kinematic_path')
+        self.__plan_service = rospy.ServiceProxy('/plan_kinematic_path', GetMotionPlan)
 
         self.__planning_scene_interface = PlanningSceneInterface()
 
@@ -187,7 +194,8 @@ class Manipulation(object):
         else:
             move_group.set_joint_value_target(goal)
 
-        path = move_group.plan()
+        # path = move_group.plan()
+        path = self.plan(move_group, goal)
 
         if blow_up:
             # for each in blown_up_objects:
@@ -195,6 +203,65 @@ class Manipulation(object):
                 self.__planning_scene_interface.add_object(each)
 
         return self.__manService.move(path)
+
+    def plan(self, move_group, goal):
+        request = GetMotionPlanRequest()
+        request.motion_plan_request.start_state.is_diff = True
+        request.motion_plan_request.allowed_planning_time = 10
+        request.motion_plan_request.group_name = move_group.get_name()
+        # self.__arm_base_group.get_end_effector_link()
+        request.motion_plan_request.num_planning_attempts = 1
+        # request.motion_plan_request.goal_constraints.joint_ = Constraints()
+        # request.motion_plan_request.goal_constraints
+
+        constraint = Constraints()
+        constraint.name = "muh"
+
+        position_goal = PositionConstraint()
+        position_goal.header = goal.header
+        position_goal.link_name = move_group.get_end_effector_link()
+        # position_goal.
+        position_goal.target_point_offset = Vector3()
+        position_goal.target_point_offset.x = 0.005
+        position_goal.target_point_offset.y = 0.005
+        position_goal.target_point_offset.z = 0.005
+
+        primitive = SolidPrimitive()
+        primitive.type = SolidPrimitive.BOX
+        primitive.dimensions.append(0.005)
+        primitive.dimensions.append(0.005)
+        primitive.dimensions.append(0.005)
+
+        position_goal.constraint_region.primitives.append(primitive)
+        p = Pose()
+        p.position.x = goal.pose.position.x
+        p.position.y = goal.pose.position.y
+        p.position.z = goal.pose.position.z
+        p.orientation.w = 1
+        position_goal.constraint_region.primitive_poses.append(p)
+        position_goal.weight = 1.0
+        # request.motion_plan_request.goal_constraints.append(position_goal)
+        constraint.position_constraints.append(position_goal)
+
+        orientation_goal = OrientationConstraint()
+        orientation_goal.header = goal.header
+        orientation_goal.link_name = move_group.get_end_effector_link()
+        orientation_goal.absolute_x_axis_tolerance = 0.01
+        orientation_goal.absolute_y_axis_tolerance = 0.01
+        orientation_goal.absolute_z_axis_tolerance = 0.01
+        orientation_goal.orientation = goal.pose.orientation
+        orientation_goal.weight = 1.0
+
+        # request.motion_plan_request.goal_constraints.append(orientation_goal)
+        constraint.orientation_constraints.append(orientation_goal)
+
+        request.motion_plan_request.goal_constraints.append(constraint)
+
+        request.motion_plan_request.planner_id = ""
+
+        resp = self.__plan_service.call(request)
+        print resp
+        return resp.motion_plan_response.trajectory
 
     def get_current_joint_state(self):
         '''
