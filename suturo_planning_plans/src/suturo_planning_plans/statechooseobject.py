@@ -96,10 +96,17 @@ class CleanUpPlan(smach.State):
 
         # If all three objects are in a target zone
         elif len(objects_in_tzs) == 3:
+            # Place the first object next to its targetzone
             plan.append((objects_in_tzs[0][0],
                          self._pose_near_target_zone(objects_in_tzs[0][1], header)))
-            plan.append((objects_in_tzs[1][0], get_pose(objects_in_tzs[1][0])))
-            plan.append((objects_in_tzs[2][0], get_pose(objects_in_tzs[2][0])))
+
+            if objects_in_tzs[1][0].mpe_object.id == objects_in_tzs[0][1].expected_object:
+                plan.append((objects_in_tzs[1][0], get_pose(objects_in_tzs[1][0])))
+                plan.append((objects_in_tzs[2][0], get_pose(objects_in_tzs[2][0])))
+            else:
+                plan.append((objects_in_tzs[2][0], get_pose(objects_in_tzs[2][0])))
+                plan.append((objects_in_tzs[1][0], get_pose(objects_in_tzs[1][0])))
+                
             plan.append((objects_in_tzs[0][0], get_pose(objects_in_tzs[0][0])))
 
         userdata.clean_up_plan = plan
