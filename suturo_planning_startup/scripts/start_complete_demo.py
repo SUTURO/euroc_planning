@@ -32,9 +32,11 @@ def abort_current_task():
             print('Killing subproc with pid ' + str(subproc.pid))
             exterminate(subproc.pid, signal.SIGINT)
             print('Waiting for subproc to terminate. Please be patient.')
-            utils.wait_for_process(subproc, 90)
-            if subproc.poll() is None:
-                print('Could not kill task process. Forcing!')
+            utils.wait_for_process(subproc, 120)
+            poll = subproc.poll()
+            if poll is None:
+                print('Could not kill task process. Forcing!'
+                      ' (pid: ' + str(subproc.pid) + ', subproc.poll(): ' + str(poll) + ')')
                 exterminate(subproc.pid, signal.SIGKILL, r=True)
         except Exception, e:
             print(e)
@@ -45,8 +47,10 @@ def abort_current_task():
             print('Waiting for logger process to terminate. Please be patient.')
             #logger_process.wait()
             utils.wait_for_process(logger_process, 240)
-            if logger_process.poll() is None:
-                print('Could not kill logger process. Forcing!')
+            poll = logger_process.poll()
+            if poll is None:
+                print('Could not kill logger process. Forcing!'
+                      ' (pid: ' + str(logger_process.pid) + ', logger_process.poll(): ' + str(poll) + ')')
                 exterminate(logger_process.pid, signal.SIGKILL)
         except Exception, e:
             print(e)
