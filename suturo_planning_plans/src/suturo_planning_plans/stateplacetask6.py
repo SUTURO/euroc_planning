@@ -5,7 +5,7 @@ import rospy
 import geometry_msgs
 from geometry_msgs.msg import Quaternion
 import utils
-from suturo_planning_manipulation.manipulation import Manipulation
+from suturo_planning_manipulation.manipulation import Manipulation, PlanningException
 from tf.listener import TransformListener
 from math import pi
 from suturo_planning_manipulation.mathemagie import rotate_quaternion
@@ -56,7 +56,7 @@ class PlaceTask6(smach.State):
                 plan = utils.manipulation.plan_to(place_pose)
                 rospy.logdebug('PlaceTask6: Plan found')
                 return plan
-            except Exception:
+            except PlanningException:
                 rospy.logdebug('PlaceTask6: Plan exception!')
                 place_pose = self.get_place_point(userdata)
 
