@@ -206,8 +206,11 @@ def handle_clock(msg):
             __clock_subscriber.unregister()
             abort_current_task()
         else:
-            print('Oh oh, received wrong information from clock:')
+            print('Oh oh, received wrong information from clock. msg:')
             print(msg)
+            print('now: ' + str(now))
+            print('__time_started_task: ' + str(__time_started_task))
+            print('__time_limit: ' + str(__time_limit))
 
 
 def main(argv):
