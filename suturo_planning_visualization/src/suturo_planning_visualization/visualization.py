@@ -10,7 +10,7 @@ def publish_marker(marker):
     global pub_marker
     if pub_marker is None:
         pub_marker = rospy.Publisher('/visualization_marker', Marker, queue_size=10)
-        rospy.sleep(1.0)
+        rospy.sleep(0.5)
 
     pub_marker.publish(marker)
     rospy.sleep(0.1)
@@ -133,15 +133,15 @@ def visualize_point(p):
     pub_marker.publish(marker)
     rospy.sleep(0.1)
 
-def visualize_poses(poses):
+
+def visualize_pose(pose):
     global pub_marker
     if pub_marker is None:
         pub_marker = rospy.Publisher('visualization_marker', Marker, queue_size=10)
         rospy.sleep(0.5)
-    # r = rospy.Rate(1)  # 10hz
+
 
     marker = Marker()
-    # marker.header.stamp = rospy.get_rostime()
     marker.ns = "mani"
     marker.type = Marker.ARROW
     marker.action = Marker.ADD
@@ -154,16 +154,38 @@ def visualize_poses(poses):
     marker.scale.y = 0.04
     marker.scale.x = 0.06
 
+    marker.header.frame_id = pose.header.frame_id
+    marker.id = 0
+    marker.pose = pose.pose
+
+    pub_marker.publish(marker)
+
+def visualize_poses(poses):
+
+    markers = []
     i = 0
     for grasp in poses:
+        marker = Marker()
+        marker.ns = "mani"
+        marker.type = Marker.ARROW
+        marker.action = Marker.ADD
+
+        marker.lifetime = rospy.Time(5)
+
+        marker.color.a = 1.0
+        marker.color.r = 1.0
+        marker.color.g = 0.0
+        marker.color.b = 0.0
+
+        marker.scale.z = 0.02
+        marker.scale.y = 0.04
+        marker.scale.x = 0.06
+
         marker.header.frame_id = grasp.header.frame_id
         marker.id = i
         marker.pose = grasp.pose
         i += 1
-        pub_marker.publish(marker)
-        rospy.sleep(0.1)
-    for i in range(len(poses), 50):
-        marker.action = Marker.DELETE
-        marker.id = i
-        pub_marker.publish(marker)
-        rospy.sleep(0.1)
+        markers.append(marker)
+
+
+    publish_marker_array(MarkerArray(markers))

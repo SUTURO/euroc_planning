@@ -11,6 +11,7 @@ import scipy
 from sensor_msgs.msg._PointCloud2 import PointCloud2
 from sensor_msgs.point_cloud2 import create_cloud_xyz32, _get_struct_fmt, read_points
 from shape_msgs.msg._SolidPrimitive import SolidPrimitive
+from std_msgs.msg._ColorRGBA import ColorRGBA
 from suturo_perception_msgs.srv._GetPointArray import GetPointArray, GetPointArrayRequest
 import time
 from visualization_msgs.msg import Marker, MarkerArray
@@ -326,6 +327,7 @@ class Map:
             #filter poses that are outside of the table
             if not (-1.15 <= x_under_pose <= 1.15 and -1.15 <= y_under_pose <= 1.15):
                 poses.remove(pose)
+                rospy.logdebug("remove 1")
                 continue
             #filter poses that are above unknowns
             if -1.0 <= x_under_pose <= 1.0 and -1.0 <= y_under_pose <= 1.0:
@@ -336,6 +338,7 @@ class Map:
                     if c.is_unknown() or (c.is_obstacle() and c.highest_z >= pose.pose.position.z - 0.085):
                         # removed = True
                         poses.remove(pose)
+                        rospy.logdebug("remove 2")
                         break
                 # if removed:
                 #     continue
@@ -596,77 +599,92 @@ class Map:
     #OTHER SHIT
 
     def publish_as_marker(self):
-        visualization.publish_marker_array(self.to_marker_array())
+        visualization.publish_marker(self.to_marker_array())
+
+    def __cell_to_color(self, c):
+        color = ColorRGBA()
+        if c.is_marked():
+            color.r = 1
+            color.g = 0.5
+            color.b = 0
+        elif c.is_free():
+            color.r = 1
+            color.g = 1
+            color.b = 1
+        elif c.is_obstacle() or c.is_object():
+            if c.is_blue():
+                color.r = 0
+                color.g = 0
+                color.b = 1
+            elif c.is_green():
+                color.r = 0
+                color.g = 1
+                color.b = 0
+            elif c.is_cyan():
+                color.r = 0
+                color.g = 1
+                color.b = 1
+            elif c.is_red():
+                color.r = 1
+                color.g = 0
+                color.b = 0
+            elif c.is_magenta():
+                color.r = 1
+                color.g = 0
+                color.b = 1
+            elif c.is_yellow():
+                color.r = 1
+                color.g = 1
+                color.b = 0
+            elif c.is_undef():
+                color.r = 0.5
+                color.g = 0.5
+                color.b = 0.5
+
+        else:
+            color.r = 0
+            color.g = 0
+            color.b = 0
+
+        color.a = 1
+        return color
 
     def to_marker_array(self):
-        markers = []
-
+        # markers = []
+        marker = Marker()
+        marker.type = Marker.CUBE_LIST
         for x in range(0, len(self.field)):
             for y in range(0, len(self.field[0])):
-                marker = Marker()
+                # marker = Marker()
 
-                marker.header.stamp = rospy.get_rostime()
+                # marker.header.stamp = r
                 marker.header.frame_id = '/odom_combined'
                 marker.ns = 'suturo_planning/map'
-                marker.id = x + (y * len(self.field))
+                marker.id = 23
                 marker.action = Marker.ADD
-                marker.type = Marker.CUBE
+                # marker.type = Marker.CUBE
                 (x_i, y_i) = self.index_to_coordinates(x, y)
-                marker.pose.position.x = x_i
-                marker.pose.position.y = y_i
+                marker.pose.position.x = 0
+                marker.pose.position.y = 0
                 marker.pose.position.z = 0
                 marker.pose.orientation.w = 1
                 marker.scale.x = self.cell_size_x
                 marker.scale.y = self.cell_size_y
                 marker.scale.z = 0.01
+
+                p = Point()
+                p.x = x_i
+                p.y = y_i
+
+                marker.points.append(p)
+
                 c = self.get_cell_by_index(x, y)
-                if c.is_marked():
-                    marker.color.r = 1
-                    marker.color.g = 0.5
-                    marker.color.b = 0
-                elif c.is_free():
-                    marker.color.r = 1
-                    marker.color.g = 1
-                    marker.color.b = 1
-                elif c.is_obstacle() or c.is_object():
-                    if c.is_blue():
-                        marker.color.r = 0
-                        marker.color.g = 0
-                        marker.color.b = 1
-                    elif c.is_green():
-                        marker.color.r = 0
-                        marker.color.g = 1
-                        marker.color.b = 0
-                    elif c.is_cyan():
-                        marker.color.r = 0
-                        marker.color.g = 1
-                        marker.color.b = 1
-                    elif c.is_red():
-                        marker.color.r = 1
-                        marker.color.g = 0
-                        marker.color.b = 0
-                    elif c.is_magenta():
-                        marker.color.r = 1
-                        marker.color.g = 0
-                        marker.color.b = 1
-                    elif c.is_yellow():
-                        marker.color.r = 1
-                        marker.color.g = 1
-                        marker.color.b = 0
-                    elif c.is_undef():
-                        marker.color.r = 0.5
-                        marker.color.g = 0.5
-                        marker.color.b = 0.5
 
-                else:
-                    marker.color.r = 0
-                    marker.color.g = 0
-                    marker.color.b = 0
+                marker.colors.append(self.__cell_to_color(c))
 
-                marker.color.a = 1
                 marker.lifetime = rospy.Time(0)
 
-                markers.append(marker)
+                # markers.append(marker)
 
-        return MarkerArray(markers)
+        return marker
 

@@ -40,9 +40,11 @@ class GraspObject(smach.State):
         #filter out some invalid grasps
         grasp_positions = utils.manipulation.filter_invalid_grasps(grasp_positions)
 
-        centroid = utils.manipulation.get_center_of_mass(collision_object)
+        # centroid = utils.manipulation.get_center_of_mass(collision_object)
 
-        grasp_positions = utils.map.filter_invalid_poses3(centroid.point.x, centroid.point.y, grasp_positions)
+        # grasp_positions = [utils.manipulation.transform_to(grasp) for grasp in grasp_positions]
+
+        # grasp_positions = utils.map.filter_invalid_poses3(centroid.point.x, centroid.point.y, grasp_positions)
 
         if len(grasp_positions) == 0:
             rospy.logwarn("No grasppositions found for " + collision_object_name)

@@ -25,11 +25,12 @@ from manipulation_constants import *
 from manipulation_service import *
 import math
 # from suturo_planning_visualization.visualization import visualize_poses
-from suturo_planning_visualization.visualization import visualize_poses
+from suturo_planning_visualization.visualization import visualize_poses, visualize_pose
 from transformer import Transformer
 from euroc_c2_msgs.msg import *
 from euroc_c2_msgs.srv import *
 from sensor_msgs.msg import JointState
+import time
 
 
 class Manipulation(object):
@@ -56,13 +57,14 @@ class Manipulation(object):
         euroc_interface_node = '/euroc_interface_node/'
         self.__set_object_load_srv = rospy.ServiceProxy(euroc_interface_node + 'set_object_load', SetObjectLoad)
 
+        self.__manService = ManipulationService()
+
         rospy.sleep(1)
         self.__planning_scene_interface.add_ground()
         self.__planning_scene_interface.add_cam_mast()
 
         self.__grasp = None
 
-        self.__manService = ManipulationService()
 
         rospy.loginfo("Manipulation started.")
 
@@ -160,11 +162,9 @@ class Manipulation(object):
          :param blow_up_distance: Distance in m
          :return:
          """
-
+        # t = time.time()
+        # rospy.logdebug("enter move to")
         original_objects = self.__planning_scene_interface.get_collision_objects()
-        # aco = self.__planning_scene_interface.get_attached_object()
-        # if not aco is None:
-        #     original_objects.append(aco.object)
         blown_up_objects = []
         if blow_up:
             for each in original_objects:
@@ -172,28 +172,45 @@ class Manipulation(object):
                     bobj = self.__blow_up_object(copy.deepcopy(each), blow_up_distance)
                     blown_up_objects.append(bobj.id)
                     self.__planning_scene_interface.add_object(bobj)
+        # rospy.logdebug("time to blow up: " + str(time.time() - t))
+        # t = time.time()
+
         move_group.set_start_state_to_current_state()
         goal = deepcopy(goal_pose)
         if type(goal) is str:
             move_group.set_named_target(goal)
         elif type(goal) is PoseStamped:
-            visualize_poses([goal])
+            visualize_pose(goal)
+            # rospy.logdebug("time to visu: " + str(time.time() - t))
+            # t = time.time()
             # Rotate the goal so that the gripper points from 0,0,0 to 1,0,0 with a 0,0,0,1 quaternion as orientation.
             goal.pose.orientation = rotate_quaternion(goal.pose.orientation, pi / 2, pi, pi / 2)
+            # rospy.logdebug("time to rotate: " + str(time.time() - t))
+            # t = time.time()
             if goal.header.frame_id != "/odom_combined":
                 goal = self.tf.transform_to(goal)
+            # rospy.logdebug("time to transform: " + str(time.time() - t))
+            # t = time.time()
 
             move_group.set_pose_target(goal)
+            # rospy.logdebug("time to set goal: " + str(time.time() - t))
+            # t = time.time()
         else:
             move_group.set_joint_value_target(goal)
 
+        # rospy.logdebug("time to set goal: " + str(time.time() - t))
+        # t = time.time()
         path = move_group.plan()
+        # rospy.logdebug("time to plan goal: " + str(time.time() - t))
+        # t = time.time()
 
         if blow_up:
             # for each in blown_up_objects:
-            for each in original_objects:
-                self.__planning_scene_interface.add_object(each)
+            self.__planning_scene_interface.add_objects(original_objects)
+            # for each in original_objects:
+            #     self.__planning_scene_interface.add_object(each)
 
+        # rospy.logdebug("time to blow down: " + str(time.time() - t))
         return self.__manService.move(path)
 
     def get_current_joint_state(self):
@@ -456,14 +473,14 @@ class Manipulation(object):
     def get_planning_scene(self):
         return self.__planning_scene_interface
 
-    def turn_arm(self, joint_value):
+    def turn_arm(self, joint_value, joint=0):
         """
         Sets "link1" to "joint_value
         :param joint_value: float #radian -2.96 to 2.96
         :return: success of the movement
         """
         current_joint_values = self.__arm_group.get_current_joint_values()
-        current_joint_values[0] = joint_value
+        current_joint_values[joint] = joint_value
         self.__arm_group.set_joint_value_target(current_joint_values)
         path = self.__arm_group.plan()
         return self.__manService.move(path)
