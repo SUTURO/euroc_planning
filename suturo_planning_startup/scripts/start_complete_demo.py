@@ -119,8 +119,6 @@ def start_demo(wait, tasks, logging):
             raw_input('Starting task ' + str(task) + '. Press ENTER.')
         print('Starting task ' + str(task))
         print('Tasks to go: ' + str(tasks_to_execute[tasks_to_execute.index(task)+1:]))
-        global subproc
-        global logger_process
         subproc, logger_process = utils.start_node('rosrun suturo_planning_startup start_task.py ' + task +
                                                    ' --plan --init --save --no-ts --inittime="' + init_time + '"' +
                                                    ' --logging="' + str(logging) + '"', init_time, logging, 'Complete',
@@ -130,11 +128,16 @@ def start_demo(wait, tasks, logging):
         __clock_subscriber = rospy.Subscriber('clock', Clock, handle_clock)
         print('Waiting for task ' + task + ' to terminate.')
         subproc.wait()
+        print('Task ' + task + ' terminated.')
+        print('Unsubscribing clock subscriber.')
+        __clock_subscriber.unregister()
         if logger_process is not None and logger_process.poll() is None:
             if __aborting_task:
-                print('Already aborting task. Won\'t kill logger')
+                print('Already aborting task. Won\'t kill logger.')
+                print('Waiting for abortion to be finished.')
                 while __aborting_task:
                     time.sleep(1)
+                print('Abortion finished.')
             else:
                 print('Killing logger.')
                 exterminate(logger_process.pid, signal.SIGINT)
@@ -151,6 +154,7 @@ def start_demo(wait, tasks, logging):
         print('Finished task ' + str(task))
         if task != tasks_to_execute[-1]:
             time.sleep(5)
+    print('Finished complete demo.')
     rospy.signal_shutdown('Finished complete demo.')
 
 
@@ -173,11 +177,13 @@ def handle_clock(msg):
     global __clock_subscriber
     global __time_started_task
     global __time_limit
+    global __aborting_task
     now = int(time.time())
-    if msg.clock.secs > __time_limit:
+    if not __aborting_task and msg.clock.secs > __time_limit:
         if now - __time_started_task >= __time_limit:
-            print_panda()
+            print('Unsubscribing clock subscriber.')
             __clock_subscriber.unregister()
+            print_panda()
             abort_current_task()
         else:
             print('Oh oh, received wrong information from clock. msg:')
