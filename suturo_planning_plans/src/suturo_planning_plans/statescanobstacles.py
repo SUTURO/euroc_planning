@@ -5,7 +5,7 @@ from geometry_msgs.msg import PoseStamped
 import time
 from suturo_planning_manipulation import mathemagie
 from suturo_planning_manipulation.calc_grasp_position import make_scan_pose
-from suturo_planning_manipulation.mathemagie import subtract_point, get_angle
+from suturo_planning_manipulation.mathemagie import subtract_point, get_angle, euclidean_distance
 from suturo_planning_search.map import Map
 from suturo_planning_visualization.visualization import visualize_poses
 
@@ -68,8 +68,9 @@ class ScanObstacles(smach.State):
         poses = make_scan_pose(region_centroid, distance, angle, n=16)
 
         if not userdata.enable_movement:
-            c_to_base = subtract_point(Point(0, 0, 0), region_centroid)
-            poses = [pose for pose in poses if get_angle(subtract_point(Point(pose.pose.position.x, pose.pose.position.y, 0), region_centroid), c_to_base) > pi/4]
+            # c_to_base = subtract_point(Point(0, 0, 0), region_centroid)
+            # poses = [pose for pose in poses if get_angle(subtract_point(Point(pose.pose.position.x, pose.pose.position.y, 0), region_centroid), c_to_base) > pi/4]
+            poses = utils.manipulation.filter_close_poses(poses)
 
         poses = utils.map.filter_invalid_poses2(region_centroid.x, region_centroid.y, poses)
 

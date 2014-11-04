@@ -169,8 +169,6 @@ class Manipulation(object):
          :param blow_up_distance: Distance in m
          :return:
          """
-        # t = time.time()
-        # rospy.logdebug("enter move to")
         original_objects = self.__planning_scene_interface.get_collision_objects()
         blown_up_objects = []
         if blow_up:
@@ -179,8 +177,6 @@ class Manipulation(object):
                     bobj = self.__blow_up_object(copy.deepcopy(each), blow_up_distance)
                     blown_up_objects.append(bobj.id)
                     self.__planning_scene_interface.add_object(bobj)
-        # rospy.logdebug("time to blow up: " + str(time.time() - t))
-        # t = time.time()
 
         move_group.set_start_state_to_current_state()
         goal = deepcopy(goal_pose)
@@ -189,37 +185,20 @@ class Manipulation(object):
             move_group.set_named_target(goal)
         elif type(goal) is PoseStamped:
             visualize_pose(goal)
-            # rospy.logdebug("time to visu: " + str(time.time() - t))
-            # t = time.time()
             # Rotate the goal so that the gripper points from 0,0,0 to 1,0,0 with a 0,0,0,1 quaternion as orientation.
             goal.pose.orientation = rotate_quaternion(goal.pose.orientation, pi / 2, pi, pi / 2)
-            # rospy.logdebug("time to rotate: " + str(time.time() - t))
-            # t = time.time()
             if goal.header.frame_id != "/odom_combined":
                 goal = self.tf.transform_to(goal)
-            # rospy.logdebug("time to transform: " + str(time.time() - t))
-            # t = time.time()
 
             move_group.set_pose_target(goal)
-            # rospy.logdebug("time to set goal: " + str(time.time() - t))
-            # t = time.time()
         else:
             move_group.set_joint_value_target(goal)
 
-        # rospy.logdebug("time to set goal: " + str(time.time() - t))
-        # t = time.time()
-        # path = move_group.plan()
         path = self.plan(move_group, goal)
-        # rospy.logdebug("time to plan goal: " + str(time.time() - t))
-        # t = time.time()
 
         if blow_up:
-            # for each in blown_up_objects:
             self.__planning_scene_interface.add_objects(original_objects)
-            # for each in original_objects:
-            #     self.__planning_scene_interface.add_object(each)
 
-        # rospy.logdebug("time to blow down: " + str(time.time() - t))
         if path is None:
             return False
         return self.__manService.move(path)
@@ -459,17 +438,17 @@ class Manipulation(object):
             diff = z2 - z1
         return 1 if diff > 0 else -1 if diff < 0 else 0
 
-    def filter_invalid_grasps(self, list_of_grasps):
+    def filter_low_poses(self, list_of_poses):
         '''
         Filters out positions that are very close to the ground.
-        :param list_of_grasps: list of PoseStamped in odom_combined
+        :param list_of_poses: list of PoseStamped in odom_combined
         :return: filtered list of PoseStamped
         '''
-        # TODO: assumes odom_combined as frame id
-        if len(list_of_grasps) == 0:
-            return list_of_grasps
+        return [pose for pose in list_of_poses if self.tf.transform_to(pose).pose.position.z > min_grasp_height]
 
-        return filter(lambda x: self.tf.transform_to(x).pose.position.z > min_grasp_height, list_of_grasps)
+    def filter_close_poses(self, list_of_poses):
+        base = self.get_base_origin()
+        return [pose for pose in list_of_poses if euclidean_distance_in_2d(base.point, self.tf.transform_to(pose).pose.position) > 0.35]
 
     def calc_object_weight(self, collision_object, density):
         '''

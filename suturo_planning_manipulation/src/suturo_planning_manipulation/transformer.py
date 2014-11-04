@@ -24,6 +24,9 @@ class Transformer:
         :param target_frame: goal frame id
         :return: transformed object
         '''
+        if pose_target.header.frame_id == target_frame:
+            return pose_target
+
         odom_pose = None
         i = 0
         while odom_pose is None and i < 10:

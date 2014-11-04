@@ -38,7 +38,10 @@ class GraspObject(smach.State):
         grasp_positions = calculate_grasp_position(collision_object, utils.manipulation.transform_to)
 
         #filter out some invalid grasps
-        grasp_positions = utils.manipulation.filter_invalid_grasps(grasp_positions)
+        grasp_positions = utils.manipulation.filter_low_poses(grasp_positions)
+
+        if not userdata.enable_movement:
+            grasp_positions = utils.manipulation.filter_close_poses(grasp_positions)
 
         # centroid = utils.manipulation.get_center_of_mass(collision_object)
 

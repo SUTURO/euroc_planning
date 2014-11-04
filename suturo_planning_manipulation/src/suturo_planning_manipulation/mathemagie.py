@@ -83,6 +83,11 @@ def subtract_point(p1, p2):
 def euclidean_distance(p1, p2):
     return magnitude(subtract_point(p1, p2))
 
+def euclidean_distance_in_2d(p1, p2):
+    p = deepcopy(p2)
+    p.z = 0
+    return magnitude(subtract_point(p1, p))
+
 def add_point(p1, p2):
     '''
     p1 + p2
