@@ -39,10 +39,12 @@ class ScanMapArmCam(smach.State):
         while len(regions) > 0 and utils.map.get_percent_cleared() < 0.985:
             if len(regions[r_id].get_boarder_cells()) < self.min_num_of_cells:
                 regions.remove(regions[r_id])
+                if len(regions) == 0:
+                    break
                 r_id = r_id % len(regions)
                 continue
 
-            if  i >= 2:
+            if  i >= 3:
                 r_id += 1
                 r_id = r_id % len(regions)
                 i = 0
@@ -74,12 +76,12 @@ class ScanMapArmCam(smach.State):
                 if not map_updated:
                     rospy.logdebug("no map update")
                     utils.map.mark_cell(next_point.x, next_point.y, False)
+                    i += 1
                     continue
                 rospy.logdebug("published")
                 co = utils.map.to_collision_object()
                 utils.manipulation.get_planning_scene().add_object(co)
                 utils.map.mark_cell(next_point.x, next_point.y, False)
-                self.last_scanned_point = next_point
                 return 'newImage'
             utils.map.mark_cell(next_point.x, next_point.y, False)
 

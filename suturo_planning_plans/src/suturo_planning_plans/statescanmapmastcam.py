@@ -56,6 +56,8 @@ class ScanMapMastCam(smach.State):
 
         co = utils.map.to_collision_object()
         utils.manipulation.get_planning_scene().add_object(co)
+        # utils.manipulation.get_planning_scene().add_object(co)
+        rospy.sleep(2)
         n = 8
         for i in range(0, n):
             a = 2 * pi * ((i + 0.0) / (n + 0.0))
@@ -64,8 +66,10 @@ class ScanMapMastCam(smach.State):
             goal_base_pose.header.frame_id = "/odom_combined"
 
             goal_base_pose.pose.position= Point(cos(a), sin(a), 0)
-            if goal_base_pose.pose.position.x < 0 and goal_base_pose.pose.position.y < 0:
+            if goal_base_pose.pose.position.x < 0 and goal_base_pose.pose.position.y < 0 or \
+                                    goal_base_pose.pose.position.x > 0 and goal_base_pose.pose.position.y > 0:
                 continue
+
             goal_base_pose.pose.position = set_vector_length(0.25, goal_base_pose.pose.position)
 
             goal_base_pose.pose.orientation.w = 1

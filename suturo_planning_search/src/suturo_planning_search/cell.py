@@ -48,7 +48,7 @@ class Cell:
         self.marked = False
         # self.object = False
         self.state = self.Unknown
-        self.last_update = 0
+        self.last_update_id = 0
 
         self.points = [0 for x in range(7)]
 
@@ -70,7 +70,7 @@ class Cell:
                other.is_unknown() and self.is_unknown()
 
     def update_cell(self, z, color, update_id):
-        self.last_update = update_id
+        self.last_update_id = update_id
         z2 = self.average_z * self.get_num_points()
         if z > self.min_z_value:
             if color == self.BLUE:
@@ -194,6 +194,9 @@ class Cell:
 
     #getter
 
+    def get_last_update(self):
+        return self.last_update_id
+
     def get_state(self):
         return self.state
 
@@ -213,7 +216,7 @@ class Cell:
         return self.marked
 
     def is_updated(self):
-        return self.last_update
+        return self.last_update_id
 
     def get_color(self):
         return self.id_to_color(self.get_color_id())

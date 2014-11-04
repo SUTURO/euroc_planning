@@ -1,6 +1,8 @@
 import random
 import unittest
+from geometry_msgs.msg._Point import Point
 import rospy
+from suturo_planning_manipulation.calc_grasp_position import make_scan_pose
 from suturo_planning_search.cell import Cell
 from suturo_planning_search.map import Map
 
@@ -380,6 +382,115 @@ class TestMapCleanUp(unittest.TestCase):
         m.get_cell_by_index(11,11).set_unknown()
         self.assertTrue(m.get_cell_by_index(11,11) in map(lambda c: c[0], l))
         m.get_cell_by_index(11,11).set_free()
+
+
+    def test11_1(self):
+        m = self.make_free_map()
+
+        m.get_cell_by_index(9,9).set_unknown()
+        m.get_cell_by_index(9,10).set_unknown()
+        m.get_cell_by_index(9,11).set_unknown()
+        m.get_cell_by_index(10,9).set_unknown()
+        m.get_cell_by_index(10,10).set_unknown()
+        m.get_cell_by_index(10,11).set_unknown()
+        m.get_cell_by_index(11,9).set_unknown()
+        m.get_cell_by_index(11,10).set_unknown()
+        m.get_cell_by_index(11,11).set_unknown()
+
+        (x, y) = m.index_to_coordinates(10, 10)
+        poses = make_scan_pose(Point(x,y,0), 0.05, 0, n=16)
+        poses = m.filter_invalid_poses(x, y, poses)
+        print len(poses)
+        self.assertTrue(len(poses) == 0, poses)
+
+    def test11_2(self):
+        m = self.make_free_map()
+
+        # m.get_cell_by_index(9,9).set_unknown()
+        # m.get_cell_by_index(9,10).set_unknown()
+        # m.get_cell_by_index(9,11).set_unknown()
+        # m.get_cell_by_index(10,9).set_unknown()
+        m.get_cell_by_index(10,10).set_unknown()
+        m.get_cell_by_index(10,11).set_unknown()
+        # m.get_cell_by_index(11,9).set_unknown()
+        # m.get_cell_by_index(11,10).set_unknown()
+        # m.get_cell_by_index(11,11).set_unknown()
+
+        (x, y) = m.index_to_coordinates(10, 10)
+        poses = make_scan_pose(Point(x,y,0), 0.05, 0, n=16)
+        print ""
+        print len(poses)
+        poses = m.filter_invalid_poses(x, y, poses)
+        print len(poses)
+        self.assertTrue(len(poses) == 11, len(poses))
+
+    def test11_3(self):
+        m = self.make_free_map()
+
+        # m.get_cell_by_index(9,9).set_unknown()
+        # m.get_cell_by_index(9,10).set_unknown()
+        # m.get_cell_by_index(9,11).set_unknown()
+        m.get_cell_by_index(10,9).set_unknown()
+        m.get_cell_by_index(10,10).set_unknown()
+        m.get_cell_by_index(10,11).set_unknown()
+        # m.get_cell_by_index(11,9).set_unknown()
+        # m.get_cell_by_index(11,10).set_unknown()
+        # m.get_cell_by_index(11,11).set_unknown()
+
+        (x, y) = m.index_to_coordinates(10, 10)
+        poses = make_scan_pose(Point(x,y,0), 0.05, 0, n=16)
+        print ""
+        print len(poses)
+        poses = m.filter_invalid_poses(x, y, poses)
+        print len(poses)
+        self.assertTrue(len(poses) == 6, len(poses))
+
+    def test12_1(self):
+        m = self.make_free_map()
+
+        # m.get_cell_by_index(9,9).set_unknown()
+        # m.get_cell_by_index(9,10).set_unknown()
+        # m.get_cell_by_index(9,11).set_unknown()
+        m.get_cell_by_index(10,9).set_unknown()
+        m.get_cell_by_index(10,10).set_unknown()
+        m.get_cell_by_index(10,11).set_unknown()
+        # m.get_cell_by_index(11,9).set_unknown()
+        # m.get_cell_by_index(11,10).set_unknown()
+        # m.get_cell_by_index(11,11).set_unknown()
+
+        (x, y) = m.index_to_coordinates(10, 10)
+        poses = make_scan_pose(Point(x,y,0), 0.15, 0, n=16)
+        print ""
+        print len(poses)
+        poses = m.filter_invalid_poses2(x, y, poses)
+        print len(poses)
+        self.assertTrue(len(poses) == 6, len(poses))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -135,6 +135,7 @@ class Map:
         rospy.logdebug("Scan complete")
         rospy.logdebug(self)
         self.print_height_map()
+        self.__num_of_updates += 1
         return not self.field == oldmap
 
     def is_point_in_arm2(self, arm_origin, radius, x, y):
@@ -270,78 +271,74 @@ class Map:
             else:
                 return 0
 
+    def has_cell_been_updated(self, x, y):
+        return self.get_cell(x, y).get_last_update() == self.__num_of_updates
+
     def filter_invalid_poses(self, cell_x, cell_y, pose_list):
         poses = deepcopy(pose_list)
+        # poses = []
         surr_cells = self.get_surrounding_cells8(cell_x, cell_y)
         for (c, x, y) in surr_cells:
             if not c.is_free():
                 p = Point(x, y, 0)
                 p2 = Point(cell_x, cell_y, 0)
                 cell_to_p = subtract_point(p, p2)
-                for pose in poses:
+
+                for pose in pose_list:
                     x_under_pose = pose.pose.position.x
                     y_under_pose = pose.pose.position.y
                     #filter poses that are pointing to unknowns or obstacles
-                    if get_angle(cell_to_p, subtract_point(Point(x_under_pose, y_under_pose, 0), p2)) < pi/4:
+                    cell_to_pose = subtract_point(Point(x_under_pose, y_under_pose, 0), p2)
+                    angle = get_angle(cell_to_p, cell_to_pose)
+                    if angle <= pi/4+0.0001 and pose in poses:
                         poses.remove(pose)
+
         return poses
 
     def filter_invalid_poses2(self, cell_x, cell_y, pose_list):
         poses = deepcopy(pose_list)
-
-        for pose in poses:
+        for pose in pose_list:
             x_under_pose = pose.pose.position.x
             y_under_pose = pose.pose.position.y
             #filter poses that are outside of the table
-            if not (-1.15 <= x_under_pose <= 1.15 and -1.15 <= y_under_pose <= 1.15):
+            filter_range = 1.2
+            # print "pose"
+            # print x_under_pose
+            # print y_under_pose
+            if not (-filter_range <= x_under_pose <= filter_range and -filter_range <= y_under_pose <= filter_range) and pose in poses:
                 poses.remove(pose)
+                # print "removed a"
                 continue
             #filter poses that are above unknowns
             if -1.0 <= x_under_pose <= 1.0 and -1.0 <= y_under_pose <= 1.0:
+                cell = self.get_cell(x_under_pose, y_under_pose)
+                if cell.is_unknown() or \
+                    (cell.is_obstacle() and cell.highest_z >= pose.pose.position.z - 0.085):
+                    if pose in poses: poses.remove(pose)
+                    # print "removed b"
+                    continue
+
                 cells = self.get_surrounding_cells8(x_under_pose, y_under_pose)
-                cells.append(((self.get_cell(x_under_pose, y_under_pose),) +(x_under_pose, y_under_pose)))
+                # (x_index, y_index) = self.coordinates_to_index(x_under_pose, y_under_pose)
+                # cells.append(((self.get_cell_by_index(x_index, y_index),) +(x_under_pose, y_under_pose)))
                 removed = False
                 for (c, x, y) in cells:
                     if c.is_unknown() or (c.is_obstacle() and c.highest_z >= pose.pose.position.z - 0.085):
                         removed = True
-                        poses.remove(pose)
+                        if pose in poses: poses.remove(pose)
+                        print "removed c"
                         break
                 if removed:
                     continue
-            cell_between = self.get_cells_between(cell_x, cell_y, x_under_pose, y_under_pose)
-            not_frees = [c[0].highest_z for c in cell_between if not c[0].is_free()]
-            max_z = 0
-            if len(not_frees) > 0:
-                max_z = max(not_frees)
-            #filter pose if the cell to the cells are to high on average
-            if max_z > pose.pose.position.z/3.5:
-                poses.remove(pose)
-        return poses
-
-    def filter_invalid_poses3(self, cell_x, cell_y, pose_list):
-        poses = deepcopy(pose_list)
-
-        for pose in poses:
-            x_under_pose = pose.pose.position.x
-            y_under_pose = pose.pose.position.y
-            #filter poses that are outside of the table
-            if not (-1.15 <= x_under_pose <= 1.15 and -1.15 <= y_under_pose <= 1.15):
-                poses.remove(pose)
-                rospy.logdebug("remove 1")
-                continue
-            #filter poses that are above unknowns
-            if -1.0 <= x_under_pose <= 1.0 and -1.0 <= y_under_pose <= 1.0:
-                cells = self.get_surrounding_cells8(x_under_pose, y_under_pose)
-                cells.append(((self.get_cell(x_under_pose, y_under_pose),) +(x_under_pose, y_under_pose)))
-                # removed = False
-                for (c, x, y) in cells:
-                    if c.is_unknown() or (c.is_obstacle() and c.highest_z >= pose.pose.position.z - 0.085):
-                        # removed = True
-                        poses.remove(pose)
-                        rospy.logdebug("remove 2")
-                        break
-                # if removed:
-                #     continue
+                cell_between = self.get_cells_between(cell_x, cell_y, x_under_pose, y_under_pose)
+                not_frees = [c[0].highest_z for c in cell_between if not c[0].is_free()]
+                max_z = 0
+                if len(not_frees) > 0:
+                    max_z = max(not_frees)
+                #filter pose if the cell to the cells are to high on average
+                if max_z > pose.pose.position.z/3.5:
+                    print "removed d"
+                    if pose in poses: poses.remove(pose)
         return poses
 
     #GETTER
@@ -591,7 +588,11 @@ class Map:
         for r in self.get_obstacle_regions():
             if [x_index, y_index] in r.cell_coords:
                 for coords in r.cell_coords:
-                    self.get_cell_by_index(*coords).set_object()
+                    cell = self.get_cell_by_index(*coords)
+                    cell.set_object()
+                    surr = self.get_surrounding_cells_by_index(*coords)
+                    for c in surr:
+                        c[0].set_object()
                 self.publish_as_marker()
                 return True
         return False

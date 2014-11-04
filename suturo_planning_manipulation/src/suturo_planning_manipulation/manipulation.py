@@ -51,7 +51,7 @@ class Manipulation(object):
         self.__base_group.set_planning_time(2.5)
 
         self.__arm_base_group = moveit_commander.MoveGroupCommander("arm_base")
-        self.__arm_base_group.set_planning_time(5)
+        self.__arm_base_group.set_planning_time(10)
 
         # rospy.wait_for_service('/euroc_interface_node/move_along_joint_path')
         # self.__service = rospy.ServiceProxy('/euroc_interface_node/move_along_joint_path', MoveAlongJointPath)
@@ -154,12 +154,23 @@ class Manipulation(object):
         :param factor: Blowup Factor
         :return: Returns the Blown up object
         """
-        for primitive in bobject.primitives:
+        o = deepcopy(bobject)
+        for primitive in o.primitives:
             dims = []
             for dimension in primitive.dimensions:
                 dims.append(dimension + factor)
             primitive.dimensions = dims
-        return bobject
+        return o
+
+    def __blow_up_map(self, object):
+        o = deepcopy(object)
+        # o.primitives[SolidPrimitive.BOX_Z] =+ 0.1
+        for primitive in o.primitives:
+            # dims = []
+            # for dimension in primitive.dimensions:
+            #     dims.append(dimension + 0.1)
+            primitive.dimensions[SolidPrimitive.BOX_Z] += 0.1
+        return o
 
     def __move_group_to(self, goal_pose, move_group, blow_up=True, blow_up_distance=0.02):
         """
@@ -170,13 +181,18 @@ class Manipulation(object):
          :return:
          """
         original_objects = self.__planning_scene_interface.get_collision_objects()
-        blown_up_objects = []
+        # blown_up_objects = []
         if blow_up:
             for each in original_objects:
                 if not each.id in self.__planning_scene_interface.safe_objects:
-                    bobj = self.__blow_up_object(copy.deepcopy(each), blow_up_distance)
-                    blown_up_objects.append(bobj.id)
+                    bobj = self.__blow_up_object(each, blow_up_distance)
+                    # blown_up_objects.append(bobj.id)
                     self.__planning_scene_interface.add_object(bobj)
+        else:
+            map = self.__planning_scene_interface.get_collision_object("map")
+            map = self.__blow_up_map(map)
+            # blown_up_objects.append("map")
+            self.__planning_scene_interface.add_object(map)
 
         move_group.set_start_state_to_current_state()
         goal = deepcopy(goal_pose)
@@ -196,8 +212,8 @@ class Manipulation(object):
 
         path = self.plan(move_group, goal)
 
-        if blow_up:
-            self.__planning_scene_interface.add_objects(original_objects)
+        # if blow_up:
+        self.__planning_scene_interface.add_objects(original_objects)
 
         if path is None:
             return False
