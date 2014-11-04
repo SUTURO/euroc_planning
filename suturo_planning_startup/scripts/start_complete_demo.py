@@ -34,7 +34,6 @@ def abort_current_task():
     global __quit
     if __quit:
         print('Already quitting. Nothing to do here.')
-        return
     elif __aborting_task:
         print ('Already aborting task.')
     else:
