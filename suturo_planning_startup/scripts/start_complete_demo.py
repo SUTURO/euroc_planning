@@ -31,7 +31,11 @@ def abort_current_task():
     global subproc
     global logger_process
     global __clock_subscriber
-    if __aborting_task:
+    global __quit
+    if __quit:
+        print('Already quitting. Nothing to do here.')
+        return
+    elif __aborting_task:
         print ('Already aborting task.')
     else:
         __aborting_task = True
@@ -73,10 +77,11 @@ def kill_like_a_berserk():
     print('start_complete_demo: kill_like_a_berserk')
     global subproc
     global logger_process
+    print('Killing subproc like a berserk.')
     exterminate(subproc.pid, signal.SIGKILL, r=True)
+    print('Killing logger like a berserk.')
     exterminate(logger_process.pid, signal.SIGKILL, r=True)
     print('start_complete_demo: Exiting kill_like_a_berserk.')
-    exit()
 
 
 def exit_handler(signum=None, frame=None):
@@ -93,7 +98,7 @@ def exit_handler(signum=None, frame=None):
             if not __aborting_task:
                 abort_current_task()
         else:
-            print('start_complete_demo: Already handling exit.')
+            print('start_complete_demo: Already handling exit. Count to kill like a berserk: ' + str(__kill_count))
             if __kill_count < 100:
                 __kill_count += 1
             elif signum is not None and __kill_count == 100:
@@ -105,7 +110,9 @@ def exit_handler(signum=None, frame=None):
         if signum is not None:
             print('Going to abort current task.')
             abort_current_task()
-        __handling_exit = False
+        if not __quit:
+            print('Setting __handling_exit to False.')
+            __handling_exit = False
     print('start_complete_demo: exiting exit_handler')
 
 
@@ -117,7 +124,7 @@ def start_demo(wait, tasks, logging):
     global subproc
     global logger_process
     rospy.init_node('start_complete_demo')
-    atexit.register(exit_handler)
+    #atexit.register(exit_handler)
     signal.signal(signal.SIGTERM, exit_handler)
     signal.signal(signal.SIGINT, exit_handler)
     print('Getting available task names.')
