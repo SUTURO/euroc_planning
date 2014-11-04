@@ -60,7 +60,7 @@ def main(task, with_plan, init_sim, savelog, no_taskselector, initialization_tim
     if with_plan:
         rospy.init_node('suturo_planning_execution', log_level=rospy.DEBUG)
         rospy.loginfo('Started plan')
-        toplevel_plan(init_sim, [task], savelog, initialization_time, logging)
+        toplevel_plan(init_sim, task, savelog, initialization_time, logging)
     else:
         rospy.init_node('suturo_planning_start_task', log_level=rospy.DEBUG)
         #Start tasks

@@ -20,6 +20,7 @@ __time_started_task = None
 __time_limit = 600
 __handling_exit = False
 __aborting_task = False
+__kill_count = 0
 subproc = None
 logger_process = None
 
@@ -27,54 +28,84 @@ logger_process = None
 def abort_current_task():
     print('start_complete_demo: abort_current_task')
     global __aborting_task
-    __aborting_task = True
     global subproc
     global logger_process
-    if subproc is not None:
-        try:
-            print('Killing subproc with pid ' + str(subproc.pid))
-            exterminate(subproc.pid, signal.SIGINT)
-            print('Waiting for subproc to terminate. Please be patient.')
-            utils.wait_for_process(subproc, 120)
-            poll = subproc.poll()
-            if poll is None:
-                print('Could not kill task process. Forcing!'
-                      ' (pid: ' + str(subproc.pid) + ', subproc.poll(): ' + str(poll) + ')')
-                exterminate(subproc.pid, signal.SIGKILL, r=True)
-        except Exception, e:
-            print(e)
-    if logger_process is not None:
-        try:
-            print('Killing logger with pid ' + str(logger_process.pid))
-            exterminate(logger_process.pid, signal.SIGINT)
-            print('Waiting for logger process to terminate. Please be patient.')
-            #logger_process.wait()
-            utils.wait_for_process(logger_process, 240)
-            poll = logger_process.poll()
-            if poll is None:
-                print('Could not kill logger process. Forcing!'
-                      ' (pid: ' + str(logger_process.pid) + ', logger_process.poll(): ' + str(poll) + ')')
-                exterminate(logger_process.pid, signal.SIGKILL)
-        except Exception, e:
-            print(e)
-    __aborting_task = False
+    global __clock_subscriber
+    if __aborting_task:
+        print ('Already aborting task.')
+    else:
+        __aborting_task = True
+        if __clock_subscriber is not None:
+            print('Unsubscribing clock subscriber.')
+            __clock_subscriber.unregister()
+        if subproc is not None:
+            try:
+                print('Killing subproc with pid ' + str(subproc.pid))
+                exterminate(subproc.pid, signal.SIGINT)
+                print('Waiting for subproc to terminate. Please be patient.')
+                utils.wait_for_process(subproc, 120)
+                poll = subproc.poll()
+                if poll is None:
+                    print('Could not kill task process. Forcing!'
+                          ' (pid: ' + str(subproc.pid) + ', subproc.poll(): ' + str(poll) + ')')
+                    exterminate(subproc.pid, signal.SIGKILL, r=True)
+            except Exception, e:
+                print(e)
+        if logger_process is not None:
+            try:
+                print('Killing logger with pid ' + str(logger_process.pid))
+                exterminate(logger_process.pid, signal.SIGINT)
+                print('Waiting for logger process to terminate. Please be patient.')
+                #logger_process.wait()
+                utils.wait_for_process(logger_process, 240)
+                poll = logger_process.poll()
+                if poll is None:
+                    print('Could not kill logger process. Forcing!'
+                          ' (pid: ' + str(logger_process.pid) + ', logger_process.poll(): ' + str(poll) + ')')
+                    exterminate(logger_process.pid, signal.SIGKILL)
+            except Exception, e:
+                print(e)
+        __aborting_task = False
+    print('start_complete_demo: Exiting abort_current_task')
+
+
+def kill_like_a_berserk():
+    print('start_complete_demo: kill_like_a_berserk')
+    global subproc
+    global logger_process
+    exterminate(subproc.pid, signal.SIGKILL, r=True)
+    exterminate(logger_process.pid, signal.SIGKILL, r=True)
+    print('start_complete_demo: Exiting kill_like_a_berserk.')
+    exit()
 
 
 def exit_handler(signum=None, frame=None):
-    print('start_complete_demo: exit_handler')
+    global __kill_count
     global __handling_exit
-    if __handling_exit:
-        print('start_complete_demo: Already handling exit.')
-        return
-    __handling_exit = True
+    print('start_complete_demo: exit_handler')
     global __quit
     global __clock_subscriber
-    if __clock_subscriber is not None:
-        print('Unregistering clock subscriber.')
-        __clock_subscriber.unregister()
-    if signum is not None:
-        abort_current_task()
-    __quit = True
+    global __aborting_task
+    if __handling_exit:
+        if not __quit:
+            print('Going to abort execution of all remaining tasks.')
+            __quit = True
+            if not __aborting_task:
+                abort_current_task()
+        else:
+            print('start_complete_demo: Already handling exit.')
+            if __kill_count < 100:
+                __kill_count += 1
+            elif signum is not None and __kill_count == 100:
+                __kill_count += 1
+                kill_like_a_berserk()
+        return
+    else:
+        __handling_exit = True
+        if signum is not None:
+            print('Going to abort current task.')
+            abort_current_task()
+        __handling_exit = False
     print('start_complete_demo: exiting exit_handler')
 
 
@@ -174,15 +205,12 @@ def get_available_task_names():
 
 
 def handle_clock(msg):
-    global __clock_subscriber
     global __time_started_task
     global __time_limit
     global __aborting_task
     now = int(time.time())
     if not __aborting_task and msg.clock.secs > __time_limit:
         if now - __time_started_task >= __time_limit:
-            print('Unsubscribing clock subscriber.')
-            __clock_subscriber.unregister()
             print_panda()
             abort_current_task()
         else:
