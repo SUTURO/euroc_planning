@@ -164,7 +164,15 @@ class EurocTask(smach.StateMachine):
                 task_success = 'StopSimulation'
             else:
                 smach.StateMachine.add('GetYaml', GetYaml(),
-                                       transitions={'success': task_name,
+                                       transitions={'success': DetermineTaskType,
+                                                    'fail': 'fail'})
+                smach.StateMachine.add('DetermineTaskType', DetermineTaskType(),
+                                       transitions={'task1': 'task1',
+                                                    'task2': 'task2',
+                                                    'task3': 'task3',
+                                                    'task4': 'task4',
+                                                    'task5': 'task5',
+                                                    'task6': 'task6',
                                                     'fail': 'fail'})
 
             for task in available_tasks:
