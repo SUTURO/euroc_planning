@@ -234,7 +234,7 @@ class Manipulation(object):
             return resp.motion_plan_response.trajectory
         except rospy.ServiceException as exc:
             rospy.logdebug("Service did not process request: " + str(exc))
-            rospy.logdebug("probablz couldnt find a plan.")
+            rospy.logdebug("probably couldnt find a plan.")
             return None
 
         # if resp.motion_plan_response.error_code == 1:
