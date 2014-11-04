@@ -102,7 +102,7 @@ class GraspObject(smach.State):
                 v2 = deepcopy(collision_object.primitive_poses[0].position)
                 v2.z = 0
                 a = magnitude(subtract_point(v1, v2))
-                b = abs(grasp_2.pose.position.z - collision_object.primitive_poses[0].position.z)
+                b = 0  # abs(grasp_2.pose.position.z - collision_object.primitive_poses[0].position.z)
                 c = sqrt(a**2 + b**2)
                 userdata.dist_to_obj = abs(c)
                 # print c

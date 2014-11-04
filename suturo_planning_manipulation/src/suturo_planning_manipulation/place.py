@@ -51,7 +51,7 @@ def get_place_position_for_single_object(collision_object, destination, transfor
     place_pose.z = z_o + safe_place
     diff = abs(pi/2 - angle)
     if 0 <= diff <= 0.1:
-        place_poses =  make_scan_pose(place_pose, d, angle, n=2)
+        place_poses = make_scan_pose(place_pose, d, angle, n=2)
     else:
         place_poses = make_scan_pose(place_pose, d, angle)
 
