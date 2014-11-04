@@ -25,7 +25,9 @@ class FocusObjects(smach.State):
                 object_to_focus = None
                 min_dist = 100
                 for obj in self._objects_to_focus:
-                    if mathemagie.euclidean_distance(obj.c_centroid, userdata.focused_point) < min_dist:
+                    dist = mathemagie.euclidean_distance(obj.c_centroid, userdata.focused_point)
+                    if dist < min_dist:
+                        min_dist = dist
                         object_to_focus = obj
                 self._objects_to_focus = [object_to_focus]
 
