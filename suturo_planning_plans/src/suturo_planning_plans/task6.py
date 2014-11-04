@@ -3,6 +3,7 @@ from suturo_planning_plans.statecamtodropzone import CamToDropzone
 from suturo_planning_plans.statefastgrasp import FastGrasp
 from suturo_planning_plans.stateplacetask6 import PlaceTask6
 from suturo_planning_plans.statecheckplacement import CheckPlacement
+from suturo_planning_plans.statetask6init import Task6Init
 
 
 class Task6(smach.StateMachine):
@@ -14,6 +15,9 @@ class Task6(smach.StateMachine):
         # TODO: Fehlerbehandlung
         # TODO: Check auf richtiges Placement einbauen
         with self:
+            smach.StateMachine.add('Task6Init', Task6Init(),
+                                   transitions={'success': 'CamToDropzone'})
+
             smach.StateMachine.add('CamToDropzone', CamToDropzone(),
                                    transitions={'scanPoseReached': 'FastGrasp',
                                                 'fail': 'fail'})
@@ -22,15 +26,12 @@ class Task6(smach.StateMachine):
                                    transitions={'objectGrasped': 'PlaceObject',
                                                 'noPlanFound': 'CamToDropzone',
                                                 'timeExpired': 'success',
-                                                'graspingFailed': 'CamToDropzone'})
+                                                'graspingFailed': 'CamToDropzone',
+                                                'noObjectsLeft': 'success'})
 
             smach.StateMachine.add('PlaceObject', PlaceTask6(),
                                    transitions={'success': 'CamToDropzone',
-                                                'fail': 'fail'})
-
-            smach.StateMachine.add('CheckObject', CheckPlacement(),
-                                   transitions={'onTarget': 'CamToDropzone',
-                                                'notOnTarget': 'fail'})
+                                                'fail': 'CamToDropzone'})
 
         self.userdata.objects_found = []
         self.userdata.pending_objects = []

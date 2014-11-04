@@ -49,13 +49,9 @@ class CamToDropzone(smach.State):
 
         rospy.logdebug('CamToDropzone: Move arm to scan_conveyor_pose')
 
-        p2 = geometry_msgs.msg.Pose()
-        p2.position = p.pose.position
-        p2.orientation = p.pose.orientation
-        p2.orientation = rotate_quaternion(p2.orientation, pi / 2, pi, pi / 2)
-
-
-        utils.manipulation.direct_move(utils.manipulation.plan_to(p2))
-        # utils.manipulation.move_to(p)
-
-        return 'scanPoseReached'
+        for i in range(0, 3):
+            if utils.manipulation.move_to(p, False):
+                return 'scanPoseReached'
+            else:
+                if i == 2:
+                    return 'fail'

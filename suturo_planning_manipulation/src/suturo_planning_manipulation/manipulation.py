@@ -211,7 +211,9 @@ class Manipulation(object):
         else:
             move_group.set_joint_value_target(goal)
 
+        print rospy.Time.now().to_sec()
         path = self.plan(move_group, goal)
+        print rospy.Time.now().to_sec()
 
         if blow_up != 0:
             self.__planning_scene_interface.add_objects(original_objects)

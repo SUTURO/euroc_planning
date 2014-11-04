@@ -223,7 +223,20 @@ def get_pitch(q):
     pitch = get_angle(v, gripper_direction)
     return pitch
 
+def get_yaw(q):
+    '''
+    Calculates the pitch of a quaternion.
+    :param q: Quaternion
+    :return: float
+    '''
+    gripper_direction = qv_mult(q, Point(1, 0, 0))
+    v = deepcopy(gripper_direction)
 
+    v.z = 0
+    if 0 <= magnitude(v) <= 0.001:
+        v = Point(1, 0, 0)
+    yaw = get_angle(v, Point(1, 0, 0))
+    return yaw
 
 def normalize2(v, tolerance=0.00001):
     '''

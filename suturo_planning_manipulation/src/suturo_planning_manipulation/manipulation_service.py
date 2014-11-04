@@ -36,7 +36,7 @@ class ManipulationService(object):
             limit = Limits()
             joint_name = path.joint_trajectory.joint_names[i]
             if joint_name.startswith("lwr"):
-                limit.max_velocity = 20 * pi / 180.0
+                limit.max_velocity = 50 * pi / 180.0
                 limit.max_acceleration = 400 * pi / 180.0
             if joint_name.startswith("axis"):
                 limit.max_velocity = 0.165

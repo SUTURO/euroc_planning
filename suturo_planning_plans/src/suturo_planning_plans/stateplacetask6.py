@@ -8,7 +8,7 @@ import utils
 from suturo_planning_manipulation.manipulation import Manipulation, PlanningException
 from tf.listener import TransformListener
 from math import pi
-from suturo_planning_manipulation.mathemagie import rotate_quaternion
+from suturo_planning_manipulation.mathemagie import rotate_quaternion, euler_to_quaternion
 import random
 import time
 
@@ -18,6 +18,7 @@ class PlaceTask6(smach.State):
         smach.State.__init__(self, outcomes=['success', 'fail'],
                              input_keys=['yaml'],
                              output_keys=[])
+        self.__place_pose = 0
 
     def execute(self, userdata):
         rospy.logdebug('PlaceTask6: Executing state PlaceTask6')
@@ -36,24 +37,30 @@ class PlaceTask6(smach.State):
             rospy.sleep(2.)
             now = int(time.time())
 
-        place_pose = self.get_place_point(userdata)
-
-        rospy.logdebug('PlaceTask6: Begin to plan...')
-        # TODO: Abfangen, wenn kein Plan gefunden wird und die rad_fac erhoehen.
-        place_pose_plan = self.plan_place_point(place_pose, userdata)
+        self.__place_pose = self.get_place_point(userdata)
 
         rospy.logdebug('PlaceTask6: Move Arm to Place Pose')
-        rospy.logdebug(place_pose)
-        utils.manipulation.direct_move(place_pose_plan)
-        rospy.logdebug('PlaceTask6: OpenGripper')
-        utils.manipulation.open_gripper()
-
-        return 'success'
+        rospy.logdebug(self.__place_pose)
+        for i in range(0, 7):
+            if utils.manipulation.move_to(self.__place_pose, False):
+                rospy.logdebug('PlaceTask6: OpenGripper')
+                utils.manipulation.open_gripper()
+                return 'success'
+            else:
+                rospy.logdebug('PlaceTask6: Calculate new place position...')
+                if i <= 2:
+                    self.__place_pose = self.get_place_point(userdata)
+                if i > 2:
+                    self.__place_pose = self.get_place_point(userdata, 3)
+                if i == 6:
+                    rospy.logdebug('PlaceTask6: Cant find place position!')
+                    utils.manipulation.open_gripper()
+                    return 'fail'
 
     def plan_place_point(self, place_pose, userdata):
         for i in range(0, 3):
             try:
-                plan = utils.manipulation.plan_to(place_pose)
+                plan = utils.manipulation.plan(utils.manipulation.get_arm_move_group(), place_pose)
                 rospy.logdebug('PlaceTask6: Plan found')
                 return plan
             except PlanningException:
@@ -72,12 +79,10 @@ class PlaceTask6(smach.State):
         target_zone_pose.pose.orientation = geometry_msgs.msg.Quaternion(0.0, 0.0, 0.0, 1.0)
         target_zone_pose.header.frame_id = "/target_zone"
 
-        target_zone_odom = utils.manipulation.transform_to(target_zone_pose)
+        self.__place_pose = utils.manipulation.transform_to(target_zone_pose)
 
-        place_pose = geometry_msgs.msg.Pose()
-        place_pose.position = target_zone_odom.pose.position
-        place_pose.position.z += 0.5
-        place_pose.orientation = rotate_quaternion(target_zone_odom.pose.orientation, -pi, 0, 0)
-        # place_pose.orientation = target_zone_odom.pose.orientation
+        self.__place_pose.pose.orientation = euler_to_quaternion(0, pi / 2, 0)
 
-        return place_pose
+        self.__place_pose.pose.position.z += 0.5
+
+        return self.__place_pose

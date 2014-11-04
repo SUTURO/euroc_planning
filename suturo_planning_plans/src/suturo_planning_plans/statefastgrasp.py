@@ -5,7 +5,7 @@ from geometry_msgs.msg import Quaternion
 import smach
 import rospy
 from suturo_planning_manipulation.manipulation import PlanningException
-from suturo_planning_manipulation.mathemagie import rotate_quaternion
+from suturo_planning_manipulation.mathemagie import rotate_quaternion, get_yaw, euler_to_quaternion
 from suturo_planning_manipulation.torque_force_service import TorqueForceService
 import utils
 from rospy.rostime import Duration
@@ -15,7 +15,8 @@ from euroc_c2_msgs.srv import RequestNextObject
 
 class FastGrasp(smach.State):
     def __init__(self):
-        smach.State.__init__(self, outcomes=['objectGrasped', 'timeExpired', 'noPlanFound', 'graspingFailed'],
+        smach.State.__init__(self, outcomes=['objectGrasped', 'timeExpired', 'noPlanFound', 'graspingFailed',
+                                             'noObjectsLeft'],
                              input_keys=['yaml', 'request_second_object'],
                              output_keys=['request_second_object'])
         self.__perceived_pose = 0
@@ -23,7 +24,7 @@ class FastGrasp(smach.State):
         self.__time_between_poses = rospy.Duration()
         self.__direction = 0
         self.__pose_comp = 0
-        self.__t_point = geometry_msgs.msg.Pose()
+        self.__t_point = geometry_msgs.msg.PoseStamped()
         self.__t_point_time = 0
 
     def percieve_object(self):
@@ -54,8 +55,9 @@ class FastGrasp(smach.State):
         pose2 = utils.manipulation.transform_to(object2)
 
         # calculate the vector from the points of first and second perception
-        self.__direction = numpy.array([(pose2.primitive_poses[0].position.x - self.__perceived_pose.primitive_poses[0].position.x),
-                               (pose2.primitive_poses[0].position.y - self.__perceived_pose.primitive_poses[0].position.y)])
+        self.__direction = numpy.array(
+            [(pose2.primitive_poses[0].position.x - self.__perceived_pose.primitive_poses[0].position.x),
+             (pose2.primitive_poses[0].position.y - self.__perceived_pose.primitive_poses[0].position.y)])
 
         # calculate the time between the first and second perception
         self.__time_between_poses = time2 - self.__perceived_pose_time
@@ -83,18 +85,19 @@ class FastGrasp(smach.State):
         self.__pose_comp.id = "red_cube"
 
     def calculate_target_point(self, pose_comp):
-        self.__t_point = geometry_msgs.msg.Pose()
-        self.__t_point.position = pose_comp.primitive_poses[0].position
-        self.__t_point.position.z += 0.3
+        self.__t_point.pose.position = pose_comp.primitive_poses[0].position
+        self.__t_point.pose.position.z += 0.3
         quat = Quaternion()
         quat.x = pose_comp.primitive_poses[0].orientation.x
         quat.y = pose_comp.primitive_poses[0].orientation.y
         quat.z = pose_comp.primitive_poses[0].orientation.z
         quat.w = pose_comp.primitive_poses[0].orientation.w
-        self.__t_point.orientation = rotate_quaternion(quat, -pi / 2, 0, 0)
+        print get_yaw(quat)
+        self.__t_point.pose.orientation = euler_to_quaternion(0, pi / 2, get_yaw(quat) + (pi / 2))
 
     def execute(self, userdata):
         rospy.logdebug('FastGrasp: Executing state FastGrasp')
+        self.__t_point.header.frame_id = "/odom_combined"
         # TODO: Auf 10 Min grenzen testen
 
         if not utils.manipulation.is_gripper_open():
@@ -112,7 +115,7 @@ class FastGrasp(smach.State):
                 userdata.request_second_object = True
             if i == 14 and userdata.request_second_object:
                 rospy.logdebug('FastGrasp: Time Expired')
-                return 'timeExpired'
+                return 'noObjectsLeft'
             r = self.percieve_object()
             i += 1
         # TODO: Was passiert wenn das Objekt nur einmal gesehen wurde
@@ -121,45 +124,45 @@ class FastGrasp(smach.State):
         for j in range(0, 4):
             self.extrapolate(j)
             self.calculate_target_point(self.__pose_comp)
-            if j <= 2:
-                try:
-                    utils.manipulation.direct_move(utils.manipulation.plan_to(self.__t_point))
-                    break
-                except PlanningException:
-                    rospy.logdebug("FastGrasp: Plan 1: No Plan fount in step " + str(j))
+            if utils.manipulation.move_to(self.__t_point, False):
+                rospy.logdebug("FastGrasp: Plan 1: moved!")
+                break
             else:
-                return 'noPlanFound'
+                rospy.logdebug("FastGrasp: Plan 1: No Plan fount in step " + str(j))
+                if j == 3:
+                    return 'noPlanFound'
 
         while rospy.Time.now() < self.__t_point_time - rospy.Duration(1):
             rospy.sleep(0.01)
-        self.__t_point.position.z -= 0.07
+        self.__t_point.pose.position.z -= 0.07
         rospy.logdebug("FastGrasp: Plan 2")
-        try:
-            utils.manipulation.direct_move(utils.manipulation.plan_to(self.__t_point))
-        except PlanningException:
+        if utils.manipulation.move_to(self.__t_point, False):
+            rospy.logdebug("FastGrasp: Plan 2: moved!")
+        else:
             rospy.logdebug("FastGrasp: Plan 2: Cant grasp")
             return 'noPlanFound'
 
         utils.manipulation.close_gripper(self.__pose_comp)
-        self.__t_point.position.z += 0.1
+
+        self.__t_point.pose.position.z += 0.1
         rospy.logdebug("FastGrasp: Plan 3")
         for k in range(0, 4):
-            try:
-                utils.manipulation.direct_move(utils.manipulation.plan_to(self.__t_point))
+            if utils.manipulation.move_to(self.__t_point, False):
+                rospy.logdebug("FastGrasp: Plan 3: moved!")
                 break
-            except PlanningException:
+            else:
+                if k == 3:
+                    rospy.logdebug("FastGrasp: No Plan found to lift object")
+                    return 'noPlanFound'
                 rospy.logdebug("FastGrasp: Plan 3: Cant lift: " + str(k))
-                if self.__t_point.position.y > 0:
-                    self.__t_point.position.y -= 0.1
+                if self.__t_point.pose.position.y > 0:
+                    self.__t_point.pose.position.y -= 0.1
                 else:
-                    self.__t_point.position.y += 0.1
-                if self.__t_point.position.x > 0:
-                    self.__t_point.position.x -= 0.1
+                    self.__t_point.pose.position.y += 0.1
+                if self.__t_point.pose.position.x > 0:
+                    self.__t_point.pose.position.x -= 0.1
                 else:
-                    self.__t_point.position.x += 0.1
-            if k == 3:
-                rospy.logdebug("FastGrasp: No Plan found to lift object")
-                return 'noPlanFound'
+                    self.__t_point.pose.position.x += 0.1
 
         rospy.sleep(Duration.from_sec(0.5))
         tfs = TorqueForceService()

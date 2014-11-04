@@ -11,7 +11,7 @@ from suturo_planning_manipulation.manipulation import Manipulation
 
 class Task6Init(smach.State):
     def __init__(self):
-        smach.State.__init__(self, outcomes=['success', 'fail'],
+        smach.State.__init__(self, outcomes=['success'],
                              input_keys=['yaml'],
                              output_keys=[])
 
@@ -28,9 +28,9 @@ class Task6Init(smach.State):
         # 2: Breite des Bandes ueber 2*drop_deviation[1] bestimmen
         # 3: Hoehe des Bandes ueber drop_center_point[2] (z wert) + Banddicke (0.01m) holen
         # 4: Lange des Bandes mit mdl Vektor bestimmen + 0.10m fuer Laenge hinter dem dp Vektor
-        # 5: Orientierung de Bandes mit mdl Vektor bestimmen
+        # TODO 5: Orientierung de Bandes mit mdl Vektor bestimmen
 
-        return 'fail'
+        return 'success'
 
     def addConveyorBelt(self, msg):
         print "addConveyorBelt callback"
@@ -75,4 +75,3 @@ class Task6Init(smach.State):
 
         co = utils.manipulation.get_planning_scene().make_box("conveyor_belt", pose, cb_size)
         utils.manipulation.get_planning_scene().add_object(co)
-        pass
