@@ -1,10 +1,10 @@
 import time
-from geometry_msgs.msg._PoseStamped import PoseStamped
 import smach
 import rospy
 from geometry_msgs.msg import PointStamped
 from suturo_planning_manipulation.calc_grasp_position import get_pre_grasp
 from suturo_planning_manipulation.place import get_place_position, get_pre_place_position
+from suturo_planning_manipulation.manipulation_constants import *
 
 import utils
 
@@ -60,7 +60,12 @@ class PlaceObject(smach.State):
 
             time.sleep(0.5)
             rospy.sleep(1)
+            gripper_target = min(utils.manipulation.get_current_gripper_state()[1] + 0.01, gripper_max_pose)
+            if not utils.manipulation.open_gripper(gripper_target):
+                #cant happen
+                return 'fail'
 
+            rospy.sleep(1)
             if not utils.manipulation.open_gripper():
                 #cant happen
                 return 'fail'

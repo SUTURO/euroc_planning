@@ -295,6 +295,12 @@ class Manipulation(object):
         '''
         return self.__arm_base_group.get_current_joint_values()
 
+    def get_current_gripper_state(self):
+        '''
+        :return: current joint state as list of floats
+        '''
+        return self.__gripper_group.get_current_joint_values()
+
     def get_current_lwr_joint_state(self):
         return self.__arm_group.get_current_joint_values()
 
