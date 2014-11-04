@@ -65,7 +65,7 @@ class GraspObject(smach.State):
             if move_to_func(get_pre_grasp(grasp)):
                 rospy.logdebug("Pregraspposition taken")
 
-                if not move_to_func(grasp, blow_up=False):
+                if not move_to_func(grasp, blow_up=2):
                     rospy.logdebug("Failed to take Graspposition")
                     continue
                 rospy.logdebug("Graspposition taken")

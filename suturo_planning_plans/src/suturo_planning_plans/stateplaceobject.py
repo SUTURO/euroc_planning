@@ -75,7 +75,7 @@ class PlaceObject(smach.State):
 
             post_place_pose = utils.manipulation.transform_to(place_pose, co.id)
 
-            if not move_to_func(get_pre_grasp(post_place_pose), blow_up = False):
+            if not move_to_func(get_pre_grasp(post_place_pose), blow_up = 0):
                 rospy.logwarn("Can't reach postplaceposition. Continue anyway")
                 return 'success'
             else:

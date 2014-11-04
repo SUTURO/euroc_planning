@@ -162,10 +162,15 @@ class Manipulation(object):
             # dims = []
             # for dimension in primitive.dimensions:
             #     dims.append(dimension + 0.1)
-            primitive.dimensions[SolidPrimitive.BOX_Z] += 0.1
+            dim = []
+            dim.append(primitive.dimensions[0])
+            dim.append(primitive.dimensions[1])
+            dim.append(primitive.dimensions[2] + 0.2)
+             # += 0.1
+            primitive.dimensions = dim
         return o
 
-    def __move_group_to(self, goal_pose, move_group, blow_up=True, blow_up_distance=0.02):
+    def __move_group_to(self, goal_pose, move_group, blow_up=1, blow_up_distance=0.02):
         """
          :param goal_pose: the pose which shall be arrived
          :param move_group: the move group which shall be moved
@@ -175,17 +180,20 @@ class Manipulation(object):
          """
         original_objects = self.__planning_scene_interface.get_collision_objects()
         # blown_up_objects = []
-        if blow_up:
+        if blow_up == 1:
             for each in original_objects:
                 if not each.id in self.__planning_scene_interface.safe_objects:
                     bobj = self.__blow_up_object(each, blow_up_distance)
                     # blown_up_objects.append(bobj.id)
                     self.__planning_scene_interface.add_object(bobj)
-        else:
+            # ros
+        elif blow_up == 2:
+            # print "agwfylrewluairgewaifaw"
             map = self.__planning_scene_interface.get_collision_object("map")
             map = self.__blow_up_map(map)
             # blown_up_objects.append("map")
             self.__planning_scene_interface.add_object(map)
+            rospy.sleep(2)
 
         move_group.set_start_state_to_current_state()
         goal = deepcopy(goal_pose)
@@ -205,8 +213,8 @@ class Manipulation(object):
 
         path = self.plan(move_group, goal)
 
-        # if blow_up:
-        self.__planning_scene_interface.add_objects(original_objects)
+        if blow_up != 0:
+            self.__planning_scene_interface.add_objects(original_objects)
 
         if path is None:
             return False
