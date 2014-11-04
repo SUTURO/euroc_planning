@@ -1,3 +1,4 @@
+import time
 from geometry_msgs.msg._PoseStamped import PoseStamped
 import smach
 import rospy
@@ -48,17 +49,23 @@ class PlaceObject(smach.State):
             else:
                 rospy.logdebug("preplaceposition taken")
 
+            time.sleep(0.5)
             rospy.sleep(1)
+            
             if not move_to_func(place_pose, blow_up=False):
                 rospy.logwarn("Can't reach placeposition.")
                 continue
             else:
                 rospy.logdebug("placeposition taken")
 
+            time.sleep(0.5)
             rospy.sleep(1)
+
             if not utils.manipulation.open_gripper():
                 #cant happen
                 return 'fail'
+
+            time.sleep(0.5)
             rospy.sleep(1)
 
             post_place_pose = utils.manipulation.transform_to(place_pose, co.id)
