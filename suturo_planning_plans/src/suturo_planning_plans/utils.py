@@ -28,6 +28,13 @@ if not os.path.exists(log_dir):
 focus_poses = [[0.7, pi / 5.0], [0.6, pi / 4.0], [0.6, pi / 3.0], [0.7, pi / 4.0], [0.5, pi / 4.0], [0.4, pi / 4.0]]
 
 
+def secure_log(func, s):
+    if rospy.is_shutdown():
+        print s
+    else:
+        func(s)
+
+
 def wait_for_process(process, t=None):
     print('Waiting for process ' + str(process.pid))
     if t is None:

@@ -1,3 +1,4 @@
+import traceback
 import os
 import sys
 import rospy
@@ -17,6 +18,7 @@ from suturo_planning_manipulation.total_annihilation import exterminate
 from suturo_planning_task_selector import task_selector
 from suturo_msgs.msg import Task
 from suturo_planning_plans import utils
+from suturo_planning_plans.utils import secure_log
 
 __logger_process = None
 __handling_exit = False
@@ -47,7 +49,7 @@ def handle_uncaught_exception(e, initialization_time, logging):
     rospy.signal_shutdown('Terminating Task due to unhandled exception.')
 
 
-def toplevel_plan(init_sim, task_list, savelog, initialization_time, logging):
+def toplevel_plan(init_sim, task_name, savelog, initialization_time, logging):
     #Create a SMACH state machine
     global __logger_process
     print('toplevel: logging: ' + str(logging))
@@ -56,19 +58,18 @@ def toplevel_plan(init_sim, task_list, savelog, initialization_time, logging):
     else:
         print('toplevel: Logging planning to files.')
         __logger_process = utils.start_logger(os.getpid(), subprocess.PIPE, initialization_time, 'Planning', logging)
-        sys.stderr = sys.stdout
+        sys.stderr = __logger_process.stdin
         sys.stdout = __logger_process.stdin
 
     toplevel = smach.StateMachine(outcomes=['success', 'fail'])
 
     # Open the container
     with toplevel:
-        for task_name in task_list:
-            rospy.logdebug('Adding task: %s', task_name)
-            smach.StateMachine.add('Execute%s' % task_name,
-                                   EurocTask(init_sim, task_name, savelog, initialization_time, logging),
-                                   transitions={'success': 'success',
-                                                'fail': 'fail'})
+        rospy.logdebug('Adding task: %s', task_name)
+        smach.StateMachine.add('Execute%s' % task_name,
+                               EurocTask(init_sim, task_name, savelog, initialization_time, logging),
+                               transitions={'success': 'success',
+                                            'fail': 'fail'})
 
     # Create and start the introspection server
     rospy.loginfo('Creating and starting the introspection server.')
@@ -81,7 +82,17 @@ def toplevel_plan(init_sim, task_list, savelog, initialization_time, logging):
     def execute_task():
         try:
             toplevel.execute()
+        except BaseException, e:
+            print('BaseException while executing Task:')
+            print(traceback.print_exc())
+            handle_uncaught_exception(sys.exc_info()[0], initialization_time, logging)
+        except Exception, e:
+            print('Exception while executing Task:')
+            print(traceback.print_exc())
+            handle_uncaught_exception(sys.exc_info()[0], initialization_time, logging)
         except:
+            print('Unhandled Exception while executing Task:')
+            print(traceback.print_exc())
             handle_uncaught_exception(sys.exc_info()[0], initialization_time, logging)
 
     smach_thread = threading.Thread(target=execute_task)
@@ -90,7 +101,8 @@ def toplevel_plan(init_sim, task_list, savelog, initialization_time, logging):
     rospy.loginfo('toplevel: Waiting for smach thread to terminate.')
     # Wait for ctrl-c
     rospy.spin()
-    rospy.loginfo('toplevel: Interrupting smach thread.')
+    secure_log(rospy.loginfo, 'toplevel: smach thread terminated.')
+    secure_log(rospy.loginfo, 'toplevel: Interrupting smach thread.')
 
     # # Request the container to preempt
     # rospy.loginfo('Request the container to preempt.')
@@ -98,10 +110,10 @@ def toplevel_plan(init_sim, task_list, savelog, initialization_time, logging):
     #
     # # Block until everything is preempted
     # rospy.loginfo('Block until everything is preempted.')
-    rospy.loginfo('toplevel: Joining smach thread.')
+    secure_log(rospy.loginfo, 'toplevel: Joining smach thread.')
     start_nodes.exit_handler()
     smach_thread.join()
-    rospy.loginfo('toplevel: smach thread terminated.')
+    secure_log(rospy.loginfo, 'toplevel: smach thread terminated.')
 
 
 class EurocTask(smach.StateMachine):
@@ -110,6 +122,8 @@ class EurocTask(smach.StateMachine):
         smach.StateMachine.__init__(self, input_keys=[], outcomes=['success', 'fail'])
         self.userdata.initialization_time = initialization_time
         self.userdata.logging = logging
+
+        available_tasks = ['task1', 'task2', 'task3', 'task4', 'task5', 'task6']
         # Associate the task name with a state machine
         plans = {'task1': task1_2.Task1,
                  'task2': task1_2.Task1,
@@ -126,15 +140,17 @@ class EurocTask(smach.StateMachine):
                      'task5': ['task5'],
                      'task6': ['task6']}
 
-        # Parses the task name
-        task = task_name.split('_')[0]
-
         with self:
             task_success = 'success'
 
             if init_sim:
                 smach.StateMachine.add('InitSimulation', InitSimulation(task_name),
-                                       transitions={'success': task_name,
+                                       transitions={'task1': 'task1',
+                                                    'task2': 'task2',
+                                                    'task3': 'task3',
+                                                    'task4': 'task4',
+                                                    'task5': 'task5',
+                                                    'task6': 'task6',
                                                     'fail': 'fail'})
 
                 smach.StateMachine.add('StopSimulation', start_nodes.StopSimulation(self.savelog),
@@ -148,17 +164,27 @@ class EurocTask(smach.StateMachine):
                 task_success = 'StopSimulation'
             else:
                 smach.StateMachine.add('GetYaml', GetYaml(),
-                                       transitions={'success': task_name,
+                                       transitions={'success': 'DetermineTaskType',
+                                                    'fail': 'fail'})
+                
+                smach.StateMachine.add('DetermineTaskType', DetermineTaskType(),
+                                       transitions={'task1': 'task1',
+                                                    'task2': 'task2',
+                                                    'task3': 'task3',
+                                                    'task4': 'task4',
+                                                    'task5': 'task5',
+                                                    'task6': 'task6',
                                                     'fail': 'fail'})
 
-            smach.StateMachine.add(task_name, plans[task](*plan_args[task]),
-                                   transitions={'success': task_success,
-                                                'fail': 'fail'})
+            for task in available_tasks:
+                smach.StateMachine.add(task, plans[task](*plan_args[task]),
+                                       transitions={'success': task_success,
+                                                    'fail': 'fail'})
 
 
 class InitSimulation(smach.StateMachine):
     def __init__(self, task_name):
-        smach.StateMachine.__init__(self, outcomes=['success', 'fail'],
+        smach.StateMachine.__init__(self, outcomes=['task1', 'task2', 'task3', 'task4', 'task5', 'task6', 'fail'],
                                     input_keys=['initialization_time', 'logging'],
                                     output_keys=['objects_found', 'yaml', 'perception_process', 'manipulation_process',
                                                  'manipulation_conveyor_frames_process', 'classifier_process',
@@ -176,8 +202,43 @@ class InitSimulation(smach.StateMachine):
                                    transitions={'success': 'StartClassifier',
                                                 'fail': 'StartPerception'})
             smach.StateMachine.add('StartClassifier', start_nodes.StartClassifier(),
-                                   transitions={'success': 'success',
+                                   transitions={'success': 'DetermineTaskType',
                                                 'fail': 'StartClassifier'})
+            smach.StateMachine.add('DetermineTaskType', DetermineTaskType(),
+                                   transitions={'task1': 'task1',
+                                                'task2': 'task2',
+                                                'task3': 'task3',
+                                                'task4': 'task4',
+                                                'task5': 'task5',
+                                                'task6': 'task6',
+                                                'fail': 'fail'})
+
+
+class DetermineTaskType(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['task1', 'task2', 'task3', 'task4', 'task5', 'task6', 'fail'],
+                             input_keys=['yaml'],
+                             output_keys=[])
+
+    def execute(self, ud):
+        rospy.loginfo('Executing state DetermineTaskType')
+        task_type = ud.yaml.task_type
+        if task_type == Task.TASK_1:
+            ret = 'task1'
+        elif task_type == Task.TASK_2:
+            ret = 'task2'
+        elif task_type == Task.TASK_3:
+            ret = 'task3'
+        elif task_type == Task.TASK_4:
+            ret = 'task4'
+        elif task_type == Task.TASK_5:
+            ret = 'task5'
+        elif task_type == Task.TASK_6:
+            ret = 'task6'
+        else:
+            ret = 'fail'
+        rospy.loginfo('Executing task is from type ' + str(ret) + '.')
+        return ret
 
 
 class GetYaml(smach.State):

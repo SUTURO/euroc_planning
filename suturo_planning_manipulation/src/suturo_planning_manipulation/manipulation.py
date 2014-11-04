@@ -11,18 +11,11 @@ from euroc_c2_msgs.srv import *
 from geometry_msgs.msg._PointStamped import PointStamped
 from geometry_msgs.msg._Pose import Pose
 from geometry_msgs.msg._Vector3 import Vector3
-from geometry_msgs.msg._Vector3Stamped import Vector3Stamped
-from moveit_commander import planning_scene_interface
 from moveit_msgs.msg import *
 from moveit_msgs.srv._GetMotionPlan import GetMotionPlan, GetMotionPlanRequest
-from numpy.core.multiarray import ndarray
-import rospy
-import moveit_commander
-import moveit_msgs.msg
 import geometry_msgs.msg
-from shape_msgs.msg import _SolidPrimitive
 from calc_grasp_position import *
-from place import get_place_position, get_pre_place_position, pre_place_length, post_place_length, get_grasped_part
+from place import get_place_position, get_pre_place_position
 from planningsceneinterface import *
 from manipulation_constants import *
 from manipulation_service import *
@@ -310,6 +303,12 @@ class Manipulation(object):
         :return: current joint state as list of floats
         '''
         return self.__arm_base_group.get_current_joint_values()
+
+    def get_current_gripper_state(self):
+        '''
+        :return: current joint state as list of floats
+        '''
+        return self.__gripper_group.get_current_joint_values()
 
     def get_current_lwr_joint_state(self):
         return self.__arm_group.get_current_joint_values()

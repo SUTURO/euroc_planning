@@ -31,9 +31,10 @@ def stop_task():
     if utils.manipulation is not None:
         print "Print Manipulation Shit:"
         utils.manipulation.print_manipulation()
+    print 'rospy.is_shutdown() = ' + str(rospy.is_shutdown())
     try:
         print('Waiting for service euroc_c2_task_selector/stop_simulator.')
-        rospy.wait_for_service('euroc_c2_task_selector/stop_simulator', timeout=30)
+        rospy.wait_for_service('euroc_c2_task_selector/stop_simulator', timeout=60)
         print('Service euroc_c2_task_selector/stop_simulator ready.')
         stop_simulator = rospy.ServiceProxy('euroc_c2_task_selector/stop_simulator', StopSimulator)
         global task_stopped
@@ -48,12 +49,15 @@ def stop_task():
 
 def save_task():
     global task_saved
-    print('Waiting for service.')
-    rospy.wait_for_service('/euroc_interface_node/save_log')
-    rospy.loginfo('Saving log')
+    print 'rospy.is_shutdown() = ' + str(rospy.is_shutdown())
+    print('Waiting for service /euroc_interface_node/save_log.')
     try:
+        rospy.wait_for_service('/euroc_interface_node/save_log', timeout=60)
+        rospy.loginfo('Saving log')
         save_log = rospy.ServiceProxy('/euroc_interface_node/save_log', SaveLog)
         save_log()
         task_saved = True
     except rospy.ServiceException, e:
-        print "Service call to save log failed: %s" % e
+        print "Service call to save log failed: %s"%e
+    except rospy.ROSException, e:
+        print('Waiting for service /euroc_interface_node/save_log timed out.')
