@@ -60,7 +60,7 @@ class PlaceObject(smach.State):
 
             time.sleep(0.5)
             rospy.sleep(1)
-            gripper_target = min(utils.manipulation.get_current_gripper_state()[1] + 0.01, gripper_max_pose)
+            gripper_target = min(utils.manipulation.get_current_gripper_state()[1] + 0.008, gripper_max_pose)
             if not utils.manipulation.open_gripper(gripper_target):
                 #cant happen
                 return 'fail'
