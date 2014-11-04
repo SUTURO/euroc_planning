@@ -6,6 +6,7 @@ import time
 import rospy
 import re
 import sys
+from copy import copy
 from tf.transformations import quaternion_inverse, quaternion_from_euler
 from yaml_exceptions import UnhandledValue
 from suturo_msgs.msg import Task
@@ -16,6 +17,7 @@ from suturo_msgs.msg import Sensor
 from suturo_msgs.msg import Camera
 from suturo_msgs.msg import TargetZone
 from suturo_msgs.msg import ConveyorBelt
+from suturo_msgs.msg import PuzzlePart
 from std_msgs.msg import String
 from std_msgs.msg import Header
 from geometry_msgs.msg import Twist
@@ -101,6 +103,11 @@ class YamlPars0r:
             target_zones_msg = YamlPars0r.parse_target_zones(f_target_zones)
             f_task_name = YamlPars0r.get_dict_value(y, 'task_name')
             f_belt = YamlPars0r.parse_conveyor_belt(YamlPars0r.get_dict_value(y, 'conveyor_belt'))
+            rospy.loginfo("<<<<<<Mher>>>>>\r\n %s"%YamlPars0r.get_dict_value(y, 'puzzle_fixture'))
+            puzzle_fixture = YamlPars0r.parse_puzzle_fixture(YamlPars0r.get_dict_value(y, 'puzzle_fixture'))
+            relative_puzzle_part_target_poses = YamlPars0r.parse_relative_puzzle_part_target_poses(
+                YamlPars0r.get_dict_value(y, 'relative_puzzle_part_target_poses')
+            )
             msg = Task(
                 description=f_description,
                 log_filename=f_log_filename,
@@ -114,11 +121,30 @@ class YamlPars0r:
                 time_limit=YamlPars0r.get_dict_value(y, 'time_limit', float),
                 two_axes_table_speed_limit=YamlPars0r.get_dict_value(YamlPars0r.get_dict_value(y, 'two_axes_table'),
                                                                      'speed_limit', list),
-                conveyor_belt=f_belt
+                conveyor_belt=f_belt,
+                puzzle_fixture=puzzle_fixture,
+                relative_puzzle_part_target_poses = relative_puzzle_part_target_poses
             )
             return msg
         else:
             return Task()
+    @staticmethod
+    def parse_puzzle_fixture(inp):
+        if inp is not None:
+            f_pose = YamlPars0r.parse_pose(YamlPars0r.get_dict_value(inp, 'pose'))
+            return f_pose
+
+    @staticmethod
+    def parse_relative_puzzle_part_target_poses(inp):
+        parts = []
+        if inp is not None:
+            pp = None
+            for key in inp:
+                pp = PuzzlePart()
+                pp.name = key
+                pp.pose = YamlPars0r.parse_pose(YamlPars0r.get_dict_value(inp, key))
+                parts.append(pp)
+        return parts
 
     @staticmethod
     def parse_conveyor_belt(belt):
