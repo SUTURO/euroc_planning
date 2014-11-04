@@ -24,7 +24,6 @@ class PlanningSceneInterface(object):
                                                            queue_size=10)
         rospy.wait_for_service("get_planning_scene")
         self.__ps_service_client = rospy.ServiceProxy('get_planning_scene', moveit_msgs.srv.GetPlanningScene)
-        rospy.sleep(1)
 
     def __del__(self):
         pass
@@ -154,7 +153,7 @@ class PlanningSceneInterface(object):
         '''
         collision_object.operation = moveit_msgs.msg.CollisionObject.ADD
         self.__collision_object_publisher.publish(collision_object)
-        rospy.sleep(0.25)
+        # rospy.sleep(0.25)
 
     def add_objects(self, collision_objects):
         '''

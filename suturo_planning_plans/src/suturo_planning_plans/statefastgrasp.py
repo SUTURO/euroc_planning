@@ -15,9 +15,9 @@ from euroc_c2_msgs.srv import RequestNextObject
 
 class FastGrasp(smach.State):
     def __init__(self):
-        smach.State.__init__(self, outcomes=['objectGrasped', 'timeExpired', 'noPlanFound', 'fail'],
-                             input_keys=['yaml'],
-                             output_keys=[])
+        smach.State.__init__(self, outcomes=['objectGrasped', 'timeExpired', 'noPlanFound', 'graspingFailed'],
+                             input_keys=['yaml', 'request_second_object'],
+                             output_keys=['request_second_object'])
         self.__perceived_pose = 0
         self.__perceived_pose_time = rospy.Time()
         self.__time_between_poses = rospy.Duration()
@@ -72,7 +72,7 @@ class FastGrasp(smach.State):
             t = 2
         else:
             t = 1
-        self.__t_point_time = rospy.Time.now() + rospy.Duration(7) + rospy.Duration(t * step)
+        self.__t_point_time = rospy.Time.now() + rospy.Duration(8) + rospy.Duration(t * step)
         time_13 = self.__t_point_time - self.__perceived_pose_time
         diff_time = float(time_13.to_sec()) / float(self.__time_between_poses.to_sec())
         dir_13 = numpy.array([diff_time * self.__direction[0], diff_time * self.__direction[1]])
@@ -95,24 +95,22 @@ class FastGrasp(smach.State):
 
     def execute(self, userdata):
         rospy.logdebug('FastGrasp: Executing state FastGrasp')
-        # TODO: Nach ?? Sekunden time expired werfen
+        # TODO: Auf 10 Min grenzen testen
 
         if not utils.manipulation.is_gripper_open():
             rospy.logdebug('FastGrasp: Open Gripper')
             utils.manipulation.open_gripper()
-        print utils.manipulation.is_gripper_open()
 
         r = self.percieve_object()
         i = 0
-        serviceCall = False
 
         while r == -1:
-            if i == 2:
+            if i == 2 and not userdata.request_second_object:
                 # TODO: Zeit anpassen, ab wann gecalled wird
                 rospy.logdebug('FastGrasp: Request next object')
                 rospy.ServiceProxy("/euroc_interface_node/request_next_object", RequestNextObject).call()
-                serviceCall = True
-            if i == 9 and serviceCall:
+                userdata.request_second_object = True
+            if i == 14 and userdata.request_second_object:
                 rospy.logdebug('FastGrasp: Time Expired')
                 return 'timeExpired'
             r = self.percieve_object()
@@ -132,9 +130,8 @@ class FastGrasp(smach.State):
             else:
                 return 'noPlanFound'
 
-        while rospy.Time.now() < self.__t_point_time - rospy.Duration(0.5):
+        while rospy.Time.now() < self.__t_point_time - rospy.Duration(1):
             rospy.sleep(0.01)
-        # TODO: Timing zum Zupacken bestimmen!!!
         self.__t_point.position.z -= 0.07
         rospy.logdebug("FastGrasp: Plan 2")
         try:
@@ -146,17 +143,29 @@ class FastGrasp(smach.State):
         utils.manipulation.close_gripper(self.__pose_comp)
         self.__t_point.position.z += 0.1
         rospy.logdebug("FastGrasp: Plan 3")
-        # TODO: Bei Exception irgendwie ne andere Pose finden
-        try:
-            utils.manipulation.direct_move(utils.manipulation.plan_to(self.__t_point))
-        except PlanningException:
-            rospy.logdebug("FastGrasp: Plan 3: Cant lift")
-            return 'noPlanFound'
+        for k in range(0, 4):
+            try:
+                utils.manipulation.direct_move(utils.manipulation.plan_to(self.__t_point))
+                break
+            except PlanningException:
+                rospy.logdebug("FastGrasp: Plan 3: Cant lift: " + str(k))
+                if self.__t_point.position.y > 0:
+                    self.__t_point.position.y -= 0.1
+                else:
+                    self.__t_point.position.y += 0.1
+                if self.__t_point.position.x > 0:
+                    self.__t_point.position.x -= 0.1
+                else:
+                    self.__t_point.position.x += 0.1
+            if k == 3:
+                rospy.logdebug("FastGrasp: No Plan found to lift object")
+                return 'noPlanFound'
 
         rospy.sleep(Duration.from_sec(0.5))
         tfs = TorqueForceService()
         if tfs.is_free():
             rospy.logdebug("FastGrasp: Grasp Fail")
-            return 'fail'
+            return 'graspingFailed'
         rospy.logdebug("FastGrasp: objectGrasped, finished")
+
         return 'objectGrasped'

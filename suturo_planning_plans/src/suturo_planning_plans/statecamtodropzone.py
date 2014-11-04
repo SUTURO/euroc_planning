@@ -4,6 +4,10 @@ import utils
 import time
 from suturo_planning_manipulation.manipulation import Manipulation
 from tf.listener import TransformListener
+import geometry_msgs
+from geometry_msgs.msg import Pose
+from math import pi
+from suturo_planning_manipulation.mathemagie import rotate_quaternion
 
 
 class CamToDropzone(smach.State):
@@ -44,12 +48,14 @@ class CamToDropzone(smach.State):
             p = userdata.scan_conveyor_pose[0]
 
         rospy.logdebug('CamToDropzone: Move arm to scan_conveyor_pose')
-        utils.manipulation.move_to(p)
+
+        p2 = geometry_msgs.msg.Pose()
+        p2.position = p.pose.position
+        p2.orientation = p.pose.orientation
+        p2.orientation = rotate_quaternion(p2.orientation, pi / 2, pi, pi / 2)
+
+
+        utils.manipulation.direct_move(utils.manipulation.plan_to(p2))
+        # utils.manipulation.move_to(p)
 
         return 'scanPoseReached'
-        # if utils.manipulation.scan_conveyor_pose():
-        #     rospy.logdebug('CamToDropzone: ScanPoseReached')
-        #     return 'scanPoseReached'
-        # else:
-        #     rospy.loginfo('CamToDropzone: Cant reach ScanPose')
-        #     return 'fail'

@@ -105,7 +105,7 @@ def test_task3(mani):
     # mani.place_and_move(dest)
 
 if __name__ == '__main__':
-    rospy.init_node('head_mover', anonymous=True)
+    rospy.init_node('head_mover', log_level=rospy.DEBUG)
 
     m = Manipulation()
     # m.get_arm_move_group().set_named_target("scan_pose1")
@@ -125,6 +125,25 @@ if __name__ == '__main__':
     t_point.pose.orientation = euler_to_quaternion(0, pi/2, pi/4)
     visualize_poses([t_point])
     m.move_arm_and_base_to(t_point)
+
+
+    # m.turn_arm(2.0943951023, 3)
+
+
+    # rospy.sleep(2)
+    # test_task1_v2(m)
+
+    # print m.get_eef_position()
+    #
+    # t_point = geometry_msgs.msg.PoseStamped()
+    # t_point.header.frame_id = "/odom_combined"
+    # # p = Point(0.66,0.91,0.37341)
+    # p = Point(0.91,0.66,0.37341)
+    # t_point.pose.position = p
+    # t_point.pose.orientation = euler_to_quaternion(0, pi/2, pi/4)
+    # visualize_poses([t_point])
+    # m.move_arm_and_base_to(t_point)
+
 
 
     # m2 = Map(2)
