@@ -131,7 +131,7 @@ def visualize_point(p):
     marker.id = 500
     marker.pose.orientation.w = 1
     pub_marker.publish(marker)
-    rospy.sleep(0.1)
+    # rospy.sleep(0.1)
 
 
 def visualize_pose(pose):

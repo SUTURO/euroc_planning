@@ -53,8 +53,8 @@ class GraspObject(smach.State):
         #sort to try the best grasps first
         grasp_positions.sort(cmp=lambda x, y: utils.manipulation.cmp_pose_stamped(collision_object, x, y))
         visualize_poses(grasp_positions)
-        rospy.logdebug("grasppositions:")
-        rospy.logdebug(str(grasp_positions))
+        # rospy.logdebug("grasppositions:")
+        # rospy.logdebug(str(grasp_positions))
 
         utils.manipulation.open_gripper()
         for grasp in grasp_positions:
@@ -67,7 +67,8 @@ class GraspObject(smach.State):
                 rospy.logdebug("Graspposition taken")
 
                 rospy.sleep(1)
-                utils.manipulation.close_gripper(collision_object)
+                if not utils.manipulation.close_gripper(collision_object):
+                    return 'fail'
                 rospy.sleep(1.5)
 
                 #calculate the center of mass and weight of the object and call the load object service
@@ -75,7 +76,7 @@ class GraspObject(smach.State):
                 com = utils.manipulation.transform_to(com, "/tcp")
                 if com is None:
                     rospy.logwarn("TF failed")
-                    return False
+                    return 'fail'
 
                 density = 1
                 for obj in userdata.yaml.objects:

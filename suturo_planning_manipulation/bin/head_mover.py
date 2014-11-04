@@ -36,26 +36,26 @@ from suturo_planning_visualization.visualization import visualize_poses
 
 def test_task1(mani):
 
-    mani.grasp("red_cube")
-
-    dest = PointStamped()
-    dest.header.frame_id = "/odom_combined"
-    dest.point = Point(0.5, 0.5, 0.00)
-    mani.place(dest)
+    # mani.grasp("red_cube")
+    #
+    # dest = PointStamped()
+    # dest.header.frame_id = "/odom_combined"
+    # dest.point = Point(0.5, 0.5, 0.00)
+    # mani.place(dest)
 
     mani.grasp("green_cylinder")
 
-    dest = PointStamped()
-    dest.header.frame_id = "/odom_combined"
-    dest.point = Point(0.5, 0, 0)
-    mani.place(dest)
+    # dest = PointStamped()
+    # dest.header.frame_id = "/odom_combined"
+    # dest.point = Point(0.5, 0, 0)
+    # mani.place(dest)
 
-    mani.grasp("blue_handle")
-
-    dest = PointStamped()
-    dest.header.frame_id = "/odom_combined"
-    dest.point = Point(0.5, -0.5, 0)
-    mani.place(dest)
+    # mani.grasp("blue_handle")
+    #
+    # dest = PointStamped()
+    # dest.header.frame_id = "/odom_combined"
+    # dest.point = Point(0.5, -0.5, 0)
+    # mani.place(dest)
     pass
 
 def test_task1_v2(mani):
@@ -112,19 +112,20 @@ if __name__ == '__main__':
     # print m.get_arm_move_group().get_goal_tolerance()
     # print m.get_arm_move_group().get_goal_position_tolerance()
     # print m.get_arm_move_group().get_goal_orientation_tolerance()
-    rospy.sleep(2)
-    # test_task1_v2(m)
+    # rospy.sleep(2)
+    # test_task1(m)
 
+    m.grasp("cyan_cylinder")
     # print m.get_eef_position()
 
-    t_point = geometry_msgs.msg.PoseStamped()
-    t_point.header.frame_id = "/odom_combined"
-    p = Point(0.66,0.91,0.37341)
-    # p = Point(0.91,0.66,0.37341)
-    t_point.pose.position = p
-    t_point.pose.orientation = euler_to_quaternion(0, pi/2, pi/4)
-    visualize_poses([t_point])
-    m.move_arm_and_base_to(t_point)
+    # t_point = geometry_msgs.msg.PoseStamped()
+    # t_point.header.frame_id = "/odom_combined"
+    # p = Point(0.66,0.91,0.37341)
+    # # p = Point(0.91,0.66,0.37341)
+    # t_point.pose.position = p
+    # t_point.pose.orientation = euler_to_quaternion(0, pi/2, pi/4)
+    # visualize_poses([t_point])
+    # m.move_arm_and_base_to(t_point)
 
 
     # m.turn_arm(2.0943951023, 3)

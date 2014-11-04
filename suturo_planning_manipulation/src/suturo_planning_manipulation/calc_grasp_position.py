@@ -159,28 +159,36 @@ def calculate_grasp_position_cylinder(collision_object, n=4):
     '''
     grasp_positions = []
 
-    depth = finger_length
+    d1 = finger_length
     h = collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.CYLINDER_HEIGHT]
     if finger_length < h:
-        depth = h
-    depth += hand_length
+        d1 = h
+    # depth += hand_length
 
-    depth_side = finger_length
+    d2 = finger_length
     if finger_length < collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.CYLINDER_RADIUS]:
-        depth_side = collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.CYLINDER_RADIUS]
-    depth_side += hand_length
+        d2 = collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.CYLINDER_RADIUS]
+    # depth_side += hand_length
 
     #TODO: abfangen wenn eine Seite zu gross ist
     #Points above and below the cylinder
+    depth = d1 + hand_length
     grasp_positions.append(make_grasp_pose(depth, Point(0, 0, 1), Point(0, 1, 0), collision_object.id))
+    grasp_positions.append(make_grasp_pose(depth, Point(0, 0, 1), Point(1, 0, 0), collision_object.id))
 
     grasp_positions.append(make_grasp_pose(depth, Point(0, 0, -1), Point(0, 1, 0), collision_object.id))
+    grasp_positions.append(make_grasp_pose(depth, Point(0, 0, -1), Point(1, 0, 0), collision_object.id))
 
     #Points around the side of the cylinder
-    grasp_positions.extend(make_scan_pose(Point(0,0,0), depth_side, 0, collision_object.id, 4))
+    depth = d2 + hand_length
+    grasp_positions.extend(make_scan_pose(Point(0,0,0), depth, 0, collision_object.id, 4))
+    grasp_positions.extend(make_scan_pose(Point(0,0,h/2-0.02), depth, 0, collision_object.id, 4))
+    grasp_positions.extend(make_scan_pose(Point(0,0,-(h/2-0.02)), depth, 0, collision_object.id, 4))
 
-    grasp_positions.extend(make_scan_pose(Point(0,0,h/2-0.02), depth_side, 0, collision_object.id, 4))
-    grasp_positions.extend(make_scan_pose(Point(0,0,-(h/2-0.02)), depth_side, 0, collision_object.id, 4))
+    # d3 = sqrt(d1**2 + d2**2)
+    # depth = d1 + hand_length
+    grasp_positions.extend(make_scan_pose(Point(0,0,h/2-0.02), depth, pi/4, collision_object.id, 4))
+    grasp_positions.extend(make_scan_pose(Point(0,0,-(h/2-0.02)), depth, -pi/4, collision_object.id, 4))
 
     return grasp_positions
 
