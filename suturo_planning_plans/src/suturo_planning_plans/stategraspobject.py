@@ -5,6 +5,7 @@ from math import sqrt
 from moveit_msgs.msg._CollisionObject import CollisionObject
 import smach
 import rospy
+import time
 from suturo_planning_manipulation.mathemagie import magnitude, subtract_point
 from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_position, get_pre_grasp
 from suturo_planning_visualization.visualization import visualize_poses
@@ -69,9 +70,11 @@ class GraspObject(smach.State):
                     continue
                 rospy.logdebug("Graspposition taken")
 
+                time.sleep(0.5)
                 rospy.sleep(1)
                 if not utils.manipulation.close_gripper(collision_object):
                     return 'fail'
+                time.sleep(0.5)
                 rospy.sleep(1.5)
 
                 #calculate the center of mass and weight of the object and call the load object service
