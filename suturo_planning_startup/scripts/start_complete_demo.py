@@ -140,10 +140,12 @@ def start_demo(wait, tasks, logging):
     elif re.search('^(\d+,?)+$', tasks):
         for num in tasks.split(','):
             tasks_to_execute.append(task_names[int(num)])
+            tasks_to_execute.sort()
     else:
         for task in tasks.split(','):
             if task in task_names:
                 tasks_to_execute.append(task)
+            tasks_to_execute.sort()
     print('Going to execute the following tasks: ' + str(tasks_to_execute))
     if logging in [2]:
         dont_print = False
