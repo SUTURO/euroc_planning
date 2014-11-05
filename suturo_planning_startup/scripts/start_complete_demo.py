@@ -21,6 +21,7 @@ __time_limit = 600
 __handling_exit = False
 __aborting_task = False
 __kill_count = 0
+__current_task = None
 subproc = None
 logger_process = None
 
@@ -120,6 +121,7 @@ def start_demo(wait, tasks, logging):
     global __clock_subscriber
     global __time_started_task
     global __aborting_task
+    global __current_task
     global subproc
     global logger_process
     rospy.init_node('start_complete_demo')
@@ -152,6 +154,7 @@ def start_demo(wait, tasks, logging):
             print('Demo has been aborted. Exiting (1)')
             return
         init_time = __initialization_time + '-' + task
+        __current_task = task
         if wait:
             raw_input('Starting task ' + str(task) + '. Press ENTER.')
         print('Starting task ' + str(task))
@@ -162,7 +165,7 @@ def start_demo(wait, tasks, logging):
                                                    dont_print=dont_print, print_prefix_to_stdout=False)
         __time_started_task = int(time.time())
         print('Subscribing to clock.')
-        __clock_subscriber = rospy.Subscriber('clock', Clock, handle_clock)
+        __clock_subscriber = rospy.Subscriber('clock', Clock, handle_clock, callback_args=task)
         print('Waiting for task ' + task + ' to terminate.')
         subproc.wait()
         print('Task ' + task + ' terminated.')
@@ -210,21 +213,25 @@ def get_available_task_names():
     return task_names
 
 
-def handle_clock(msg):
+def handle_clock(msg, task):
     global __time_started_task
     global __time_limit
     global __aborting_task
+    global __current_task
     now = int(time.time())
     if not __aborting_task and msg.clock.secs > __time_limit:
-        if now - __time_started_task >= __time_limit:
+        if task == __current_task and now - __time_started_task >= __time_limit:
             print_panda()
             abort_current_task()
         else:
             print('Oh oh, received wrong information from clock. msg:')
             print(msg)
+            print('__current_task: ' + str(__current_task))
+            print('task: ' + str(task))
             print('now: ' + str(now))
             print('__time_started_task: ' + str(__time_started_task))
             print('__time_limit: ' + str(__time_limit))
+            print('now - __time_started_task: ' + str(now - __time_started_task))
 
 
 def print_panda():
