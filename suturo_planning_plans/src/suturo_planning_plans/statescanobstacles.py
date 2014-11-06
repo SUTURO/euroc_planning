@@ -100,7 +100,8 @@ class ScanObstacles(smach.State):
                 userdata.focused_point = region_centroid
 
                 rospy.logdebug('Wait for clock')
-                time.sleep(3)
+                time.sleep(0.5)
+                rospy.sleep(2.5)
                 #
                 # rospy.logdebug('Wait for tf again.')
                 # rospy.sleep(4)
