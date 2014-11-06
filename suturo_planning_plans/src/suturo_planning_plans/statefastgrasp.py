@@ -115,7 +115,7 @@ class FastGrasp(smach.State):
                 rospy.logdebug('FastGrasp: Request next object')
                 rospy.ServiceProxy("/euroc_interface_node/request_next_object", RequestNextObject).call()
                 userdata.request_second_object = True
-            if i == 14 and userdata.request_second_object:
+            if i == 19 and userdata.request_second_object:
                 rospy.logdebug('FastGrasp: Time Expired')
                 return 'noObjectsLeft'
             r = self.percieve_object()
