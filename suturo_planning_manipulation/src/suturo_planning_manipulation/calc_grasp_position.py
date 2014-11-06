@@ -77,7 +77,7 @@ def get_grasp_point(grasp):
     grasp_point.point = qv_mult(grasp.pose.orientation, grasp_point.point)
     grasp_point.point = add_point(grasp.pose.position , grasp_point.point)
     grasp_point.header.frame_id = grasp.header.frame_id
-    visualize_point(grasp_point)
+    # visualize_point(grasp_point)
     return grasp_point
 
 

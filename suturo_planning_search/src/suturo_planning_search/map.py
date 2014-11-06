@@ -183,6 +183,10 @@ class Map:
                             cell_changed = True
                         else:
                             free = self.get_surrounding_frees(x, y)
+                            if len(free) == 2 and len(obstacles) == 2:
+                                self.get_cell_by_index(x, y).set_free()
+                                cell_changed = True
+
                     elif cell.is_obstacle():
                         obstacles = self.get_surrounding_obstacles(x, y)
                         cell_color = cell.get_color_id()
@@ -359,6 +363,53 @@ class Map:
                     # print "removed d"
                     if pose in poses: poses.remove(pose)
         return poses
+
+
+    # def filter_invalid_poses3(self, cell_x, cell_y, pose_list):
+    #     poses = deepcopy(pose_list)
+    #     for pose in pose_list:
+    #         x_under_pose = pose.pose.position.x
+    #         y_under_pose = pose.pose.position.y
+    #         #filter poses that are outside of the table
+    #         filter_range = 1.2
+    #         # print "pose"
+    #         # print x_under_pose
+    #         # print y_under_pose
+    #         if not (-filter_range <= x_under_pose <= filter_range and -filter_range <= y_under_pose <= filter_range) and pose in poses:
+    #             poses.remove(pose)
+    #             # print "removed a"
+    #             continue
+    #         #filter poses that are above unknowns
+    #         if -1.0 <= x_under_pose <= 1.0 and -1.0 <= y_under_pose <= 1.0:
+    #             cell = self.get_cell(x_under_pose, y_under_pose)
+    #             if cell.is_unknown() or \
+    #                 (cell.is_obstacle() and cell.highest_z >= pose.pose.position.z - 0.085):
+    #                 if pose in poses: poses.remove(pose)
+    #                 # print "removed b"
+    #                 continue
+    #
+    #             cells = self.get_surrounding_cells8(x_under_pose, y_under_pose)
+    #             # (x_index, y_index) = self.coordinates_to_index(x_under_pose, y_under_pose)
+    #             # cells.append(((self.get_cell_by_index(x_index, y_index),) +(x_under_pose, y_under_pose)))
+    #             removed = False
+    #             for (c, x, y) in cells:
+    #                 if c.is_unknown() or (c.is_obstacle() and c.highest_z >= pose.pose.position.z - 0.085):
+    #                     removed = True
+    #                     if pose in poses: poses.remove(pose)
+    #                     # print "removed c"
+    #                     break
+    #             if removed:
+    #                 continue
+    #             cell_between = self.get_cells_between(cell_x, cell_y, x_under_pose, y_under_pose)
+    #             not_frees = [c[0].highest_z for c in cell_between if not c[0].is_free()]
+    #             max_z = 0
+    #             if len(not_frees) > 0:
+    #                 max_z = max(not_frees)
+    #             #filter pose if the cell to the cells are to high on average
+    #             if max_z > pose.pose.position.z/3.5:
+    #                 # print "removed d"
+    #                 if pose in poses: poses.remove(pose)
+    #     return poses
 
     #GETTER
 
