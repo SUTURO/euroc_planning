@@ -10,6 +10,7 @@ import time
 from suturo_planning_plans import task1_2
 import task1
 import task4
+import task5
 import task6
 import start_nodes
 import signal
@@ -129,7 +130,7 @@ class EurocTask(smach.StateMachine):
                  'task2': task1_2.Task1,
                  'task3': task4.Task4,
                  'task4': task4.Task4,
-                 'task5': task4.Task4,
+                 'task5': task5.Task5,
                  'task6': task6.Task6}
 
         # Associate the task name with the parameter for the state machine
