@@ -101,6 +101,7 @@ def start_demo(wait, tasks, logging):
     global __time_started_task
     global __current_task
     global subproc
+    global __kill_count
     rospy.init_node('start_complete_demo')
 
     rospy.loginfo('Setting use_sim_time to true')
@@ -134,6 +135,7 @@ def start_demo(wait, tasks, logging):
     else:
         dont_print = True
     for task in tasks_to_execute:
+        __kill_count = 0
         rospy.loginfo('Setting use_sim_time to true')
         rospy.set_param('/use_sim_time', True)
         if __quit:
@@ -143,9 +145,11 @@ def start_demo(wait, tasks, logging):
         __current_task = task
         if wait:
             raw_input('Starting task ' + str(task) + '. Press ENTER.')
+        print_it('################################################################################')
         print_it('Starting task   ' + str(task))
         print_it('Finished tasks: ' + str(tasks_to_execute[0:tasks_to_execute.index(task)]))
         print_it('Tasks to go   : ' + str(tasks_to_execute[tasks_to_execute.index(task)+1:]))
+        print_it('################################################################################')
         subproc, logger_process = utils.start_node('rosrun suturo_planning_startup start_task.py ' + task +
                                                    ' --plan --init --save --no-ts --inittime="' + init_time + '"' +
                                                    ' --logging="' + str(logging) + '"', init_time, logging, 'Complete',

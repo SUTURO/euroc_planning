@@ -292,8 +292,10 @@ def exit_handler(signum=None, frame=None):
     if classifier_process is not None:
         print 'Killing classifier'
         exterminate(classifier_process.pid, signal.SIGKILL, r=True)
+    time.sleep(3)
+    rospy.signal_shutdown('Finished handling exit. Shutting down Node.')
     print('start_nodes: Exiting exit_handler')
 
 
-atexit.register(exit_handler)
+# atexit.register(exit_handler)
 signal.signal(signal.SIGINT,  exit_handler)
