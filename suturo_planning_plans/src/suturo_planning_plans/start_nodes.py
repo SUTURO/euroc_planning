@@ -229,6 +229,7 @@ class StopSimulation(smach.State):
             save_task()
         stop_task()
         time.sleep(3)
+        rospy.loginfo('Finished state StopSimulation')
         return 'success'
 
 
@@ -253,7 +254,7 @@ class StopNodes(smach.State):
                              output_keys=[])
 
     def execute(self, userdata):
-        rospy.loginfo('Stopping Nodes')
+        rospy.loginfo('Executing state StopNodes.')
         if userdata.perception_process is not None:
             exterminate(userdata.perception_process.pid, signal.SIGKILL, r=True)
         if userdata.manipulation_process is not None:
@@ -264,6 +265,7 @@ class StopNodes(smach.State):
             exterminate(userdata.classifier_process.pid, signal.SIGKILL, r=True)
         rospy.signal_shutdown('Finished plan. Shutting down Node.')
         time.sleep(3)
+        rospy.loginfo('Finished state StopNodes.')
         return 'success'
 
 

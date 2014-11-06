@@ -39,7 +39,7 @@ def check_for_input():
     try:
         line = sys.stdin.readline()
         if line == '':
-            print('[LOGGER] ' + node + ': EOF. Exiting.')
+            print('[LOGGER] ' + node + ': EOF.')
             write(h, 'THIS LOGGER TERMINATED CORRECTLY.')
             try:
                 h.close()
