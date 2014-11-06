@@ -64,6 +64,30 @@ class TestCell(unittest.TestCase):
         self.assertTrue(c.is_blue())
         self.assertFalse(c.is_red())
 
+    def test2(self):
+        c = Cell()
+        c.set_obstacle()
+        c.points[Cell.UNDEF_ID] = 99
+        c.points[Cell.RED_ID] = 1
+        self.assertFalse(c.is_red(), c.get_color_id())
+        self.assertTrue(c.is_undef(), c.get_color_id())
+
+    def test2_2(self):
+        c = Cell()
+        c.set_obstacle()
+        c.points[Cell.UNDEF_ID] = 90
+        c.points[Cell.RED_ID] = 10
+        self.assertFalse(c.is_red(), c.get_color_id())
+        self.assertTrue(c.is_undef(), c.get_color_id())
+
+    def test2_3(self):
+        c = Cell()
+        c.set_obstacle()
+        c.points[Cell.UNDEF_ID] = 89
+        c.points[Cell.RED_ID] = 11
+        self.assertTrue(c.is_red(), c.get_color_id())
+        self.assertFalse(c.is_undef(), c.get_color_id())
+
 class TestMapCleanUp(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
@@ -113,20 +137,6 @@ class TestMapCleanUp(unittest.TestCase):
         m.clean_up_map()
         self.assertTrue(m.get_cell_by_index(4,4).is_obstacle())
 
-    # def test1_3(self):
-    #     '''
-    #     unknown surrounded by 3 obstacles
-    #     '''
-    #     m = self.make_free_map()
-    #
-    #     m.get_cell_by_index(0,0).set_unknown()
-    #     m.get_cell_by_index(0,1).set_obstacle()
-    #
-    #     self.assertTrue(m.is_cell_surrounded_by_obstacles(0,0))
-    #
-    #     m.clean_up_map()
-    #     self.assertTrue(m.get_cell_by_index(0,1).is_obstacle())
-
     def test1_4(self):
         '''
         unknown surrounded by 3 obstacles
@@ -156,6 +166,28 @@ class TestMapCleanUp(unittest.TestCase):
 
         m.clean_up_map()
         self.assertTrue(m.get_cell_by_index(4,4).is_unknown())
+
+    def test1_6(self):
+        m = self.make_free_map()
+
+        m.get_cell_by_index(9,9).set_obstacle()
+        m.get_cell_by_index(9,9).set_color(Cell.RED_ID)
+        m.get_cell_by_index(9,10).set_obstacle()
+        m.get_cell_by_index(9,10).set_color(Cell.RED_ID)
+        m.get_cell_by_index(9,11).set_obstacle()
+        m.get_cell_by_index(9,11).set_color(Cell.RED_ID)
+        m.get_cell_by_index(10,9).set_obstacle()
+        m.get_cell_by_index(10,9).set_color(Cell.RED_ID)
+        m.get_cell_by_index(10,10).set_obstacle()
+        m.get_cell_by_index(10,11).set_obstacle()
+        m.get_cell_by_index(10,11).set_color(Cell.RED_ID)
+        m.get_cell_by_index(11,9).set_obstacle()
+        m.get_cell_by_index(11,9).set_color(Cell.RED_ID)
+        # m.get_cell_by_index(11,10).set_obstacle()
+        # m.get_cell_by_index(11,11).set_obstacle()
+
+        m.clean_up_map()
+        self.assertTrue(m.get_cell_by_index(10,10).is_red(), m.get_cell_by_index(10,10).get_color_id())
 
     def test2_1(self):
         '''
@@ -291,9 +323,9 @@ class TestMapCleanUp(unittest.TestCase):
         m.get_cell_by_index(11,13).highest_z = 1
 
         rs = m.get_obstacle_regions()
-        print m.get_cell_volume_by_index(10, 10)
+        # print m.get_cell_volume_by_index(10, 10)
         self.assertTrue(m.get_cell_volume_by_index(10, 10) == 0.0008)
-        print m.get_region_volume(rs[0])
+        # print m.get_region_volume(rs[0])
         self.assertTrue(abs(m.get_region_volume(rs[0]) - 0.0136) <= 0.00001, m.get_region_volume(rs[0]))
 
     def test8_1(self):
@@ -400,7 +432,7 @@ class TestMapCleanUp(unittest.TestCase):
         (x, y) = m.index_to_coordinates(10, 10)
         poses = make_scan_pose(Point(x,y,0), 0.05, 0, n=16)
         poses = m.filter_invalid_poses(x, y, poses)
-        print len(poses)
+        # print len(poses)
         self.assertTrue(len(poses) == 0, poses)
 
     def test11_2(self):
@@ -418,10 +450,10 @@ class TestMapCleanUp(unittest.TestCase):
 
         (x, y) = m.index_to_coordinates(10, 10)
         poses = make_scan_pose(Point(x,y,0), 0.05, 0, n=16)
-        print ""
-        print len(poses)
+        # print ""
+        # print len(poses)
         poses = m.filter_invalid_poses(x, y, poses)
-        print len(poses)
+        # print len(poses)
         self.assertTrue(len(poses) == 11, len(poses))
 
     def test11_3(self):
@@ -439,10 +471,10 @@ class TestMapCleanUp(unittest.TestCase):
 
         (x, y) = m.index_to_coordinates(10, 10)
         poses = make_scan_pose(Point(x,y,0), 0.05, 0, n=16)
-        print ""
-        print len(poses)
+        # print ""
+        # print len(poses)
         poses = m.filter_invalid_poses(x, y, poses)
-        print len(poses)
+        # print len(poses)
         self.assertTrue(len(poses) == 6, len(poses))
 
     def test12_1(self):
@@ -451,20 +483,22 @@ class TestMapCleanUp(unittest.TestCase):
         # m.get_cell_by_index(9,9).set_unknown()
         # m.get_cell_by_index(9,10).set_unknown()
         # m.get_cell_by_index(9,11).set_unknown()
-        m.get_cell_by_index(10,9).set_unknown()
+        m.get_cell_by_index(10,9).set_obstacle()
+        m.get_cell_by_index(10,9).highest_z = 1
         m.get_cell_by_index(10,10).set_unknown()
-        m.get_cell_by_index(10,11).set_unknown()
+        m.get_cell_by_index(10,11).set_obstacle()
+        m.get_cell_by_index(10,11).highest_z = 1
         # m.get_cell_by_index(11,9).set_unknown()
         # m.get_cell_by_index(11,10).set_unknown()
         # m.get_cell_by_index(11,11).set_unknown()
 
         (x, y) = m.index_to_coordinates(10, 10)
         poses = make_scan_pose(Point(x,y,0), 0.15, 0, n=16)
-        print ""
-        print len(poses)
+        # print ""
+        # print len(poses)
         poses = m.filter_invalid_poses2(x, y, poses)
-        print len(poses)
-        self.assertTrue(len(poses) == 6, len(poses))
+        # print len(poses)
+        self.assertTrue(len(poses) == 10, len(poses))
 
 
 

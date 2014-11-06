@@ -6,6 +6,7 @@ import time
 from suturo_planning_manipulation import mathemagie
 from suturo_planning_manipulation.calc_grasp_position import make_scan_pose
 from suturo_planning_manipulation.mathemagie import subtract_point, get_angle, euclidean_distance
+from suturo_planning_search.cell import Cell
 from suturo_planning_search.map import Map
 from suturo_planning_visualization.visualization import visualize_poses
 
@@ -45,6 +46,10 @@ class ScanObstacles(smach.State):
             self.next_cluster += 1
 
         rospy.logdebug("current region: " + str(self.next_cluster) + "\n" + str(current_region))
+
+        if utils.map.get_cell_by_index(*current_region.cell_coords[0]).is_undef():
+            rospy.logdebug("Region has an undefined color, skipping")
+            return 'mapScanned'
 
         region_centroid = Point(*(utils.map.index_to_coordinates(*current_region.get_avg()))+(-0.065,))
 

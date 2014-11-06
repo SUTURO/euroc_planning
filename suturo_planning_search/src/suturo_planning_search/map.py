@@ -160,6 +160,8 @@ class Map:
     def clean_up_map(self):
         cell_changed = True
         while cell_changed:
+            # print "changed"
+            # rospy.sleep(1)
             cell_changed = False
             for x in range(0, len(self.field)):
                 for y in range(0, len(self.field[x])):
@@ -174,6 +176,16 @@ class Map:
                         elif self.is_cell_alone(x, y):
                             self.get_cell_by_index(x, y).set_free()
                             cell_changed = True
+                    if cell.is_obstacle():
+                        obstacles = self.get_surrounding_obstacles(x, y)
+                        cell_color = cell.get_color_id()
+                        obstacles_with_different_color = [c for c in obstacles if c[0].get_color_id() != cell_color]
+                        if len(obstacles_with_different_color) > 2:
+                            c = obstacles_with_different_color[0]
+                            cell.set_color(c[0].get_color_id())
+                            cell_changed = True
+            # self.publish_as_marker()
+
         self.publish_as_marker()
 
     def to_collision_object(self):
@@ -326,7 +338,7 @@ class Map:
                     if c.is_unknown() or (c.is_obstacle() and c.highest_z >= pose.pose.position.z - 0.085):
                         removed = True
                         if pose in poses: poses.remove(pose)
-                        print "removed c"
+                        # print "removed c"
                         break
                 if removed:
                     continue
@@ -337,7 +349,7 @@ class Map:
                     max_z = max(not_frees)
                 #filter pose if the cell to the cells are to high on average
                 if max_z > pose.pose.position.z/3.5:
-                    print "removed d"
+                    # print "removed d"
                     if pose in poses: poses.remove(pose)
         return poses
 

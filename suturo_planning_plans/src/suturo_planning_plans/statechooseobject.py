@@ -56,7 +56,8 @@ class CleanUpPlan(smach.State):
                 objects_in_tzs.append((obj, tz))
 
         # Sort the list so the blue handle will be placed last if possible
-        sorted(objects_in_tzs, key=lambda obj: len(obj.mpe_object.primitives))
+        sorted(found_objects, key=lambda obj: len(obj.mpe_object.primitives))
+        sorted(objects_in_tzs, key=lambda obj_in_tz: len(obj_in_tz[0].mpe_object.primitives))
 
         def get_pose(obj):
             return PointStamped(header, tzs_for[obj.mpe_object.id].target_position)

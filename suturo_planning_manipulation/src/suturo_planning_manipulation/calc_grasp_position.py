@@ -8,6 +8,7 @@ import sys
 import copy
 import geometry_msgs.msg
 from geometry_msgs.msg._Point import Point
+from geometry_msgs.msg._PointStamped import PointStamped
 from geometry_msgs.msg._PoseStamped import PoseStamped
 from geometry_msgs.msg._Quaternion import Quaternion
 from moveit_msgs.msg._CollisionObject import CollisionObject
@@ -21,6 +22,7 @@ from tf.transformations import quaternion_from_matrix, rotation_matrix, quaterni
 import visualization_msgs.msg
 from manipulation_constants import *
 from mathemagie import *
+from suturo_planning_visualization.visualization import visualize_point
 
 
 def calculate_grasp_position(collision_object, transform_func, n=8):
@@ -69,6 +71,15 @@ def calculate_grasp_position_list(collision_object, transform_func):
 
     return grasp_positions
 
+def get_grasp_point(grasp):
+    grasp_point = PointStamped()
+    grasp_point.point = set_vector_length(hand_length + finger_length, Point(1,0,0))
+    grasp_point.point = qv_mult(grasp.pose.orientation, grasp_point.point)
+    grasp_point.point = add_point(grasp.pose.position , grasp_point.point)
+    grasp_point.header.frame_id = grasp.header.frame_id
+    visualize_point(grasp_point)
+    return grasp_point
+
 
 def get_pre_grasp(grasp):
     '''
@@ -78,10 +89,14 @@ def get_pre_grasp(grasp):
     '''
     #TODO: nur z beachten
     pre_grasp = deepcopy(grasp)
-    depth = magnitude(pre_grasp.pose.position)
-    pre_grasp.pose.position = normalize(pre_grasp.pose.position)
-    depth += pre_grasp_length
-    pre_grasp.pose.position = multiply_point(depth, pre_grasp.pose.position)
+    # depth = magnitude(pre_grasp.pose.position)
+    p = get_grasp_point(grasp).point
+    grasp_dir = subtract_point(grasp.pose.position, p)
+    grasp_dir = set_vector_length(pre_grasp_length, grasp_dir)
+    pre_grasp.pose.position = add_point(grasp.pose.position, grasp_dir)
+    # pre_grasp.pose.position = normalize(pre_grasp.pose.position)
+    # depth += pre_grasp_length
+    # pre_grasp.pose.position = multiply_point(depth, pre_grasp.pose.position)
     return pre_grasp
 
 

@@ -96,7 +96,7 @@ def get_place_position_handle(collision_object, destination, transform_func, d):
     return place_poses
 
 
-def get_grasped_part(collision_object, transform_func):
+def get_grasped_part(collision_object, grasped_point):
     '''
     Returns the grasped part of a collision object
     :param collision_object: CollisionObject
@@ -104,23 +104,32 @@ def get_grasped_part(collision_object, transform_func):
     :return: (Point, float), grasped point and id of the grasped part
     '''
     #TODO: probably buggy
-    print collision_object
-    co = transform_func(collision_object, "/link7")
-    print co
-    b = -1
-    posi = Point()
-    i = 0
-    id = 0
-    for cop in co.primitive_poses:
-        a = (abs(cop.position.x) + abs(cop.position.y)) / 2
-        if b < 0 or a < b:
-            b = a
-            posi = cop.position
-            id = i
-        i += 1
-    print id , " pose ", posi , " co ", collision_object.primitives[id].type
-    return (posi, id)
+    # print collision_object
+    # co = transform_func(collision_object, "/link7")
+    # print co
+    # b = -1
+    # posi = Point()
+    # i = 0
+    # id = 0
+    if type(grasped_point) is None:
+        return (None, 0)
 
+    print "grasped part"
+    for i in range(len(collision_object.primitive_poses)):
+        print euclidean_distance(collision_object.primitive_poses[i].position, grasped_point.point)
+
+    id = min(range(len(collision_object.primitive_poses)), key=lambda copid: euclidean_distance(collision_object.primitive_poses[copid].position, grasped_point.point))
+    print id
+    # for cop in collision_object.primitive_poses:
+    #     a = (abs(cop.position.x) + abs(cop.position.y)) / 2
+    #     if b < 0 or a < b:
+    #         b = a
+    #         posi = cop.position
+    #         id = i
+    #     i += 1
+    # print id , " pose ", posi , " co ", collision_object.primitives[id].type
+    # return (posi, id)
+    return (collision_object.primitive_poses[id], id)
 
 def get_pre_place_position(place_pose):
     '''

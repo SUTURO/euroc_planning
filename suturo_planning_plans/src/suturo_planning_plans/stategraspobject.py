@@ -7,7 +7,7 @@ import smach
 import rospy
 import time
 from suturo_planning_manipulation.mathemagie import magnitude, subtract_point
-from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_position, get_pre_grasp
+from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_position, get_pre_grasp, get_grasp_point
 from suturo_planning_visualization.visualization import visualize_poses
 import utils
 
@@ -61,6 +61,7 @@ class GraspObject(smach.State):
         # rospy.logdebug(str(grasp_positions))
 
         utils.manipulation.open_gripper()
+        grasp_positions = [utils.manipulation.transform_to(grasp) for grasp in grasp_positions]
         for grasp in grasp_positions:
             if move_to_func(get_pre_grasp(grasp)):
                 rospy.logdebug("Pregraspposition taken")
@@ -72,7 +73,7 @@ class GraspObject(smach.State):
 
                 time.sleep(0.5)
                 rospy.sleep(1)
-                if not utils.manipulation.close_gripper(collision_object):
+                if not utils.manipulation.close_gripper(collision_object, get_grasp_point(utils.manipulation.transform_to(grasp))):
                     return 'fail'
                 time.sleep(0.5)
                 rospy.sleep(1.5)
