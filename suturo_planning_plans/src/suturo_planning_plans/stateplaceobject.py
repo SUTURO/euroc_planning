@@ -11,6 +11,8 @@ import utils
 
 class PlaceObject(smach.State):
 
+    _retry = 0
+
     def __init__(self):
         smach.State.__init__(self, outcomes=['success', 'fail', 'noObjectAttached', 'noPlacePosition'],
                              input_keys=['enable_movement', 'target_position', 'grasp', 'dist_to_obj'],
@@ -21,6 +23,13 @@ class PlaceObject(smach.State):
 
         destination = userdata.target_position
 
+        if self._retry == 2:
+            rospy.logwarn('Failed to place two times. Dropping object.')
+            self._retry = 0
+            if not utils.manipulation.open_gripper():
+                #cant happen
+                return 'fail'
+
         if userdata.enable_movement:
             move_to_func = utils.manipulation.move_arm_and_base_to
         else:
@@ -28,13 +37,15 @@ class PlaceObject(smach.State):
 
         co = utils.manipulation.get_planning_scene().get_attached_object()
         if co is None:
+            self._retry = 0
             return 'noObjectAttached'
         co = co.object
-        rospy.logdebug("Placeing: " + str(co))
+        rospy.logdebug("Placing: " + str(co))
 
         destination = utils.manipulation.transform_to(destination)
         rospy.logdebug("at::: " + str(destination))
-        place_poses = get_place_position(co, destination, utils.manipulation.transform_to, userdata.dist_to_obj, userdata.grasp)
+        place_poses = get_place_position(co, destination, utils.manipulation.transform_to, userdata.dist_to_obj,
+                                         userdata.grasp)
         print place_poses
         # place_poses = utils.map.filter_invalid_poses3(destination.point.x, destination.point.y, place_poses)
         if not userdata.enable_movement:
@@ -60,6 +71,8 @@ class PlaceObject(smach.State):
 
             time.sleep(0.5)
             rospy.sleep(1)
+
+            self._retry = 0
             gripper_target = min(utils.manipulation.get_current_gripper_state()[1] + 0.001, gripper_max_pose)
             if not utils.manipulation.open_gripper(gripper_target):
                 #cant happen
@@ -74,7 +87,6 @@ class PlaceObject(smach.State):
             rospy.sleep(1)
 
             post_place_pose = utils.manipulation.transform_to(place_pose, co.id)
-
             if not move_to_func(get_pre_grasp(post_place_pose), blow_up = 0):
                 rospy.logwarn("Can't reach postplaceposition. Continue anyway")
                 return 'success'
@@ -89,6 +101,7 @@ class PlaceObject(smach.State):
         rospy.logdebug("Placement failed, to to place where we are.")
         userdata.place_position = self.new_place_position()
 
+        self._retry += 1
         return 'noPlacePosition'
 
     def new_place_position(self):
