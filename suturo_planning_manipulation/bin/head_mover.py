@@ -108,7 +108,7 @@ if __name__ == '__main__':
     rospy.init_node('head_mover', log_level=rospy.DEBUG)
 
     m = Manipulation()
-    m.grasp("blue_handle")
+    m.grasp("green_cylinder")
     m.open_gripper()
     # m.get_arm_move_group().set_named_target("scan_pose1")
     # print m.get_arm_move_group().get_goal_tolerance()

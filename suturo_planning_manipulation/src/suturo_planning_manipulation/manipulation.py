@@ -420,28 +420,28 @@ class Manipulation(object):
             rospy.logwarn("No grasppositions found for " + collision_object_name)
 
         grasp_positions.sort(cmp=lambda x, y: self.cmp_pose_stamped(collision_object, x, y))
-        # visualize_poses(grasp_positions)
+        visualize_poses(grasp_positions)
         # print grasp_positions
 
         self.open_gripper()
         for grasp in grasp_positions:
-            if self.__move_group_to(get_pre_grasp(self.transform_to(grasp)), move_group):
+            if self.__move_group_to(get_pre_grasp(self.transform_to(grasp)), move_group, blow_up=1):
 
-                if not self.__move_group_to(grasp, move_group, blow_up=0):
+                if not self.__move_group_to(grasp, move_group, blow_up=2):
                     continue
-                rospy.sleep(1)
-                self.close_gripper(collision_object, get_grasp_point(self.transform_to(grasp)))
-
-                com = self.get_center_of_mass(collision_object)
-                com = self.tf.transform_to(com, "/tcp")
-                if com is None:
-                    rospy.logwarn("TF failed")
-                    return False
-                self.load_object(self.calc_object_weight(collision_object, object_density),
-                                 Vector3(com.point.x, com.point.y, com.point.z))
-
-                rospy.loginfo("grasped " + collision_object_name)
-
+                # rospy.sleep(1)
+                # self.close_gripper(collision_object, get_grasp_point(self.transform_to(grasp)))
+                #
+                # com = self.get_center_of_mass(collision_object)
+                # com = self.tf.transform_to(com, "/tcp")
+                # if com is None:
+                #     rospy.logwarn("TF failed")
+                #     return False
+                # self.load_object(self.calc_object_weight(collision_object, object_density),
+                #                  Vector3(com.point.x, com.point.y, com.point.z))
+                #
+                # rospy.loginfo("grasped " + collision_object_name)
+                #
                 self.__grasp = self.tf.transform_to(grasp)
                 v1 = deepcopy(self.__grasp.pose.position)
                 v1.z = 0
@@ -451,12 +451,12 @@ class Manipulation(object):
                 b = abs(self.__grasp.pose.position.z - collision_object.primitive_poses[0].position.z)
                 c = sqrt(a ** 2 + b ** 2)
                 self.__d = abs(c)
-                print c
-
-                rospy.logdebug("lift object")
-                if not self.__move_group_to(get_pre_grasp(grasp), move_group):
-                    rospy.logdebug("couldnt lift object")
-                return True
+                # print c
+                #
+                # rospy.logdebug("lift object")
+                # if not self.__move_group_to(get_pre_grasp(grasp), move_group):
+                #     rospy.logdebug("couldnt lift object")
+                # return True
         rospy.logwarn("Grapsing failed.")
         return False
 
