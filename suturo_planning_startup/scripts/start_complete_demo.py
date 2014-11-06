@@ -18,112 +18,90 @@ __quit = False
 __clock_subscriber = None
 __time_started_task = None
 __time_limit = 600
-__handling_exit = False
 __aborting_task = False
 __kill_count = 0
 __current_task = None
 subproc = None
-logger_process = None
+
+
+def print_it(s):
+    print(str(datetime.now().isoformat('-')) + ': ' + str(s))
 
 
 def abort_current_task():
-    print('start_complete_demo: abort_current_task')
+    print_it('start_complete_demo: abort_current_task')
     global __aborting_task
     global subproc
-    global logger_process
     global __clock_subscriber
     global __quit
     if __quit:
-        print('Already quitting. Nothing to do here.')
+        print_it('Already quitting. Nothing to do here.')
     elif __aborting_task:
-        print ('Already aborting task.')
+        print_it ('Already aborting task.')
     else:
         __aborting_task = True
         if __clock_subscriber is not None:
-            print('Unsubscribing clock subscriber.')
+            print_it('Unsubscribing clock subscriber.')
             __clock_subscriber.unregister()
         if subproc is not None:
             try:
-                print('Killing subproc with pid ' + str(subproc.pid))
+                print_it('Killing subproc with pid ' + str(subproc.pid))
                 exterminate(subproc.pid, signal.SIGINT)
-                print('Waiting for subproc to terminate. Please be patient.')
-                utils.wait_for_process(subproc, 120)
+                print_it('Waiting for subproc to terminate. Please be patient.')
+                utils.wait_for_process(subproc, 90)
                 poll = subproc.poll()
                 if poll is None:
-                    print('Could not kill task process. Forcing!'
+                    print_it('Could not kill task process. Forcing!'
                           ' (pid: ' + str(subproc.pid) + ', subproc.poll(): ' + str(poll) + ')')
                     exterminate(subproc.pid, signal.SIGKILL, r=True)
             except Exception, e:
-                print(e)
-        if logger_process is not None:
-            try:
-                print('Killing logger with pid ' + str(logger_process.pid))
-                exterminate(logger_process.pid, signal.SIGINT)
-                print('Waiting for logger process to terminate. Please be patient.')
-                #logger_process.wait()
-                utils.wait_for_process(logger_process, 240)
-                poll = logger_process.poll()
-                if poll is None:
-                    print('Could not kill logger process. Forcing!'
-                          ' (pid: ' + str(logger_process.pid) + ', logger_process.poll(): ' + str(poll) + ')')
-                    exterminate(logger_process.pid, signal.SIGKILL)
-            except Exception, e:
-                print(e)
+                print_it(e)
         __aborting_task = False
-    print('start_complete_demo: Exiting abort_current_task')
+    print_it('start_complete_demo: Exiting abort_current_task')
 
 
 def kill_like_a_berserk():
-    print('start_complete_demo: kill_like_a_berserk')
+    print_it('start_complete_demo: kill_like_a_berserk')
     global subproc
-    global logger_process
-    print('Killing subproc like a berserk.')
+    print_it('Killing subproc like a berserk.')
     exterminate(subproc.pid, signal.SIGKILL, r=True)
-    print('Killing logger like a berserk.')
-    exterminate(logger_process.pid, signal.SIGKILL, r=True)
-    print('start_complete_demo: Exiting kill_like_a_berserk.')
+    print_it('start_complete_demo: Exiting kill_like_a_berserk.')
 
 
 def exit_handler(signum=None, frame=None):
+    print_it('start_complete_demo: exit_handler')
+    print_it('signum: ' + str(signum) + ', frame: ' + str(frame))
+    if signum != signal.SIGINT:
+        print_it('start_complete_demo: exit_handler: Unhandled signal. Exiting without any action.')
+        return
     global __kill_count
-    global __handling_exit
-    print('start_complete_demo: exit_handler')
     global __quit
     global __clock_subscriber
     global __aborting_task
-    if __handling_exit:
-        if not __quit:
-            print('Going to abort execution of all remaining tasks.')
-            __quit = True
-            if not __aborting_task:
-                abort_current_task()
-        else:
-            print('start_complete_demo: Already handling exit. Count to kill like a berserk: ' + str(__kill_count))
-            if __kill_count < 100:
-                __kill_count += 1
-            elif signum is not None and __kill_count == 100:
-                __kill_count += 1
-                kill_like_a_berserk()
-        return
-    else:
-        __handling_exit = True
-        if signum is not None:
-            print('Going to abort current task.')
+    __kill_count += 1
+    if __kill_count == 1:
+        print_it('Going to abort current task.')
+        abort_current_task()
+    elif __kill_count == 2:
+        print_it('Going to abort execution of all remaining tasks.')
+        __quit = True
+        if not __aborting_task:
             abort_current_task()
-        if not __quit:
-            print('Setting __handling_exit to False.')
-            __handling_exit = False
-    print('start_complete_demo: exiting exit_handler')
+    elif __kill_count == 3:
+        print_it('Going to kill like a berserk.')
+        kill_like_a_berserk()
+    else:
+        print_it('You can stop spamming Ctrl-c now.')
+    print_it('start_complete_demo: exiting exit_handler')
 
 
 def start_demo(wait, tasks, logging):
     global __quit
     global __clock_subscriber
     global __time_started_task
-    global __aborting_task
     global __current_task
     global subproc
-    global logger_process
+    global __kill_count
     rospy.init_node('start_complete_demo')
 
     rospy.loginfo('Setting use_sim_time to true')
@@ -132,10 +110,11 @@ def start_demo(wait, tasks, logging):
     #atexit.register(exit_handler)
     signal.signal(signal.SIGTERM, exit_handler)
     signal.signal(signal.SIGINT, exit_handler)
-    print('Getting available task names.')
+    signal.signal(signal.SIGQUIT, exit_handler)
+    print_it('Getting available task names.')
     tasks_to_execute = []
     task_names = get_available_task_names()
-    print('Available task names: ' + str(task_names))
+    print_it('Available task names: ' + str(task_names))
     #start_task.main(task_names[:2], True, True, True, True)
     if re.search('^\d*:\d*$', tasks):
         tasks_to_execute = eval('task_names[' + tasks + ']')
@@ -150,57 +129,46 @@ def start_demo(wait, tasks, logging):
             if task in task_names:
                 tasks_to_execute.append(task)
             tasks_to_execute.sort()
-    print('Going to execute the following tasks: ' + str(tasks_to_execute))
+    print_it('Going to execute the following tasks: ' + str(tasks_to_execute))
     if logging in [2]:
         dont_print = False
     else:
         dont_print = True
     for task in tasks_to_execute:
+        __kill_count = 0
+        rospy.loginfo('Setting use_sim_time to true')
+        rospy.set_param('/use_sim_time', True)
         if __quit:
-            print('Demo has been aborted. Exiting (1)')
+            print_it('Demo has been aborted. Exiting (1)')
             return
         init_time = __initialization_time + '-' + task
         __current_task = task
         if wait:
             raw_input('Starting task ' + str(task) + '. Press ENTER.')
-        print('Starting task ' + str(task))
-        print('Tasks to go: ' + str(tasks_to_execute[tasks_to_execute.index(task)+1:]))
+        print_it('################################################################################')
+        print_it('Starting task   ' + str(task))
+        print_it('Finished tasks: ' + str(tasks_to_execute[0:tasks_to_execute.index(task)]))
+        print_it('Tasks to go   : ' + str(tasks_to_execute[tasks_to_execute.index(task)+1:]))
+        print_it('################################################################################')
         subproc, logger_process = utils.start_node('rosrun suturo_planning_startup start_task.py ' + task +
                                                    ' --plan --init --save --no-ts --inittime="' + init_time + '"' +
                                                    ' --logging="' + str(logging) + '"', init_time, logging, 'Complete',
                                                    dont_print=dont_print, print_prefix_to_stdout=False)
         __time_started_task = int(time.time())
-        print('Subscribing to clock.')
+        print_it('Subscribing to clock.')
         __clock_subscriber = rospy.Subscriber('clock', Clock, handle_clock, callback_args=task)
-        print('Waiting for task ' + task + ' to terminate.')
+        print_it('Waiting for task ' + task + ' to terminate.')
         subproc.wait()
-        print('Task ' + task + ' terminated.')
-        print('Unsubscribing clock subscriber.')
+        print_it('Task ' + task + ' terminated.')
+        print_it('Unsubscribing clock subscriber.')
         __clock_subscriber.unregister()
-        if logger_process is not None and logger_process.poll() is None:
-            if __aborting_task:
-                print('Already aborting task. Won\'t kill logger.')
-                print('Waiting for abortion to be finished.')
-                while __aborting_task:
-                    time.sleep(1)
-                print('Abortion finished.')
-            else:
-                print('Killing logger.')
-                exterminate(logger_process.pid, signal.SIGINT)
-                print('Waiting for logger to terminate.')
-                utils.wait_for_process(logger_process, 240)
-                poll = logger_process.poll()
-                if poll is None:
-                    print('Could not kill logger process. Forcing!'
-                          ' (pid: ' + str(logger_process.pid) + ', logger_process.poll(): ' + str(poll) + ')')
-                    exterminate(logger_process.pid, signal.SIGKILL)
         if __quit:
-            print('Demo has been aborted. Exiting (2)')
+            print_it('Demo has been aborted. Exiting (2)')
             return
-        print('Finished task ' + str(task))
+        print_it('Finished task ' + str(task))
         if task != tasks_to_execute[-1]:
             time.sleep(5)
-    print('Finished complete demo.')
+    print_it('Finished complete demo.')
     rospy.signal_shutdown('Finished complete demo.')
 
 
@@ -230,66 +198,66 @@ def handle_clock(msg, task):
             print_panda()
             abort_current_task()
         else:
-            print('Oh oh, received wrong information from clock. msg:')
-            print(msg)
-            print('__current_task: ' + str(__current_task))
-            print('task: ' + str(task))
-            print('now: ' + str(now))
-            print('__time_started_task: ' + str(__time_started_task))
-            print('__time_limit: ' + str(__time_limit))
-            print('now - __time_started_task: ' + str(now - __time_started_task))
+            print_it('Oh oh, received wrong information from clock. msg:')
+            print_it(msg)
+            print_it('__current_task: ' + str(__current_task))
+            print_it('task: ' + str(task))
+            print_it('now: ' + str(now))
+            print_it('__time_started_task: ' + str(__time_started_task))
+            print_it('__time_limit: ' + str(__time_limit))
+            print_it('now - __time_started_task: ' + str(now - __time_started_task))
 
 
 def print_panda():
-    print('----------------------------------------------')
-    print('| Ten minutes time limit has been succeeded. |')
-    print('|             Terminating Task.              |')
-    print('|                                            |')
-    print('│  ─│─│───│─│───│───│─│─│─│───────│───│─│─   |')
-    print('|  ─│─│──╫▓▓▓╫──│─────│─│─│──────╫▓▓╫│──│─│  |')
-    print('|  ──│─▓███████▓─╫╫╫╫╫╫╫╫╫╫╫╫╫│▓███████╫──   |')
-    print('|  ───██████████████████████████████████▓─   |')
-    print('|  │─████████████│─│─│─│─────▓███████████╫   |')
-    print('|  ─╫███████▓╫││╫─────│───│─││╫││╫████████│  |')
-    print('|  ─▓██████────│─│───────│─│─│─│─│─╫██████│  |')
-    print('|  ─██████│─│───│───│─│─│───│───────│█████▓  |')
-    print('|  ╫█████────│───│─│───│─────│─│─│───╫████▓  |')
-    print('|  │████▓─│─│─│───│───│─────│───│─────████▓  |')
-    print('|  │████│──│───│───│─│───│───────│─│─│▓███╫  |')
-    print('|  ─▓███│───────│─▓██───│╫██╫─│─│─│───▓███│  |')
-    print('|  ──███─│──────╫████▓───█████────────▓███─  |')
-    print('|  ──╫██──│─│──╫██████│─│██████─│─────▓██─│  |')
-    print('|  │─│▓█││─│─││███▓▓██─│─██▓▓███─│─│──▓█─│─  |')
-    print('|  ────█│─│───███╫▓▓█▓│──█▓▓▓▓██▓─────▓█───  |')
-    print('|  │─││█││───▓███╫██▓╫─│─▓▓█▓▓███─────▓█───  |')
-    print('|  ─│─╫█│─│─│████▓╫▓▓─────█▓╫████▓──│─▓█───  |')
-    print('|  │─││█╫│─││███████─│██╫│▓███████─│─│██─│─  |')
-    print('|  ─│─│█▓╫╫─▓██████╫│─▓█│──▓██████│╫╫│██│─│  |')
-    print('|  │─│─██│╫│▓█████╫│───▓───│▓█████╫╫╫╫█▓──   |')
-    print('|  ─│─│▓█╫││╫████╫│││╫██▓││││▓████│╫─▓█╫│─│  |')
-    print('|  │─│─│██│││╫▓▓││╫╫╫╫╫▓╫╫╫╫╫│╫▓▓╫││╫██──│─  |')
-    print('|  ─│───▓██╫─────││││││─││││││────│▓██│────  |')
-    print('|  │─│─│─▓██▓╫╫╫╫╫╫╫╫▓▓▓▓▓╫╫╫╫╫╫╫▓███│────   |')
-    print('|  ───────╫██████████▓▓▓▓▓██████████│────│   |')
-    print('|  │─│─│───▓█████████╫─│─▓█████████│─│─│─│   |')
-    print('|  ─────────██████████──│█████████╫─│───││   |')
-    print('|  │─│─│───│▓█╫███████││▓███████╫█││─│─│─│   |')
-    print('|  ───────│─██─╫██████▓─███████││█╫───│──│   |')
-    print('|  │───│───│██─││█████▓─█████▓─│╫█╫│──────   |')
-    print('|  ─│─│───│─▓█──│─╫▓██│─▓██▓│─│─▓█│───────   |')
-    print('|  │───│─│─│─██────│─│───│─────│██───│─│─│   |')
-    print('|  ─│─│───│─│▓██╫─│─│─────│─│─▓██││─│───│─│  |')
-    print('|  │───────│─│██████████████████▓│─│─│─│─│   |')
-    print('|  ─│───│─│───│███████▓▓████████│─│───│──│   |')
-    print('|  │─│───│─│─│─│██████╫─▓█████▓────│─│─│──   |')
-    print('|  ─────│─────╫│╫▓████▓─█████▓│╫╫───────│    |')
-    print('|  │─│───│───╫─╫╫╫╫███╫╫╫██▓╫│╫╫╫│─│─────    |')
-    print('|  ───│─│──────││───────│─│───│─│─│───│─│    |')
-    print('|                                            |')
-    print('|                                            |')
-    print('|             Sad panda is sad.              |')
-    print('|                                            |')
-    print('----------------------------------------------')
+    print_it('----------------------------------------------')
+    print_it('| Ten minutes time limit has been succeeded. |')
+    print_it('|             Terminating Task.              |')
+    print_it('|                                            |')
+    print_it('│  ─│─│───│─│───│───│─│─│─│───────│───│─│─   |')
+    print_it('|  ─│─│──╫▓▓▓╫──│─────│─│─│──────╫▓▓╫│──│─│  |')
+    print_it('|  ──│─▓███████▓─╫╫╫╫╫╫╫╫╫╫╫╫╫│▓███████╫──   |')
+    print_it('|  ───██████████████████████████████████▓─   |')
+    print_it('|  │─████████████│─│─│─│─────▓███████████╫   |')
+    print_it('|  ─╫███████▓╫││╫─────│───│─││╫││╫████████│  |')
+    print_it('|  ─▓██████────│─│───────│─│─│─│─│─╫██████│  |')
+    print_it('|  ─██████│─│───│───│─│─│───│───────│█████▓  |')
+    print_it('|  ╫█████────│───│─│───│─────│─│─│───╫████▓  |')
+    print_it('|  │████▓─│─│─│───│───│─────│───│─────████▓  |')
+    print_it('|  │████│──│───│───│─│───│───────│─│─│▓███╫  |')
+    print_it('|  ─▓███│───────│─▓██───│╫██╫─│─│─│───▓███│  |')
+    print_it('|  ──███─│──────╫████▓───█████────────▓███─  |')
+    print_it('|  ──╫██──│─│──╫██████│─│██████─│─────▓██─│  |')
+    print_it('|  │─│▓█││─│─││███▓▓██─│─██▓▓███─│─│──▓█─│─  |')
+    print_it('|  ────█│─│───███╫▓▓█▓│──█▓▓▓▓██▓─────▓█───  |')
+    print_it('|  │─││█││───▓███╫██▓╫─│─▓▓█▓▓███─────▓█───  |')
+    print_it('|  ─│─╫█│─│─│████▓╫▓▓─────█▓╫████▓──│─▓█───  |')
+    print_it('|  │─││█╫│─││███████─│██╫│▓███████─│─│██─│─  |')
+    print_it('|  ─│─│█▓╫╫─▓██████╫│─▓█│──▓██████│╫╫│██│─│  |')
+    print_it('|  │─│─██│╫│▓█████╫│───▓───│▓█████╫╫╫╫█▓──   |')
+    print_it('|  ─│─│▓█╫││╫████╫│││╫██▓││││▓████│╫─▓█╫│─│  |')
+    print_it('|  │─│─│██│││╫▓▓││╫╫╫╫╫▓╫╫╫╫╫│╫▓▓╫││╫██──│─  |')
+    print_it('|  ─│───▓██╫─────││││││─││││││────│▓██│────  |')
+    print_it('|  │─│─│─▓██▓╫╫╫╫╫╫╫╫▓▓▓▓▓╫╫╫╫╫╫╫▓███│────   |')
+    print_it('|  ───────╫██████████▓▓▓▓▓██████████│────│   |')
+    print_it('|  │─│─│───▓█████████╫─│─▓█████████│─│─│─│   |')
+    print_it('|  ─────────██████████──│█████████╫─│───││   |')
+    print_it('|  │─│─│───│▓█╫███████││▓███████╫█││─│─│─│   |')
+    print_it('|  ───────│─██─╫██████▓─███████││█╫───│──│   |')
+    print_it('|  │───│───│██─││█████▓─█████▓─│╫█╫│──────   |')
+    print_it('|  ─│─│───│─▓█──│─╫▓██│─▓██▓│─│─▓█│───────   |')
+    print_it('|  │───│─│─│─██────│─│───│─────│██───│─│─│   |')
+    print_it('|  ─│─│───│─│▓██╫─│─│─────│─│─▓██││─│───│─│  |')
+    print_it('|  │───────│─│██████████████████▓│─│─│─│─│   |')
+    print_it('|  ─│───│─│───│███████▓▓████████│─│───│──│   |')
+    print_it('|  │─│───│─│─│─│██████╫─▓█████▓────│─│─│──   |')
+    print_it('|  ─────│─────╫│╫▓████▓─█████▓│╫╫───────│    |')
+    print_it('|  │─│───│───╫─╫╫╫╫███╫╫╫██▓╫│╫╫╫│─│─────    |')
+    print_it('|  ───│─│──────││───────│─│───│─│─│───│─│    |')
+    print_it('|                                            |')
+    print_it('|                                            |')
+    print_it('|             Sad panda is sad.              |')
+    print_it('|                                            |')
+    print_it('----------------------------------------------')
 
 
 def main(argv):

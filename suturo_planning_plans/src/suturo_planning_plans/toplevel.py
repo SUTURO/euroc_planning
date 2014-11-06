@@ -21,7 +21,6 @@ from suturo_msgs.msg import Task
 from suturo_planning_plans import utils
 from suturo_planning_plans.utils import secure_log
 
-__logger_process = None
 __handling_exit = False
 
 
@@ -32,9 +31,6 @@ def exit_handler(signum=None, frame=None):
         print('toplevel: Already handling exit.')
         return
     __handling_exit = True
-    if __logger_process is not None:
-        print 'Killing planning logger process.'
-        exterminate(__logger_process.pid, signal.SIGINT)
     print('toplevel: Exiting exit_handler.')
 
 signal.signal(signal.SIGTERM, exit_handler)
@@ -52,13 +48,13 @@ def handle_uncaught_exception(e, initialization_time, logging):
 
 def toplevel_plan(init_sim, task_name, savelog, initialization_time, logging):
     #Create a SMACH state machine
-    global __logger_process
     print('toplevel: logging: ' + str(logging))
     if logging == 1:
         print('toplevel: Logging planning to console.')
     else:
         print('toplevel: Logging planning to files.')
-        __logger_process = utils.start_logger(os.getpid(), subprocess.PIPE, initialization_time, 'Planning', logging)
+        orig_sysout = sys.stdout
+        __logger_process = utils.start_logger(subprocess.PIPE, initialization_time, 'Planning', logging)
         sys.stderr = __logger_process.stdin
         sys.stdout = __logger_process.stdin
 
@@ -167,7 +163,7 @@ class EurocTask(smach.StateMachine):
                 smach.StateMachine.add('GetYaml', GetYaml(),
                                        transitions={'success': 'DetermineTaskType',
                                                     'fail': 'fail'})
-                
+
                 smach.StateMachine.add('DetermineTaskType', DetermineTaskType(),
                                        transitions={'task1': 'task1',
                                                     'task2': 'task2',
@@ -188,10 +184,7 @@ class InitSimulation(smach.StateMachine):
         smach.StateMachine.__init__(self, outcomes=['task1', 'task2', 'task3', 'task4', 'task5', 'task6', 'fail'],
                                     input_keys=['initialization_time', 'logging'],
                                     output_keys=['objects_found', 'yaml', 'perception_process', 'manipulation_process',
-                                                 'manipulation_conveyor_frames_process', 'classifier_process',
-                                                 'perception_logger_process', 'manipulation_logger_process',
-                                                 'manipulation_conveyor_frames_logger_process',
-                                                 'classifier_logger_process'])
+                                                 'manipulation_conveyor_frames_process', 'classifier_process'])
         with self:
             smach.StateMachine.add('StartSimulation', start_nodes.StartSimulation(task_name),
                                    transitions={'success': 'StartManipulation',

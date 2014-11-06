@@ -18,8 +18,8 @@ class FastGrasp(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['objectGrasped', 'timeExpired', 'noPlanFound', 'graspingFailed',
                                              'noObjectsLeft', 'fail'],
-                             input_keys=['yaml', 'request_second_object'],
-                             output_keys=['request_second_object'])
+                             input_keys=['yaml', 'request_second_object', 'object_index'],
+                             output_keys=['request_second_object', 'object_index'])
         self.__perceived_pose = 0
         self.__perceived_pose_time = rospy.Time()
         self.__time_between_poses = rospy.Duration()
@@ -115,7 +115,7 @@ class FastGrasp(smach.State):
                 rospy.logdebug('FastGrasp: Request next object')
                 rospy.ServiceProxy("/euroc_interface_node/request_next_object", RequestNextObject).call()
                 userdata.request_second_object = True
-            if i == 14 and userdata.request_second_object:
+            if i == 19 and userdata.request_second_object:
                 rospy.logdebug('FastGrasp: Time Expired')
                 return 'noObjectsLeft'
             r = self.percieve_object()
@@ -133,8 +133,13 @@ class FastGrasp(smach.State):
                 rospy.logdebug("FastGrasp: Plan 1: No Plan fount in step " + str(j))
                 if j == 3:
                     return 'noPlanFound'
-
-        while rospy.Time.now() < self.__t_point_time - rospy.Duration(2):
+        if userdata.object_index == 1:
+            offset = rospy.Duration(1.5)
+        elif userdata.object_index == 2:
+            offset = rospy.Duration(1)
+        else:
+            offset = rospy.Duration(2)
+        while rospy.Time.now() < self.__t_point_time - offset:
             rospy.sleep(0.01)
         self.__t_point.pose.position.z -= 0.07
         rospy.logdebug("FastGrasp: Plan 2")
@@ -172,5 +177,5 @@ class FastGrasp(smach.State):
             rospy.logdebug("FastGrasp: Grasp Fail")
             return 'graspingFailed'
         rospy.logdebug("FastGrasp: objectGrasped, finished")
-
+        userdata.object_index += 1
         return 'objectGrasped'
