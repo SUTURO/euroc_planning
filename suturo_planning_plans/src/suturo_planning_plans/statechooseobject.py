@@ -4,6 +4,9 @@ import rospy
 from geometry_msgs.msg import PointStamped
 from suturo_planning_plans import utils
 from std_msgs.msg import Header
+from suturo_msgs.msg import Task
+from suturo_msgs.msg import TargetZone
+from suturo_planning_manipulation import mathemagie
 
 
 class ChooseObject(smach.State):
@@ -45,8 +48,21 @@ class CleanUpPlan(smach.State):
         header = Header()
         header.frame_id = '/odom_combined'
         plan = []
-        tzs_for = {tz.expected_object: tz for tz in userdata.yaml.target_zones}
+        target_zones = []
+        if (userdata.yaml.task_type == Task.TASK_5):
+            for puzzle_part in userdata.yaml.relative_puzzle_part_target_poses:
+                target_position = mathemagie.add_point(userdata.yaml.puzzle_fixture.position, puzzle_part.pose.position)
+                fake_target_zone = TargetZone(name = puzzle_part.name + "_target", expected_object = puzzle_part.name, target_position = target_position, max_distance = 0.05)
+                fake_target_zone.target_position.z = fake_target_zone.target_position.z + 0.15 # put it above the fixture to avoid collision
+                print("fake_target_zone = " + str(fake_target_zone))
+                target_zones.append(fake_target_zone)
+        else:
+            target_zones = userdata.yaml.target_zones
+        
+        tzs_for = {tz.expected_object: tz for tz in target_zones}
         found_objects = userdata.objects_found
+        
+        print ("tzs_for = " + str(tzs_for))
 
         # Get the objects that are in an others objects target zone
         objects_in_tzs = []

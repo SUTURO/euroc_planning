@@ -22,6 +22,7 @@ class SearchObject(smach.State):
         if self._missing_objects is None:
             self._missing_objects = []
             for obj in userdata.yaml.objects:
+                print("adding missing object"+obj.name)
                 self._missing_objects.append(obj.name)
 
         if utils.manipulation is None:

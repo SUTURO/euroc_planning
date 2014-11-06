@@ -11,6 +11,8 @@ from suturo_perception_msgs.srv import Classifier
 from geometry_msgs.msg import PointStamped, PoseStamped
 from std_msgs.msg import Header
 from math import pi
+from suturo_msgs.msg import Task
+from suturo_msgs.msg import TargetZone
 
 
 # Holds the manipulation object
@@ -201,11 +203,25 @@ def is_handle(name, yaml):
 
 
 def in_target_zone(euroc_object, yaml):
-    for target_zone in yaml.target_zones:
-        centroid = deepcopy(euroc_object.c_centroid)
-        centroid.z = 0
-        dist = mathemagie.euclidean_distance(centroid, target_zone.target_position)
-        if dist < target_zone.max_distance:
-            return target_zone
+    if (yaml.task_type == Task.TASK_5):
+        for puzzle_part in yaml.relative_puzzle_part_target_poses:
+            centroid = deepcopy(euroc_object.c_centroid)
+            centroid.z = 0
+            target_position = mathemagie.add_point(yaml.puzzle_fixture.position, puzzle_part.pose.position)
+            fake_target_zone = TargetZone
+            fake_target_zone.name = puzzle_part.name + "_target"
+            fake_target_zone.expected_object = puzzle_part.name
+            fake_target_zone.target_position = target_position
+            fake_target_zone.max_distance = 0.05 # dafuq do i know?
+            dist = mathemagie.euclidean_distance(centroid, target_position)
+            if dist < fake_target_zone.max_distance: 
+                return fake_target_zone
+    else:
+        for target_zone in yaml.target_zones:
+            centroid = deepcopy(euroc_object.c_centroid)
+            centroid.z = 0
+            dist = mathemagie.euclidean_distance(centroid, target_zone.target_position)
+            if dist < target_zone.max_distance:
+                return target_zone
 
     return None
