@@ -43,4 +43,7 @@ def add_conveyor_frames():
     print "Oooppss"
 
 if __name__ == '__main__':
-    add_conveyor_frames()
+    try:
+        add_conveyor_frames()
+    except Exception:
+        print Exception
