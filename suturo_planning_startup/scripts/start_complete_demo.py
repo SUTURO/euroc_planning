@@ -156,6 +156,8 @@ def start_demo(wait, tasks, logging):
     else:
         dont_print = True
     for task in tasks_to_execute:
+        rospy.loginfo('Setting use_sim_time to true')
+        rospy.set_param('/use_sim_time', True)
         if __quit:
             print('Demo has been aborted. Exiting (1)')
             return
