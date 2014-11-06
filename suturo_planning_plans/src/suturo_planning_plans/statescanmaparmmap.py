@@ -42,9 +42,10 @@ class ScanMapArmCam(smach.State):
                 if len(regions) == 0:
                     break
                 r_id = r_id % len(regions)
+                i = 0
                 continue
 
-            if  i >= 3:
+            if  i >= 2:
                 r_id += 1
                 r_id = r_id % len(regions)
                 i = 0
@@ -67,7 +68,7 @@ class ScanMapArmCam(smach.State):
             j = 0
             move_successfull = False
             while j < len(poses) and not move_successfull:
-                move_successfull = utils.manipulation.move_arm_and_base_to(poses[j])
+                move_successfull = utils.manipulation.move_arm_and_base_to(poses[j], blow_up=0)
                 j += 1
             if move_successfull:
                 rospy.sleep(utils.waiting_time_before_scan)

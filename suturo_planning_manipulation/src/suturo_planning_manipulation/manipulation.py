@@ -14,8 +14,9 @@ from geometry_msgs.msg._Vector3 import Vector3
 from moveit_msgs.msg import *
 from moveit_msgs.srv._GetMotionPlan import GetMotionPlan, GetMotionPlanRequest
 import geometry_msgs.msg
+from std_msgs.msg._Duration import Duration
 from calc_grasp_position import *
-from place import get_place_position, get_pre_place_position
+from place import get_place_position, get_pre_place_position, get_grasped_part
 from planningsceneinterface import *
 from manipulation_constants import *
 from manipulation_service import *
@@ -108,7 +109,7 @@ class Manipulation(object):
         '''
         return self.tf.transform_to(pose_target, target_frame)
 
-    def move_to(self, goal_pose, blow_up=True):
+    def move_to(self, goal_pose, blow_up=1):
         '''
         Moves the endeffector to the goal position, without moving the base.
         :param goal_pose: goal position as PoseStamped
@@ -116,7 +117,7 @@ class Manipulation(object):
         '''
         return self.__move_group_to(goal_pose, self.__arm_group, blow_up=blow_up)
 
-    def move_arm_and_base_to(self, goal_pose, blow_up=True):
+    def move_arm_and_base_to(self, goal_pose, blow_up=1):
         '''
         Moves the endeffector to the goal position. (Don't use this for Task 1 and 2)
         :param goal_pose: goal position as PoseStamped
@@ -148,6 +149,8 @@ class Manipulation(object):
         :return: Returns the Blown up object
         """
         o = deepcopy(bobject)
+        if o.id == "map":
+            return self.__blow_up_map(bobject)
         for primitive in o.primitives:
             dims = []
             for dimension in primitive.dimensions:
@@ -165,7 +168,7 @@ class Manipulation(object):
             dim = []
             dim.append(primitive.dimensions[0])
             dim.append(primitive.dimensions[1])
-            dim.append(primitive.dimensions[2] + 0.2)
+            dim.append(primitive.dimensions[2] + 0.1)
              # += 0.1
             primitive.dimensions = dim
         return o
@@ -183,9 +186,13 @@ class Manipulation(object):
         if blow_up == 1:
             for each in original_objects:
                 if not each.id in self.__planning_scene_interface.safe_objects:
+                    # if each.id == "map":
+                    #     bobj = self.__blow_up_map(each)
+                    # else:
                     bobj = self.__blow_up_object(each, blow_up_distance)
                     # blown_up_objects.append(bobj.id)
                     self.__planning_scene_interface.add_object(bobj)
+            rospy.sleep(1.5)
             # ros
         elif blow_up == 2:
             # print "agwfylrewluairgewaifaw"
@@ -211,9 +218,9 @@ class Manipulation(object):
         else:
             move_group.set_joint_value_target(goal)
 
-        print rospy.Time.now().to_sec()
+        # print rospy.Time.now().to_sec()
         path = self.plan(move_group, goal)
-        print rospy.Time.now().to_sec()
+        # print rospy.Time.now().to_sec()
 
         if blow_up != 0:
             self.__planning_scene_interface.add_objects(original_objects)
@@ -241,7 +248,7 @@ class Manipulation(object):
             goal = self.__make_joint_state_goal(move_group, goal)
             constraint.joint_constraints.append(goal)
         else:
-            rospy.logwarn("DANGER, named targets might fail.")
+            rospy.logwarn("DANGER, for named targets, attached objects will be ignored.")
             return move_group.plan()
 
         request.motion_plan_request.goal_constraints.append(constraint)
@@ -255,9 +262,6 @@ class Manipulation(object):
             rospy.logdebug("Service did not process request: " + str(exc))
             rospy.logdebug("probably couldnt find a plan.")
             return None
-
-        # if resp.motion_plan_response.error_code == 1:
-            # self.__set_object_load_srv(request)
 
     def __make_joint_state_goal(self, move_group, goal):
         joint_goal = JointConstraint()
@@ -341,7 +345,7 @@ class Manipulation(object):
             rospy.logdebug("Gripper failed to open")
             return False
 
-    def close_gripper(self, object=None):
+    def close_gripper(self, object=None, grasp_point=None):
         '''
         Closes the gripper completely or far enough to hold the object, when one is given
         :param object: Object that will be grasped.
@@ -352,9 +356,9 @@ class Manipulation(object):
         if type(object) is CollisionObject:
             self.__gripper_group.attach_object(object.id, "gp", ["gp", "finger1", "finger2"])
             rospy.sleep(1.0)
-            # (egal, id) = get_grasped_part(object, self.tf.transform_to)
+            # id = get_grasped_part(object, grasp_point)[1]
             id = 0
-            #TODO: only works for cubes and cylinders and only "sometimes" for object compositions
+            # TODO: only works for cubes and cylinders and only "sometimes" for object compositions
             if object.primitives[id].type == shape_msgs.msg.SolidPrimitive.BOX:
                 length = min(object.primitives[id].dimensions)
                 self.__gripper_group.set_joint_value_target([-(length/2), length/2])
@@ -395,50 +399,53 @@ class Manipulation(object):
 
         grasp_positions = calculate_grasp_position(collision_object, self.tf.transform_to)
 
-        # grasp_positions = self.filter_invalid_grasps(grasp_positions)
+        grasp_positions = self.filter_low_poses(grasp_positions)
+        grasp_positions = self.filter_close_poses(grasp_positions)
+
+
 
         if len(grasp_positions) == 0:
             rospy.logwarn("No grasppositions found for " + collision_object_name)
 
         grasp_positions.sort(cmp=lambda x, y: self.cmp_pose_stamped(collision_object, x, y))
-        visualize_poses(grasp_positions)
+        # visualize_poses(grasp_positions)
         # print grasp_positions
 
-        # self.open_gripper()
-        # for grasp in grasp_positions:
-        #     if self.__move_group_to(get_pre_grasp(grasp), move_group):
-        #
-        #         if not self.__move_group_to(grasp, move_group, blow_up=False):
-        #             continue
-        #         rospy.sleep(1)
-        #         self.close_gripper(collision_object)
-        #
-        #         com = self.get_center_of_mass(collision_object)
-        #         com = self.tf.transform_to(com, "/tcp")
-        #         if com is None:
-        #             rospy.logwarn("TF failed")
-        #             return False
-        #         self.load_object(self.calc_object_weight(collision_object, object_density),
-        #                          Vector3(com.point.x, com.point.y, com.point.z))
-        #
-        #         rospy.loginfo("grasped " + collision_object_name)
-        #
-        #         self.__grasp = self.tf.transform_to(grasp)
-        #         v1 = deepcopy(self.__grasp.pose.position)
-        #         v1.z = 0
-        #         v2 = deepcopy(collision_object.primitive_poses[0].position)
-        #         v2.z = 0
-        #         a = magnitude(subtract_point(v1, v2))
-        #         b = abs(self.__grasp.pose.position.z - collision_object.primitive_poses[0].position.z)
-        #         c = sqrt(a ** 2 + b ** 2)
-        #         self.__d = abs(c)
-        #         print c
-        #
-        #         rospy.logdebug("lift object")
-        #         if not self.__move_group_to(get_pre_grasp(grasp), move_group):
-        #             rospy.logdebug("couldnt lift object")
-        #         return True
-        # rospy.logwarn("Grapsing failed.")
+        self.open_gripper()
+        for grasp in grasp_positions:
+            if self.__move_group_to(get_pre_grasp(self.transform_to(grasp)), move_group):
+
+                if not self.__move_group_to(grasp, move_group, blow_up=0):
+                    continue
+                rospy.sleep(1)
+                self.close_gripper(collision_object, get_grasp_point(self.transform_to(grasp)))
+
+                com = self.get_center_of_mass(collision_object)
+                com = self.tf.transform_to(com, "/tcp")
+                if com is None:
+                    rospy.logwarn("TF failed")
+                    return False
+                self.load_object(self.calc_object_weight(collision_object, object_density),
+                                 Vector3(com.point.x, com.point.y, com.point.z))
+
+                rospy.loginfo("grasped " + collision_object_name)
+
+                self.__grasp = self.tf.transform_to(grasp)
+                v1 = deepcopy(self.__grasp.pose.position)
+                v1.z = 0
+                v2 = deepcopy(collision_object.primitive_poses[0].position)
+                v2.z = 0
+                a = magnitude(subtract_point(v1, v2))
+                b = abs(self.__grasp.pose.position.z - collision_object.primitive_poses[0].position.z)
+                c = sqrt(a ** 2 + b ** 2)
+                self.__d = abs(c)
+                print c
+
+                rospy.logdebug("lift object")
+                if not self.__move_group_to(get_pre_grasp(grasp), move_group):
+                    rospy.logdebug("couldnt lift object")
+                return True
+        rospy.logwarn("Grapsing failed.")
         return False
 
     def cmp_pose_stamped(self, collision_object, pose1, pose2):
@@ -450,12 +457,13 @@ class Manipulation(object):
         :param pose2: second pose as PoseStamped
         :return: pose1 > pose2
         '''
-        # TODO:richtigen abstand zum center berechnen
         center = self.get_center_of_mass(collision_object)
         odom_pose1 = self.tf.transform_to(pose1)
+        p1 = get_grasp_point(odom_pose1)
         odom_pose2 = self.tf.transform_to(pose2)
-        d1 = magnitude(subtract_point(center.point, odom_pose1.pose.position))
-        d2 = magnitude(subtract_point(center.point, odom_pose2.pose.position))
+        p2 = get_grasp_point(odom_pose2)
+        d1 = euclidean_distance(center.point, p1.point)
+        d2 = euclidean_distance(center.point, p2.point)
         diff = d1 - d2
         if 0.0 <= abs(diff) <= 0.015 or len(collision_object.primitives) == 1:
             z1 = odom_pose1.pose.position.z

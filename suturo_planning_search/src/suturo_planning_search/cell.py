@@ -39,6 +39,8 @@ class Cell:
 
     min_z_value = 0.01
 
+    undef_threshold = 0.02
+
     def __init__(self):
         self.average_z = 0
         self.highest_z = 0
@@ -222,9 +224,11 @@ class Cell:
         return self.id_to_color(self.get_color_id())
 
     def get_color_id(self):
+        if self.get_num_points() == 0:
+            return self.UNDEF_ID
         id = -1
         for i in range(0, len(self.points)-1):
-            if (self.points[i] > 0 and id == -1) or self.points[i] > self.points[id]:
+            if (self.points[i]+0.0 / self.get_num_points()+0.0 > self.undef_threshold and id == -1) or self.points[i] > self.points[id]:
                 id = i
         if id == -1:
             return self.UNDEF_ID
