@@ -101,8 +101,13 @@ class Map:
             request.pointCloudName = GetPointArrayRequest.SCENE
         else:
             request.pointCloudName = GetPointArrayRequest.TCP
+        request.minPointCloudTimeStamp = rospy.get_rostime()
 
+        # rospy.logdebug(str(rospy.get_rostime()))
+        # rospy.logdebug(str(rospy.is_shutdown()))
+        # rospy.logdebug(str(rospy.get_time()))
         resp = self.__get_point_array(request)
+        # rospy.sleep(600)
         points = resp.pointArray
 
         for i in range(0, len(points), 4):
@@ -176,7 +181,9 @@ class Map:
                         elif self.is_cell_alone(x, y):
                             self.get_cell_by_index(x, y).set_free()
                             cell_changed = True
-                    if cell.is_obstacle():
+                        else:
+                            free = self.get_surrounding_frees(x, y)
+                    elif cell.is_obstacle():
                         obstacles = self.get_surrounding_obstacles(x, y)
                         cell_color = cell.get_color_id()
                         obstacles_with_different_color = [c for c in obstacles if c[0].get_color_id() != cell_color]
@@ -534,6 +541,10 @@ class Map:
         sc = self.get_surrounding_cells_by_index(x_index, y_index)
         return [c for c in sc if c[0].is_obstacle()]
 
+    def get_surrounding_frees(self, x_index, y_index):
+        sc = self.get_surrounding_cells_by_index(x_index, y_index)
+        return [c for c in sc if c[0].is_free()]
+
 
     # def is_cell_surrounded_by_obstacles(self, x_index, y_index):
         # sc = self.get_surrounding_cells_by_index(x_index, y_index)
@@ -576,12 +587,12 @@ class Map:
         return self.obstacle_regions
 
     def get_unknown_regions(self):
-        if len(self.unknown_regions) == 0:
-            cm = ClusterRegions()
-            cm.set_region_type(RegionType.unknown)
-            cm.set_field(self.field)
-            cm.group_regions()
-            self.unknown_regions = cm.get_result_regions()
+        # if len(self.unknown_regions) == 0:
+        cm = ClusterRegions()
+        cm.set_region_type(RegionType.unknown)
+        cm.set_field(self.field)
+        cm.group_regions()
+        self.unknown_regions = cm.get_result_regions()
         return self.unknown_regions
 
     def get_cell_volume_by_index(self, x, y):

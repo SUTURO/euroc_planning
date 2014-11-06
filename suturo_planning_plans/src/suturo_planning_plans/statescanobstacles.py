@@ -65,7 +65,7 @@ class ScanObstacles(smach.State):
 
         # angle = (pi / 2) - (dist_to_region / 1)
         angle = 1.2
-        distance = 0.6 + current_region.get_number_of_cells()*0.01
+        distance = 0.6 + current_region.get_number_of_cells()*0.008
 
         rospy.logdebug('Focusing point: %s' % str(region_centroid))
         rospy.logdebug('Angle: %s' % str(angle))
