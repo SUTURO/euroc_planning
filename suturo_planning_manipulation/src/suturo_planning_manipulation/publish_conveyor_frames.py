@@ -32,7 +32,6 @@ def cb(msg):
                          "/target_zone",
                          "/odom_combined")
         rate.sleep()
-    pass
 
 def add_conveyor_frames():
     rospy.init_node('listener', anonymous=True)
