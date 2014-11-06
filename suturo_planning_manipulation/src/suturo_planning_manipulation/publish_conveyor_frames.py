@@ -35,7 +35,7 @@ def cb(msg):
     pass
 
 def add_conveyor_frames():
-    rospy.init_node('/suturo/conveyor_frames_publisher', anonymous=True)
+    rospy.init_node('listener', anonymous=True)
 
     rospy.Subscriber("suturo/yaml_pars0r", Task, cb)
 
