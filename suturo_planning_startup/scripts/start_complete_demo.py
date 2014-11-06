@@ -18,19 +18,16 @@ __quit = False
 __clock_subscriber = None
 __time_started_task = None
 __time_limit = 600
-__handling_exit = False
 __aborting_task = False
 __kill_count = 0
 __current_task = None
 subproc = None
-logger_process = None
 
 
 def abort_current_task():
     print('start_complete_demo: abort_current_task')
     global __aborting_task
     global subproc
-    global logger_process
     global __clock_subscriber
     global __quit
     if __quit:
@@ -47,26 +44,12 @@ def abort_current_task():
                 print('Killing subproc with pid ' + str(subproc.pid))
                 exterminate(subproc.pid, signal.SIGINT)
                 print('Waiting for subproc to terminate. Please be patient.')
-                utils.wait_for_process(subproc, 120)
+                utils.wait_for_process(subproc, 90)
                 poll = subproc.poll()
                 if poll is None:
                     print('Could not kill task process. Forcing!'
                           ' (pid: ' + str(subproc.pid) + ', subproc.poll(): ' + str(poll) + ')')
                     exterminate(subproc.pid, signal.SIGKILL, r=True)
-            except Exception, e:
-                print(e)
-        if logger_process is not None:
-            try:
-                print('Killing logger with pid ' + str(logger_process.pid))
-                exterminate(logger_process.pid, signal.SIGINT)
-                print('Waiting for logger process to terminate. Please be patient.')
-                #logger_process.wait()
-                utils.wait_for_process(logger_process, 240)
-                poll = logger_process.poll()
-                if poll is None:
-                    print('Could not kill logger process. Forcing!'
-                          ' (pid: ' + str(logger_process.pid) + ', logger_process.poll(): ' + str(poll) + ')')
-                    exterminate(logger_process.pid, signal.SIGKILL)
             except Exception, e:
                 print(e)
         __aborting_task = False
@@ -76,43 +59,31 @@ def abort_current_task():
 def kill_like_a_berserk():
     print('start_complete_demo: kill_like_a_berserk')
     global subproc
-    global logger_process
     print('Killing subproc like a berserk.')
     exterminate(subproc.pid, signal.SIGKILL, r=True)
-    print('Killing logger like a berserk.')
-    exterminate(logger_process.pid, signal.SIGKILL, r=True)
     print('start_complete_demo: Exiting kill_like_a_berserk.')
 
 
 def exit_handler(signum=None, frame=None):
-    global __kill_count
-    global __handling_exit
     print('start_complete_demo: exit_handler')
+    global __kill_count
     global __quit
     global __clock_subscriber
     global __aborting_task
-    if __handling_exit:
-        if not __quit:
-            print('Going to abort execution of all remaining tasks.')
-            __quit = True
-            if not __aborting_task:
-                abort_current_task()
-        else:
-            print('start_complete_demo: Already handling exit. Count to kill like a berserk: ' + str(__kill_count))
-            if __kill_count < 100:
-                __kill_count += 1
-            elif signum is not None and __kill_count == 100:
-                __kill_count += 1
-                kill_like_a_berserk()
-        return
-    else:
-        __handling_exit = True
-        if signum is not None:
-            print('Going to abort current task.')
+    __kill_count += 1
+    if __kill_count == 1:
+        print('Going to abort current task.')
+        abort_current_task()
+    elif __kill_count == 2:
+        print('Going to abort execution of all remaining tasks.')
+        __quit = True
+        if not __aborting_task:
             abort_current_task()
-        if not __quit:
-            print('Setting __handling_exit to False.')
-            __handling_exit = False
+    elif __kill_count == 3:
+        print('Going to kill like a berserk.')
+        kill_like_a_berserk()
+    else:
+        print('You can stop spamming Ctrl-c now.')
     print('start_complete_demo: exiting exit_handler')
 
 
@@ -120,10 +91,8 @@ def start_demo(wait, tasks, logging):
     global __quit
     global __clock_subscriber
     global __time_started_task
-    global __aborting_task
     global __current_task
     global subproc
-    global logger_process
     rospy.init_node('start_complete_demo')
 
     rospy.loginfo('Setting use_sim_time to true')
@@ -165,8 +134,9 @@ def start_demo(wait, tasks, logging):
         __current_task = task
         if wait:
             raw_input('Starting task ' + str(task) + '. Press ENTER.')
-        print('Starting task ' + str(task))
-        print('Tasks to go: ' + str(tasks_to_execute[tasks_to_execute.index(task)+1:]))
+        print('Starting task   ' + str(task))
+        print('Finished tasks: ' + str(tasks_to_execute[0:tasks_to_execute.index(task)]))
+        print('Tasks to go   : ' + str(tasks_to_execute[tasks_to_execute.index(task)+1:]))
         subproc, logger_process = utils.start_node('rosrun suturo_planning_startup start_task.py ' + task +
                                                    ' --plan --init --save --no-ts --inittime="' + init_time + '"' +
                                                    ' --logging="' + str(logging) + '"', init_time, logging, 'Complete',
@@ -179,23 +149,6 @@ def start_demo(wait, tasks, logging):
         print('Task ' + task + ' terminated.')
         print('Unsubscribing clock subscriber.')
         __clock_subscriber.unregister()
-        if logger_process is not None and logger_process.poll() is None:
-            if __aborting_task:
-                print('Already aborting task. Won\'t kill logger.')
-                print('Waiting for abortion to be finished.')
-                while __aborting_task:
-                    time.sleep(1)
-                print('Abortion finished.')
-            else:
-                print('Killing logger.')
-                exterminate(logger_process.pid, signal.SIGINT)
-                print('Waiting for logger to terminate.')
-                utils.wait_for_process(logger_process, 240)
-                poll = logger_process.poll()
-                if poll is None:
-                    print('Could not kill logger process. Forcing!'
-                          ' (pid: ' + str(logger_process.pid) + ', logger_process.poll(): ' + str(poll) + ')')
-                    exterminate(logger_process.pid, signal.SIGKILL)
         if __quit:
             print('Demo has been aborted. Exiting (2)')
             return

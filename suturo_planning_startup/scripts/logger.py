@@ -1,46 +1,7 @@
 #!/usr/bin/env python
-import time
 import sys
-import os
-import signal
-import atexit
-import select
 import errno
-
-__loop = True
-
-
-def exit_handler(signum=None, frame=None):
-    if signum is not None:
-        global __loop
-        global parent_dead
-        print('[LOGGER] #####################################################################################################')
-        print('[LOGGER] Exit handler for logger ' + f + ' on signal ' + str(signum) + '.')
-        print('[LOGGER] Setting __loop to False.')
-        __loop = False
-        print('[LOGGER] Emptying input buffer.')
-        no_input_counter = 0
-        while no_input_counter < 13337:
-            r, l = check_for_input()
-            # print('[LOGGER] ' + node + ': parent_dead: ' + str(parent_dead))
-            # print('[LOGGER] ' + node + ': ret: ' + str(r))
-            # print('[LOGGER] ' + node + ': line: "' + str(l) + '"')
-            if parent_dead and r == return_values['NO_INPUT']:
-                break
-            elif parent_dead and r == return_values['EMPTY_INPUT']:
-                no_input_counter += 1
-            else:
-                no_input_counter = 0
-        print('[LOGGER] Closing file.')
-        try:
-            h.write('THIS LOGGER TERMINATED CORRECTLY.')
-            h.flush()
-            os.fsync(h.fileno())
-            h.close()
-        except:
-            print('[LOGGER] Error closing file ' + str(h))
-        print('[LOGGER] Exiting exit_handler.')
-        print('[LOGGER] #####################################################################################################')
+import traceback
 
 
 f = sys.argv[1]
@@ -55,75 +16,57 @@ if sys.argv[5] == 'True':
 else:
     stdout_prefix = ''
 
-parent_pid = int(sys.argv[6])
 h = open(f, 'w')
-signal.signal(signal.SIGTERM, exit_handler)
-signal.signal(signal.SIGINT, exit_handler)
-atexit.register(exit_handler)
 
 parent_dead = False
 return_values = {'GOT_INPUT': 0, 'NO_INPUT': 1, 'EMPTY_INPUT': 2, 'EXCEPTION': 3}
+EOF = False
 
 
-def is_alive(pid):
+def write(f, s):
     try:
-        os.kill(pid, 0)
-    except OSError:
-        return False
-    else:
-        return True
+        f.write(s)
+        # f.flush()
+        # os.fsync(h.fileno())
+    except Exception, e:
+        print('[LOGGER] Error writing to file "' + str(s) + '"')
+        print('[LOGGER] ' + str(e))
 
 
 def check_for_input():
     global node
     global logging
-    global parent_pid
-    global parent_dead
     try:
-        if select.select([sys.stdin], [], [], 0.0)[0]:
+        line = sys.stdin.readline()
+        if line == '':
+            print('[LOGGER] ' + node + ': EOF. Exiting.')
+            write(h, 'THIS LOGGER TERMINATED CORRECTLY.')
             try:
-                line = sys.stdin.readline().rstrip()
-                try:
-                    if line == '':
-                        return return_values['EMPTY_INPUT'], line
-                    else:
-                        if logging in [0, 2]:
-                            h.write(line + '\n')
-                            h.flush()
-                            os.fsync(h.fileno())
-                except Exception, e:
-                    print('[LOGGER] Error writing to file ' + str(h))
-                    print('[LOGGER] ' + str(e))
-                if line != '' and not dont_print:
-                    print(stdout_prefix + line)
-                    sys.stdout.flush()
-                return return_values['GOT_INPUT'], line
-            except IOError, e:
-                if e.errno != errno.EINTR:
-                    raise
-                else:
-                    print('[LOGGER] Uncaught exception while reading stdin.')
-                    print('[LOGGER] Caught exception while reading stdin:')
-                    print('[LOGGER] ' + str(e))
+                h.close()
+            except:
+                print('[LOGGER] Error closing file ' + str(h))
+            return False
         else:
-            return return_values['NO_INPUT'], None
-    except select.error, e:
-        if e[0] != errno.EINTR:
-            print('[LOGGER] Uncaught exception while doing select on stdin.')
+            if logging in [0, 2]:
+                write(h, line)
+            if not dont_print:
+                sys.stdout.write(stdout_prefix + line)
+                # sys.stdout.flush()
+    except KeyboardInterrupt:
+        print('QLQLQL Interrupt.')
+    except IOError, e:
+        if e.errno != errno.EINTR:
             raise
         else:
-            print('[LOGGER] Caught exception while doing select on stdin:')
+            print('[LOGGER] Caught IOError while reading stdin:')
             print('[LOGGER] ' + str(e))
-    finally:
-        if not parent_dead:
-            if is_alive(parent_pid):
-                parent_dead = True
-            else:
-                print('[LOGGER] ' + node + ': Parent process with pid ' + str(parent_pid) + ' died.')
+    except:
+        print('[LOGGER] Uncaught exception while reading stdin.')
+        print(traceback.print_exc())
+    return True
 
-while __loop:
-    ret, line = check_for_input()
-    if ret != return_values['GOT_INPUT']:
-        time.sleep(0.05)
+r = check_for_input()
+while r:
+    r = check_for_input()
 
-print('[LOGGER] ' + node + ': Exiting.')
+print('[LOGGER] ' + f + ': Exiting.')

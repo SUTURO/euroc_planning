@@ -63,21 +63,23 @@ def start_node(command, initialization_time, logging, log_name='', dont_print=Fa
     else:
         print('Logging to file.')
         stdout = subprocess.PIPE
+        # stderr = subprocess.PIPE
         stderr = subprocess.STDOUT
     process = subprocess.Popen(command, stdout=stdout, stderr=stderr, shell=True, preexec_fn=os.setsid)
     if logging != 1:
-        logger_process = start_logger(process.pid, process.stdout, initialization_time, log_name, logging,
+        logger_process = start_logger(process.stdout, initialization_time, log_name, logging,
                                       dont_print=dont_print, print_prefix_to_stdout=print_prefix_to_stdout)
     else:
         logger_process = None
     return process, logger_process
 
 
-def start_logger(prt_pid, stdin, initialization_time, log_name, logging, dont_print=False, print_prefix_to_stdout=True):
+def start_logger(stdin, initialization_time, log_name, logging, dont_print=False, print_prefix_to_stdout=True):
     print('Creating logger process: ' + log_name)
+    print('dont_print: ' + str(dont_print))
     return subprocess.Popen('rosrun suturo_planning_startup logger.py "' + log_dir + '/' + initialization_time + '-' +
                             log_name + '.log"' + ' "' + log_name + '"' + ' ' + str(logging) + ' ' + str(dont_print) +
-                            ' ' + str(print_prefix_to_stdout) + ' ' + str(prt_pid),
+                            ' ' + str(print_prefix_to_stdout),
                             stdin=stdin, shell=True, preexec_fn=os.setsid)
 
 
