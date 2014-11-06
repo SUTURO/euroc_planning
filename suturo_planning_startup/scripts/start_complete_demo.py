@@ -125,6 +125,10 @@ def start_demo(wait, tasks, logging):
     global subproc
     global logger_process
     rospy.init_node('start_complete_demo')
+
+    rospy.loginfo('Setting use_sim_time to true')
+    rospy.set_param('/use_sim_time', True)
+
     #atexit.register(exit_handler)
     signal.signal(signal.SIGTERM, exit_handler)
     signal.signal(signal.SIGINT, exit_handler)

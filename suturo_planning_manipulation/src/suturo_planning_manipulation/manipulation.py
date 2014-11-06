@@ -115,7 +115,7 @@ class Manipulation(object):
         :param goal_pose: goal position as PoseStamped
         :return: success of the movement
         '''
-        return self.__move_group_to(goal_pose, self.__arm_group, blow_up=blow_up)
+        return self.__move_group_to(goal_pose, self.__arm_group, blow_up)
 
     def move_arm_and_base_to(self, goal_pose, blow_up=1):
         '''
@@ -123,7 +123,7 @@ class Manipulation(object):
         :param goal_pose: goal position as PoseStamped
         :return: success of the movement
         '''
-        return self.__move_group_to(goal_pose, self.__arm_base_group, blow_up=blow_up)
+        return self.__move_group_to(goal_pose, self.__arm_base_group, blow_up)
 
     def get_base_origin(self):
         '''
@@ -149,8 +149,8 @@ class Manipulation(object):
         :return: Returns the Blown up object
         """
         o = deepcopy(bobject)
-        if o.id == "map":
-            return self.__blow_up_map(bobject)
+        # if o.id == "map":
+        #     return self.__blow_up_map(bobject)
         for primitive in o.primitives:
             dims = []
             for dimension in primitive.dimensions:
@@ -173,7 +173,7 @@ class Manipulation(object):
             primitive.dimensions = dim
         return o
 
-    def __move_group_to(self, goal_pose, move_group, blow_up=1, blow_up_distance=0.02):
+    def __move_group_to(self, goal_pose, move_group, blow_up, blow_up_distance=0.02):
         """
          :param goal_pose: the pose which shall be arrived
          :param move_group: the move group which shall be moved
@@ -183,13 +183,15 @@ class Manipulation(object):
          """
         original_objects = self.__planning_scene_interface.get_collision_objects()
         # blown_up_objects = []
+        # rospy.logwarn("muHHHHHHHHHHHHHHHHHHH")
+        # rospy.logwarn(str(blow_up))
         if blow_up == 1:
             for each in original_objects:
                 if not each.id in self.__planning_scene_interface.safe_objects:
-                    # if each.id == "map":
-                    #     bobj = self.__blow_up_map(each)
-                    # else:
-                    bobj = self.__blow_up_object(each, blow_up_distance)
+                    if each.id == "map":
+                        bobj = self.__blow_up_map(each)
+                    else:
+                        bobj = self.__blow_up_object(each, blow_up_distance)
                     # blown_up_objects.append(bobj.id)
                     self.__planning_scene_interface.add_object(bobj)
             rospy.sleep(1.5)
@@ -201,6 +203,16 @@ class Manipulation(object):
             # blown_up_objects.append("map")
             self.__planning_scene_interface.add_object(map)
             rospy.sleep(2)
+        # elif blow_up == 3:
+        #     for each in original_objects:
+        #         if not each.id in self.__planning_scene_interface.safe_objects:
+        #             # if each.id == "map":
+        #             #     bobj = self.__blow_up_map(each)
+        #             # else:
+        #             bobj = self.__blow_up_object(each, blow_up_distance)
+        #             # blown_up_objects.append(bobj.id)
+        #             self.__planning_scene_interface.add_object(bobj)
+        #     rospy.sleep(1.5)
 
         move_group.set_start_state_to_current_state()
         goal = deepcopy(goal_pose)
@@ -408,28 +420,28 @@ class Manipulation(object):
             rospy.logwarn("No grasppositions found for " + collision_object_name)
 
         grasp_positions.sort(cmp=lambda x, y: self.cmp_pose_stamped(collision_object, x, y))
-        # visualize_poses(grasp_positions)
+        visualize_poses(grasp_positions)
         # print grasp_positions
 
         self.open_gripper()
         for grasp in grasp_positions:
-            if self.__move_group_to(get_pre_grasp(self.transform_to(grasp)), move_group):
+            if self.__move_group_to(get_pre_grasp(self.transform_to(grasp)), move_group, blow_up=1):
 
-                if not self.__move_group_to(grasp, move_group, blow_up=0):
+                if not self.__move_group_to(grasp, move_group, blow_up=2):
                     continue
-                rospy.sleep(1)
-                self.close_gripper(collision_object, get_grasp_point(self.transform_to(grasp)))
-
-                com = self.get_center_of_mass(collision_object)
-                com = self.tf.transform_to(com, "/tcp")
-                if com is None:
-                    rospy.logwarn("TF failed")
-                    return False
-                self.load_object(self.calc_object_weight(collision_object, object_density),
-                                 Vector3(com.point.x, com.point.y, com.point.z))
-
-                rospy.loginfo("grasped " + collision_object_name)
-
+                # rospy.sleep(1)
+                # self.close_gripper(collision_object, get_grasp_point(self.transform_to(grasp)))
+                #
+                # com = self.get_center_of_mass(collision_object)
+                # com = self.tf.transform_to(com, "/tcp")
+                # if com is None:
+                #     rospy.logwarn("TF failed")
+                #     return False
+                # self.load_object(self.calc_object_weight(collision_object, object_density),
+                #                  Vector3(com.point.x, com.point.y, com.point.z))
+                #
+                # rospy.loginfo("grasped " + collision_object_name)
+                #
                 self.__grasp = self.tf.transform_to(grasp)
                 v1 = deepcopy(self.__grasp.pose.position)
                 v1.z = 0
@@ -439,12 +451,12 @@ class Manipulation(object):
                 b = abs(self.__grasp.pose.position.z - collision_object.primitive_poses[0].position.z)
                 c = sqrt(a ** 2 + b ** 2)
                 self.__d = abs(c)
-                print c
-
-                rospy.logdebug("lift object")
-                if not self.__move_group_to(get_pre_grasp(grasp), move_group):
-                    rospy.logdebug("couldnt lift object")
-                return True
+                # print c
+                #
+                # rospy.logdebug("lift object")
+                # if not self.__move_group_to(get_pre_grasp(grasp), move_group):
+                #     rospy.logdebug("couldnt lift object")
+                # return True
         rospy.logwarn("Grapsing failed.")
         return False
 

@@ -32,7 +32,10 @@ class PlaceTask6(smach.State):
         abort_after = 15
         then = int(time.time())
         now = int(time.time())
-        while not now - then < abort_after and not listener.frameExists("target_zone"):
+        while not listener.frameExists("target_zone"):
+            if not now - then < abort_after:
+                rospy.logdebug("PlaceTask6: target_zone frame not found")
+                return 'fail'
             rospy.loginfo("wait for target_zone frame")
             rospy.sleep(2.)
             now = int(time.time())

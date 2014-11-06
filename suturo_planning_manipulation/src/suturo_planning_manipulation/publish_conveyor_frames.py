@@ -12,7 +12,7 @@ def cb(msg):
 
     br = tf.TransformBroadcaster()
     rate = rospy.Rate(10.0)
-    rospy.logdebug("begin to publish /drop_point, /mdl_middle and /target_zone")
+    print "begin to publish /drop_point, /mdl_middle and /target_zone"
     while not rospy.is_shutdown():
         br.sendTransform((drop_point.x, drop_point.y, drop_point.z),
                          (0.0, 0.0, 0.0, 1.0),
@@ -32,7 +32,6 @@ def cb(msg):
                          "/target_zone",
                          "/odom_combined")
         rate.sleep()
-    pass
 
 def add_conveyor_frames():
     rospy.init_node('listener', anonymous=True)

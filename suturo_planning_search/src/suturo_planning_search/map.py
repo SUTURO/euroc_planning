@@ -101,8 +101,13 @@ class Map:
             request.pointCloudName = GetPointArrayRequest.SCENE
         else:
             request.pointCloudName = GetPointArrayRequest.TCP
+        request.minPointCloudTimeStamp = rospy.get_rostime()
 
+        # rospy.logdebug(str(rospy.get_rostime()))
+        # rospy.logdebug(str(rospy.is_shutdown()))
+        # rospy.logdebug(str(rospy.get_time()))
         resp = self.__get_point_array(request)
+        # rospy.sleep(600)
         points = resp.pointArray
 
         for i in range(0, len(points), 4):
@@ -176,7 +181,13 @@ class Map:
                         elif self.is_cell_alone(x, y):
                             self.get_cell_by_index(x, y).set_free()
                             cell_changed = True
-                    if cell.is_obstacle():
+                        else:
+                            free = self.get_surrounding_frees(x, y)
+                            if len(free) == 2 and len(obstacles) == 2:
+                                self.get_cell_by_index(x, y).set_free()
+                                cell_changed = True
+
+                    elif cell.is_obstacle():
                         obstacles = self.get_surrounding_obstacles(x, y)
                         cell_color = cell.get_color_id()
                         obstacles_with_different_color = [c for c in obstacles if c[0].get_color_id() != cell_color]
@@ -352,6 +363,53 @@ class Map:
                     # print "removed d"
                     if pose in poses: poses.remove(pose)
         return poses
+
+
+    # def filter_invalid_poses3(self, cell_x, cell_y, pose_list):
+    #     poses = deepcopy(pose_list)
+    #     for pose in pose_list:
+    #         x_under_pose = pose.pose.position.x
+    #         y_under_pose = pose.pose.position.y
+    #         #filter poses that are outside of the table
+    #         filter_range = 1.2
+    #         # print "pose"
+    #         # print x_under_pose
+    #         # print y_under_pose
+    #         if not (-filter_range <= x_under_pose <= filter_range and -filter_range <= y_under_pose <= filter_range) and pose in poses:
+    #             poses.remove(pose)
+    #             # print "removed a"
+    #             continue
+    #         #filter poses that are above unknowns
+    #         if -1.0 <= x_under_pose <= 1.0 and -1.0 <= y_under_pose <= 1.0:
+    #             cell = self.get_cell(x_under_pose, y_under_pose)
+    #             if cell.is_unknown() or \
+    #                 (cell.is_obstacle() and cell.highest_z >= pose.pose.position.z - 0.085):
+    #                 if pose in poses: poses.remove(pose)
+    #                 # print "removed b"
+    #                 continue
+    #
+    #             cells = self.get_surrounding_cells8(x_under_pose, y_under_pose)
+    #             # (x_index, y_index) = self.coordinates_to_index(x_under_pose, y_under_pose)
+    #             # cells.append(((self.get_cell_by_index(x_index, y_index),) +(x_under_pose, y_under_pose)))
+    #             removed = False
+    #             for (c, x, y) in cells:
+    #                 if c.is_unknown() or (c.is_obstacle() and c.highest_z >= pose.pose.position.z - 0.085):
+    #                     removed = True
+    #                     if pose in poses: poses.remove(pose)
+    #                     # print "removed c"
+    #                     break
+    #             if removed:
+    #                 continue
+    #             cell_between = self.get_cells_between(cell_x, cell_y, x_under_pose, y_under_pose)
+    #             not_frees = [c[0].highest_z for c in cell_between if not c[0].is_free()]
+    #             max_z = 0
+    #             if len(not_frees) > 0:
+    #                 max_z = max(not_frees)
+    #             #filter pose if the cell to the cells are to high on average
+    #             if max_z > pose.pose.position.z/3.5:
+    #                 # print "removed d"
+    #                 if pose in poses: poses.remove(pose)
+    #     return poses
 
     #GETTER
 
@@ -534,6 +592,10 @@ class Map:
         sc = self.get_surrounding_cells_by_index(x_index, y_index)
         return [c for c in sc if c[0].is_obstacle()]
 
+    def get_surrounding_frees(self, x_index, y_index):
+        sc = self.get_surrounding_cells_by_index(x_index, y_index)
+        return [c for c in sc if c[0].is_free()]
+
 
     # def is_cell_surrounded_by_obstacles(self, x_index, y_index):
         # sc = self.get_surrounding_cells_by_index(x_index, y_index)
@@ -576,12 +638,12 @@ class Map:
         return self.obstacle_regions
 
     def get_unknown_regions(self):
-        if len(self.unknown_regions) == 0:
-            cm = ClusterRegions()
-            cm.set_region_type(RegionType.unknown)
-            cm.set_field(self.field)
-            cm.group_regions()
-            self.unknown_regions = cm.get_result_regions()
+        # if len(self.unknown_regions) == 0:
+        cm = ClusterRegions()
+        cm.set_region_type(RegionType.unknown)
+        cm.set_field(self.field)
+        cm.group_regions()
+        self.unknown_regions = cm.get_result_regions()
         return self.unknown_regions
 
     def get_cell_volume_by_index(self, x, y):

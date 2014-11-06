@@ -39,7 +39,7 @@ class Cell:
 
     min_z_value = 0.01
 
-    undef_threshold = 0.02
+    undef_threshold = 0.05
 
     def __init__(self):
         self.average_z = 0

@@ -65,7 +65,7 @@ class ScanObstacles(smach.State):
 
         # angle = (pi / 2) - (dist_to_region / 1)
         angle = 1.2
-        distance = 0.6 + current_region.get_number_of_cells()*0.01
+        distance = 0.6 + current_region.get_number_of_cells()*0.008
 
         rospy.logdebug('Focusing point: %s' % str(region_centroid))
         rospy.logdebug('Angle: %s' % str(angle))
@@ -100,7 +100,8 @@ class ScanObstacles(smach.State):
                 userdata.focused_point = region_centroid
 
                 rospy.logdebug('Wait for clock')
-                time.sleep(3)
+                time.sleep(0.5)
+                rospy.sleep(2.5)
                 #
                 # rospy.logdebug('Wait for tf again.')
                 # rospy.sleep(4)

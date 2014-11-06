@@ -27,7 +27,6 @@ class ScanMapArmCam(smach.State):
 
         regions = utils.map.get_unknown_regions()
 
-        #evt nach groesse sortieren?
         regions.sort(key=lambda r: -r.get_number_of_cells())
 
         for r in regions:
@@ -68,6 +67,7 @@ class ScanMapArmCam(smach.State):
             j = 0
             move_successfull = False
             while j < len(poses) and not move_successfull:
+                rospy.logdebug("try scan pose nr. " + str(j))
                 move_successfull = utils.manipulation.move_arm_and_base_to(poses[j], blow_up=0)
                 j += 1
             if move_successfull:

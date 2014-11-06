@@ -15,8 +15,8 @@ class Task6(smach.StateMachine):
         # TODO: Fehlerbehandlung
         # TODO: Check auf richtiges Placement einbauen
         with self:
-            smach.StateMachine.add('Task6Init', Task6Init(),
-                                   transitions={'success': 'CamToDropzone'})
+            # smach.StateMachine.add('Task6Init', Task6Init(),
+            #                        transitions={'success': 'CamToDropzone'})
 
             smach.StateMachine.add('CamToDropzone', CamToDropzone(),
                                    transitions={'scanPoseReached': 'FastGrasp',
@@ -27,7 +27,8 @@ class Task6(smach.StateMachine):
                                                 'noPlanFound': 'CamToDropzone',
                                                 'timeExpired': 'success',
                                                 'graspingFailed': 'CamToDropzone',
-                                                'noObjectsLeft': 'success'})
+                                                'noObjectsLeft': 'success',
+                                                'fail': 'fail'})
 
             smach.StateMachine.add('PlaceObject', PlaceTask6(),
                                    transitions={'success': 'CamToDropzone',
