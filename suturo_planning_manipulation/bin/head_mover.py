@@ -108,8 +108,13 @@ if __name__ == '__main__':
     rospy.init_node('head_mover', log_level=rospy.DEBUG)
 
     m = Manipulation()
-    m.grasp("green_cylinder")
-    m.open_gripper()
+    # print m.get_arm_base_move_group().get_goal_orientation_tolerance()
+    # print m.get_arm_base_move_group().get_goal_position_tolerance()
+    # print m.get_arm_base_move_group().get_goal_joint_tolerance()
+    # print m.get_arm_base_move_group().get_goal_tolerance()
+    # print m.get_arm_move_group().get
+    # m.grasp("green_cylinder")
+    # m.open_gripper()
     # m.get_arm_move_group().set_named_target("scan_pose1")
     # print m.get_arm_move_group().get_goal_tolerance()
     # print m.get_arm_move_group().get_goal_position_tolerance()
@@ -120,15 +125,35 @@ if __name__ == '__main__':
     # m.grasp("cyan_cylinder")
     # print m.get_eef_position()
 
-    # t_point = geometry_msgs.msg.PoseStamped()
-    # t_point.header.frame_id = "/tcp"
-    # # p = Point(0.66,0.91,0.37341)
-    # # p = Point(0.91,0.66,0.37341)
-    # # t_point.pose.position = p
-    # t_point.pose.orientation = euler_to_quaternion(0, -pi/2, 0)
+    t_point = geometry_msgs.msg.PoseStamped()
+    t_point.header.frame_id = "/odom_combined"
+    p = Point(0.3,0,0.5)
+    # p = Point(0.91,0.66,0.37341)
+    t_point.pose.position = p
+    t_point.pose.orientation = euler_to_quaternion(0, pi/2, 0)
     # visualize_poses([t_point])
     # m.move_arm_and_base_to(t_point)
+    # m.move_arm_and_base_to(t_point)
+    # rospy.sleep(5)
 
+
+
+
+    plan = m.plan_arm_and_base_to(t_point)
+    print m.get_end_state(plan)
+
+
+    p = Point(-0.3,-0.3,0.5)
+    # p = Point(0.91,0.66,0.37341)
+    t_point.pose.position = p
+    t_point.pose.orientation = euler_to_quaternion(0, pi/2, 0)
+    # visualize_poses([t_point])
+    plan2 = m.plan_arm_and_base_to(t_point, start_state=m.get_end_state(plan))
+    m.move_with_plan_to(plan)
+    m.move_with_plan_to(plan2)
+
+
+    # print plan
 
     # m.turn_arm(2.0943951023, 3)
 

@@ -111,7 +111,7 @@ def get_grasped_part(collision_object, grasped_point):
     # posi = Point()
     # i = 0
     # id = 0
-    if type(grasped_point) is None:
+    if grasped_point is None:
         return (None, 0)
 
     print "grasped part"

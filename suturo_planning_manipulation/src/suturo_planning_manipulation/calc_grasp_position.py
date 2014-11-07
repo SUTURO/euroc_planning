@@ -71,12 +71,12 @@ def calculate_grasp_position_list(collision_object, transform_func):
 
     return grasp_positions
 
-def get_grasp_point(grasp):
+def get_fingertip(hand_pose):
     grasp_point = PointStamped()
     grasp_point.point = set_vector_length(hand_length + finger_length, Point(1,0,0))
-    grasp_point.point = qv_mult(grasp.pose.orientation, grasp_point.point)
-    grasp_point.point = add_point(grasp.pose.position , grasp_point.point)
-    grasp_point.header.frame_id = grasp.header.frame_id
+    grasp_point.point = qv_mult(hand_pose.pose.orientation, grasp_point.point)
+    grasp_point.point = add_point(hand_pose.pose.position , grasp_point.point)
+    grasp_point.header.frame_id = hand_pose.header.frame_id
     # visualize_point(grasp_point)
     return grasp_point
 
@@ -90,7 +90,7 @@ def get_pre_grasp(grasp):
     #TODO: nur z beachten
     pre_grasp = deepcopy(grasp)
     # depth = magnitude(pre_grasp.pose.position)
-    p = get_grasp_point(grasp).point
+    p = get_fingertip(grasp).point
     grasp_dir = subtract_point(grasp.pose.position, p)
     grasp_dir = set_vector_length(pre_grasp_length, grasp_dir)
     pre_grasp.pose.position = add_point(grasp.pose.position, grasp_dir)

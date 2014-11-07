@@ -7,7 +7,7 @@ import smach
 import rospy
 import time
 from suturo_planning_manipulation.mathemagie import magnitude, subtract_point
-from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_position, get_pre_grasp, get_grasp_point
+from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_position, get_pre_grasp, get_fingertip
 from suturo_planning_visualization.visualization import visualize_poses
 import utils
 
@@ -25,8 +25,10 @@ class GraspObject(smach.State):
 
         if userdata.enable_movement:
             move_to_func = utils.manipulation.move_arm_and_base_to
+            plan_to_func = utils.manipulation.plan_arm_and_base_to
         else:
             move_to_func = utils.manipulation.move_to
+            plan_to_func = utils.manipulation.plan_arm_to
 
         #get the collisionobject out of the planningscene
         collision_object = utils.manipulation.get_planning_scene().get_collision_object(collision_object_name)
@@ -44,12 +46,6 @@ class GraspObject(smach.State):
         if not userdata.enable_movement:
             grasp_positions = utils.manipulation.filter_close_poses(grasp_positions)
 
-        # centroid = utils.manipulation.get_center_of_mass(collision_object)
-
-        # grasp_positions = [utils.manipulation.transform_to(grasp) for grasp in grasp_positions]
-
-        # grasp_positions = utils.map.filter_invalid_poses3(centroid.point.x, centroid.point.y, grasp_positions)
-
         if len(grasp_positions) == 0:
             rospy.logwarn("No grasppositions found for " + collision_object_name)
             return 'noGraspPosition'
@@ -57,23 +53,25 @@ class GraspObject(smach.State):
         #sort to try the best grasps first
         grasp_positions.sort(cmp=lambda x, y: utils.manipulation.cmp_pose_stamped(collision_object, x, y))
         visualize_poses(grasp_positions)
-        # rospy.logdebug("grasppositions:")
-        # rospy.logdebug(str(grasp_positions))
 
         utils.manipulation.open_gripper()
         grasp_positions = [utils.manipulation.transform_to(grasp) for grasp in grasp_positions]
         for grasp in grasp_positions:
-            if move_to_func(get_pre_grasp(grasp)):
-                rospy.logdebug("Pregraspposition taken")
+            plan_pre_grasp = plan_to_func(get_pre_grasp(grasp))
+            if not plan_pre_grasp is None:
+                rospy.logdebug("Plan to pregraspposition found")
 
-                if not move_to_func(grasp, blow_up=2):
-                    rospy.logdebug("Failed to take Graspposition")
+                plan_to_grasp = plan_to_func(grasp, blow_up=2, start_state=utils.manipulation.get_end_state(plan_pre_grasp))
+                if plan_to_grasp is None or \
+                        not utils.manipulation.move_with_plan_to(plan_pre_grasp) or \
+                        not utils.manipulation.move_with_plan_to(plan_to_grasp):
+                    rospy.logdebug("Failed to move to Graspposition")
                     continue
                 rospy.logdebug("Graspposition taken")
 
                 time.sleep(0.5)
                 rospy.sleep(1)
-                if not utils.manipulation.close_gripper(collision_object, get_grasp_point(utils.manipulation.transform_to(grasp))):
+                if not utils.manipulation.close_gripper(collision_object, get_fingertip(utils.manipulation.transform_to(grasp))):
                     return 'fail'
                 time.sleep(0.5)
                 rospy.sleep(1.5)
@@ -96,19 +94,17 @@ class GraspObject(smach.State):
                 rospy.loginfo("grasped " + collision_object_name)
 
                 #save grasp data for placing
-                grasp_2 = utils.manipulation.transform_to(grasp)
-                userdata.grasp = grasp_2
-                v1 = deepcopy(grasp_2.pose.position)
-                v1.z = 0
-                v2 = deepcopy(collision_object.primitive_poses[0].position)
-                v2.z = 0
-                a = magnitude(subtract_point(v1, v2))
-                b = abs(grasp_2.pose.position.z - collision_object.primitive_poses[0].position.z)
-                c = sqrt(a**2 + b**2)
-                userdata.dist_to_obj = abs(c)
-                # print c
-                #save the grasp for placeposition calculation
-                # userdata.grasp = utils.manipulation.make_grasp_vector(collision_object_name)
+                userdata.grasp = grasp
+                fingertip = get_fingertip(grasp)
+                fingertip_to_tcp = subtract_point(grasp.pose.position, fingertip)
+                # v1 = deepcopy(grasp.pose.position)
+                # v1.z = 0
+                # v2 = deepcopy(collision_object.primitive_poses[0].position)
+                # v2.z = 0
+                # a = magnitude(subtract_point(v1, v2))
+                # b = abs(grasp.pose.position.z - collision_object.primitive_poses[0].position.z)
+                # c = sqrt(a**2 + b**2)
+                userdata.dist_to_obj = magnitude(fingertip_to_tcp)
 
                 rospy.logdebug("lift object")
                 if not move_to_func(get_pre_grasp(grasp), blow_up=False):

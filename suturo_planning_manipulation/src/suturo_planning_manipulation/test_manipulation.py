@@ -9,7 +9,7 @@ from manipulation_msgs.srv import _GraspPlanning
 from moveit_msgs.msg._CollisionObject import CollisionObject
 import rospy
 from shape_msgs.msg._SolidPrimitive import SolidPrimitive
-from calc_grasp_position import get_grasp_point
+from calc_grasp_position import get_fingertip
 from mathemagie import euler_to_quaternion
 from place import get_grasped_part
 from suturo_planning_manipulation.calc_grasp_position import make_scan_pose
@@ -31,7 +31,7 @@ class TestMapCleanUp(unittest.TestCase):
         p.header.frame_id = "/odom_combined"
         p.pose.position = Point(1,0,0)
         p.pose.orientation = euler_to_quaternion(0,0,0)
-        p1 = get_grasp_point(p)
+        p1 = get_fingertip(p)
         p2 = Point(1.2185, 0,0)
         self.assertTrue(abs(p1.point.x - p2.x) < 0.0001)
         self.assertTrue(abs(p1.point.y - p2.y) < 0.0001)
@@ -43,7 +43,7 @@ class TestMapCleanUp(unittest.TestCase):
         p.pose.position = Point(1,0,0)
         p.pose.orientation = euler_to_quaternion(0,pi,0)
         p2 = Point(0.7815,0,0)
-        p1 = get_grasp_point(p)
+        p1 = get_fingertip(p)
         self.assertTrue(abs(p1.point.x - p2.x) < 0.0001)
         self.assertTrue(abs(p1.point.y - p2.y) < 0.0001)
         self.assertTrue(abs(p1.point.z - p2.z) < 0.0001)
@@ -54,7 +54,7 @@ class TestMapCleanUp(unittest.TestCase):
         p.pose.position = Point(1,0,0)
         p.pose.orientation = euler_to_quaternion(0,0,pi/2)
         p2 = Point(1,0.2185,0)
-        p1 = get_grasp_point(p)
+        p1 = get_fingertip(p)
         # print p1
         self.assertTrue(abs(p1.point.x - p2.x) < 0.0001)
         self.assertTrue(abs(p1.point.y - p2.y) < 0.0001)
@@ -95,7 +95,7 @@ class TestMapCleanUp(unittest.TestCase):
         p.header.frame_id = "/odom_combined"
         p.pose.position = Point(1,0,0)
         p.pose.orientation = euler_to_quaternion(0,0,0)
-        self.assertEqual(get_grasped_part(co, get_grasp_point(p))[1], 0)
+        self.assertEqual(get_grasped_part(co, get_fingertip(p))[1], 0)
 
 
 

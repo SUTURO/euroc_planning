@@ -60,6 +60,8 @@ class Manipulation(object):
 
         self.__manService = ManipulationService()
 
+        # self.__move_goal =
+
         rospy.sleep(1)
         self.__planning_scene_interface.add_ground()
         self.__planning_scene_interface.add_cam_mast()
@@ -117,6 +119,9 @@ class Manipulation(object):
         '''
         return self.__move_group_to(goal_pose, self.__arm_group, blow_up)
 
+    def plan_arm_to(self, goal_pose, blow_up=1, start_state=None):
+        return self.__plan_group_to(goal_pose, self.__arm_group, blow_up, start_state)
+
     def move_arm_and_base_to(self, goal_pose, blow_up=1):
         '''
         Moves the endeffector to the goal position. (Don't use this for Task 1 and 2)
@@ -124,6 +129,9 @@ class Manipulation(object):
         :return: success of the movement
         '''
         return self.__move_group_to(goal_pose, self.__arm_base_group, blow_up)
+
+    def plan_arm_and_base_to(self, goal_pose, blow_up=1, start_state=None):
+        return self.__plan_group_to(goal_pose, self.__arm_base_group, blow_up, start_state)
 
     def get_base_origin(self):
         '''
@@ -168,7 +176,7 @@ class Manipulation(object):
             dim = []
             dim.append(primitive.dimensions[0])
             dim.append(primitive.dimensions[1])
-            dim.append(primitive.dimensions[2] + 0.1)
+            dim.append(primitive.dimensions[2] + 0.175)
              # += 0.1
             primitive.dimensions = dim
         return o
@@ -181,10 +189,25 @@ class Manipulation(object):
          :param blow_up_distance: Distance in m
          :return:
          """
+        path = self.__plan_group_to(goal_pose, move_group, blow_up, None)
+
+        return self.move_with_plan_to(path)
+
+    def get_end_state(self, plan_response):
+        r = plan_response
+        robot_state = RobotState()
+        robot_state.multi_dof_joint_state = r.motion_plan_response.trajectory_start.multi_dof_joint_state
+
+        robot_state.joint_state.header = r.motion_plan_response.trajectory.joint_trajectory.header
+        robot_state.joint_state.name = r.motion_plan_response.trajectory.joint_trajectory.joint_names
+        robot_state.joint_state.position = r.motion_plan_response.trajectory.joint_trajectory.points[-1].positions
+        robot_state.joint_state.velocity = r.motion_plan_response.trajectory.joint_trajectory.points[-1].velocities
+        robot_state.joint_state.effort = r.motion_plan_response.trajectory.joint_trajectory.points[-1].effort
+        robot_state.attached_collision_objects = r.motion_plan_response.trajectory_start.attached_collision_objects
+        return robot_state
+
+    def __plan_group_to(self, goal_pose, move_group, blow_up, start_state, blow_up_distance=0.02):
         original_objects = self.__planning_scene_interface.get_collision_objects()
-        # blown_up_objects = []
-        # rospy.logwarn("muHHHHHHHHHHHHHHHHHHH")
-        # rospy.logwarn(str(blow_up))
         if blow_up == 1:
             for each in original_objects:
                 if not each.id in self.__planning_scene_interface.safe_objects:
@@ -192,33 +215,21 @@ class Manipulation(object):
                         bobj = self.__blow_up_map(each)
                     else:
                         bobj = self.__blow_up_object(each, blow_up_distance)
-                    # blown_up_objects.append(bobj.id)
                     self.__planning_scene_interface.add_object(bobj)
             rospy.sleep(1.5)
-            # ros
         elif blow_up == 2:
-            # print "agwfylrewluairgewaifaw"
             map = self.__planning_scene_interface.get_collision_object("map")
             map = self.__blow_up_map(map)
-            # blown_up_objects.append("map")
             self.__planning_scene_interface.add_object(map)
             rospy.sleep(2)
-        # elif blow_up == 3:
-        #     for each in original_objects:
-        #         if not each.id in self.__planning_scene_interface.safe_objects:
-        #             # if each.id == "map":
-        #             #     bobj = self.__blow_up_map(each)
-        #             # else:
-        #             bobj = self.__blow_up_object(each, blow_up_distance)
-        #             # blown_up_objects.append(bobj.id)
-        #             self.__planning_scene_interface.add_object(bobj)
-        #     rospy.sleep(1.5)
 
         move_group.set_start_state_to_current_state()
         goal = deepcopy(goal_pose)
 
         if type(goal) is str:
             move_group.set_named_target(goal)
+            rospy.logwarn("DANGER, for named targets, attached objects will be ignored.")
+            return move_group.plan()
         elif type(goal) is PoseStamped:
             visualize_pose(goal)
             # Rotate the goal so that the gripper points from 0,0,0 to 1,0,0 with a 0,0,0,1 quaternion as orientation.
@@ -230,20 +241,30 @@ class Manipulation(object):
         else:
             move_group.set_joint_value_target(goal)
 
-        # print rospy.Time.now().to_sec()
-        path = self.plan(move_group, goal)
-        # print rospy.Time.now().to_sec()
+        plan = self.plan(move_group, goal, start_state)
+        if not plan is None:
+            plan2 = self.plan(move_group, goal, self.get_end_state(plan))
+            plan.motion_plan_response.trajectory.joint_trajectory.points.extend(plan2.motion_plan_response.trajectory.joint_trajectory.points[1:])
 
         if blow_up != 0:
             self.__planning_scene_interface.add_objects(original_objects)
 
-        if path is None:
-            return False
-        return self.__manService.move(path)
+        return plan
 
-    def plan(self, move_group, goal):
+    def move_with_plan_to(self, plan):
+        if plan is None:
+            return False
+        if type(plan) is RobotTrajectory:
+            return self.__manService.move(plan)
+        return self.__manService.move(plan.motion_plan_response.trajectory)
+
+    def plan(self, move_group, goal, start_state):
         request = GetMotionPlanRequest()
-        request.motion_plan_request.start_state.is_diff = True
+        if start_state is None:
+            request.motion_plan_request.start_state.is_diff = True
+        else:
+            request.motion_plan_request.start_state = start_state
+
         request.motion_plan_request.allowed_planning_time = move_group.get_planning_time()
         request.motion_plan_request.group_name = move_group.get_name()
         request.motion_plan_request.num_planning_attempts = 1
@@ -259,9 +280,8 @@ class Manipulation(object):
             rospy.logwarn("TODO test this")
             goal = self.__make_joint_state_goal(move_group, goal)
             constraint.joint_constraints.append(goal)
-        else:
-            rospy.logwarn("DANGER, for named targets, attached objects will be ignored.")
-            return move_group.plan()
+        # else:
+
 
         request.motion_plan_request.goal_constraints.append(constraint)
 
@@ -269,11 +289,12 @@ class Manipulation(object):
 
         try:
             resp = self.__plan_service(request)
-            return resp.motion_plan_response.trajectory
+            return resp
         except rospy.ServiceException as exc:
             rospy.logdebug("Service did not process request: " + str(exc))
             rospy.logdebug("probably couldnt find a plan.")
             return None
+
 
     def __make_joint_state_goal(self, move_group, goal):
         joint_goal = JointConstraint()
@@ -288,22 +309,22 @@ class Manipulation(object):
 
     def __make_position_goal(self, move_group, goal):
 
-        position_tolerance = 0.001
-        orientation_tolerance = 0.002
+        position_tolerance = 0.00000001
+        orientation_tolerance = 0.001
 
         position_goal = PositionConstraint()
         position_goal.header = goal.header
         position_goal.link_name = move_group.get_end_effector_link()
         position_goal.target_point_offset = Vector3()
-        position_goal.target_point_offset.x = position_tolerance
-        position_goal.target_point_offset.y = position_tolerance
-        position_goal.target_point_offset.z = position_tolerance
+        # position_goal.target_point_offset.x = position_tolerance
+        # position_goal.target_point_offset.y = position_tolerance
+        # position_goal.target_point_offset.z = position_tolerance
 
         primitive = SolidPrimitive()
-        primitive.type = SolidPrimitive.BOX
+        primitive.type = SolidPrimitive.SPHERE
         primitive.dimensions.append(position_tolerance)
-        primitive.dimensions.append(position_tolerance)
-        primitive.dimensions.append(position_tolerance)
+        # primitive.dimensions.append(position_tolerance)
+        # primitive.dimensions.append(position_tolerance)
 
         position_goal.constraint_region.primitives.append(primitive)
         p = Pose()
@@ -471,9 +492,9 @@ class Manipulation(object):
         '''
         center = self.get_center_of_mass(collision_object)
         odom_pose1 = self.tf.transform_to(pose1)
-        p1 = get_grasp_point(odom_pose1)
+        p1 = get_fingertip(odom_pose1)
         odom_pose2 = self.tf.transform_to(pose2)
-        p2 = get_grasp_point(odom_pose2)
+        p2 = get_fingertip(odom_pose2)
         d1 = euclidean_distance(center.point, p1.point)
         d2 = euclidean_distance(center.point, p2.point)
         diff = d1 - d2
