@@ -14,6 +14,7 @@ import rospy
 import moveit_commander
 import moveit_msgs.msg
 import geometry_msgs.msg
+from sensor_msgs.msg._JointState import JointState
 import shape_msgs.msg
 from suturo_perception_msgs.msg._EurocObject import EurocObject
 import tf
@@ -133,24 +134,29 @@ if __name__ == '__main__':
     t_point.pose.orientation = euler_to_quaternion(0, pi/2, 0)
     # visualize_poses([t_point])
     # m.move_arm_and_base_to(t_point)
+    m.move_to([0,0,0,0,-2.9,0,0])
+    # j = JointState()
+    # j.header.frame_id = "/odom_combined"
+    # print m.get_arm_base_move_group().get_joints()
+    # print m.get_arm_base_move_group().get_joints()
     # m.move_arm_and_base_to(t_point)
     # rospy.sleep(5)
 
 
 
 
-    plan = m.plan_arm_and_base_to(t_point)
-    print m.get_end_state(plan)
-
-
-    p = Point(-0.3,-0.3,0.5)
-    # p = Point(0.91,0.66,0.37341)
-    t_point.pose.position = p
-    t_point.pose.orientation = euler_to_quaternion(0, pi/2, 0)
-    # visualize_poses([t_point])
-    plan2 = m.plan_arm_and_base_to(t_point, start_state=m.get_end_state(plan))
-    m.move_with_plan_to(plan)
-    m.move_with_plan_to(plan2)
+    # plan = m.plan_arm_and_base_to(t_point)
+    # print m.get_end_state(plan)
+    #
+    #
+    # p = Point(-0.3,-0.3,0.5)
+    # # p = Point(0.91,0.66,0.37341)
+    # t_point.pose.position = p
+    # t_point.pose.orientation = euler_to_quaternion(0, pi/2, 0)
+    # # visualize_poses([t_point])
+    # plan2 = m.plan_arm_and_base_to(t_point, start_state=m.get_end_state(plan))
+    # m.move_with_plan_to(plan)
+    # m.move_with_plan_to(plan2)
 
 
     # print plan

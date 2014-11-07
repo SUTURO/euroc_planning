@@ -176,7 +176,10 @@ class Manipulation(object):
         if type(goal) is str:
             move_group.set_named_target(goal)
             rospy.logwarn("DANGER, for named targets, attached objects will be ignored.")
-            return move_group.plan()
+            plan = move_group.plan()
+            if blow_up != 0:
+                self.__planning_scene_interface.add_objects(original_objects)
+            return plan
         elif type(goal) is PoseStamped:
             visualize_pose(goal)
             # Rotate the goal so that the gripper points from 0,0,0 to 1,0,0 with a 0,0,0,1 quaternion as orientation.
@@ -184,9 +187,9 @@ class Manipulation(object):
             if goal.header.frame_id != "/odom_combined":
                 goal = self.tf.transform_to(goal)
 
-            move_group.set_pose_target(goal)
-        else:
-            move_group.set_joint_value_target(goal)
+            # move_group.set_pose_target(goal)
+        # else:
+        #     move_group.set_joint_value_target(goal)
 
         plan = self.plan(move_group, goal, start_state)
         if not plan is None:
@@ -213,13 +216,12 @@ class Manipulation(object):
         constraint.name = "muh23"
 
         if type(goal) is PoseStamped:
-            goal = self.__make_position_goal(move_group, goal)
-            constraint.position_constraints.append(goal[0])
-            constraint.orientation_constraints.append(goal[1])
-        elif type(goal) is JointState:
-            rospy.logwarn("TODO test this")
-            goal = self.__make_joint_state_goal(move_group, goal)
-            constraint.joint_constraints.append(goal)
+            pose_goal = self.__make_position_goal(move_group, goal)
+            constraint.position_constraints.append(pose_goal[0])
+            constraint.orientation_constraints.append(pose_goal[1])
+        else:
+            joint_goal = self.__make_joint_state_goal(move_group, goal)
+            constraint.joint_constraints.extend(joint_goal)
 
         request.motion_plan_request.goal_constraints.append(constraint)
 
@@ -235,15 +237,28 @@ class Manipulation(object):
 
 
     def __make_joint_state_goal(self, move_group, goal):
-        joint_goal = JointConstraint()
-        self.__arm_group.get_joints()
-        joint_goal.joint_name = move_group.get_joints()
-        joint_goal.position = goal.position
-        joint_goal.tolerance_above = 0.0001
-        joint_goal.tolerance_above = 0.0001
+        joint_goals = []
+        joint_names = []
+        if len(goal) == 7:
+            joint_names = self.get_arm_move_group().get_joints()
+        elif len(goal) == 9:
+            joint_names = self.get_arm_base_move_group().get_joints()
+        joint_names = [name for name in joint_names if name != "base_joint"]
+        if len(goal) != len(joint_names):
+            rospy.logwarn("length of joints does not equal length of joint names")
 
-        joint_goal.weight = 1.0
-        return joint_goal
+        for i in xrange(len(goal)):
+            joint_goal = JointConstraint()
+
+            joint_goal.joint_name = joint_names[i]
+            joint_goal.position = goal[i]
+            joint_goal.tolerance_above = 0.0001
+            joint_goal.tolerance_above = 0.0001
+
+            joint_goal.weight = 1.0
+            joint_goals.append(joint_goal)
+
+        return joint_goals
 
     def __make_position_goal(self, move_group, goal):
 
@@ -254,9 +269,6 @@ class Manipulation(object):
         position_goal.header = goal.header
         position_goal.link_name = move_group.get_end_effector_link()
         position_goal.target_point_offset = Vector3()
-        # position_goal.target_point_offset.x = position_tolerance
-        # position_goal.target_point_offset.y = position_tolerance
-        # position_goal.target_point_offset.z = position_tolerance
 
         primitive = SolidPrimitive()
         primitive.type = SolidPrimitive.SPHERE
@@ -323,6 +335,11 @@ class Manipulation(object):
         return o
 
     def get_end_state(self, plan_response):
+        # if type(plan_response) is RobotTrajectory:
+        #     r = RobotTrajectory()
+        #     robot_state = RobotState()
+        #     robot_state.joint_state.header = r.
+
         r = plan_response
         robot_state = RobotState()
         robot_state.multi_dof_joint_state = r.motion_plan_response.trajectory_start.multi_dof_joint_state
