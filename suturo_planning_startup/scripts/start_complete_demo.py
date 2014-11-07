@@ -42,6 +42,20 @@ def usr1_handler(signum=None, frame=None):
         __task_aborted_by_exception = True
 
 
+def usr2_handler(signum=None, frame=None):
+    print_it('start_complete_demo: usr2_handler')
+    global __quit
+    global __kill_count
+    if not __quit:
+        print_it('####################################################')
+        print_it('# Going to abort execution of all remaining tasks. #')
+        print_it('####################################################')
+        __quit = True
+        __kill_count = 1337
+        if not __aborting_task:
+            abort_current_task()
+
+
 def abort_current_task():
     print_it('start_complete_demo: abort_current_task')
     global __aborting_task
@@ -51,7 +65,7 @@ def abort_current_task():
     if __quit:
         print_it('Already quitting. Nothing to do here.')
     elif __aborting_task:
-        print_it ('Already aborting task.')
+        print_it('Already aborting task. Nothing to do here.')
     else:
         __aborting_task = True
         if __clock_subscriber is not None:
@@ -138,6 +152,7 @@ def start_demo(wait, tasks, logging):
     signal.signal(signal.SIGINT, exit_handler)
     signal.signal(signal.SIGQUIT, exit_handler)
     signal.signal(signal.SIGUSR1, usr1_handler)
+    signal.signal(signal.SIGUSR2, usr2_handler)
     print_it('Getting available task names.')
     tasks_to_execute = []
     task_names = get_available_task_names()
