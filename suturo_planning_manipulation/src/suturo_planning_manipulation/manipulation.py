@@ -3,6 +3,7 @@ from Crypto.Random.OSRNG import posix
 from asyncore import dispatcher
 from docutils.parsers.rst.roles import role
 from math import pi
+from math import isnan
 from pdb import post_mortem
 
 import sys
@@ -124,6 +125,16 @@ class Manipulation(object):
         :param goal_pose: goal position as PoseStamped
         :return: success of the movement
         '''
+        if (math.isnan(goal_pose.pose.orientation.x) or
+            math.isnan(goal_pose.pose.orientation.y) or
+            math.isnan(goal_pose.pose.orientation.z) or
+            math.isnan(goal_pose.pose.orientation.w)):
+              rospy.loginfo("move_arm_and_base to goal pose with nan in orientation!")
+              goal_pose.pose.orientation.x = 0.0
+              goal_pose.pose.orientation.y = 0.0
+              goal_pose.pose.orientation.z = 0.0
+              goal_pose.pose.orientation.w = 1.0
+              
         return self.__move_group_to(goal_pose, self.__arm_base_group, blow_up)
 
     def __move_group_to(self, goal_pose, move_group, blow_up, blow_up_distance=0.02):
@@ -174,7 +185,9 @@ class Manipulation(object):
         move_group.set_start_state_to_current_state()
         goal = deepcopy(goal_pose)
 
+        rospy.logdebug("goal = "+str(goal))
         if type(goal) is str:
+            rospy.logdebug("move_group.set_named_target")
             move_group.set_named_target(goal)
             rospy.logwarn("DANGER, for named targets, attached objects will be ignored.")
             plan = move_group.plan()
@@ -182,10 +195,13 @@ class Manipulation(object):
                 self.__planning_scene_interface.add_objects(original_objects)
             return plan
         elif type(goal) is PoseStamped:
+            rospy.logdebug("goal is pose stamped")
             visualize_pose(goal)
             # Rotate the goal so that the gripper points from 0,0,0 to 1,0,0 with a 0,0,0,1 quaternion as orientation.
             goal.pose.orientation = rotate_quaternion(goal.pose.orientation, pi / 2, pi, pi / 2)
+            rospy.logdebug("goal after rotation: "+str(goal))
             if goal.header.frame_id != "/odom_combined":
+                rospy.logdebug("goal after transformation: "+str(goal))
                 goal = self.tf.transform_to(goal)
 
             # move_group.set_pose_target(goal)
