@@ -10,13 +10,17 @@ from utils import hex_to_color_msg
 from suturo_planning_manipulation.manipulation import Manipulation
 from suturo_planning_perception import perception
 from math import *
+from suturo_msgs.msg import Task
+from moveit_msgs.msg import CollisionObject
+from shape_msgs.msg import SolidPrimitive
+from geometry_msgs.msg import Pose
 
 
 class ScanMapMastCam(smach.State):
 
     def __init__(self):
         smach.State.__init__(self, outcomes=['mapScanned'],
-                             input_keys=['enable_movement'],
+                             input_keys=['enable_movement', 'yaml'],
                              output_keys=[])
 
     def execute(self, userdata):
@@ -28,6 +32,24 @@ class ScanMapMastCam(smach.State):
         utils.map = Map(2)
         # arm_base = utils.manipulation.get_base_origin()
         # rospy.sleep(4)
+
+        print("task_type = "+str(userdata.yaml.task_type))
+        if userdata.yaml.task_type == Task.TASK_5:
+            rospy.logdebug("adding puzzle fixture to planning scene...")
+            fixture = CollisionObject()
+            fixture_box = SolidPrimitive()
+            fixture_box.type = SolidPrimitive.BOX
+            fixture_box.dimensions.append(None)
+            fixture_box.dimensions.append(None)
+            fixture_box.dimensions.append(None)
+            fixture_box.dimensions[SolidPrimitive.BOX_X] = 0.25
+            fixture_box.dimensions[SolidPrimitive.BOX_Y] = 0.25
+            fixture_box.dimensions[SolidPrimitive.BOX_Z] = 0.1
+            fixture_pose = userdata.yaml.puzzle_fixture
+            fixture.primitives.append(fixture_box)
+            fixture.primitive_poses.append(fixture_pose)
+            fixture.id = "fixture"
+            utils.manipulation.get_planning_scene().add_object(fixture)
 
         utils.manipulation.pan_tilt(0.2, 0.5)
         rospy.sleep(utils.waiting_time_before_scan)

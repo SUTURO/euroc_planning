@@ -227,3 +227,16 @@ def in_target_zone(euroc_object, yaml):
                 return target_zone
 
     return None
+
+def valid_pose(pose_stamped):
+    rospy.loginfo("validating pose: " + str(pose_stamped))
+    if (math.isnan(pose_stamped.pose.orientation.x) or
+        math.isnan(pose_stamped.pose.orientation.y) or
+        math.isnan(pose_stamped.pose.orientation.z) or
+        math.isnan(pose_stamped.pose.orientation.w)):
+            rospy.loginfo("pose with nan in orientation! setting orientation to 0")
+            pose_stamped.pose.orientation.x = 0.0
+            pose_stamped.pose.orientation.y = 0.0
+            pose_stamped.pose.orientation.z = 0.0
+            pose_stamped.pose.orientation.w = 1.0
+    return pose_stamped

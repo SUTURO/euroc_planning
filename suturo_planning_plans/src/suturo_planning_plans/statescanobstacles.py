@@ -15,6 +15,7 @@ from utils import hex_to_color_msg
 from suturo_planning_manipulation.manipulation import Manipulation
 from suturo_planning_perception import perception
 from math import pi
+from suturo_msgs.msg import Task
 
 class ScanObstacles(smach.State):
 
@@ -23,7 +24,7 @@ class ScanObstacles(smach.State):
 
     def __init__(self):
         smach.State.__init__(self, outcomes=['mapScanned', 'noRegionLeft', 'newImage'],
-                             input_keys=['enable_movement', 'sec_try'],
+                             input_keys=['enable_movement', 'sec_try', 'yaml'],
                              output_keys=['sec_try_done', 'focused_point'])
 
     def execute(self, userdata):
@@ -54,6 +55,12 @@ class ScanObstacles(smach.State):
         region_centroid = Point(*(utils.map.index_to_coordinates(*current_region.get_avg()))+(-0.065,))
 
         dist_to_region = mathemagie.euclidean_distance(Point(0, 0, 0), region_centroid)
+
+        if (userdata.yaml.task_type == Task.TASK_5):
+            dist_to_fixture = mathemagie.euclidean_distance(userdata.yaml.puzzle_fixture.position, region_centroid)
+            if (dist_to_fixture < 0.2):
+               rospy.logdebug("Region classified as puzzle fixture, skipping")
+               return 'mapScanned'
 
         # If the arm cannot move ignore distant regions
         # TODO find the best max distance
