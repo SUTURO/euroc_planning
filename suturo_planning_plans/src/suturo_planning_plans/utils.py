@@ -78,7 +78,6 @@ def start_node(command, initialization_time, logging, log_name='', dont_print=Fa
 
 def start_logger(stdin, initialization_time, log_name, logging, dont_print=False, print_prefix_to_stdout=True):
     print('Creating logger process: ' + log_name)
-    print('dont_print: ' + str(dont_print))
     return subprocess.Popen('rosrun suturo_planning_startup logger.py "' + log_dir + '/' + initialization_time + '-' +
                             log_name + '.log"' + ' "' + log_name + '"' + ' ' + str(logging) + ' ' + str(dont_print) +
                             ' ' + str(print_prefix_to_stdout),

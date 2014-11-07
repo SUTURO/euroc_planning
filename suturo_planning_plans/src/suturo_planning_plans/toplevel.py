@@ -38,16 +38,20 @@ signal.signal(signal.SIGINT, exit_handler)
 atexit.register(exit_handler)
 
 
-def handle_uncaught_exception(e, initialization_time, logging):
+def handle_uncaught_exception(e, initialization_time, logging, parent_pid):
     print('Uncaught exception: ' + str(e))
     if not start_nodes.executed_test_node_check:
         start_nodes.check_node(initialization_time, logging)
     print('Terminating task.')
+    if parent_pid is not None:
+        print('Sending signal to parent process.')
+        os.kill(parent_pid, signal.SIGUSR1)
+    else:
+        print('Unknown parent. Won\'t send signal.')
     rospy.signal_shutdown('Terminating Task due to unhandled exception.')
 
 
-def toplevel_plan(init_sim, task_name, savelog, initialization_time, logging):
-    #Create a SMACH state machine
+def toplevel_plan(init_sim, task_name, savelog, initialization_time, logging, parent_pid=None):
     print('toplevel: logging: ' + str(logging))
     if logging == 1:
         print('toplevel: Logging planning to console.')
@@ -58,6 +62,7 @@ def toplevel_plan(init_sim, task_name, savelog, initialization_time, logging):
         sys.stderr = __logger_process.stdin
         sys.stdout = __logger_process.stdin
 
+    #Create a SMACH state machine
     toplevel = smach.StateMachine(outcomes=['success', 'fail'])
 
     # Open the container
@@ -82,15 +87,11 @@ def toplevel_plan(init_sim, task_name, savelog, initialization_time, logging):
         except BaseException, e:
             print('BaseException while executing Task:')
             print(traceback.print_exc())
-            handle_uncaught_exception(sys.exc_info()[0], initialization_time, logging)
-        except Exception, e:
-            print('Exception while executing Task:')
-            print(traceback.print_exc())
-            handle_uncaught_exception(sys.exc_info()[0], initialization_time, logging)
+            handle_uncaught_exception(sys.exc_info()[0], initialization_time, logging, parent_pid)
         except:
             print('Unhandled Exception while executing Task:')
             print(traceback.print_exc())
-            handle_uncaught_exception(sys.exc_info()[0], initialization_time, logging)
+            handle_uncaught_exception(sys.exc_info()[0], initialization_time, logging, parent_pid)
 
     smach_thread = threading.Thread(target=execute_task)
     rospy.loginfo('toplevel: Starting smach thread.')

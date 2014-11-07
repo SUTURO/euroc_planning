@@ -24,6 +24,7 @@ __handling_exit = False
 
 def exit_handler(signum=None, frame=None):
     print('start_task: exit_handler')
+    print('start_task: signum: ' + str(signum) + ', frame: ' + str(frame))
     global __handling_exit
     global _save_log
     print 'rospy.is_shutdown() = ' + str(rospy.is_shutdown())
@@ -47,7 +48,7 @@ signal.signal(signal.SIGTERM, exit_handler)
 atexit.register(exit_handler)
 
 
-def main(task, with_plan, init_sim, savelog, no_taskselector, initialization_time, logging):
+def main(task, with_plan, init_sim, savelog, no_taskselector, initialization_time, logging, parent_pid):
     print('start_task: main')
     if init_sim and not no_taskselector:
         #Taskselector
@@ -61,7 +62,7 @@ def main(task, with_plan, init_sim, savelog, no_taskselector, initialization_tim
     if with_plan:
         rospy.init_node('suturo_planning_execution', log_level=rospy.DEBUG)
         rospy.loginfo('Started plan')
-        toplevel_plan(init_sim, task, savelog, initialization_time, logging)
+        toplevel_plan(init_sim, task, savelog, initialization_time, logging, parent_pid=parent_pid)
     else:
         rospy.init_node('suturo_planning_start_task', log_level=rospy.DEBUG)
         #Start tasks
@@ -94,16 +95,18 @@ if __name__ == '__main__':
     task = sys.argv[1]
     argv = sys.argv[2:]
     try:
-        opts, args = getopt.getopt(argv, '', ['save', 'plan', 'init', 'no-ts', 'inittime=', 'logging='])
+        opts, args = getopt.getopt(argv, '', ['save', 'plan', 'init', 'no-ts', 'inittime=', 'logging=', 'parent='])
     except getopt.GetoptError:
+        print('start_task: Could not parse parameters.')
         sys.exit(2)
     #print ('opts: ' + str(opts))
     #print ('args: ' + str(args))
     initialization_time = None
     logging = 0
+    parent = None
     for opt, arg in opts:
-        #print ('opt: ' + str(opt))
-        #print ('arg: ' + str(arg))
+        # print ('opt: ' + str(opt))
+        # print ('arg: ' + str(arg))
         if opt == '--save':
             _save_log = True
         elif opt == '--init':
@@ -114,8 +117,11 @@ if __name__ == '__main__':
             l = int(arg)
             if l in [0, 1, 2]:
                 logging = l
+        elif opt in ['--parent']:
+            parent = int(arg)
 
     if initialization_time is None:
         initialization_time = datetime.now().isoformat('-')
+    print('start_task: Going to execute main.')
     main(task, '--plan' in sys.argv, '--init' in sys.argv, _save_log, '--no-ts' in sys.argv, initialization_time,
-         logging)
+         logging, parent)

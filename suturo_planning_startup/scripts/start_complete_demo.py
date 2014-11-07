@@ -6,7 +6,7 @@ import sys
 import signal
 import re
 import rospy
-import atexit
+import os
 from rosgraph_msgs.msg import Clock
 from suturo_planning_manipulation.total_annihilation import exterminate
 from suturo_planning_plans import utils
@@ -18,14 +18,28 @@ __quit = False
 __clock_subscriber = None
 __time_started_task = None
 __time_limit = 600
+__clock_time_started_task = None
+__remaining_time = None
+__last_received_clock = None
 __aborting_task = False
 __kill_count = 0
 __current_task = None
+__current_intent = 1
+__task_aborted_by_exception = False
 subproc = None
 
 
 def print_it(s):
     print(str(datetime.now().isoformat('-')) + ': ' + str(s))
+
+
+def usr1_handler(signum=None, frame=None):
+    print_it('start_complete_demo: usr1_handler')
+    global __task_aborted_by_exception
+    global __aborting_task
+    if not __aborting_task:
+        print('Setting __task_aborted_by_exception to True.')
+        __task_aborted_by_exception = True
 
 
 def abort_current_task():
@@ -80,15 +94,21 @@ def exit_handler(signum=None, frame=None):
     global __aborting_task
     __kill_count += 1
     if __kill_count == 1:
-        print_it('Going to abort current task.')
+        print_it('################################')
+        print_it('# Going to abort current task. #')
+        print_it('################################')
         abort_current_task()
     elif __kill_count == 2:
-        print_it('Going to abort execution of all remaining tasks.')
+        print_it('####################################################')
+        print_it('# Going to abort execution of all remaining tasks. #')
+        print_it('####################################################')
         __quit = True
         if not __aborting_task:
             abort_current_task()
     elif __kill_count == 3:
-        print_it('Going to kill like a berserk.')
+        print_it('#################################')
+        print_it('# Going to kill like a berserk. #')
+        print_it('#################################')
         kill_like_a_berserk()
     else:
         print_it('You can stop spamming Ctrl-c now.')
@@ -102,6 +122,12 @@ def start_demo(wait, tasks, logging):
     global __current_task
     global subproc
     global __kill_count
+    global __remaining_time
+    global __time_limit
+    global __task_aborted_by_exception
+    global __current_intent
+    global __clock_time_started_task
+    global __last_received_clock
     rospy.init_node('start_complete_demo')
 
     rospy.loginfo('Setting use_sim_time to true')
@@ -111,6 +137,7 @@ def start_demo(wait, tasks, logging):
     signal.signal(signal.SIGTERM, exit_handler)
     signal.signal(signal.SIGINT, exit_handler)
     signal.signal(signal.SIGQUIT, exit_handler)
+    signal.signal(signal.SIGUSR1, usr1_handler)
     print_it('Getting available task names.')
     tasks_to_execute = []
     task_names = get_available_task_names()
@@ -134,40 +161,67 @@ def start_demo(wait, tasks, logging):
         dont_print = False
     else:
         dont_print = True
-    for task in tasks_to_execute:
+    i = 0
+    __clock_time_started_task = 0
+    while i < len(tasks_to_execute):
         __kill_count = 0
+        __task_aborted_by_exception = False
         rospy.loginfo('Setting use_sim_time to true')
         rospy.set_param('/use_sim_time', True)
         if __quit:
             print_it('Demo has been aborted. Exiting (1)')
             return
-        init_time = __initialization_time + '-' + task
-        __current_task = task
+        __current_task = tasks_to_execute[i]
+        init_time = __initialization_time + '-' + __current_task + '-' + str(__current_intent)
         if wait:
-            raw_input('Starting task ' + str(task) + '. Press ENTER.')
+            raw_input('Starting task ' + str(__current_task) + '. Press ENTER.')
         print_it('################################################################################')
-        print_it('Starting task   ' + str(task))
-        print_it('Finished tasks: ' + str(tasks_to_execute[0:tasks_to_execute.index(task)]))
-        print_it('Tasks to go   : ' + str(tasks_to_execute[tasks_to_execute.index(task)+1:]))
+        print_it('Starting task : ' + str(__current_task))
+        print_it('Intent        : ' + str(__current_intent))
+        print_it('Started at    : ' + str(__clock_time_started_task))
+        print_it('Finished tasks: ' + str(tasks_to_execute[0:tasks_to_execute.index(__current_task)]))
+        print_it('Tasks to go   : ' + str(tasks_to_execute[tasks_to_execute.index(__current_task)+1:]))
         print_it('################################################################################')
-        subproc, logger_process = utils.start_node('rosrun suturo_planning_startup start_task.py ' + task +
+        subproc, logger_process = utils.start_node('rosrun suturo_planning_startup start_task.py ' + __current_task +
                                                    ' --plan --init --save --no-ts --inittime="' + init_time + '"' +
-                                                   ' --logging="' + str(logging) + '"', init_time, logging, 'Complete',
+                                                   ' --logging="' + str(logging) + '"' + ' --parent=' + str(os.getpid())
+                                                   , init_time, logging, 'Complete',
                                                    dont_print=dont_print, print_prefix_to_stdout=False)
         __time_started_task = int(time.time())
         print_it('Subscribing to clock.')
-        __clock_subscriber = rospy.Subscriber('clock', Clock, handle_clock, callback_args=task)
-        print_it('Waiting for task ' + task + ' to terminate.')
+        __clock_subscriber = rospy.Subscriber('clock', Clock, handle_clock,
+                                              callback_args={'task': __current_task,
+                                                             'intent': __current_intent})
+        print_it('Waiting for task ' + __current_task + ' to terminate.')
         subproc.wait()
-        print_it('Task ' + task + ' terminated.')
+        print_it('Task ' + __current_task + ' terminated')
         print_it('Unsubscribing clock subscriber.')
         __clock_subscriber.unregister()
         if __quit:
             print_it('Demo has been aborted. Exiting (2)')
             return
-        print_it('Finished task ' + str(task))
-        if task != tasks_to_execute[-1]:
-            time.sleep(5)
+        else:
+            if __task_aborted_by_exception:
+                print_it('Task has been interrupted by exception.')
+                if __remaining_time > __time_limit / 2:
+                    print_it('Restarting task ' + __current_task)
+                    __current_intent += 1
+                    __clock_time_started_task += __last_received_clock
+                else:
+                    print_it('Remaining time (' + str(__remaining_time) + 's) is too low to restart task.')
+                    print_it('Finished task ' + str(__current_task))
+                    i += 1
+                    __current_intent = 1
+                    __clock_time_started_task = 0
+            else:
+                print_it('Task terminated as expected.')
+                print_it('Finished task ' + str(__current_task))
+                i += 1
+                __current_intent = 1
+                __clock_time_started_task = 0
+                if i != len(tasks_to_execute):
+                    time.sleep(5)
+            # __remaining_time = __time_limit
     print_it('Finished complete demo.')
     rospy.signal_shutdown('Finished complete demo.')
 
@@ -187,25 +241,48 @@ def get_available_task_names():
     return task_names
 
 
-def handle_clock(msg, task):
+def handle_clock(msg, args):
     global __time_started_task
     global __time_limit
     global __aborting_task
     global __current_task
+    global __current_intent
+    global __remaining_time
+    global __last_received_clock
+    global __clock_time_started_task
     now = int(time.time())
-    if not __aborting_task and msg.clock.secs > __time_limit:
-        if task == __current_task and now - __time_started_task >= __time_limit:
-            print_panda()
-            abort_current_task()
-        else:
-            print_it('Oh oh, received wrong information from clock. msg:')
-            print_it(msg)
-            print_it('__current_task: ' + str(__current_task))
-            print_it('task: ' + str(task))
-            print_it('now: ' + str(now))
-            print_it('__time_started_task: ' + str(__time_started_task))
-            print_it('__time_limit: ' + str(__time_limit))
-            print_it('now - __time_started_task: ' + str(now - __time_started_task))
+    clock_time = msg.clock.secs
+    remaining_time = __time_limit - __clock_time_started_task - clock_time
+    task = args['task']
+    intent = args['intent']
+
+    if task == __current_task and intent == __current_intent:
+        __last_received_clock = clock_time
+        if not __aborting_task:
+            __remaining_time = remaining_time
+
+            def print_info():
+                print_it(msg)
+                print_it('__current_task: ' + str(__current_task))
+                print_it('__current_intent: ' + str(__current_intent))
+                print_it('task: ' + str(task))
+                print_it('intent: ' + str(intent))
+                print_it('remaining_time: ' + str(remaining_time))
+                print_it('__clock_time_started_task: ' + str(__clock_time_started_task))
+                print_it('__time_limit: ' + str(__time_limit))
+                print_it('now: ' + str(now))
+                print_it('__time_started_task: ' + str(__time_started_task))
+                print_it('now - __time_started_task: ' + str(now - __time_started_task))
+
+            if remaining_time <= 0:
+                if now - __time_started_task >= __time_limit:
+                    print_it('handle_clock:')
+                    print_info()
+                    print_panda()
+                    abort_current_task()
+                else:
+                    print_it('Oh oh, received wrong information (old data from previous task) from clock.')
+                    print_info()
 
 
 def print_panda():
