@@ -119,9 +119,6 @@ class Manipulation(object):
         '''
         return self.__move_group_to(goal_pose, self.__arm_group, blow_up)
 
-    def plan_arm_to(self, goal_pose, blow_up=1, start_state=None):
-        return self.__plan_group_to(goal_pose, self.__arm_group, blow_up, start_state)
-
     def move_arm_and_base_to(self, goal_pose, blow_up=1):
         '''
         Moves the endeffector to the goal position. (Don't use this for Task 1 and 2)
@@ -129,57 +126,6 @@ class Manipulation(object):
         :return: success of the movement
         '''
         return self.__move_group_to(goal_pose, self.__arm_base_group, blow_up)
-
-    def plan_arm_and_base_to(self, goal_pose, blow_up=1, start_state=None):
-        return self.__plan_group_to(goal_pose, self.__arm_base_group, blow_up, start_state)
-
-    def get_base_origin(self):
-        '''
-        :return: The centre of the arm's base as PointStamped
-        '''
-        current_pose = self.__base_group.get_current_joint_values()
-        result = PointStamped()
-        result.header.frame_id = "/odom_combined"
-        result.point = Point(current_pose[0], current_pose[1], 0)
-        return result
-
-    def get_eef_position(self):
-        '''
-        :return: The centre of the arm's base as PointStamped
-        '''
-        current_pose = self.__arm_group.get_current_pose()
-        return current_pose
-
-    def __blow_up_object(self, bobject, factor):
-        """
-        :param bobject: Object to blow up
-        :param factor: Blowup Factor
-        :return: Returns the Blown up object
-        """
-        o = deepcopy(bobject)
-        # if o.id == "map":
-        #     return self.__blow_up_map(bobject)
-        for primitive in o.primitives:
-            dims = []
-            for dimension in primitive.dimensions:
-                dims.append(dimension + factor)
-            primitive.dimensions = dims
-        return o
-
-    def __blow_up_map(self, object):
-        o = deepcopy(object)
-        # o.primitives[SolidPrimitive.BOX_Z] =+ 0.1
-        for primitive in o.primitives:
-            # dims = []
-            # for dimension in primitive.dimensions:
-            #     dims.append(dimension + 0.1)
-            dim = []
-            dim.append(primitive.dimensions[0])
-            dim.append(primitive.dimensions[1])
-            dim.append(primitive.dimensions[2] + 0.175)
-             # += 0.1
-            primitive.dimensions = dim
-        return o
 
     def __move_group_to(self, goal_pose, move_group, blow_up, blow_up_distance=0.02):
         """
@@ -193,18 +139,18 @@ class Manipulation(object):
 
         return self.move_with_plan_to(path)
 
-    def get_end_state(self, plan_response):
-        r = plan_response
-        robot_state = RobotState()
-        robot_state.multi_dof_joint_state = r.motion_plan_response.trajectory_start.multi_dof_joint_state
+    def move_with_plan_to(self, plan):
+        if plan is None:
+            return False
+        if type(plan) is RobotTrajectory:
+            return self.__manService.move(plan)
+        return self.__manService.move(plan.motion_plan_response.trajectory)
 
-        robot_state.joint_state.header = r.motion_plan_response.trajectory.joint_trajectory.header
-        robot_state.joint_state.name = r.motion_plan_response.trajectory.joint_trajectory.joint_names
-        robot_state.joint_state.position = r.motion_plan_response.trajectory.joint_trajectory.points[-1].positions
-        robot_state.joint_state.velocity = r.motion_plan_response.trajectory.joint_trajectory.points[-1].velocities
-        robot_state.joint_state.effort = r.motion_plan_response.trajectory.joint_trajectory.points[-1].effort
-        robot_state.attached_collision_objects = r.motion_plan_response.trajectory_start.attached_collision_objects
-        return robot_state
+    def plan_arm_to(self, goal_pose, blow_up=1, start_state=None):
+        return self.__plan_group_to(goal_pose, self.__arm_group, blow_up, start_state)
+
+    def plan_arm_and_base_to(self, goal_pose, blow_up=1, start_state=None):
+        return self.__plan_group_to(goal_pose, self.__arm_base_group, blow_up, start_state)
 
     def __plan_group_to(self, goal_pose, move_group, blow_up, start_state, blow_up_distance=0.02):
         original_objects = self.__planning_scene_interface.get_collision_objects()
@@ -250,13 +196,6 @@ class Manipulation(object):
             self.__planning_scene_interface.add_objects(original_objects)
 
         return plan
-
-    def move_with_plan_to(self, plan):
-        if plan is None:
-            return False
-        if type(plan) is RobotTrajectory:
-            return self.__manService.move(plan)
-        return self.__manService.move(plan.motion_plan_response.trajectory)
 
     def plan(self, move_group, goal, start_state):
         request = GetMotionPlanRequest()
@@ -323,8 +262,6 @@ class Manipulation(object):
         primitive = SolidPrimitive()
         primitive.type = SolidPrimitive.SPHERE
         primitive.dimensions.append(position_tolerance)
-        # primitive.dimensions.append(position_tolerance)
-        # primitive.dimensions.append(position_tolerance)
 
         position_goal.constraint_region.primitives.append(primitive)
         p = Pose()
@@ -344,6 +281,67 @@ class Manipulation(object):
         orientation_goal.orientation = goal.pose.orientation
         orientation_goal.weight = 1.0
         return (position_goal, orientation_goal)
+
+    def get_base_origin(self):
+        '''
+        :return: The centre of the arm's base as PointStamped
+        '''
+        current_pose = self.__base_group.get_current_joint_values()
+        result = PointStamped()
+        result.header.frame_id = "/odom_combined"
+        result.point = Point(current_pose[0], current_pose[1], 0)
+        return result
+
+    def get_eef_position(self):
+        '''
+        :return: The centre of the arm's base as PointStamped
+        '''
+        current_pose = self.__arm_group.get_current_pose()
+        return current_pose
+
+    def __blow_up_object(self, bobject, factor):
+        """
+        :param bobject: Object to blow up
+        :param factor: Blowup Factor
+        :return: Returns the Blown up object
+        """
+        o = deepcopy(bobject)
+        # if o.id == "map":
+        #     return self.__blow_up_map(bobject)
+        for primitive in o.primitives:
+            dims = []
+            for dimension in primitive.dimensions:
+                dims.append(dimension + factor)
+            primitive.dimensions = dims
+        return o
+
+    def __blow_up_map(self, object):
+        o = deepcopy(object)
+        # o.primitives[SolidPrimitive.BOX_Z] =+ 0.1
+        for primitive in o.primitives:
+            # dims = []
+            # for dimension in primitive.dimensions:
+            #     dims.append(dimension + 0.1)
+            dim = []
+            dim.append(primitive.dimensions[0])
+            dim.append(primitive.dimensions[1])
+            dim.append(primitive.dimensions[2] + 0.175)
+             # += 0.1
+            primitive.dimensions = dim
+        return o
+
+    def get_end_state(self, plan_response):
+        r = plan_response
+        robot_state = RobotState()
+        robot_state.multi_dof_joint_state = r.motion_plan_response.trajectory_start.multi_dof_joint_state
+
+        robot_state.joint_state.header = r.motion_plan_response.trajectory.joint_trajectory.header
+        robot_state.joint_state.name = r.motion_plan_response.trajectory.joint_trajectory.joint_names
+        robot_state.joint_state.position = r.motion_plan_response.trajectory.joint_trajectory.points[-1].positions
+        robot_state.joint_state.velocity = r.motion_plan_response.trajectory.joint_trajectory.points[-1].velocities
+        robot_state.joint_state.effort = r.motion_plan_response.trajectory.joint_trajectory.points[-1].effort
+        robot_state.attached_collision_objects = r.motion_plan_response.trajectory_start.attached_collision_objects
+        return robot_state
 
     def get_current_joint_state(self):
         '''

@@ -1,6 +1,6 @@
+from geometry_msgs.msg._PointStamped import PointStamped
 from numpy.core.multiarray import dot
-__author__ = 'ichumuh'
-
+from suturo_planning_manipulation.manipulation_constants import hand_length, finger_length
 from copy import deepcopy
 from math import sqrt, pi, cos, sin, acos
 import numpy as np
@@ -68,6 +68,15 @@ def three_points_to_quaternion(origin, to, roll=None):
     if muh :
         q = rotate_quaternion(q, -pi/2, 0, 0)
     return q
+
+
+def get_fingertip(hand_pose):
+    grasp_point = PointStamped()
+    grasp_point.point = set_vector_length(hand_length + finger_length, Point(1,0,0))
+    grasp_point.point = qv_mult(hand_pose.pose.orientation, grasp_point.point)
+    grasp_point.point = add_point(hand_pose.pose.position , grasp_point.point)
+    grasp_point.header.frame_id = hand_pose.header.frame_id
+    return grasp_point
 
 
 def subtract_point(p1, p2):

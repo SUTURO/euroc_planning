@@ -9,10 +9,10 @@ from manipulation_msgs.srv import _GraspPlanning
 from moveit_msgs.msg._CollisionObject import CollisionObject
 import rospy
 from shape_msgs.msg._SolidPrimitive import SolidPrimitive
-from calc_grasp_position import get_fingertip
 from mathemagie import euler_to_quaternion
 from place import get_grasped_part
 from suturo_planning_manipulation.calc_grasp_position import make_scan_pose
+from suturo_planning_manipulation.mathemagie import get_fingertip
 from suturo_planning_search.cell import Cell
 from suturo_planning_search.map import Map
 from math import sqrt, pi, cos, sin, acos

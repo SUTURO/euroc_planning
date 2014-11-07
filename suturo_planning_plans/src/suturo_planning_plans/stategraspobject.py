@@ -6,8 +6,8 @@ from moveit_msgs.msg._CollisionObject import CollisionObject
 import smach
 import rospy
 import time
-from suturo_planning_manipulation.mathemagie import magnitude, subtract_point
-from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_position, get_pre_grasp, get_fingertip
+from suturo_planning_manipulation.mathemagie import magnitude, subtract_point, get_fingertip
+from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_position, get_pre_grasp
 from suturo_planning_visualization.visualization import visualize_poses
 import utils
 
@@ -96,14 +96,7 @@ class GraspObject(smach.State):
                 #save grasp data for placing
                 userdata.grasp = grasp
                 fingertip = get_fingertip(grasp)
-                fingertip_to_tcp = subtract_point(grasp.pose.position, fingertip)
-                # v1 = deepcopy(grasp.pose.position)
-                # v1.z = 0
-                # v2 = deepcopy(collision_object.primitive_poses[0].position)
-                # v2.z = 0
-                # a = magnitude(subtract_point(v1, v2))
-                # b = abs(grasp.pose.position.z - collision_object.primitive_poses[0].position.z)
-                # c = sqrt(a**2 + b**2)
+                fingertip_to_tcp = subtract_point(grasp.pose.position, fingertip.point)
                 userdata.dist_to_obj = magnitude(fingertip_to_tcp)
 
                 rospy.logdebug("lift object")
