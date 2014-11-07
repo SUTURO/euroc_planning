@@ -95,16 +95,19 @@ def calculate_grasp_position_box(collision_object, n=8):
     grasp_positions = []
 
     depth = finger_length
-    if finger_length < collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.BOX_X]:
-        depth = collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.BOX_X]
+    x_len = collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.BOX_X]
+    if finger_length < x_len:
+        depth = x_len
     depth_x = depth + hand_length
 
-    if finger_length < collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.BOX_Y]:
-        depth = collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.BOX_Y]
+    y_len = collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.BOX_Y]
+    if finger_length < y_len:
+        depth = y_len
     depth_y = depth + hand_length
 
-    if finger_length < collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.BOX_Z]:
-        depth = collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.BOX_Z]
+    z_len = collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.BOX_Z] 
+    if finger_length < z_len:
+        depth = z_len
     depth_z = depth + hand_length
 
 
@@ -159,7 +162,7 @@ def calculate_grasp_position_cylinder(collision_object, side, n=4):
     grasp_positions = []
 
     d1 = finger_length
-    h = collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.CYLINDER_HEIGHT]
+    h = (collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.CYLINDER_HEIGHT])
     if finger_length < h:
         d1 = h
 
