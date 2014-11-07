@@ -53,7 +53,7 @@ class CleanUpPlan(smach.State):
             for puzzle_part in userdata.yaml.relative_puzzle_part_target_poses:
                 target_position = mathemagie.add_point(userdata.yaml.puzzle_fixture.position, puzzle_part.pose.position)
                 fake_target_zone = TargetZone(name = puzzle_part.name + "_target", expected_object = puzzle_part.name, target_position = target_position, max_distance = 0.05)
-                fake_target_zone.target_position.z = fake_target_zone.target_position.z + 0.15 # put it above the fixture to avoid collision
+                #fake_target_zone.target_position.z = fake_target_zone.target_position.z + 0.15 # put it above the fixture to avoid collision
                 print("fake_target_zone = " + str(fake_target_zone))
                 target_zones.append(fake_target_zone)
         else:

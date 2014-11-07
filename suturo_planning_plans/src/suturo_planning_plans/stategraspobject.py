@@ -10,6 +10,7 @@ from suturo_planning_manipulation.mathemagie import magnitude, subtract_point, g
 from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_position, get_pre_grasp
 from suturo_planning_visualization.visualization import visualize_poses
 import utils
+from math import isinf
 
 
 class GraspObject(smach.State):
@@ -88,6 +89,9 @@ class GraspObject(smach.State):
             for obj in userdata.yaml.objects:
                 if obj.name == collision_object_name:
                     density = obj.primitive_densities[0]
+                    if isinf(density):
+                        rospy.logerr("Infinite density! WTF. setting density to 7850")
+                        density = 7850
 
             utils.manipulation.load_object(utils.manipulation.calc_object_weight(collision_object, density),
                                            Vector3(com.point.x, com.point.y, com.point.z))
@@ -101,9 +105,18 @@ class GraspObject(smach.State):
             userdata.dist_to_obj = magnitude(fingertip_to_tcp)
 
             rospy.logdebug("lift object")
-            if not move_to_func(get_pre_grasp(grasp), blow_up=(collision_object_name)):
-                rospy.logwarn("couldnt lift object. continue anyway")
+            the_pre_grasp = get_pre_grasp(grasp)
+            rospy.logdebug("the_pre_grasp = "+str(the_pre_grasp))
+            if rospy.is_shutdown():
+                print("rospy.is_shutdown() returned true!!")
+            the_move_to_func = move_to_func(the_pre_grasp, blow_up=collision_object_name)
+            rospy.logdebug("the_move_to_func = "+str(the_move_to_func))
+            if rospy.is_shutdown():
+                print("rospy.is_shutdown() returned true!!")
 
+            if not the_move_to_func:
+                rospy.logwarn("couldnt lift object. continue anyway")
+            rospy.logdebug("graspobject: return success")
             return 'success'
         rospy.logwarn("Grapsing failed.")
         return 'fail'
