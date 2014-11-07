@@ -13,6 +13,7 @@ from shape_msgs.msg._SolidPrimitive import SolidPrimitive
 import moveit_msgs.msg
 import moveit_msgs.srv
 from calc_grasp_position import *
+from copy import deepcopy
 
 
 class PlanningSceneInterface(object):
@@ -55,8 +56,9 @@ class PlanningSceneInterface(object):
                 return
             pose = PoseStamped()
             pose.header.frame_id = "/odom_combined"
-            pose.pose = yaml.puzzle_fixture
-            box = self.make_box("puzzle", pose, [0.3, 0.3, 0.05])
+            pose.pose = deepcopy(yaml.puzzle_fixture)
+            pose.pose.position = add_point(pose.pose.position, Point(0.115, 0.165, 0))
+            box = self.make_box("puzzle", pose, [0.32, 0.32, 0.1])
             self.safe_objects.append(box.id)
             self.add_object(box)
 
