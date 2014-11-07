@@ -57,12 +57,12 @@ class GraspObject(smach.State):
         utils.manipulation.open_gripper()
         grasp_positions = [utils.manipulation.transform_to(grasp) for grasp in grasp_positions]
         for grasp in grasp_positions:
-            plan_pre_grasp = plan_to_func(get_pre_grasp(grasp))
+            plan_pre_grasp = plan_to_func(get_pre_grasp(grasp), blow_up=(collision_object_name))
             if plan_pre_grasp is None:
                 continue
 
             rospy.logdebug("Plan to pregraspposition found")
-            plan_to_grasp = plan_to_func(grasp, blow_up=2, start_state=utils.manipulation.get_end_state(plan_pre_grasp))
+            plan_to_grasp = plan_to_func(grasp, blow_up=("map", collision_object_name), start_state=utils.manipulation.get_end_state(plan_pre_grasp))
             if plan_to_grasp is None or \
                     not utils.manipulation.move_with_plan_to(plan_pre_grasp) or \
                     not utils.manipulation.move_with_plan_to(plan_to_grasp):
@@ -101,7 +101,7 @@ class GraspObject(smach.State):
             userdata.dist_to_obj = magnitude(fingertip_to_tcp)
 
             rospy.logdebug("lift object")
-            if not move_to_func(get_pre_grasp(grasp), blow_up=False):
+            if not move_to_func(get_pre_grasp(grasp), blow_up=(collision_object_name)):
                 rospy.logwarn("couldnt lift object. continue anyway")
 
             return 'success'

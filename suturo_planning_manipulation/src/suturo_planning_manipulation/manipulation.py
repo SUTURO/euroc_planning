@@ -28,11 +28,13 @@ from euroc_c2_msgs.msg import *
 from euroc_c2_msgs.srv import *
 from sensor_msgs.msg import JointState
 from shape_msgs.msg._SolidPrimitive import SolidPrimitive
+from suturo_msgs.msg import Task
 import time
 
 
 class Manipulation(object):
-    def __init__(self):
+    def __init__(self, yaml=None):
+        # a = Task()
         self.tf = Transformer()
 
         moveit_commander.roscpp_initialize(sys.argv)
@@ -47,9 +49,6 @@ class Manipulation(object):
         self.__arm_base_group = moveit_commander.MoveGroupCommander("arm_base")
         self.__arm_base_group.set_planning_time(10)
 
-        # rospy.wait_for_service('/euroc_interface_node/move_along_joint_path')
-        # self.__service = rospy.ServiceProxy('/euroc_interface_node/move_along_joint_path', MoveAlongJointPath)
-
         rospy.wait_for_service('/plan_kinematic_path')
         self.__plan_service = rospy.ServiceProxy('/plan_kinematic_path', GetMotionPlan)
 
@@ -60,11 +59,11 @@ class Manipulation(object):
 
         self.__manService = ManipulationService()
 
-        # self.__move_goal =
-
         rospy.sleep(1)
-        self.__planning_scene_interface.add_ground()
-        self.__planning_scene_interface.add_cam_mast()
+        self.__planning_scene_interface.add_yaml(yaml)
+        # self.__planning_scene_interface.add_ground()
+        #
+        # self.__planning_scene_interface.add_cam_mast()
 
         self.__grasp = None
 
@@ -111,7 +110,7 @@ class Manipulation(object):
         '''
         return self.tf.transform_to(pose_target, target_frame)
 
-    def move_to(self, goal_pose, blow_up=1):
+    def move_to(self, goal_pose, blow_up=()):
         '''
         Moves the endeffector to the goal position, without moving the base.
         :param goal_pose: goal position as PoseStamped
@@ -119,7 +118,7 @@ class Manipulation(object):
         '''
         return self.__move_group_to(goal_pose, self.__arm_group, blow_up)
 
-    def move_arm_and_base_to(self, goal_pose, blow_up=1):
+    def move_arm_and_base_to(self, goal_pose, blow_up=()):
         '''
         Moves the endeffector to the goal position. (Don't use this for Task 1 and 2)
         :param goal_pose: goal position as PoseStamped
@@ -146,16 +145,18 @@ class Manipulation(object):
             return self.__manService.move(plan)
         return self.__manService.move(plan.motion_plan_response.trajectory)
 
-    def plan_arm_to(self, goal_pose, blow_up=1, start_state=None):
+    def plan_arm_to(self, goal_pose, blow_up=(), start_state=None):
         return self.__plan_group_to(goal_pose, self.__arm_group, blow_up, start_state)
 
-    def plan_arm_and_base_to(self, goal_pose, blow_up=1, start_state=None):
+    def plan_arm_and_base_to(self, goal_pose, blow_up=(), start_state=None):
         return self.__plan_group_to(goal_pose, self.__arm_base_group, blow_up, start_state)
 
-    def __plan_group_to(self, goal_pose, move_group, blow_up, start_state, blow_up_distance=0.02):
+    def __plan_group_to(self, goal_pose, move_group, blow_up, start_state, blow_up_distance=0.015):
         original_objects = self.__planning_scene_interface.get_collision_objects()
-        if blow_up == 1:
+        if not blow_up is None:
             for each in original_objects:
+                if each.id in blow_up:
+                    continue
                 if not each.id in self.__planning_scene_interface.safe_objects:
                     if each.id == "map":
                         bobj = self.__blow_up_map(each)
@@ -163,12 +164,12 @@ class Manipulation(object):
                         bobj = self.__blow_up_object(each, blow_up_distance)
                     self.__planning_scene_interface.add_object(bobj)
             rospy.sleep(1.5)
-        elif blow_up == 2:
-            print "muh"
-            map = self.__planning_scene_interface.get_collision_object("map")
-            map = self.__blow_up_map(map)
-            self.__planning_scene_interface.add_object(map)
-            rospy.sleep(1.5)
+        # elif blow_up == 2:
+        #     print "muh"
+        #     map = self.__planning_scene_interface.get_collision_object("map")
+        #     map = self.__blow_up_map(map)
+        #     self.__planning_scene_interface.add_object(map)
+        #     rospy.sleep(1.5)
 
         move_group.set_start_state_to_current_state()
         goal = deepcopy(goal_pose)
@@ -453,9 +454,9 @@ class Manipulation(object):
 
         self.open_gripper()
         for grasp in grasp_positions:
-            if self.__move_group_to(get_pre_grasp(self.transform_to(grasp)), move_group, blow_up=1):
+            if self.__move_group_to(get_pre_grasp(self.transform_to(grasp)), move_group):
 
-                if not self.__move_group_to(grasp, move_group, blow_up=2):
+                if not self.__move_group_to(grasp, move_group, blow_up=("map")):
                     continue
                 # rospy.sleep(1)
                 # self.close_gripper(collision_object, get_grasp_point(self.transform_to(grasp)))

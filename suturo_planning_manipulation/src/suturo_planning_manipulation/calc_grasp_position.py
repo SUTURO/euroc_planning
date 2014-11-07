@@ -25,7 +25,7 @@ from mathemagie import *
 from suturo_planning_visualization.visualization import visualize_point
 
 
-def calculate_grasp_position(collision_object, transform_func, n=8):
+def calculate_grasp_position(collision_object, transform_func, cylinder_side=True, n=8):
     '''
     Calculates grasp positions for the given collision object
     :param collision_object: CollisionObject
@@ -38,7 +38,7 @@ def calculate_grasp_position(collision_object, transform_func, n=8):
     if collision_object.primitives[0].type == shape_msgs.msg.SolidPrimitive().BOX:
         return calculate_grasp_position_box(collision_object, n)
     if collision_object.primitives[0].type == shape_msgs.msg.SolidPrimitive().CYLINDER:
-        return calculate_grasp_position_cylinder(collision_object, n)
+        return calculate_grasp_position_cylinder(collision_object, cylinder_side, n)
     print "Can't compute grasp position for this type."
 
 
@@ -56,7 +56,7 @@ def calculate_grasp_position_list(collision_object, transform_func):
         co.primitives.append(collision_object.primitives[i])
         co.header = collision_object.header
         co.primitive_poses.append(collision_object.primitive_poses[i])
-        temp = calculate_grasp_position(co, transform_func, 4)
+        temp = calculate_grasp_position(co, transform_func, False, 4)
 
         for j in range(0, len(temp)):
             tmp_pose = transform_func(co, "/" + collision_object.id).primitive_poses[0].position
@@ -116,7 +116,6 @@ def calculate_grasp_position_box(collision_object, n=8):
         grasp_point = Point(cos(a), sin(a), 0)
         d = (abs(grasp_point.x) * depth_x + abs(grasp_point.y) * depth_y + abs(grasp_point.z) * depth_z) / (abs(
             grasp_point.x) + abs(grasp_point.y) + abs(grasp_point.z))
-        # print d
         grasp_positions.append(make_grasp_pose(d, grasp_point, Point(0,0,1),
                                                collision_object.id))
 
@@ -150,7 +149,7 @@ def make_grasp_pose(depth, gripper_origin, roll, frame_id):
     grasp.pose.position = multiply_point(depth, gripper_origin)
     return grasp
 
-def calculate_grasp_position_cylinder(collision_object, n=4):
+def calculate_grasp_position_cylinder(collision_object, side, n=4):
     '''
     Calculates grasp positions for a Cylinder.
     :param collision_object: CollisionObject
@@ -163,12 +162,10 @@ def calculate_grasp_position_cylinder(collision_object, n=4):
     h = collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.CYLINDER_HEIGHT]
     if finger_length < h:
         d1 = h
-    # depth += hand_length
 
     d2 = finger_length
     if finger_length < collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.CYLINDER_RADIUS]:
         d2 = collision_object.primitives[0].dimensions[shape_msgs.msg.SolidPrimitive.CYLINDER_RADIUS]
-    # depth_side += hand_length
 
     #TODO: abfangen wenn eine Seite zu gross ist
     #Points above and below the cylinder
@@ -182,11 +179,11 @@ def calculate_grasp_position_cylinder(collision_object, n=4):
     #Points around the side of the cylinder
     depth = d2 + hand_length
     grasp_positions.extend(make_scan_pose(Point(0,0,0), depth, 0, collision_object.id, 4))
-    grasp_positions.extend(make_scan_pose(Point(0,0,h/2-0.03), depth, 0, collision_object.id, 4))
-    grasp_positions.extend(make_scan_pose(Point(0,0,-(h/2-0.03)), depth, 0, collision_object.id, 4))
 
-    # d3 = sqrt(d1**2 + d2**2)
-    # depth = d1 + hand_length
+    if side:
+        grasp_positions.extend(make_scan_pose(Point(0,0,h/2-0.025), depth, 0, collision_object.id, 4))
+        grasp_positions.extend(make_scan_pose(Point(0,0,-(h/2-0.025)), depth, 0, collision_object.id, 4))
+
     grasp_positions.extend(make_scan_pose(Point(0,0,h/2-0.03), depth, pi/4, collision_object.id, 8))
     grasp_positions.extend(make_scan_pose(Point(0,0,-(h/2-0.03)), depth, -pi/4, collision_object.id, 8))
 
@@ -209,7 +206,6 @@ def make_scan_pose(point, distance, angle, frame="/odom_combined", n=8):
     alpha = pi/2 - angle
     r = sin(alpha) * distance
     h = cos(alpha) * distance
-    # print "h ", h
     h_vector = Point()
     h_vector.z = h
     muh = add_point(point, h_vector)

@@ -20,7 +20,7 @@ class ManipulationService(object):
         self.__timing_service = rospy.ServiceProxy(servicename, GetTimingAlongJointPath)
 
         self.tcp_limits = CartesianLimits()
-        self.tcp_limits.translational.max_velocity = 0.165
+        self.tcp_limits.translational.max_velocity = 0.18
         self.tcp_limits.translational.max_acceleration = 4
         self.tcp_limits.rotational.max_velocity = 10 * pi / 180.0
         self.tcp_limits.rotational.max_acceleration = 100 * pi / 180.0
@@ -32,14 +32,14 @@ class ManipulationService(object):
             limit = Limits()
             joint_name = joint_names[i]
             if joint_name.startswith("lwr"):
-                limit.max_velocity = 20 * pi / 180.0
-                limit.max_acceleration = 300 * pi / 180.0
+                limit.max_velocity = 0.37 #20 * pi / 180.0
+                limit.max_acceleration = 5.3 #300 * pi / 180.0
             if joint_name.startswith("axis"):
                 limit.max_velocity = 0.165
                 limit.max_acceleration = 4
             if joint_name.startswith("joint_before_finger1"):
                 limit.max_velocity = 0.3
-                limit.max_acceleration = 10
+                limit.max_acceleration = 5
             joint_limits.append(limit)
         return joint_limits
 
@@ -51,7 +51,7 @@ class ManipulationService(object):
         # for every joint in the list, create the appropriate limits and store them
         joint_limits = self.set_joint_limits(path.joint_trajectory.joint_names)
 
-        # create the configuartionpath for the joints
+        # create the configuration path for the joints
         config = []
         # format the configuration for the gripper
         if path.joint_trajectory.joint_names[0].startswith("joint_before_finger"):

@@ -16,13 +16,13 @@ class ScanMapMastCam(smach.State):
 
     def __init__(self):
         smach.State.__init__(self, outcomes=['mapScanned'],
-                             input_keys=['enable_movement'],
+                             input_keys=['yaml', 'enable_movement'],
                              output_keys=[])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state ScanMapMastCam')
         if utils.manipulation is None:
-            utils.manipulation = Manipulation()
+            utils.manipulation = Manipulation(userdata.yaml)
             rospy.sleep(2)
 
         utils.map = Map(2)

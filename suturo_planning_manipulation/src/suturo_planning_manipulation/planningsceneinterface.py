@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from suturo_msgs.msg._Task import Task
 
 __author__ = 'ichumuh'
 
@@ -42,19 +43,36 @@ class PlanningSceneInterface(object):
         self.safe_objects.append(box.id)
         self.add_object(box)
 
-    def add_cam_mast(self):
+    def add_yaml(self, yaml):
+        self.add_ground()
+        if yaml is None:
+            self.add_cam_mast(0.92, 0.92)
+        else:
+            x = yaml.mast_of_cam.base_pose.linear.x
+            y = yaml.mast_of_cam.base_pose.linear.y
+            self.add_cam_mast(x, y)
+            if len(yaml.relative_puzzle_part_target_poses) == 0:
+                return
+            pose = PoseStamped()
+            pose.header.frame_id = "/odom_combined"
+            pose.pose = yaml.puzzle_fixture
+            box = self.make_box("puzzle", pose, [0.3, 0.3, 0.05])
+            self.safe_objects.append(box.id)
+            self.add_object(box)
+
+    def add_cam_mast(self, x, y):
         '''
         Adds a Cylinder where the cam mast is.
         '''
         pose = PoseStamped()
         pose.header.frame_id = "/odom_combined"
-        pose.pose.position = Point(0.92, 0.92, 0.55)
+        pose.pose.position = Point(x, y, 0.55)
         pose.pose.orientation = Quaternion(0, 0, 0, 1)
         c1 = self.make_cylinder("cm1", pose, [1.1, 0.05])
         self.safe_objects.append(c1.id)
         self.add_object(c1)
 
-        pose.pose.position = Point(0.92, 0.92, 1.0)
+        pose.pose.position = Point(x, y, 1.0)
         pose.pose.orientation = Quaternion(0, 0, 0, 1)
         c1 = self.make_box("mast_cams", pose, [0.3, 0.3, 0.3])
         self.safe_objects.append(c1.id)

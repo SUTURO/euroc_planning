@@ -68,7 +68,7 @@ class ScanMapArmCam(smach.State):
             move_successfull = False
             while j < len(poses) and not move_successfull:
                 rospy.logdebug("try scan pose nr. " + str(j))
-                move_successfull = utils.manipulation.move_arm_and_base_to(poses[j], blow_up=0)
+                move_successfull = utils.manipulation.move_arm_and_base_to(poses[j], blow_up=None)
                 j += 1
             if move_successfull:
                 rospy.sleep(utils.waiting_time_before_scan)
