@@ -11,6 +11,8 @@ from suturo_perception_msgs.srv import Classifier
 from geometry_msgs.msg import PointStamped, PoseStamped
 from std_msgs.msg import Header
 from math import pi
+from suturo_msgs.msg import Task
+from suturo_msgs.msg import TargetZone
 
 
 # Holds the manipulation object
@@ -63,21 +65,23 @@ def start_node(command, initialization_time, logging, log_name='', dont_print=Fa
     else:
         print('Logging to file.')
         stdout = subprocess.PIPE
+        # stderr = subprocess.PIPE
         stderr = subprocess.STDOUT
     process = subprocess.Popen(command, stdout=stdout, stderr=stderr, shell=True, preexec_fn=os.setsid)
     if logging != 1:
-        logger_process = start_logger(process.pid, process.stdout, initialization_time, log_name, logging,
+        logger_process = start_logger(process.stdout, initialization_time, log_name, logging,
                                       dont_print=dont_print, print_prefix_to_stdout=print_prefix_to_stdout)
     else:
         logger_process = None
     return process, logger_process
 
 
-def start_logger(prt_pid, stdin, initialization_time, log_name, logging, dont_print=False, print_prefix_to_stdout=True):
+def start_logger(stdin, initialization_time, log_name, logging, dont_print=False, print_prefix_to_stdout=True):
     print('Creating logger process: ' + log_name)
+    print('dont_print: ' + str(dont_print))
     return subprocess.Popen('rosrun suturo_planning_startup logger.py "' + log_dir + '/' + initialization_time + '-' +
                             log_name + '.log"' + ' "' + log_name + '"' + ' ' + str(logging) + ' ' + str(dont_print) +
-                            ' ' + str(print_prefix_to_stdout) + ' ' + str(prt_pid),
+                            ' ' + str(print_prefix_to_stdout),
                             stdin=stdin, shell=True, preexec_fn=os.setsid)
 
 
@@ -201,11 +205,25 @@ def is_handle(name, yaml):
 
 
 def in_target_zone(euroc_object, yaml):
-    for target_zone in yaml.target_zones:
-        centroid = deepcopy(euroc_object.c_centroid)
-        centroid.z = 0
-        dist = mathemagie.euclidean_distance(centroid, target_zone.target_position)
-        if dist < target_zone.max_distance:
-            return target_zone
+    if (yaml.task_type == Task.TASK_5):
+        for puzzle_part in yaml.relative_puzzle_part_target_poses:
+            centroid = deepcopy(euroc_object.c_centroid)
+            centroid.z = 0
+            target_position = mathemagie.add_point(yaml.puzzle_fixture.position, puzzle_part.pose.position)
+            fake_target_zone = TargetZone
+            fake_target_zone.name = puzzle_part.name + "_target"
+            fake_target_zone.expected_object = puzzle_part.name
+            fake_target_zone.target_position = target_position
+            fake_target_zone.max_distance = 0.05 # dafuq do i know?
+            dist = mathemagie.euclidean_distance(centroid, target_position)
+            if dist < fake_target_zone.max_distance: 
+                return fake_target_zone
+    else:
+        for target_zone in yaml.target_zones:
+            centroid = deepcopy(euroc_object.c_centroid)
+            centroid.z = 0
+            dist = mathemagie.euclidean_distance(centroid, target_zone.target_position)
+            if dist < target_zone.max_distance:
+                return target_zone
 
     return None

@@ -7,6 +7,7 @@ import atexit
 from datetime import datetime
 import sys
 import rospy
+import time
 #import moveit_commander
 from suturo_planning_task_selector import start_task, stop_task, save_task
 from suturo_planning_plans.toplevel import toplevel_plan
@@ -77,13 +78,16 @@ def rospy_exit_handler():
     if not start_nodes.executed_test_node_check:
         start_nodes.check_node(initialization_time, logging)
     print 'save_log = ' + str(_save_log) + ', rospy.is_shutdown() = ' + str(rospy.is_shutdown())
+    print('Checking save task.')
     if _save_log and not task_selector.task_saved:
         rospy.loginfo('Going to save log')
         save_task()
+    print('Checking stop task.')
     if not task_selector.task_stopped:
         rospy.loginfo('Going to stop task.')
         stop_task()
-    rospy.sleep(2)
+    print('Going to sleep a sec.')
+    time.sleep(2)
     print('start_task: Exiting rospy_exit_handler.')
 
 if __name__ == '__main__':

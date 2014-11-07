@@ -18,8 +18,8 @@ class FastGrasp(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['objectGrasped', 'timeExpired', 'noPlanFound', 'graspingFailed',
                                              'noObjectsLeft', 'fail'],
-                             input_keys=['yaml', 'request_second_object'],
-                             output_keys=['request_second_object'])
+                             input_keys=['yaml', 'request_second_object', 'object_index'],
+                             output_keys=['request_second_object', 'object_index'])
         self.__perceived_pose = 0
         self.__perceived_pose_time = rospy.Time()
         self.__time_between_poses = rospy.Duration()
@@ -35,14 +35,7 @@ class FastGrasp(smach.State):
 
         # get the first perception
         rospy.logdebug('FastGrasp: call Perception Service')
-        for i in range(3):
-            try:
-                resp = service("firstConveyorCall,cuboid")
-            except ServiceException:
-                rospy.sleep(2)
-                if i == 2:
-                    return 'fail'
-
+        resp = service("firstConveyorCall,cuboid")
         if len(resp.objects) == 0 or not resp.objects[0].c_cuboid_success:
             rospy.logdebug('FastGrasp: objects empty or no cuboid 1')
             return -1
@@ -51,14 +44,7 @@ class FastGrasp(smach.State):
 
         # wait some time until the second perception
         rospy.sleep(Duration.from_sec(0.5))
-        for i in range(3):
-            try:
-                resp = service("cuboid")
-            except ServiceException:
-                rospy.sleep(2)
-                if i == 2:
-                    return 'fail'
-
+        resp = service("cuboid")
         if len(resp.objects) == 0 or not resp.objects[0].c_cuboid_success:
             rospy.logdebug('FastGrasp: objects empty or no cuboid 2')
             return -2
@@ -67,7 +53,7 @@ class FastGrasp(smach.State):
 
         # transform the points into odom_combined
         self.__perceived_pose = utils.manipulation.transform_to(object1)
-        utils.manipulation.get_planning_scene().add_object(self.__perceived_pose)
+        # utils.manipulation.get_planning_scene().add_object(self.__perceived_pose)
         pose2 = utils.manipulation.transform_to(object2)
 
         # calculate the vector from the points of first and second perception
@@ -129,7 +115,7 @@ class FastGrasp(smach.State):
                 rospy.logdebug('FastGrasp: Request next object')
                 rospy.ServiceProxy("/euroc_interface_node/request_next_object", RequestNextObject).call()
                 userdata.request_second_object = True
-            if i == 14 and userdata.request_second_object:
+            if i == 19 and userdata.request_second_object:
                 rospy.logdebug('FastGrasp: Time Expired')
                 return 'noObjectsLeft'
             r = self.percieve_object()
@@ -147,8 +133,13 @@ class FastGrasp(smach.State):
                 rospy.logdebug("FastGrasp: Plan 1: No Plan fount in step " + str(j))
                 if j == 3:
                     return 'noPlanFound'
-
-        while rospy.Time.now() < self.__t_point_time - rospy.Duration(2):
+        if userdata.object_index == 1:
+            offset = rospy.Duration(1.5)
+        elif userdata.object_index == 2:
+            offset = rospy.Duration(1)
+        else:
+            offset = rospy.Duration(2)
+        while rospy.Time.now() < self.__t_point_time - offset:
             rospy.sleep(0.01)
         self.__t_point.pose.position.z -= 0.07
         rospy.logdebug("FastGrasp: Plan 2")
@@ -186,5 +177,5 @@ class FastGrasp(smach.State):
             rospy.logdebug("FastGrasp: Grasp Fail")
             return 'graspingFailed'
         rospy.logdebug("FastGrasp: objectGrasped, finished")
-
+        userdata.object_index += 1
         return 'objectGrasped'

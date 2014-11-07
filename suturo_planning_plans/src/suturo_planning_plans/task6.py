@@ -42,3 +42,4 @@ class Task6(smach.StateMachine):
         self.userdata.scan_conveyor_pose = []
         self.placement_failed = False
         self.userdata.request_second_object = False
+        self.userdata.object_index = 0

@@ -32,7 +32,6 @@ def cb(msg):
                          "/target_zone",
                          "/odom_combined")
         rate.sleep()
-    pass
 
 def add_conveyor_frames():
     rospy.init_node('listener', anonymous=True)
@@ -43,7 +42,4 @@ def add_conveyor_frames():
     print "Oooppss"
 
 if __name__ == '__main__':
-    try:
-        add_conveyor_frames()
-    except Exception:
-        print Exception
+    add_conveyor_frames()
