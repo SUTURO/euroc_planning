@@ -58,51 +58,52 @@ class GraspObject(smach.State):
         grasp_positions = [utils.manipulation.transform_to(grasp) for grasp in grasp_positions]
         for grasp in grasp_positions:
             plan_pre_grasp = plan_to_func(get_pre_grasp(grasp))
-            if not plan_pre_grasp is None:
-                rospy.logdebug("Plan to pregraspposition found")
+            if plan_pre_grasp is None:
+                continue
 
-                plan_to_grasp = plan_to_func(grasp, blow_up=2, start_state=utils.manipulation.get_end_state(plan_pre_grasp))
-                if plan_to_grasp is None or \
-                        not utils.manipulation.move_with_plan_to(plan_pre_grasp) or \
-                        not utils.manipulation.move_with_plan_to(plan_to_grasp):
-                    rospy.logdebug("Failed to move to Graspposition")
-                    continue
-                rospy.logdebug("Graspposition taken")
+            rospy.logdebug("Plan to pregraspposition found")
+            plan_to_grasp = plan_to_func(grasp, blow_up=2, start_state=utils.manipulation.get_end_state(plan_pre_grasp))
+            if plan_to_grasp is None or \
+                    not utils.manipulation.move_with_plan_to(plan_pre_grasp) or \
+                    not utils.manipulation.move_with_plan_to(plan_to_grasp):
+                rospy.logdebug("Failed to move to Graspposition")
+                continue
+            rospy.logdebug("Graspposition taken")
 
-                time.sleep(0.5)
-                rospy.sleep(1)
-                if not utils.manipulation.close_gripper(collision_object, get_fingertip(utils.manipulation.transform_to(grasp))):
-                    return 'fail'
-                time.sleep(0.5)
-                rospy.sleep(1.5)
+            time.sleep(0.5)
+            rospy.sleep(1)
+            if not utils.manipulation.close_gripper(collision_object, get_fingertip(utils.manipulation.transform_to(grasp))):
+                return 'fail'
+            time.sleep(0.5)
+            rospy.sleep(1.5)
 
-                #calculate the center of mass and weight of the object and call the load object service
-                com = utils.manipulation.get_center_of_mass(collision_object)
-                com = utils.manipulation.transform_to(com, "/tcp")
-                if com is None:
-                    rospy.logwarn("TF failed")
-                    return 'fail'
+            #calculate the center of mass and weight of the object and call the load object service
+            com = utils.manipulation.get_center_of_mass(collision_object)
+            com = utils.manipulation.transform_to(com, "/tcp")
+            if com is None:
+                rospy.logwarn("TF failed")
+                return 'fail'
 
-                density = 1
-                for obj in userdata.yaml.objects:
-                    if obj.name == collision_object_name:
-                        density = obj.primitive_densities[0]
+            density = 1
+            for obj in userdata.yaml.objects:
+                if obj.name == collision_object_name:
+                    density = obj.primitive_densities[0]
 
-                utils.manipulation.load_object(utils.manipulation.calc_object_weight(collision_object, density),
-                                               Vector3(com.point.x, com.point.y, com.point.z))
+            utils.manipulation.load_object(utils.manipulation.calc_object_weight(collision_object, density),
+                                           Vector3(com.point.x, com.point.y, com.point.z))
 
-                rospy.loginfo("grasped " + collision_object_name)
+            rospy.loginfo("grasped " + collision_object_name)
 
-                #save grasp data for placing
-                userdata.grasp = grasp
-                fingertip = get_fingertip(grasp)
-                fingertip_to_tcp = subtract_point(grasp.pose.position, fingertip.point)
-                userdata.dist_to_obj = magnitude(fingertip_to_tcp)
+            #save grasp data for placing
+            userdata.grasp = grasp
+            fingertip = get_fingertip(grasp)
+            fingertip_to_tcp = subtract_point(grasp.pose.position, fingertip.point)
+            userdata.dist_to_obj = magnitude(fingertip_to_tcp)
 
-                rospy.logdebug("lift object")
-                if not move_to_func(get_pre_grasp(grasp), blow_up=False):
-                    rospy.logwarn("couldnt lift object. continue anyway")
+            rospy.logdebug("lift object")
+            if not move_to_func(get_pre_grasp(grasp), blow_up=False):
+                rospy.logwarn("couldnt lift object. continue anyway")
 
-                return 'success'
+            return 'success'
         rospy.logwarn("Grapsing failed.")
         return 'fail'

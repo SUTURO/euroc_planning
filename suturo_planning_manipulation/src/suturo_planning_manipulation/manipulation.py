@@ -164,10 +164,11 @@ class Manipulation(object):
                     self.__planning_scene_interface.add_object(bobj)
             rospy.sleep(1.5)
         elif blow_up == 2:
+            print "muh"
             map = self.__planning_scene_interface.get_collision_object("map")
             map = self.__blow_up_map(map)
             self.__planning_scene_interface.add_object(map)
-            rospy.sleep(2)
+            rospy.sleep(1.5)
 
         move_group.set_start_state_to_current_state()
         goal = deepcopy(goal_pose)
@@ -219,8 +220,6 @@ class Manipulation(object):
             rospy.logwarn("TODO test this")
             goal = self.__make_joint_state_goal(move_group, goal)
             constraint.joint_constraints.append(goal)
-        # else:
-
 
         request.motion_plan_request.goal_constraints.append(constraint)
 
@@ -248,7 +247,7 @@ class Manipulation(object):
 
     def __make_position_goal(self, move_group, goal):
 
-        position_tolerance = 0.00000001
+        position_tolerance = 0.00001
         orientation_tolerance = 0.001
 
         position_goal = PositionConstraint()
@@ -306,8 +305,6 @@ class Manipulation(object):
         :return: Returns the Blown up object
         """
         o = deepcopy(bobject)
-        # if o.id == "map":
-        #     return self.__blow_up_map(bobject)
         for primitive in o.primitives:
             dims = []
             for dimension in primitive.dimensions:
@@ -317,16 +314,11 @@ class Manipulation(object):
 
     def __blow_up_map(self, object):
         o = deepcopy(object)
-        # o.primitives[SolidPrimitive.BOX_Z] =+ 0.1
         for primitive in o.primitives:
-            # dims = []
-            # for dimension in primitive.dimensions:
-            #     dims.append(dimension + 0.1)
             dim = []
-            dim.append(primitive.dimensions[0])
-            dim.append(primitive.dimensions[1])
+            dim.append(primitive.dimensions[0] + 0.01)
+            dim.append(primitive.dimensions[1] + 0.01)
             dim.append(primitive.dimensions[2] + 0.175)
-             # += 0.1
             primitive.dimensions = dim
         return o
 
