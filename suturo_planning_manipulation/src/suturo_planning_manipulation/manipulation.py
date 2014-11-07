@@ -467,13 +467,13 @@ class Manipulation(object):
 
         self.open_gripper()
         for grasp in grasp_positions:
-            if self.__move_group_to(get_pre_grasp(self.transform_to(grasp)), move_group):
+            if self.__move_group_to(get_pre_grasp(self.transform_to(grasp)), move_group, blow_up=("map", collision_object_name)):
 
-                if not self.__move_group_to(grasp, move_group, blow_up=("map")):
+                if not self.__move_group_to(grasp, move_group, blow_up=("map", collision_object_name)):
                     continue
-                # rospy.sleep(1)
-                # self.close_gripper(collision_object, get_grasp_point(self.transform_to(grasp)))
-                #
+                rospy.sleep(1)
+                self.close_gripper(collision_object, get_fingertip(self.transform_to(grasp)))
+
                 # com = self.get_center_of_mass(collision_object)
                 # com = self.tf.transform_to(com, "/tcp")
                 # if com is None:
@@ -481,24 +481,24 @@ class Manipulation(object):
                 #     return False
                 # self.load_object(self.calc_object_weight(collision_object, object_density),
                 #                  Vector3(com.point.x, com.point.y, com.point.z))
-                #
-                # rospy.loginfo("grasped " + collision_object_name)
-                #
-                self.__grasp = self.tf.transform_to(grasp)
-                v1 = deepcopy(self.__grasp.pose.position)
-                v1.z = 0
-                v2 = deepcopy(collision_object.primitive_poses[0].position)
-                v2.z = 0
-                a = magnitude(subtract_point(v1, v2))
-                b = abs(self.__grasp.pose.position.z - collision_object.primitive_poses[0].position.z)
-                c = sqrt(a ** 2 + b ** 2)
-                self.__d = abs(c)
+
+                rospy.loginfo("grasped " + collision_object_name)
+
+                # self.__grasp = self.tf.transform_to(grasp)
+                # v1 = deepcopy(self.__grasp.pose.position)
+                # v1.z = 0
+                # v2 = deepcopy(collision_object.primitive_poses[0].position)
+                # v2.z = 0
+                # a = magnitude(subtract_point(v1, v2))
+                # b = abs(self.__grasp.pose.position.z - collision_object.primitive_poses[0].position.z)
+                # c = sqrt(a ** 2 + b ** 2)
+                # self.__d = abs(c)
                 # print c
-                #
-                # rospy.logdebug("lift object")
-                # if not self.__move_group_to(get_pre_grasp(grasp), move_group):
-                #     rospy.logdebug("couldnt lift object")
-                # return True
+
+                rospy.logdebug("lift object")
+                if not self.__move_group_to(get_pre_grasp(grasp), move_group, blow_up=("map", collision_object_name)):
+                    rospy.logdebug("couldnt lift object")
+                return True
         rospy.logwarn("Grapsing failed.")
         return False
 
