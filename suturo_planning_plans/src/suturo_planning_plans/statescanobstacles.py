@@ -85,7 +85,7 @@ class ScanObstacles(smach.State):
             # poses = [pose for pose in poses if get_angle(subtract_point(Point(pose.pose.position.x, pose.pose.position.y, 0), region_centroid), c_to_base) > pi/4]
             poses = utils.manipulation.filter_close_poses(poses)
 
-        poses = utils.map.filter_invalid_poses2(region_centroid.x, region_centroid.y, poses)
+        poses = utils.map.filter_invalid_scan_poses2(region_centroid.x, region_centroid.y, poses)
 
         if userdata.sec_try:
             current_pose = utils.manipulation.get_eef_position().pose.position

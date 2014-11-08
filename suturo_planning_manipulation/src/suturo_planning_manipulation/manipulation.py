@@ -35,7 +35,6 @@ import time
 
 class Manipulation(object):
     def __init__(self, yaml=None):
-        # a = Task()
         self.tf = Transformer()
 
         moveit_commander.roscpp_initialize(sys.argv)
