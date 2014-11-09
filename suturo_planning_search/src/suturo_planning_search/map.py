@@ -823,6 +823,38 @@ class Map:
 
         return volume
 
+    def undercover_classifier(self, regions, objects):
+        """
+        This is NOT a classifier.
+        :param region:
+        :param yaml_objects:
+        :return:
+        """
+        regions_copy = deepcopy(regions)
+        classified_regions = []
+        for o in objects:
+            regions_with_same_color = [r for r in regions_copy if r.get_color_hex() == o.color]
+            if len(regions_with_same_color) == 0:
+                rospy.logwarn("couldnt find " + str(o.name))
+            if len(regions_with_same_color) == 1:
+                classified_regions.append((regions_with_same_color[0], o.name, True))
+                if regions_with_same_color[0] in regions_copy:
+                    regions_copy.remove(regions_with_same_color[0])
+            else:
+                ds = []
+                for p in o.primitives:
+                    if len(o.primitives) == 1 or p.type == SolidPrimitive.BOX:
+                        ds.extend(p.dimensions)
+                h = max(ds)
+                regions_with_same_height = [r for r in regions_with_same_color if abs(r.get_height()-h) < 0.005]
+                skip_classifier = len(regions_with_same_height) == 1
+                for r in regions_with_same_height:
+                    classified_regions.append((r, o.name, skip_classifier))
+                    if r in regions_copy:
+                        regions_copy.remove(r)
+
+        return classified_regions
+
     def mark_region_as_object_under_point(self, x, y):
         """
         Searches for a region that contains the cell at x and y and makes every cell in it to a object.

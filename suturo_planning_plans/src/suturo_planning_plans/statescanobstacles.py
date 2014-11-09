@@ -1,8 +1,10 @@
 from geometry_msgs.msg._Point import Point
+from shape_msgs.msg._SolidPrimitive import SolidPrimitive
 import smach
 import rospy
 from geometry_msgs.msg import PoseStamped
 import time
+from suturo_msgs.msg._Object import Object
 from suturo_planning_manipulation import mathemagie
 from suturo_planning_manipulation.calc_grasp_position import make_scan_pose
 from suturo_planning_manipulation.mathemagie import subtract_point, get_angle, euclidean_distance
@@ -19,7 +21,7 @@ from suturo_msgs.msg import Task
 
 class ScanObstacles(smach.State):
 
-    obstacle_cluster = []
+    classified_regions = []
     next_cluster = 0
 
     def __init__(self):
@@ -31,26 +33,27 @@ class ScanObstacles(smach.State):
         rospy.loginfo('Executing state ScanObstacles')
         userdata.sec_try_done = False
         if userdata.sec_try:
-            current_region = self.obstacle_cluster[self.next_cluster-1]
+            current_region = self.classified_regions[self.next_cluster-1][0]
             userdata.sec_try_done = True
         else:
-            if len(self.obstacle_cluster) == 0:
-                self.obstacle_cluster = utils.map.get_obstacle_regions()
-                rospy.logdebug(str(len(self.obstacle_cluster)) + " regions found.")
-                self.obstacle_cluster.sort(key=lambda x: x.get_number_of_cells())
+            #get regions
+            if len(self.classified_regions) == 0:
+                obstacle_cluster = utils.map.get_obstacle_regions()
+                rospy.logdebug(str(len(self.classified_regions)) + " regions found.")
+                obstacle_cluster.sort(key=lambda x: x.get_number_of_cells())
+                print '#####################################'
+                self.classified_regions = utils.map.undercover_classifier(obstacle_cluster, userdata.yaml.objects)
+                print self.classified_regions
+                print '#####################################'
 
-            if self.next_cluster >= len(self.obstacle_cluster):
+            if self.next_cluster >= len(self.classified_regions):
                 rospy.loginfo("searched all cluster")
                 return 'noRegionLeft'
 
-            current_region = self.obstacle_cluster[self.next_cluster]
+            current_region = self.classified_regions[self.next_cluster][0]
+            rospy.logdebug("current region: " + str(self.next_cluster) + "\n" + str(current_region) +
+                           "\nclassified as " + str(self.classified_regions[self.next_cluster][1]))
             self.next_cluster += 1
-
-        rospy.logdebug("current region: " + str(self.next_cluster) + "\n" + str(current_region))
-
-        if utils.map.get_cell_by_index(*current_region.cell_coords[0]).is_undef():
-            rospy.logdebug("Region has an undefined color, skipping")
-            return 'mapScanned'
 
         region_centroid = Point(*(utils.map.index_to_coordinates(*current_region.get_avg()))+(-0.065,))
 
@@ -71,18 +74,12 @@ class ScanObstacles(smach.State):
                 rospy.logwarn('Current region is out of reach. Ignoring it.')
                 return 'mapScanned'
 
-        # angle = (pi / 2) - (dist_to_region / 1)
         angle = 1.2
         distance = 0.6 + current_region.get_number_of_cells()*0.008
 
-        rospy.logdebug('Focusing point: %s' % str(region_centroid))
-        rospy.logdebug('Angle: %s' % str(angle))
-        rospy.logdebug('Distance: %s' % str(distance))
         poses = make_scan_pose(region_centroid, distance, angle, n=16)
 
         if not userdata.enable_movement:
-            # c_to_base = subtract_point(Point(0, 0, 0), region_centroid)
-            # poses = [pose for pose in poses if get_angle(subtract_point(Point(pose.pose.position.x, pose.pose.position.y, 0), region_centroid), c_to_base) > pi/4]
             poses = utils.manipulation.filter_close_poses(poses)
 
         poses = utils.map.filter_invalid_scan_poses2(region_centroid.x, region_centroid.y, poses)
@@ -110,9 +107,7 @@ class ScanObstacles(smach.State):
                 rospy.logdebug('Wait for clock')
                 time.sleep(0.5)
                 rospy.sleep(2.5)
-                #
-                # rospy.logdebug('Wait for tf again.')
-                # rospy.sleep(4)
                 return 'newImage'
 
         return 'mapScanned'
+

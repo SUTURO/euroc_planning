@@ -559,18 +559,7 @@ class Manipulation(object):
         :param density: density as float
         :return: weight as float
         """
-        weight = 0
-        for i in range(0, len(collision_object.primitives)):
-            if collision_object.primitives[i].type == shape_msgs.msg.SolidPrimitive().BOX:
-                x = collision_object.primitives[i].dimensions[shape_msgs.msg.SolidPrimitive.BOX_X]
-                y = collision_object.primitives[i].dimensions[shape_msgs.msg.SolidPrimitive.BOX_Y]
-                z = collision_object.primitives[i].dimensions[shape_msgs.msg.SolidPrimitive.BOX_Z]
-                weight += x * y * z * density
-            elif collision_object.primitives[i].type == shape_msgs.msg.SolidPrimitive().CYLINDER:
-                r = collision_object.primitives[i].dimensions[shape_msgs.msg.SolidPrimitive.CYLINDER_RADIUS]
-                h = collision_object.primitives[i].dimensions[shape_msgs.msg.SolidPrimitive.CYLINDER_HEIGHT]
-                weight += pi * r * r * h * density
-        return weight
+        return calc_object_volume(collision_object) * density
 
     def get_center_of_mass(self, collision_object):
         """

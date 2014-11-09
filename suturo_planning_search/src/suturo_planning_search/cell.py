@@ -36,6 +36,13 @@ class Cell:
     YELLOW_ID = 5
     UNDEF_ID = 6
 
+    BLUE_HEX = '0000ff'
+    GREEN_HEX = '00ff00'
+    CYAN_HEX = '00ffff'
+    RED_HEX = 'ff0000'
+    MAGENTA_HEX = 'ff00ff'
+    YELLOW_HEX = 'ffff00'
+
     #point under min_z_value are equal to z=0
     min_z_value = 0.01
 
@@ -168,6 +175,21 @@ class Cell:
         else:
             return self.UNDEF
 
+    def color_id_to_hex(self, color_id):
+        if color_id == self.BLUE_ID:
+            return self.BLUE_HEX
+        elif color_id == self.GREEN_ID:
+            return self.GREEN_HEX
+        elif color_id == self.CYAN_ID:
+            return self.CYAN_HEX
+        elif color_id == self.RED_ID:
+            return self.RED_HEX
+        elif color_id == self.MAGENTA_ID:
+            return self.MAGENTA_HEX
+        elif color_id == self.YELLOW_ID:
+            return self.YELLOW_HEX
+        return None
+
     # setter
 
     def set_free(self):
@@ -280,6 +302,9 @@ class Cell:
 
     def get_color(self):
         return self.id_to_color(self.get_color_id())
+
+    def get_color_hex(self):
+        return self.color_id_to_hex(self.get_color_id())
 
     def get_color_id(self):
         """

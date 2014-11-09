@@ -86,6 +86,8 @@ class TestCell(unittest.TestCase):
         c.points[Cell.UNDEF_ID] = 94
         c.points[Cell.RED_ID] = 6
         self.assertTrue(c.is_red(), c.get_color_id())
+        print c.get_color_hex()
+        self.assertEqual(c.get_color_hex(), 'ff0000')
         self.assertFalse(c.is_undef(), c.get_color_id())
 
 class TestMapCleanUp(unittest.TestCase):

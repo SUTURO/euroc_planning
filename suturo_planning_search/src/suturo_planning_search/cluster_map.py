@@ -91,6 +91,20 @@ class Region:
         else:
             return False
 
+    def get_color_hex(self):
+        if len(self.cells) > 0:
+            return self.cells[0].get_color_hex()
+        else:
+            return None
+
+    def get_height(self):
+        if len(self.cells) > 0:
+            return max([c.highest_z for c in self.cells])
+        else:
+            return -1
+
+
+
 class RegionType:
     obstacles = 1
     unknown = 2
