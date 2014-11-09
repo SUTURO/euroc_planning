@@ -124,8 +124,8 @@ class Manipulation(object):
         :param goal_pose: goal position as PoseStamped
         :return: success of the movement
         """
-        print("move_arm_and_base_to called!")
-        rospy.logdebug("move_arm_and_base_to called!")
+        # print("move_arm_and_base_to called!")
+        # rospy.logdebug("move_arm_and_base_to called!")
         if (math.isnan(goal_pose.pose.orientation.x) or
                 math.isnan(goal_pose.pose.orientation.y) or
                 math.isnan(goal_pose.pose.orientation.z) or
@@ -135,8 +135,8 @@ class Manipulation(object):
             goal_pose.pose.orientation.y = 0.0
             goal_pose.pose.orientation.z = 0.0
             goal_pose.pose.orientation.w = 1.0
-        rospy.logdebug("move_arm_and_base_to goal_pose = " + str(goal_pose) + ", blow_up = "+str(blow_up))
-        print("move_arm_and_base_to goal_pose = " + str(goal_pose) + ", blow_up = "+str(blow_up))
+        # rospy.logdebug("move_arm_and_base_to goal_pose = " + str(goal_pose) + ", blow_up = "+str(blow_up))
+        # print("move_arm_and_base_to goal_pose = " + str(goal_pose) + ", blow_up = "+str(blow_up))
         return self.__move_group_to(goal_pose, self.__arm_base_group, blow_up)
 
     def __move_group_to(self, goal_pose, move_group, blow_up, blow_up_distance=0.02):
@@ -147,24 +147,24 @@ class Manipulation(object):
          :param blow_up_distance: Distance in m
          :return:
          """
-        rospy.logdebug("__move_group_to called!")
-        rospy.logdebug("__move_group_to.goal_pose = "+str(goal_pose)+" .move_group = "+str(move_group)+" .blow_up = "+str(blow_up))
+        # rospy.logdebug("__move_group_to called!")
+        # rospy.logdebug("__move_group_to.goal_pose = "+str(goal_pose)+" .move_group = "+str(move_group)+" .blow_up = "+str(blow_up))
         path = self.__plan_group_to(goal_pose, move_group, blow_up, None)
-        rospy.logdebug("__move_group_to got a path: "+str(path))
+        # rospy.logdebug("__move_group_to got a path: "+str(path))
         ret = self.move_with_plan_to(path)
-        rospy.logdebug("__move_group_to return value = "+str(ret))
+        # rospy.logdebug("__move_group_to return value = "+str(ret))
         return ret
 
     def move_with_plan_to(self, plan):
-        rospy.logdebug("move_with_plan_to called!")
-        rospy.logdebug("move_with_plan_to.plan = "+str(plan))
+        # rospy.logdebug("move_with_plan_to called!")
+        # rospy.logdebug("move_with_plan_to.plan = "+str(plan))
         if plan is None:
-            rospy.logdebug("move_with_plan_to plan is None")
+            # rospy.logdebug("move_with_plan_to plan is None")
             return False
         if type(plan) is RobotTrajectory:
-            rospy.logdebug("move_with_plan_to plan is RobotTrajectory")
+            # rospy.logdebug("move_with_plan_to plan is RobotTrajectory")
             return self.__manService.move(plan)
-        rospy.logdebug("plan is neither None nor RobotTrajectory")
+        # rospy.logdebug("plan is neither None nor RobotTrajectory")
         return self.__manService.move(plan.motion_plan_response.trajectory)
 
     def plan_arm_to(self, goal_pose, blow_up=(), start_state=None):
@@ -197,11 +197,11 @@ class Manipulation(object):
         move_group.set_start_state_to_current_state()
         goal = deepcopy(goal_pose)
 
-        rospy.logdebug("goal = " + str(goal))
+        # rospy.logdebug("goal = " + str(goal))
         if type(goal) is str:
-            rospy.logdebug("move_group.set_named_target")
+            # rospy.logdebug("move_group.set_named_target")
             move_group.set_named_target(goal)
-            rospy.logwarn("DANGER, for named targets, attached objects will be ignored.")
+            # rospy.logwarn("DANGER, for named targets, attached objects will be ignored.")
             plan = move_group.plan()
             if blow_up != 0:
                 self.__planning_scene_interface.add_objects(original_objects)
@@ -211,9 +211,9 @@ class Manipulation(object):
             visualize_pose(goal)
             # Rotate the goal so that the gripper points from 0,0,0 to 1,0,0 with a 0,0,0,1 quaternion as orientation.
             goal.pose.orientation = rotate_quaternion(goal.pose.orientation, pi / 2, pi, pi / 2)
-            rospy.logdebug("goal after rotation: " + str(goal))
+            # rospy.logdebug("goal after rotation: " + str(goal))
             if goal.header.frame_id != "/odom_combined":
-                rospy.logdebug("goal after transformation: " + str(goal))
+                # rospy.logdebug("goal after transformation: " + str(goal))
                 goal = self.tf.transform_to(goal)
 
                 # move_group.set_pose_target(goal)
@@ -229,7 +229,7 @@ class Manipulation(object):
         if blow_up != 0:
             self.__planning_scene_interface.add_objects(original_objects)
 
-        rospy.logdebug("_plan_group_to done, return value: "+str(plan))
+        # rospy.logdebug("_plan_group_to done, return value: "+str(plan))
         return plan
 
     def plan(self, move_group, goal, start_state):
