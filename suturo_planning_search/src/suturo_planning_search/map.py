@@ -240,14 +240,19 @@ class Map:
             for x in range(0, len(self.field)):
                 for y in range(0, len(self.field[x])):
                     cell = self.get_cell_by_index(x, y)
-                    cell_coor = self.index_to_coordinates(x, y)
+                    cell_coor_2d = self.index_to_coordinates(x, y)
+                    cell_x, cell_y = cell_coor_2d
+                    cell_coor = Point(cell_x, cell_y, 0)
                     fixture_dist = euclidean_distance_in_2d(fixture_position, cell_coor)
                     if fixture_dist < 0.35:
                         rospy.logdebug("cell at ("+str(x)+","+str(y)+") marked as fixture cell")
-                        cell.set_obstacle()
-                        cell.highest_z = 0.1
-                        cell.average_z = 0.1
+                        #cell.set_obstacle()
+                        if cell.highest_z > 0.1:
+                            cell.highest_z = 0.1
+                        if cell.average_z > 0.1:
+                            cell.average_z = 0.1
                         rospy.logdebug("the cell at ("+str(x)+","+str(y)+"): "+str(cell))
+        self.publish_as_marker()
 
     def to_collision_object(self):
         '''

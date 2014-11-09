@@ -34,6 +34,36 @@ def get_place_position(collision_object, destination, transform_func, d, grasp):
         return get_place_position_handle(collision_object, destination, transform_func, d)
 
 
+def get_place_position_for_puzzle(destination):
+    rospy.logdebug("get_place_position_for_puzzle")
+    place_poses = []
+    origin = deepcopy(destination.point)
+    to = add_point(deepcopy(destination.point), Point(0, 0, -1))
+    roll = add_point(deepcopy(destination.point), Point(1, 0, 0))
+
+    place_pose_1 = PoseStamped()
+    place_pose_1.header.frame_id = "/odom_combined"
+    place_pose_1.pose.position = deepcopy(destination.point)
+    place_pose_1.pose.orientation = three_points_to_quaternion(deepcopy(origin), deepcopy(to), deepcopy(roll))
+    place_poses.append(place_pose_1)
+
+    roll = add_point(deepcopy(destination.point),Point(-1, 0, 0))
+    place_pose_2 = deepcopy(place_pose_1)
+    place_pose_2.pose.orientation = three_points_to_quaternion(deepcopy(origin), deepcopy(to), deepcopy(roll))
+    place_poses.append(place_pose_2)
+
+    roll = add_point(deepcopy(destination.point),Point(0, 1, 0))
+    place_pose_3 = deepcopy(place_pose_1)
+    place_pose_3.pose.orientation = three_points_to_quaternion(deepcopy(origin), deepcopy(to), deepcopy(roll))
+    place_poses.append(place_pose_3)
+
+    roll = add_point(deepcopy(destination.point),Point(0, -1, 0))
+    place_pose_4 = deepcopy(place_pose_1)
+    place_pose_4.pose.orientation = three_points_to_quaternion(deepcopy(origin), deepcopy(to), deepcopy(roll))
+    place_poses.append(place_pose_4)
+
+    return place_poses
+
 def get_place_position_for_single_object(collision_object, destination, transform_func,  grasp, d):
     '''
     Calculates place positions for a non composition of collision objects.

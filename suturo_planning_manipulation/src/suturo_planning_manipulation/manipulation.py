@@ -210,7 +210,7 @@ class Manipulation(object):
             #rospy.logdebug("goal is pose stamped")
             visualize_pose(goal)
             # Rotate the goal so that the gripper points from 0,0,0 to 1,0,0 with a 0,0,0,1 quaternion as orientation.
-            #goal.pose.orientation = rotate_quaternion(goal.pose.orientation, pi / 2, pi, pi / 2)
+            goal.pose.orientation = rotate_quaternion(goal.pose.orientation, pi / 2, pi, pi / 2)
             # rospy.logdebug("goal after rotation: " + str(goal))
             if goal.header.frame_id != "/odom_combined":
                 # rospy.logdebug("goal after transformation: " + str(goal))

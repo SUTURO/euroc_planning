@@ -3,8 +3,9 @@ import smach
 import rospy
 from geometry_msgs.msg import PointStamped
 from suturo_planning_manipulation.calc_grasp_position import get_pre_grasp
-from suturo_planning_manipulation.place import get_place_position, get_pre_place_position
+from suturo_planning_manipulation.place import get_place_position, get_pre_place_position, get_place_position_for_puzzle
 from suturo_planning_manipulation.manipulation_constants import *
+from suturo_msgs.msg import Task
 
 import utils
 
@@ -15,7 +16,7 @@ class PlaceObject(smach.State):
 
     def __init__(self):
         smach.State.__init__(self, outcomes=['success', 'fail', 'noObjectAttached', 'noPlacePosition'],
-                             input_keys=['enable_movement', 'target_position', 'grasp', 'dist_to_obj'],
+                             input_keys=['enable_movement', 'target_position', 'grasp', 'dist_to_obj', 'yaml'],
                              output_keys=['place_position'])
 
     def execute(self, userdata):
@@ -44,7 +45,11 @@ class PlaceObject(smach.State):
 
         destination = utils.manipulation.transform_to(destination)
         rospy.logdebug("at::: " + str(destination))
-        place_poses = get_place_position(co, destination, utils.manipulation.transform_to, userdata.dist_to_obj,
+        if userdata.yaml.task_type == Task.TASK_5:
+            destination.point.z = 0.4
+            place_poses = get_place_position_for_puzzle(destination)
+        else:
+            place_poses = get_place_position(co, destination, utils.manipulation.transform_to, userdata.dist_to_obj,
                                          userdata.grasp)
         print place_poses
         # place_poses = utils.map.filter_invalid_poses3(destination.point.x, destination.point.y, place_poses)
@@ -54,14 +59,15 @@ class PlaceObject(smach.State):
         for place_pose in place_poses:
             rospy.logdebug("Try to place at: " + str(place_pose))
 
-            if not move_to_func(get_pre_place_position(place_pose), blow_up=(co.id)):
-                rospy.logwarn("Can't reach preplaceposition.")
-                continue
-            else:
-                rospy.logdebug("preplaceposition taken")
+            if userdata.yaml.task_type != Task.TASK_5:
+                if not move_to_func(get_pre_place_position(place_pose), blow_up=(co.id)):
+                    rospy.logwarn("Can't reach preplaceposition.")
+                    continue
+                else:
+                    rospy.logdebug("preplaceposition taken")
 
-            time.sleep(0.5)
-            rospy.sleep(1)
+                time.sleep(0.5)
+                rospy.sleep(1)
             
             if not move_to_func(place_pose, blow_up=(co.id, "map")):
                 rospy.logwarn("Can't reach placeposition.")
@@ -82,6 +88,9 @@ class PlaceObject(smach.State):
             if not utils.manipulation.open_gripper():
                 #cant happen
                 return 'fail'
+
+            if userdata.yaml.task_type == Task.TASK_5:
+                utils.manipulation.get_planning_scene().remove_object(co.id)
 
             time.sleep(0.5)
             rospy.sleep(1)
