@@ -56,12 +56,12 @@ class ScanObstacles(smach.State):
 
         dist_to_region = mathemagie.euclidean_distance(Point(0, 0, 0), region_centroid)
 
-        if userdata.yaml.task_type == Task.TASK_5:
-            fixture_position = mathemagie.add_point(userdata.yaml.puzzle_fixture.position, Point(0.115, 0.165, 0))
-            dist_to_fixture = mathemagie.euclidean_distance(fixture_position, region_centroid)
-            if dist_to_fixture < 0.35:
-               rospy.logdebug("Region classified as puzzle fixture, skipping")
-               return 'mapScanned'
+        #if userdata.yaml.task_type == Task.TASK_5:
+        #    fixture_position = mathemagie.add_point(userdata.yaml.puzzle_fixture.position, Point(0.115, 0.165, 0))
+        #    dist_to_fixture = mathemagie.euclidean_distance(fixture_position, region_centroid)
+        #    if dist_to_fixture < 0.35:
+        #       rospy.logdebug("Region classified as puzzle fixture, skipping")
+        #       return 'mapScanned'
 
         # If the arm cannot move ignore distant regions
         # TODO find the best max distance

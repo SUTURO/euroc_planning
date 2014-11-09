@@ -22,6 +22,7 @@ from suturo_planning_visualization import visualization
 from suturo_planning_manipulation.transformer import Transformer
 # from suturo_perception_msgs.msg import GetPointArray
 # import pcl
+from suturo_msgs.msg import Task
 
 __author__ = 'ichumuh'
 
@@ -198,6 +199,23 @@ class Map:
             # self.publish_as_marker()
 
         self.publish_as_marker()
+
+    def remove_puzzle_fixture(self, yaml):
+        rospy.logdebug("remove_puzzle_fixture called!")
+        if yaml.task_type == Task.TASK_5:
+            fixture_position = deepcopy(yaml.puzzle_fixture.position)
+            fixture_position = add_point(fixture_position, Point(0.115, 0.165, 0))
+            for x in range(0, len(self.field)):
+                for y in range(0, len(self.field[x])):
+                    cell = self.get_cell_by_index(x, y)
+                    cell_coor = self.index_to_coordinates(x, y)
+                    fixture_dist = euclidean_distance_in_2d(fixture_position, cell_coor)
+                    if fixture_dist < 0.35:
+                        rospy.logdebug("cell at ("+str(x)+","+str(y)+") marked as fixture cell")
+                        cell.set_obstacle()
+                        cell.highest_z = 0.1
+                        cell.average_z = 0.1
+                        rospy.logdebug("the cell at ("+str(x)+","+str(y)+"): "+str(cell))
 
     def to_collision_object(self):
         '''
