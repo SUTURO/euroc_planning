@@ -45,7 +45,7 @@ class ManipulationService(object):
 
     def move(self, path):
         rospy.logdebug("manipulation service move called!")
-        rospy.logdebug("incoming move path = "+str(path))
+        # rospy.logdebug("incoming move path = "+str(path))
         # check if moveit generated a trajectory
         if len(path.joint_trajectory.points) == 0:
             return False
@@ -82,9 +82,9 @@ class ManipulationService(object):
         ros_start_time.from_seconds(0)
 
         # call the service and store the response
-        rospy.logdebug("calling self.__move_service with "+str(path.joint_trajectory.joint_names) +", "+ str(config)+", "+str(ros_start_time)+", "+str(joint_limits)+", "+str(self.tcp_limits))
+        # rospy.logdebug("calling self.__move_service with "+str(path.joint_trajectory.joint_names) +", "+ str(config)+", "+str(ros_start_time)+", "+str(joint_limits)+", "+str(self.tcp_limits))
         resp = self.__move_service(path.joint_trajectory.joint_names, config, ros_start_time, joint_limits, self.tcp_limits)
-        rospy.logdebug("manipulation service move move_service return value = "+str(resp))
+        # rospy.logdebug("manipulation service move move_service return value = "+str(resp))
         if resp.error_message:
             raise ManipulationServiceException(resp.error_message)
         if resp.stop_reason == "path finished":

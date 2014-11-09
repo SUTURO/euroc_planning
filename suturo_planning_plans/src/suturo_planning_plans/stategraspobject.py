@@ -106,17 +106,17 @@ class GraspObject(smach.State):
 
             rospy.logdebug("lift object")
             the_pre_grasp = get_pre_grasp(grasp)
-            rospy.logdebug("the_pre_grasp = "+str(the_pre_grasp))
-            if rospy.is_shutdown():
-                print("rospy.is_shutdown() returned true!!")
+            # rospy.logdebug("the_pre_grasp = "+str(the_pre_grasp))
+            # if rospy.is_shutdown():
+                # print("rospy.is_shutdown() returned true!!")
             the_move_to_func = move_to_func(the_pre_grasp, blow_up=collision_object_name)
-            rospy.logdebug("the_move_to_func = "+str(the_move_to_func))
-            if rospy.is_shutdown():
-                print("rospy.is_shutdown() returned true!!")
+            # rospy.logdebug("the_move_to_func = "+str(the_move_to_func))
+            # if rospy.is_shutdown():
+            #     print("rospy.is_shutdown() returned true!!")
 
             if not the_move_to_func:
                 rospy.logwarn("couldnt lift object. continue anyway")
-            rospy.logdebug("graspobject: return success")
+            # rospy.logdebug("graspobject: return success")
             return 'success'
         rospy.logwarn("Grapsing failed.")
         return 'fail'

@@ -35,7 +35,6 @@ import time
 
 class Manipulation(object):
     def __init__(self, yaml=None):
-        # a = Task()
         self.tf = Transformer()
 
         moveit_commander.roscpp_initialize(sys.argv)
@@ -125,8 +124,8 @@ class Manipulation(object):
         :param goal_pose: goal position as PoseStamped
         :return: success of the movement
         """
-        print("move_arm_and_base_to called!")
-        rospy.logdebug("move_arm_and_base_to called!")
+        # print("move_arm_and_base_to called!")
+        # rospy.logdebug("move_arm_and_base_to called!")
         if (math.isnan(goal_pose.pose.orientation.x) or
                 math.isnan(goal_pose.pose.orientation.y) or
                 math.isnan(goal_pose.pose.orientation.z) or
@@ -136,8 +135,8 @@ class Manipulation(object):
             goal_pose.pose.orientation.y = 0.0
             goal_pose.pose.orientation.z = 0.0
             goal_pose.pose.orientation.w = 1.0
-        rospy.logdebug("move_arm_and_base_to goal_pose = " + str(goal_pose) + ", blow_up = "+str(blow_up))
-        print("move_arm_and_base_to goal_pose = " + str(goal_pose) + ", blow_up = "+str(blow_up))
+        # rospy.logdebug("move_arm_and_base_to goal_pose = " + str(goal_pose) + ", blow_up = "+str(blow_up))
+        # print("move_arm_and_base_to goal_pose = " + str(goal_pose) + ", blow_up = "+str(blow_up))
         return self.__move_group_to(goal_pose, self.__arm_base_group, blow_up)
 
     def __move_group_to(self, goal_pose, move_group, blow_up, blow_up_distance=0.02):
@@ -202,7 +201,7 @@ class Manipulation(object):
         if type(goal) is str:
             #rospy.logdebug("move_group.set_named_target")
             move_group.set_named_target(goal)
-            rospy.logwarn("DANGER, for named targets, attached objects will be ignored.")
+            # rospy.logwarn("DANGER, for named targets, attached objects will be ignored.")
             plan = move_group.plan()
             if blow_up != 0:
                 self.__planning_scene_interface.add_objects(original_objects)
@@ -212,9 +211,9 @@ class Manipulation(object):
             visualize_pose(goal)
             # Rotate the goal so that the gripper points from 0,0,0 to 1,0,0 with a 0,0,0,1 quaternion as orientation.
             #goal.pose.orientation = rotate_quaternion(goal.pose.orientation, pi / 2, pi, pi / 2)
-            rospy.logdebug("goal after rotation: " + str(goal))
+            # rospy.logdebug("goal after rotation: " + str(goal))
             if goal.header.frame_id != "/odom_combined":
-                rospy.logdebug("goal after transformation: " + str(goal))
+                # rospy.logdebug("goal after transformation: " + str(goal))
                 goal = self.tf.transform_to(goal)
 
                 # move_group.set_pose_target(goal)
@@ -560,18 +559,7 @@ class Manipulation(object):
         :param density: density as float
         :return: weight as float
         """
-        weight = 0
-        for i in range(0, len(collision_object.primitives)):
-            if collision_object.primitives[i].type == shape_msgs.msg.SolidPrimitive().BOX:
-                x = collision_object.primitives[i].dimensions[shape_msgs.msg.SolidPrimitive.BOX_X]
-                y = collision_object.primitives[i].dimensions[shape_msgs.msg.SolidPrimitive.BOX_Y]
-                z = collision_object.primitives[i].dimensions[shape_msgs.msg.SolidPrimitive.BOX_Z]
-                weight += x * y * z * density
-            elif collision_object.primitives[i].type == shape_msgs.msg.SolidPrimitive().CYLINDER:
-                r = collision_object.primitives[i].dimensions[shape_msgs.msg.SolidPrimitive.CYLINDER_RADIUS]
-                h = collision_object.primitives[i].dimensions[shape_msgs.msg.SolidPrimitive.CYLINDER_HEIGHT]
-                weight += pi * r * r * h * density
-        return weight
+        return calc_object_volume(collision_object) * density
 
     def get_center_of_mass(self, collision_object):
         """

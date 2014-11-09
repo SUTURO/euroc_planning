@@ -15,7 +15,6 @@ __author__ = 'ichumuh'
 
 
 class Cell:
-
     Free = 0
     Unknown = 1
     Obstacle = 2
@@ -37,20 +36,26 @@ class Cell:
     YELLOW_ID = 5
     UNDEF_ID = 6
 
+    BLUE_HEX = '0000ff'
+    GREEN_HEX = '00ff00'
+    CYAN_HEX = '00ffff'
+    RED_HEX = 'ff0000'
+    MAGENTA_HEX = 'ff00ff'
+    YELLOW_HEX = 'ffff00'
+
+    #point under min_z_value are equal to z=0
     min_z_value = 0.01
 
+    #a cell only gets a color, when at least 5% of the points have this color
     undef_threshold = 0.05
 
     def __init__(self):
         self.average_z = 0
         self.highest_z = 0
-        # self.points = 0
         self.segment_id = 0
         self.threshold_min_points = 15
         self.marked = False
-        # self.object = False
         self.state = self.Unknown
-        self.last_update_id = 0
 
         self.points = [0 for x in range(7)]
 
@@ -71,8 +76,14 @@ class Cell:
                other.is_free() and self.is_free() or \
                other.is_unknown() and self.is_unknown()
 
-    def update_cell(self, z, color, update_id):
-        self.last_update_id = update_id
+    def update_cell(self, z, color):
+        """
+        Updates a cell.
+        :param z: z value of a point in this cell
+        :type: float
+        :param color: color of a point in this cell
+        :type: float
+        """
         z2 = self.average_z * self.get_num_points()
         if z > self.min_z_value:
             if color == self.BLUE:
@@ -95,22 +106,39 @@ class Cell:
         self.average_z = (z2 + z) / self.get_num_points()
         if z > self.highest_z:
             self.highest_z = z
-        self.update_state()
+        self._update_state()
 
-    def update_state(self):
-        if not self.is_object() and self.enough_points():
+    def _update_state(self):
+        """
+        Updates the state of the cell depending on the average z value
+        """
+        if not self.is_object() and self._enough_points():
             if self.average_z <= self.min_z_value:
                 self.state = self.Free
             else:
                 self.state = self.Obstacle
 
-    def enough_points(self):
+    def _enough_points(self):
+        """
+        :return: True, if this cell has enough points to be an obstacle/object
+        :type: bool
+        """
         return self.get_num_points() > self.threshold_min_points
 
     def get_num_points(self):
+        """
+        :return: number of points in the cell
+        :type: int
+        """
         return sum(self.points)
 
     def id_to_color(self, id):
+        """
+        :param id: color id
+        :type: int
+        :return: corresponding color
+        :type: int
+        """
         if id == self.BLUE_ID:
             return self.BLUE
         elif id == self.GREEN_ID:
@@ -126,6 +154,12 @@ class Cell:
         return self.UNDEF
 
     def color_to_id(self, id):
+        """
+        :param id: color
+        :type: int
+        :return: corresponding color id
+        :type: int
+        """
         if id == self.BLUE:
             return self.BLUE_ID
         elif id == self.GREEN:
@@ -141,54 +175,102 @@ class Cell:
         else:
             return self.UNDEF
 
-    #setter
+    def color_id_to_hex(self, color_id):
+        if color_id == self.BLUE_ID:
+            return self.BLUE_HEX
+        elif color_id == self.GREEN_ID:
+            return self.GREEN_HEX
+        elif color_id == self.CYAN_ID:
+            return self.CYAN_HEX
+        elif color_id == self.RED_ID:
+            return self.RED_HEX
+        elif color_id == self.MAGENTA_ID:
+            return self.MAGENTA_HEX
+        elif color_id == self.YELLOW_ID:
+            return self.YELLOW_HEX
+        return None
+
+    # setter
 
     def set_free(self):
+        """
+        Sets the state of the cell to free. Does not change any other inner attributes.
+        """
         self.state = self.Free
 
     def set_object(self, is_object=True):
+        """
+        Sets the state of the cell to object. Does not change any other inner attributes.
+        """
         self.state = self.Object
 
     def set_obstacle(self):
+        """
+        Sets the state of the cell to obstacle. Does not change any other inner attributes.
+        """
         self.state = self.Obstacle
 
     def set_unknown(self):
+        """
+        Sets the state of the cell to unknown. Does not change any other inner attributes.
+        """
         self.state = self.Unknown
 
     def set_mark(self, marked=True):
+        """
+        Marks a cell, which will make it appear orange. No other side effects
+        :param marked: bool
+        """
         self.marked = marked
 
     def set_blue(self):
-        for x in range(len(self.points)):
-            self.points[x] = 0
-        self.points[self.BLUE_ID] = 50
+        """
+        Changes the amount of colored points, to change its color.
+        """
+        self.set_color(self.BLUE_ID)
 
     def set_green(self):
-        for x in range(len(self.points)):
-            self.points[x] = 0
-        self.points[self.GREEN_ID] = 50
+        """
+        Changes the amount of colored points, to change its color.
+        """
+        self.set_color(self.GREEN_ID)
 
     def set_red(self):
-        for x in range(len(self.points)):
-            self.points[x] = 0
-        self.points[self.RED_ID] = 50
+        """
+        Changes the amount of colored points, to change its color.
+        """
+        self.set_color(self.RED_ID)
 
     def set_yellow(self):
-        for x in range(len(self.points)):
-            self.points[x] = 0
-        self.points[self.YELLOW_ID] = 50
+        """
+        Changes the amount of colored points, to change its color.
+        """
+        self.set_color(self.YELLOW_ID)
 
     def set_cyan(self):
-        for x in range(len(self.points)):
-            self.points[x] = 0
-        self.points[self.CYAN_ID] = 50
+        """
+        Changes the amount of colored points, to change its color.
+        """
+        self.set_color(self.CYAN_ID)
 
     def set_magenta(self):
-        for x in range(len(self.points)):
-            self.points[x] = 0
-        self.points[self.MAGENTA_ID] = 50
+        """
+        Changes the amount of colored points, to change its color.
+        """
+        self.set_color(self.MAGENTA_ID)
+
+    def set_undef(self):
+        """
+        Changes the amount of colored points, to change its color.
+        """
+        self.set_color(self.UNDEF_ID)
 
     def set_color(self, color_id):
+        """
+        Changes the amount of colored points, to change its color.
+        :param color_id:
+        :type: int
+        """
         for x in range(len(self.points)):
             self.points[x] = 0
         self.points[color_id] = 50
@@ -196,61 +278,67 @@ class Cell:
 
     #getter
 
-    def get_last_update(self):
-        return self.last_update_id
-
     def get_state(self):
+        """
+        :return: the state of the cell
+        :type: int
+        """
         return self.state
 
     def is_object(self):
-        return self.state == self.Object
+        return self.get_state() == self.Object
 
     def is_free(self):
-        return self.state == self.Free
+        return self.get_state() == self.Free
 
     def is_obstacle(self):
-        return self.state == self.Obstacle
+        return self.get_state() == self.Obstacle
 
     def is_unknown(self):
-        return self.state == self.Unknown
+        return self.get_state() == self.Unknown
 
     def is_marked(self):
         return self.marked
 
-    def is_updated(self):
-        return self.last_update_id
-
     def get_color(self):
         return self.id_to_color(self.get_color_id())
 
+    def get_color_hex(self):
+        return self.color_id_to_hex(self.get_color_id())
+
     def get_color_id(self):
+        """
+        :return: the color id of the cell
+        :type: int
+        """
         if self.get_num_points() == 0:
             return self.UNDEF_ID
         id = -1
-        for i in range(0, len(self.points)-1):
-            if (self.points[i]+0.0 / self.get_num_points()+0.0 > self.undef_threshold and id == -1) or self.points[i] > self.points[id]:
+        for i in xrange(len(self.points) - 1):
+            if ((self.points[i] + 0.0) / (self.get_num_points() + 0.0) > self.undef_threshold and id == -1) or self.points[
+                i] > self.points[id]:
                 id = i
         if id == -1:
             return self.UNDEF_ID
         return id
 
     def is_blue(self):
-        return (self.is_obstacle() or self.is_object()) and self.get_color_id() == self.BLUE_ID
+        return self.get_color_id() == self.BLUE_ID and (self.is_obstacle() or self.is_object())
 
     def is_green(self):
-        return (self.is_obstacle() or self.is_object()) and  self.get_color_id() == self.GREEN_ID
+        return self.get_color_id() == self.GREEN_ID and (self.is_obstacle() or self.is_object())
 
     def is_red(self):
-        return (self.is_obstacle() or self.is_object()) and  self.get_color_id() == self.RED_ID
+        return self.get_color_id() == self.RED_ID and (self.is_obstacle() or self.is_object())
 
     def is_cyan(self):
-        return (self.is_obstacle() or self.is_object()) and  self.get_color_id() == self.CYAN_ID
+        return self.get_color_id() == self.CYAN_ID and (self.is_obstacle() or self.is_object())
 
     def is_magenta(self):
-        return (self.is_obstacle() or self.is_object()) and  self.get_color_id() == self.MAGENTA_ID
+        return self.get_color_id() == self.MAGENTA_ID and (self.is_obstacle() or self.is_object())
 
     def is_yellow(self):
-        return (self.is_obstacle() or self.is_object()) and  self.get_color_id() == self.YELLOW_ID
+        return self.get_color_id() == self.YELLOW_ID and (self.is_obstacle() or self.is_object())
 
     def is_undef(self):
-        return (self.is_obstacle() or self.is_object()) and  self.get_color_id() == self.UNDEF_ID
+        return self.get_color_id() == self.UNDEF_ID and (self.is_obstacle() or self.is_object())

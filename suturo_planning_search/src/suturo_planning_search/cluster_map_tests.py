@@ -284,7 +284,7 @@ class TestClusterRegionsSplitAndCubify(unittest.TestCase):
         regions = cm.get_result_regions()
 
         for r in regions:
-            print r
+            print r.get_color_id()
 
         muh = [[[1, 2], [2, 2], [1, 3], [1, 4], [1, 5]], [[1, 6], [2, 6], [2, 5], [2, 4], [2, 3]]]
 

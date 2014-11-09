@@ -1,5 +1,6 @@
 from geometry_msgs.msg._PointStamped import PointStamped
 from numpy.core.multiarray import dot
+from shape_msgs.msg._SolidPrimitive import SolidPrimitive
 from suturo_planning_manipulation.manipulation_constants import hand_length, finger_length
 from copy import deepcopy
 from math import sqrt, pi, cos, sin, acos
@@ -116,6 +117,21 @@ def add_point(p1, p2):
     if type(p2) is Point:
         v2 = (p2.x, p2.y, p2.z)
     return Point(*np.add(v1, v2))
+
+
+def calc_object_volume(object):
+    volume = 0
+    for i in xrange(len(object.primitives)):
+        if object.primitives[i].type == SolidPrimitive().BOX:
+            x = object.primitives[i].dimensions[SolidPrimitive.BOX_X]
+            y = object.primitives[i].dimensions[SolidPrimitive.BOX_Y]
+            z = object.primitives[i].dimensions[SolidPrimitive.BOX_Z]
+            volume += x * y * z
+        elif object.primitives[i].type == SolidPrimitive().CYLINDER:
+            r = object.primitives[i].dimensions[SolidPrimitive.CYLINDER_RADIUS]
+            h = object.primitives[i].dimensions[SolidPrimitive.CYLINDER_HEIGHT]
+            volume += pi * r * r * h
+    return volume
 
 
 def normalize(p):

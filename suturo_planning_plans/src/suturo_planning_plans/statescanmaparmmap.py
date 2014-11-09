@@ -10,7 +10,6 @@ from math import pi
 
 
 class ScanMapArmCam(smach.State):
-
     finished = False
     min_num_of_cells = 2
 
@@ -30,7 +29,8 @@ class ScanMapArmCam(smach.State):
         regions.sort(key=lambda r: -r.get_number_of_cells())
 
         for r in regions:
-            r.set_boarder_cells(sorted(utils.map.get_boarder_cells_points(r), cmp=lambda p1, p2: utils.map.is_more_edge(p1.x, p1.y, p2.x, p2.y)))
+            r.set_boarder_cells(sorted(utils.map.get_boarder_cell_points(r),
+                                       cmp=lambda p1, p2: utils.map.is_more_edge(p1.x, p1.y, p2.x, p2.y)))
 
         i = 0
         r_id = 0
@@ -44,7 +44,7 @@ class ScanMapArmCam(smach.State):
                 i = 0
                 continue
 
-            if  i >= 2:
+            if i >= 2:
                 r_id += 1
                 r_id = r_id % len(regions)
                 i = 0
@@ -59,10 +59,12 @@ class ScanMapArmCam(smach.State):
             utils.map.mark_cell(cell_x, cell_y, True)
             next_point.z = 0.2
             poses = make_scan_pose(next_point, 0.7, 0.8, n=16)
-            poses = utils.map.filter_invalid_poses(cell_x, cell_y, poses)
-            poses = utils.map.filter_invalid_poses2(cell_x, cell_y, poses)
+            poses = utils.map.filter_invalid_scan_poses(cell_x, cell_y, poses)
+            poses = utils.map.filter_invalid_scan_poses2(cell_x, cell_y, poses)
 
-            poses.sort(key=lambda pose: -euclidean_distance( Point(*(utils.map.index_to_coordinates(*regions[r_id].get_avg())+(0,))), Point(pose.pose.position.x, pose.pose.position.y, 0)))
+            poses.sort(key=lambda pose: -euclidean_distance(
+                Point(*(utils.map.index_to_coordinates(*regions[r_id].get_avg()) + (0,))),
+                Point(pose.pose.position.x, pose.pose.position.y, 0)))
             visualize_poses(poses)
             j = 0
             move_successfull = False

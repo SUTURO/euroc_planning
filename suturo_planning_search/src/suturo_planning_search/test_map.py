@@ -75,17 +75,19 @@ class TestCell(unittest.TestCase):
     def test2_2(self):
         c = Cell()
         c.set_obstacle()
-        c.points[Cell.UNDEF_ID] = 90
-        c.points[Cell.RED_ID] = 10
+        c.points[Cell.UNDEF_ID] = 95
+        c.points[Cell.RED_ID] = 5
         self.assertFalse(c.is_red(), c.get_color_id())
         self.assertTrue(c.is_undef(), c.get_color_id())
 
     def test2_3(self):
         c = Cell()
         c.set_obstacle()
-        c.points[Cell.UNDEF_ID] = 89
-        c.points[Cell.RED_ID] = 11
+        c.points[Cell.UNDEF_ID] = 94
+        c.points[Cell.RED_ID] = 6
         self.assertTrue(c.is_red(), c.get_color_id())
+        print c.get_color_hex()
+        self.assertEqual(c.get_color_hex(), 'ff0000')
         self.assertFalse(c.is_undef(), c.get_color_id())
 
 class TestMapCleanUp(unittest.TestCase):
@@ -160,12 +162,12 @@ class TestMapCleanUp(unittest.TestCase):
 
         m.get_cell_by_index(4,4).set_unknown()
         m.get_cell_by_index(4,3).set_obstacle()
-        m.get_cell_by_index(4,5).set_obstacle()
+        # m.get_cell_by_index(4,5).set_obstacle()
 
         # self.assertFalse(m.is_cell_surrounded_by_obstacles(4,4))
 
         m.clean_up_map()
-        self.assertTrue(m.get_cell_by_index(4,4).is_unknown())
+        self.assertTrue(m.get_cell_by_index(4,4).is_unknown(), m.get_cell_by_index(4,4))
 
     def test1_6(self):
         m = self.make_free_map()
@@ -342,7 +344,7 @@ class TestMapCleanUp(unittest.TestCase):
         # m.get_cell_by_index(11,13).set_unknown()
 
         rs = m.get_unknown_regions()
-        boarder = m.get_boarder_cells_points(rs[0])
+        boarder = m.get_boarder_cell_points(rs[0])
         self.assertTrue(len(boarder) == 7, str(m) + "\n" + str(len(boarder)))
 
     def test9_1(self):
@@ -431,7 +433,7 @@ class TestMapCleanUp(unittest.TestCase):
 
         (x, y) = m.index_to_coordinates(10, 10)
         poses = make_scan_pose(Point(x,y,0), 0.05, 0, n=16)
-        poses = m.filter_invalid_poses(x, y, poses)
+        poses = m.filter_invalid_scan_poses(x, y, poses)
         # print len(poses)
         self.assertTrue(len(poses) == 0, poses)
 
@@ -452,7 +454,7 @@ class TestMapCleanUp(unittest.TestCase):
         poses = make_scan_pose(Point(x,y,0), 0.05, 0, n=16)
         # print ""
         # print len(poses)
-        poses = m.filter_invalid_poses(x, y, poses)
+        poses = m.filter_invalid_scan_poses(x, y, poses)
         # print len(poses)
         self.assertTrue(len(poses) == 11, len(poses))
 
@@ -473,7 +475,7 @@ class TestMapCleanUp(unittest.TestCase):
         poses = make_scan_pose(Point(x,y,0), 0.05, 0, n=16)
         # print ""
         # print len(poses)
-        poses = m.filter_invalid_poses(x, y, poses)
+        poses = m.filter_invalid_scan_poses(x, y, poses)
         # print len(poses)
         self.assertTrue(len(poses) == 6, len(poses))
 
@@ -496,7 +498,7 @@ class TestMapCleanUp(unittest.TestCase):
         poses = make_scan_pose(Point(x,y,0), 0.15, 0, n=16)
         # print ""
         # print len(poses)
-        poses = m.filter_invalid_poses2(x, y, poses)
+        poses = m.filter_invalid_scan_poses2(x, y, poses)
         # print len(poses)
         self.assertTrue(len(poses) == 10, len(poses))
 
