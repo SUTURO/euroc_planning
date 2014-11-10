@@ -307,7 +307,7 @@ def handle_clock(msg, args):
 
 def print_panda():
     print_it('----------------------------------------------')
-    print_it('| Ten minutes time limit has been succeeded. |')
+    print_it('| Ten minutes time limit has been exceeded.  |')
     print_it('|             Terminating Task.              |')
     print_it('|                                            |')
     print_it('│  ─│─│───│─│───│───│─│─│─│───────│───│─│─   |')
@@ -350,7 +350,7 @@ def print_panda():
     print_it('|  ─────│─────╫│╫▓████▓─█████▓│╫╫───────│    |')
     print_it('|  │─│───│───╫─╫╫╫╫███╫╫╫██▓╫│╫╫╫│─│─────    |')
     print_it('|  ───│─│──────││───────│─│───│─│─│───│─│    |')
-    print_it('|                                            |')
+    print_it('|    booga mooga tooga xooga jooga iooga     |')
     print_it('|                                            |')
     print_it('|             Sad panda is sad.              |')
     print_it('|                                            |')
