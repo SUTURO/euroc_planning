@@ -45,7 +45,7 @@ class PlaceTask6(smach.State):
         rospy.logdebug('PlaceTask6: Move Arm to Place Pose')
         rospy.logdebug(self.__place_pose)
         for i in range(0, 7):
-            if utils.manipulation.move_to(self.__place_pose, False):
+            if utils.manipulation.move_to(self.__place_pose):
                 rospy.logdebug('PlaceTask6: OpenGripper')
                 utils.manipulation.open_gripper()
                 return 'success'
