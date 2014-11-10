@@ -54,7 +54,8 @@ class CleanUpPlan(smach.State):
             for puzzle_part in userdata.yaml.relative_puzzle_part_target_poses:
                 target_position = mathemagie.add_point(userdata.yaml.puzzle_fixture.position, puzzle_part.pose.position)
                 fake_target_zone = TargetZone(name = puzzle_part.name + "_target", expected_object = puzzle_part.name, target_position = target_position, max_distance = 0.05)
-                fake_target_zone.target_position.z = fake_target_zone.target_position.z + 0.5 # put it above the fixture to avoid collision
+                # setting a z value here is useless, will be overwritten later...
+                #fake_target_zone.target_position.z = fake_target_zone.target_position.z + 0.5 # put it above the fixture to avoid collision
                 print("fake_target_zone = " + str(fake_target_zone))
                 target_zones.append(fake_target_zone)
         else:
@@ -75,6 +76,10 @@ class CleanUpPlan(smach.State):
         # Sort the list so the blue handle will be placed last if possible
         sorted(found_objects, key=lambda obj: len(obj.mpe_object.primitives))
         sorted(objects_in_tzs, key=lambda obj_in_tz: len(obj_in_tz[0].mpe_object.primitives))
+        # If it's task 5 start with the biggest objects to get more coverage
+        if userdata.yaml.task_type == Task.TASK_5:
+            found_objects.reverse()
+            objects_in_tzs.reverse()
 
         def get_pose(obj):
             return PointStamped(header, tzs_for[obj.mpe_object.id].target_position)

@@ -236,7 +236,7 @@ class Map:
         rospy.logdebug("remove_puzzle_fixture called!")
         if yaml.task_type == Task.TASK_5:
             fixture_position = deepcopy(yaml.puzzle_fixture.position)
-            fixture_position = add_point(fixture_position, Point(0.115, 0.165, 0))
+            fixture_position = add_point(fixture_position, Point(0.115 if fixture_position.x < 0 else -0.115, 0.165 if fixture_position.y < 0 else -0.165, 0))
             for x in range(0, len(self.field)):
                 for y in range(0, len(self.field[x])):
                     cell = self.get_cell_by_index(x, y)
@@ -247,6 +247,11 @@ class Map:
                     if fixture_dist < 0.35:
                         rospy.logdebug("cell at ("+str(x)+","+str(y)+") marked as fixture cell")
                         #cell.set_obstacle()
+                        cell.set_mark()
+                        if cell.is_unknown():
+                            cell.highest_z = 0.1
+                            cell.average_z = 0.1
+                            cell.set_obstacle()
                         if cell.highest_z > 0.1:
                             cell.highest_z = 0.1
                         if cell.average_z > 0.1:

@@ -6,6 +6,7 @@ from suturo_planning_manipulation.calc_grasp_position import get_pre_grasp
 from suturo_planning_manipulation.place import get_place_position, get_pre_place_position, get_place_position_for_puzzle
 from suturo_planning_manipulation.manipulation_constants import *
 from suturo_msgs.msg import Task
+from suturo_planning_manipulation.mathemagie import *
 
 import utils
 
@@ -47,7 +48,8 @@ class PlaceObject(smach.State):
         rospy.logdebug("at::: " + str(destination))
         if userdata.yaml.task_type == Task.TASK_5:
             destination.point.z = 0.4
-            place_poses = get_place_position_for_puzzle(destination)
+            dest_orientation = deepcopy(userdata.yaml.puzzle_fixture.orientation)
+            place_poses = get_place_position_for_puzzle(destination, dest_orientation)
         else:
             place_poses = get_place_position(co, destination, utils.manipulation.transform_to, userdata.dist_to_obj,
                                          userdata.grasp)

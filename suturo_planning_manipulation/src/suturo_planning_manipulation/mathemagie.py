@@ -228,6 +228,16 @@ def rotate_quaternion(q, roll, pitch, yaw):
     no = quaternion_multiply([q.x, q.y, q.z, q.w], angle)
     return Quaternion(*no)
 
+def rotate_quaternion_by_quaternion(q1, q2):
+    """
+    Rotates a quaternion by another quaternion
+    :param q1: Quaternion
+    :param q2: Quaternion
+    :return: Quaternion
+    """
+    r = quaternion_multiply([q1.x, q1.y, q1.z, q1.w], [q2.x, q2.y, q2.z, q2.w])
+    return Quaternion(*no)
+
 def euler_to_quaternion(roll, pitch, yaw):
     '''
     Creates a quaternion out of roll, pitch, yaw
