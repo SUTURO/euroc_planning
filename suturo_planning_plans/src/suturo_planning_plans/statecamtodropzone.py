@@ -56,7 +56,7 @@ class CamToDropzone(smach.State):
         rospy.logdebug('CamToDropzone: Move arm to scan_conveyor_pose')
 
         for i in range(0, 3):
-            if utils.manipulation.move_to(p, False):
+            if utils.manipulation.move_to(p):
                 return 'scanPoseReached'
             else:
                 if i == 2:

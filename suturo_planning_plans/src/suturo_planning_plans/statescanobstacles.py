@@ -40,11 +40,13 @@ class ScanObstacles(smach.State):
             if len(self.classified_regions) == 0:
                 obstacle_cluster = utils.map.get_obstacle_regions()
                 rospy.logdebug(str(len(self.classified_regions)) + " regions found.")
-                obstacle_cluster.sort(key=lambda x: x.get_number_of_cells())
                 print '#####################################'
                 self.classified_regions = utils.map.undercover_classifier(obstacle_cluster, userdata.yaml.objects)
                 print self.classified_regions
                 print '#####################################'
+                base = utils.manipulation.get_base_origin().point
+                self.classified_regions.sort(key=lambda x: euclidean_distance(Point(*(utils.map.index_to_coordinates(*x[0].get_avg()))+(0.0,)), base))
+                # x[0].get_number_of_cells())
 
             if self.next_cluster >= len(self.classified_regions):
                 rospy.loginfo("searched all cluster")
@@ -100,7 +102,7 @@ class ScanObstacles(smach.State):
 
         for pose in poses:
             utils.manipulation.set_planning_time_arm(2)
-            if move(pose):
+            if move(pose, blow_up=("map")):
                 utils.manipulation.set_planning_time_arm(5)
                 userdata.focused_point = region_centroid
 

@@ -57,7 +57,8 @@ class Task5(smach.StateMachine):
 
             smach.StateMachine.add('ChooseObject', ChooseObject(),
                                    transitions={'objectChosen': 'TidyUpObject',
-                                                'noObjectsLeft': 'success'})
+                                                'noObjectsLeft': 'success',
+                                                'retry': 'CleanUpPlan'})
 
             smach.StateMachine.add('TidyUpObject', TidyUpObject(),
                                    transitions={'success': 'ChooseObject',
@@ -72,3 +73,4 @@ class Task5(smach.StateMachine):
         self.userdata.cell_coords = []
         self.userdata.sec_try = False
         self.userdata.sec_try_done = False
+        self.userdata.failed_object = None

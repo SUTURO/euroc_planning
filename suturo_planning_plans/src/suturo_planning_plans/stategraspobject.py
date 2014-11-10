@@ -17,7 +17,7 @@ class GraspObject(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['success', 'fail', 'objectNotInPlanningscene', 'noGraspPosition'],
                              input_keys=['yaml', 'object_to_move', 'enable_movement'],
-                             output_keys=['place_position', 'grasp', 'dist_to_obj'])
+                             output_keys=['place_position', 'grasp', 'dist_to_obj', 'failed_object'])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state GraspObject')
@@ -49,6 +49,7 @@ class GraspObject(smach.State):
 
         if len(grasp_positions) == 0:
             rospy.logwarn("No grasppositions found for " + collision_object_name)
+            userdata.failed_object = userdata.object_to_move
             return 'noGraspPosition'
 
         #sort to try the best grasps first
@@ -64,16 +65,20 @@ class GraspObject(smach.State):
 
             rospy.logdebug("Plan to pregraspposition found")
             plan_to_grasp = plan_to_func(grasp, blow_up=("map", collision_object_name), start_state=utils.manipulation.get_end_state(plan_pre_grasp))
-            if plan_to_grasp is None or \
-                    not utils.manipulation.move_with_plan_to(plan_pre_grasp) or \
-                    not utils.manipulation.move_with_plan_to(plan_to_grasp):
+            if plan_to_grasp is None or not utils.manipulation.move_with_plan_to(plan_pre_grasp):
                 rospy.logdebug("Failed to move to Graspposition")
                 continue
+            rospy.sleep(0.5)
+            if not utils.manipulation.move_with_plan_to(plan_to_grasp):
+                rospy.logdebug("Failed to move to Graspposition")
+                continue
+
             rospy.logdebug("Graspposition taken")
 
             time.sleep(0.5)
             rospy.sleep(1)
             if not utils.manipulation.close_gripper(collision_object, get_fingertip(utils.manipulation.transform_to(grasp))):
+                userdata.failed_object = userdata.object_to_move
                 return 'fail'
             time.sleep(0.5)
             rospy.sleep(1.5)
@@ -83,6 +88,7 @@ class GraspObject(smach.State):
             com = utils.manipulation.transform_to(com, "/tcp")
             if com is None:
                 rospy.logwarn("TF failed")
+                userdata.failed_object = userdata.object_to_move
                 return 'fail'
 
             density = 1
@@ -117,6 +123,8 @@ class GraspObject(smach.State):
             if not the_move_to_func:
                 rospy.logwarn("couldnt lift object. continue anyway")
             # rospy.logdebug("graspobject: return success")
+            userdata.failed_object = None
             return 'success'
         rospy.logwarn("Grapsing failed.")
+        userdata.failed_object = userdata.object_to_move
         return 'fail'

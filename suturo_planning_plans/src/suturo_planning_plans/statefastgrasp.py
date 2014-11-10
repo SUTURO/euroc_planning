@@ -126,7 +126,7 @@ class FastGrasp(smach.State):
         for j in range(0, 4):
             self.extrapolate(j)
             self.calculate_target_point(self.__pose_comp)
-            if utils.manipulation.move_to(self.__t_point, False):
+            if utils.manipulation.move_to(self.__t_point):
                 rospy.logdebug("FastGrasp: Plan 1: moved!")
                 break
             else:
@@ -143,7 +143,7 @@ class FastGrasp(smach.State):
             rospy.sleep(0.01)
         self.__t_point.pose.position.z -= 0.07
         rospy.logdebug("FastGrasp: Plan 2")
-        if utils.manipulation.move_to(self.__t_point, False):
+        if utils.manipulation.move_to(self.__t_point):
             rospy.logdebug("FastGrasp: Plan 2: moved!")
         else:
             rospy.logdebug("FastGrasp: Plan 2: Cant grasp")
@@ -154,7 +154,7 @@ class FastGrasp(smach.State):
         self.__t_point.pose.position.z += 0.1
         rospy.logdebug("FastGrasp: Plan 3")
         for k in range(0, 4):
-            if utils.manipulation.move_to(self.__t_point, False):
+            if utils.manipulation.move_to(self.__t_point):
                 rospy.logdebug("FastGrasp: Plan 3: moved!")
                 break
             else:

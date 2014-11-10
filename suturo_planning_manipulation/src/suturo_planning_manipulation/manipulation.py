@@ -176,7 +176,7 @@ class Manipulation(object):
     def __plan_group_to(self, goal_pose, move_group, blow_up, start_state, blow_up_distance=0.015):
         #rospy.logdebug("__plan_group_to called!")
         original_objects = self.__planning_scene_interface.get_collision_objects()
-        if not blow_up is None:
+        if not blow_up is None and "all" not in blow_up:
             for each in original_objects:
                 if each.id in blow_up:
                     continue
@@ -241,7 +241,7 @@ class Manipulation(object):
 
         request.motion_plan_request.allowed_planning_time = move_group.get_planning_time()
         request.motion_plan_request.group_name = move_group.get_name()
-        request.motion_plan_request.num_planning_attempts = 1
+        request.motion_plan_request.num_planning_attempts = 2
 
         constraint = Constraints()
         constraint.name = "muh23"
@@ -358,8 +358,8 @@ class Manipulation(object):
         o = deepcopy(object)
         for primitive in o.primitives:
             dim = []
-            dim.append(primitive.dimensions[0] + 0.01)
-            dim.append(primitive.dimensions[1] + 0.01)
+            dim.append(primitive.dimensions[0] + 0.005)
+            dim.append(primitive.dimensions[1] + 0.005)
             dim.append(primitive.dimensions[2] + 0.175)
             primitive.dimensions = dim
         return o
@@ -426,8 +426,8 @@ class Manipulation(object):
         if type(object) is CollisionObject:
             self.__gripper_group.attach_object(object.id, "gp", ["gp", "finger1", "finger2"])
             rospy.sleep(1.0)
-            # id = get_grasped_part(object, grasp_point)[1]
-            id = min(range(len(object.primitives)), key=lambda i: min(object.primitives[i].dimensions))
+            id = get_grasped_part(object, grasp_point)[1]
+            # id = min(range(len(object.primitives)), key=lambda i: min(object.primitives[i].dimensions))
             # TODO: only works for cubes and cylinders and only "sometimes" for object compositions
             if object.primitives[id].type == shape_msgs.msg.SolidPrimitive.BOX:
                 length = min(object.primitives[id].dimensions)
@@ -525,6 +525,7 @@ class Manipulation(object):
         :param pose2: second pose as PoseStamped
         :return: pose1 > pose2
         """
+
         center = self.get_center_of_mass(collision_object)
         odom_pose1 = self.tf.transform_to(pose1)
         p1 = get_fingertip(odom_pose1)
@@ -532,8 +533,13 @@ class Manipulation(object):
         p2 = get_fingertip(odom_pose2)
         d1 = euclidean_distance(center.point, p1.point)
         d2 = euclidean_distance(center.point, p2.point)
+        if len(collision_object.primitives) == 1:
+            z1 = odom_pose1.pose.position.z
+            z2 = odom_pose2.pose.position.z
+            diff = z2 - z1
+            return -1 if diff > 0 else 1 if diff < 0 else 0
         diff = d1 - d2
-        if 0.0 <= abs(diff) <= 0.015 or len(collision_object.primitives) == 1:
+        if 0.0 <= abs(diff) <= 0.015:
             z1 = odom_pose1.pose.position.z
             z2 = odom_pose2.pose.position.z
             diff = z2 - z1

@@ -1,7 +1,10 @@
 import time
+from geometry_msgs.msg._Point import Point
+from moveit_msgs.msg._CollisionObject import CollisionObject
 import smach
 import rospy
 from geometry_msgs.msg import PointStamped
+from suturo_perception_msgs.msg._EurocObject import EurocObject
 from suturo_planning_manipulation.calc_grasp_position import get_pre_grasp
 from suturo_planning_manipulation.place import get_place_position, get_pre_place_position, get_place_position_for_puzzle
 from suturo_planning_manipulation.manipulation_constants import *
@@ -18,7 +21,7 @@ class PlaceObject(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['success', 'fail', 'noObjectAttached', 'noPlacePosition'],
                              input_keys=['enable_movement', 'target_position', 'grasp', 'dist_to_obj', 'yaml'],
-                             output_keys=['place_position'])
+                             output_keys=['place_position', 'failed_object'])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state PlaceObject')
@@ -30,6 +33,7 @@ class PlaceObject(smach.State):
             self._retry = 0
             if not utils.manipulation.open_gripper():
                 #cant happen
+                userdata.failed_object = None
                 return 'fail'
 
         if userdata.enable_movement:
@@ -40,6 +44,7 @@ class PlaceObject(smach.State):
         co = utils.manipulation.get_planning_scene().get_attached_object()
         if co is None:
             self._retry = 0
+            userdata.failed_object = None
             return 'noObjectAttached'
         co = co.object
         rospy.logdebug("Placing: " + str(co))
@@ -84,11 +89,13 @@ class PlaceObject(smach.State):
             gripper_target = min(utils.manipulation.get_current_gripper_state()[1] + 0.002, gripper_max_pose)
             if not utils.manipulation.open_gripper(gripper_target):
                 #cant happen
+                userdata.failed_object = None
                 return 'fail'
 
             rospy.sleep(3)
             if not utils.manipulation.open_gripper():
                 #cant happen
+                userdata.failed_object = None
                 return 'fail'
 
             if userdata.yaml.task_type == Task.TASK_5:
@@ -101,17 +108,25 @@ class PlaceObject(smach.State):
             if not move_to_func(get_pre_grasp(place_pose), blow_up=(co.id, "map")) and \
                     not move_to_func(get_pre_place_position(place_pose), blow_up=(co.id, "map")):
                 rospy.logwarn("Can't reach postplaceposition. Continue anyway")
+                userdata.failed_object = None
                 return 'success'
             else:
                 rospy.logdebug("postplaceposition taken")
             rospy.sleep(0.25)
             rospy.loginfo("placed " + co.id)
-
+            userdata.failed_object = None
             return 'success'
 
         #try to place the object where it currently is
         rospy.logdebug("Placement failed, to to place where we are.")
         userdata.place_position = self.new_place_position()
+        o = EurocObject
+        o.mpe_object = CollisionObject()
+        o.object = CollisionObject()
+        o.object.id = co.id
+        o.mpe_object.id = co.id
+        o.c_centroid = Point(0,0,0)
+        userdata.failed_object = [o]
 
         self._retry += 1
         return 'noPlacePosition'

@@ -216,7 +216,7 @@ class Map:
                         else:
                             free = self.get_surrounding_frees(x, y)
                             # remove if cell is surrounded by 2 obstacles and 2 frees
-                            if len(free) == 2 and len(obstacles) == 2:
+                            if len(free) + len(obstacles) == 4 and len(obstacles) < 3:
                                 self.get_cell_by_index(x, y).set_free()
                                 cell_changed = True
                     # if a obstacle is surrounded by 2 or more obstacles with an other color, change this cell color to it
