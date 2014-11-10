@@ -176,7 +176,7 @@ class Manipulation(object):
     def __plan_group_to(self, goal_pose, move_group, blow_up, start_state, blow_up_distance=0.015):
         #rospy.logdebug("__plan_group_to called!")
         original_objects = self.__planning_scene_interface.get_collision_objects()
-        if not blow_up is None:
+        if not blow_up is None and "all" not in blow_up:
             for each in original_objects:
                 if each.id in blow_up:
                     continue
@@ -358,8 +358,8 @@ class Manipulation(object):
         o = deepcopy(object)
         for primitive in o.primitives:
             dim = []
-            dim.append(primitive.dimensions[0] + 0.01)
-            dim.append(primitive.dimensions[1] + 0.01)
+            dim.append(primitive.dimensions[0] + 0.005)
+            dim.append(primitive.dimensions[1] + 0.005)
             dim.append(primitive.dimensions[2] + 0.175)
             primitive.dimensions = dim
         return o
@@ -426,8 +426,8 @@ class Manipulation(object):
         if type(object) is CollisionObject:
             self.__gripper_group.attach_object(object.id, "gp", ["gp", "finger1", "finger2"])
             rospy.sleep(1.0)
-            # id = get_grasped_part(object, grasp_point)[1]
-            id = min(range(len(object.primitives)), key=lambda i: min(object.primitives[i].dimensions))
+            id = get_grasped_part(object, grasp_point)[1]
+            # id = min(range(len(object.primitives)), key=lambda i: min(object.primitives[i].dimensions))
             # TODO: only works for cubes and cylinders and only "sometimes" for object compositions
             if object.primitives[id].type == shape_msgs.msg.SolidPrimitive.BOX:
                 length = min(object.primitives[id].dimensions)

@@ -5,6 +5,7 @@ from geometry_msgs.msg._Point import Point
 from geometry_msgs.msg._PointStamped import PointStamped
 from geometry_msgs.msg._PoseStamped import PoseStamped
 from geometry_msgs.msg._Quaternion import Quaternion
+from moveit_msgs.msg._CollisionObject import CollisionObject
 import rospy
 import shape_msgs
 from shape_msgs.msg._SolidPrimitive import SolidPrimitive
@@ -125,14 +126,29 @@ def get_place_position_handle(collision_object, destination, transform_func, d):
 
     return place_poses
 
+# def point_inBounding_box(object, point):
+#     o = CollisionObject()
+#     bounding_box = Point()
+#     for p in object.primitives:
+#         if p.type == SolidPrimitive.CYLINDER:
+#             bounding_box.x = p.dimensions[SolidPrimitive.CYLINDER_RADIUS]*2
+#             bounding_box.y = p.dimensions[SolidPrimitive.CYLINDER_RADIUS]*2
+#             bounding_box.z = p.dimensions[SolidPrimitive.CYLINDER_HEIGHT]
+#         else:
+#             bounding_box.x = p.dimensions[SolidPrimitive.BOX_X]
+#             bounding_box.y = p.dimensions[SolidPrimitive.BOX_Y]
+#             bounding_box.z = p.dimensions[SolidPrimitive.BOX_Z]
+
+    # if
+
 
 def get_grasped_part(collision_object, grasped_point):
-    '''
+    """
     Returns the grasped part of a collision object
     :param collision_object: CollisionObject
     :param transform_func(object, frame_id): a function to transform objects to different frame_ids. (use Manipulation.transform_to)
     :return: (Point, float), grasped point and id of the grasped part
-    '''
+    """
     #TODO: buggy, use bounding box instead of closed object centroid
     if grasped_point is None:
         return (None, 0)
