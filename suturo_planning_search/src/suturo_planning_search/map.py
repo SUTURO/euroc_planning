@@ -118,7 +118,9 @@ class Map:
             request.pointCloudName = GetPointArrayRequest.TCP
         request.minPointCloudTimeStamp = rospy.get_rostime()
 
+        rospy.logdebug("request sent")
         resp = self.__get_point_array(request)
+        rospy.logdebug("request response received")
         points = resp.pointArray
 
         # update map with point cloud
@@ -134,6 +136,7 @@ class Map:
                 continue
 
             self.get_cell(x, y).update_cell(z, color)
+        rospy.logdebug("iterating points done")
 
         # Set the area around the arms base free
         for x in numpy.arange(arm_origin.x - radius, arm_origin.x + radius + 0.01, self.cell_size):
@@ -144,9 +147,11 @@ class Map:
         for x in numpy.arange(0.92 - radius, 0.92 + radius + 0.01, self.cell_size):
             for y in numpy.arange(0.92 - radius, 0.92 + radius + 0.01, self.cell_size):
                 self.get_cell(x, y).set_obstacle()
+        rospy.logdebug("arm base stuff done")
 
         # remove unknown surrounded by obstacles (or the and of the map)
         self.clean_up_map()
+        rospy.logdebug("clean up map done")
         self.publish_as_marker()
 
         rospy.logdebug("Scan complete")
@@ -196,8 +201,11 @@ class Map:
         Removes some unknowns, that are "safe" to remove
         """
         cell_changed = True
-        while cell_changed:
+        iterations = 0
+        max_iterations = 150
+        while cell_changed and iterations < max_iterations:
             cell_changed = False
+            iterations += 1
             for x in range(0, len(self.field)):
                 for y in range(0, len(self.field[x])):
                     cell = self.get_cell_by_index(x, y)
@@ -221,6 +229,7 @@ class Map:
                                 cell_changed = True
                     # if a obstacle is surrounded by 2 or more obstacles with an other color, change this cell color to it
                     # needed to remove some noise
+                    # TODO: this causes an infinite loop in task5_v2 and v3! added iterations as workaround
                     elif cell.is_obstacle():
                         obstacles = self.get_surrounding_obstacles(x, y)
                         cell_color = cell.get_color_id()
@@ -230,6 +239,7 @@ class Map:
                             cell.set_color(c[0].get_color_id())
                             cell_changed = True
 
+        rospy.logdebug("clean up map iterations: "+str(iterations))
         self.publish_as_marker()
 
     def remove_puzzle_fixture(self, yaml):

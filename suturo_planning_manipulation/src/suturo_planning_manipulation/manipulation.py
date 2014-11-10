@@ -31,6 +31,7 @@ from sensor_msgs.msg import JointState
 from shape_msgs.msg._SolidPrimitive import SolidPrimitive
 from suturo_msgs.msg import Task
 import time
+from moveit_commander.exception import MoveItCommanderException
 
 
 class Manipulation(object):
@@ -404,7 +405,12 @@ class Manipulation(object):
         :return: success of the movement
         """
 
-        self.__gripper_group.set_joint_value_target([-position, position])
+        try:
+            self.__gripper_group.set_joint_value_target([-position, position])
+        except MoveItCommanderException:
+            rospy.logdebug("Gripper failed to open")
+            return False
+
         path = self.__gripper_group.plan()
         if self.__manService.move(path):
             self.__gripper_group.detach_object()
