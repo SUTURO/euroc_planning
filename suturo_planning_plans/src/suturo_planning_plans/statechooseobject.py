@@ -12,14 +12,19 @@ from suturo_planning_manipulation import mathemagie
 class ChooseObject(smach.State):
 
     _ctr = 0
+    failed_objects = []
 
     def __init__(self):
-        smach.State.__init__(self, outcomes=['objectChosen', 'noObjectsLeft'],
-                             input_keys=['yaml', 'objects_found', 'clean_up_plan'],
-                             output_keys=['object_to_move', 'place_position'])
+        smach.State.__init__(self, outcomes=['objectChosen', 'noObjectsLeft', 'retry'],
+                             input_keys=['yaml', 'clean_up_plan', 'failed_object'],
+                             output_keys=['object_to_move', 'place_position', 'objects_found'])
 
     def execute(self, userdata):
         rospy.loginfo('Executing state ChooseObject')
+        rospy.loginfo("failed objects: " + str(self.failed_objects))
+
+        if userdata.failed_object is not None:
+            self.failed_objects.append(userdata.failed_object)
 
         if len(userdata.clean_up_plan) > self._ctr:
             action = userdata.clean_up_plan[self._ctr]
@@ -27,6 +32,11 @@ class ChooseObject(smach.State):
             self._ctr += 1
         else:
             self._ctr = 0
+            if self.failed_objects:
+                userdata.objects_found = deepcopy(self.failed_objects)
+                self.failed_objects = []
+                rospy.logwarn("not all objects where grapsed/placed, retry. if it crashes now it doesnt matter")
+                return 'retry'
             return 'noObjectsLeft'
 
         rospy.loginfo('Placing object on location %s' % action[1])
@@ -73,8 +83,10 @@ class CleanUpPlan(smach.State):
                 objects_in_tzs.append((obj, tz))
 
         # Sort the list so the blue handle will be placed last if possible
-        sorted(found_objects, key=lambda obj: len(obj.mpe_object.primitives))
-        sorted(objects_in_tzs, key=lambda obj_in_tz: len(obj_in_tz[0].mpe_object.primitives))
+        # sorted(found_objects, key=lambda obj: len(obj.mpe_object.primitives))
+        found_objects.sort(key=lambda obj: len(obj.mpe_object.primitives))
+        # sorted(objects_in_tzs, key=lambda obj_in_tz: len(obj_in_tz[0].mpe_object.primitives))
+        objects_in_tzs.sort(key=lambda obj_in_tz: len(obj_in_tz[0].mpe_object.primitives))
 
         def get_pose(obj):
             return PointStamped(header, tzs_for[obj.mpe_object.id].target_position)

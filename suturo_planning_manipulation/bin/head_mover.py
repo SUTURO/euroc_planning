@@ -114,8 +114,9 @@ if __name__ == '__main__':
     # print m.get_arm_base_move_group().get_goal_joint_tolerance()
     # print m.get_arm_base_move_group().get_goal_tolerance()
     # print m.get_arm_move_group().get
-    m.grasp("cyan_cylinder")
-    m.open_gripper()
+    # m.grasp("cyan_cylinder")
+    # m.open_gripper()
+    m.close_gripper()
     # m.get_arm_move_group().set_named_target("scan_pose1")
     # print m.get_arm_move_group().get_goal_tolerance()
     # print m.get_arm_move_group().get_goal_position_tolerance()
