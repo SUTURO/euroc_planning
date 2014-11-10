@@ -26,6 +26,7 @@ __kill_count = 0
 __current_task = None
 __current_intent = 1
 __task_aborted_by_exception = False
+__after_task = False
 subproc = None
 
 
@@ -38,7 +39,7 @@ def usr1_handler(signum=None, frame=None):
     global __task_aborted_by_exception
     global __aborting_task
     if not __aborting_task:
-        print('Setting __task_aborted_by_exception to True.')
+        print_it('Setting __task_aborted_by_exception to True.')
         __task_aborted_by_exception = True
 
 
@@ -142,6 +143,7 @@ def start_demo(wait, tasks, logging):
     global __current_intent
     global __clock_time_started_task
     global __last_received_clock
+    global __after_task
     rospy.init_node('start_complete_demo')
 
     rospy.loginfo('Setting use_sim_time to true')
@@ -204,11 +206,13 @@ def start_demo(wait, tasks, logging):
                                                    dont_print=dont_print, print_prefix_to_stdout=False)
         __time_started_task = int(time.time())
         print_it('Subscribing to clock.')
-        __clock_subscriber = rospy.Subscriber('clock', Clock, handle_clock,
+        __clock_subscriber = rospy.Subscriber('clock', Clock, handle_clock, queue_size=1,
                                               callback_args={'task': __current_task,
                                                              'intent': __current_intent})
         print_it('Waiting for task ' + __current_task + ' to terminate.')
+        __after_task = False
         subproc.wait()
+        __after_task = True
         print_it('Task ' + __current_task + ' terminated')
         print_it('Unsubscribing clock subscriber.')
         __clock_subscriber.unregister()
@@ -265,6 +269,7 @@ def handle_clock(msg, args):
     global __remaining_time
     global __last_received_clock
     global __clock_time_started_task
+    global __after_task
     now = int(time.time())
     clock_time = msg.clock.secs
     remaining_time = __time_limit - __clock_time_started_task - clock_time
@@ -289,7 +294,7 @@ def handle_clock(msg, args):
                 print_it('__time_started_task: ' + str(__time_started_task))
                 print_it('now - __time_started_task: ' + str(now - __time_started_task))
 
-            if remaining_time <= 0:
+            if remaining_time <= 0 and not __after_task:
                 if now - __time_started_task >= __time_limit:
                     print_it('handle_clock:')
                     print_info()
