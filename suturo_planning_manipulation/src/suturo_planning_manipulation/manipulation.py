@@ -405,11 +405,14 @@ class Manipulation(object):
         :return: success of the movement
         """
 
-        try:
-            self.__gripper_group.set_joint_value_target([-position, position])
-        except MoveItCommanderException:
-            rospy.logdebug("Gripper failed to open")
-            return False
+        done = False
+        while not done:
+            try:
+                self.__gripper_group.set_joint_value_target([-position, position])
+                done = True
+            except MoveItCommanderException:
+                rospy.logdebug("Gripper failed to open")
+                return False
 
         path = self.__gripper_group.plan()
         if self.__manService.move(path):

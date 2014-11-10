@@ -58,7 +58,8 @@ class PlanningSceneInterface(object):
             pose.header.frame_id = "/odom_combined"
             pose.pose = deepcopy(yaml.puzzle_fixture)
             #TODO: WTF?
-            pose.pose.position = add_point(pose.pose.position, Point(0.115 if yaml.puzzle_fixture.position.x < 0 else -0.115, 0.165 if yaml.puzzle_fixture.position.y < 0 else 0, 0))
+            #if you change the Point shit here, also change it in map.py!
+            pose.pose.position = add_point(pose.pose.position, Point(0.115 if yaml.puzzle_fixture.position.x < 0 else -0.18, 0.165 if yaml.puzzle_fixture.position.y < 0 else 0.05, 0))
             box = self.make_box("puzzle", pose, [0.32, 0.32, 0.1])
             self.safe_objects.append(box.id)
             self.add_object(box)
