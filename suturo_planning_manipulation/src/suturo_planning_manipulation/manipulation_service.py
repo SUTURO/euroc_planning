@@ -44,8 +44,6 @@ class ManipulationService(object):
         return joint_limits
 
     def move(self, path):
-        rospy.logdebug("manipulation service move called!")
-        # rospy.logdebug("incoming move path = "+str(path))
         # check if moveit generated a trajectory
         if len(path.joint_trajectory.points) == 0:
             return False
