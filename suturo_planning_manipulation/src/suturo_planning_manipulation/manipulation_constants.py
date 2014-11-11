@@ -12,3 +12,5 @@ post_place_length = 0.1
 safe_place = 0.005
 
 gripper_max_pose = 0.0345
+
+max_motion_time = 40

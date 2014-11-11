@@ -186,9 +186,9 @@ class Manipulation(object):
         if path is None:
             return False
         if type(path) is RobotTrajectory:
-            timing_list =  self.__manService.get_timing(path, self.get_current_lwr_joint_state())
+            timing_list =  self.__manService.get_timing(path, path.trajectory.joint_trajectory.points[0].positions)
         else:
-            timing_list =  self.__manService.get_timing(path.motion_plan_response.trajectory, self.get_current_lwr_joint_state())
+            timing_list =  self.__manService.get_timing(path.motion_plan_response.trajectory, path.motion_plan_response.trajectory.joint_trajectory.points[0].positions)
         time = timing_list[-1] - timing_list[0]
         return time
 
@@ -253,10 +253,10 @@ class Manipulation(object):
             if goal.header.frame_id != "/odom_combined":
                 goal = self.tf.transform_to(goal)
 
-        plan = self.plan(move_group, goal, start_state)
+        plan = self.plan(move_group, goal, start_state, max_motion_time)
         if not plan is None:
             #plan two times and concatenate plans, to be closer to the goal position
-            plan2 = self.plan(move_group, goal, self.get_end_state(plan))
+            plan2 = self.plan(move_group, goal, self.get_end_state(plan), 1)
             if plan2 is None:
                 return plan
             plan.motion_plan_response.trajectory.joint_trajectory.points.extend(
@@ -264,7 +264,7 @@ class Manipulation(object):
 
         return plan
 
-    def plan(self, move_group, goal, start_state):
+    def plan(self, move_group, goal, start_state, max_movement_time):
         """
         Generates a plan by calling the MoveIt! service.
         :param move_group: group to plan with
@@ -284,7 +284,7 @@ class Manipulation(object):
 
         request.motion_plan_request.allowed_planning_time = move_group.get_planning_time()
         request.motion_plan_request.group_name = move_group.get_name()
-        request.motion_plan_request.num_planning_attempts = 2
+        request.motion_plan_request.num_planning_attempts = 1
 
         constraint = Constraints()
         constraint.name = "muh23"
@@ -301,13 +301,25 @@ class Manipulation(object):
 
         request.motion_plan_request.planner_id = ""
 
-        try:
-            resp = self.__plan_service(request)
-            return resp
-        except rospy.ServiceException as exc:
-            rospy.logdebug("Service did not process request: " + str(exc))
-            rospy.logdebug("probably couldnt find a plan.")
+        plans = []
+        for i in xrange(5):
+            try:
+                resp = self.__plan_service(request)
+                planning_time = self.get_timing_for_path(resp).to_sec()
+                rospy.logdebug("motion time " + str(planning_time))
+                if planning_time < max_movement_time:
+                    plans.append((resp, planning_time))
+
+            except rospy.ServiceException as exc:
+                rospy.logdebug("Service did not process request: " + str(exc))
+                rospy.logdebug("probably couldnt find a plan.")
+        if not plans:
+            rospy.loginfo("no motionplan found")
             return None
+        best_plan = min(plans, key=lambda (plan, time): time)
+        worst_plan = max(plans, key=lambda (plan, time): time)
+        rospy.loginfo("motion time difference: " + str(worst_plan[1] - best_plan[1]))
+        return best_plan[0]
 
     def __make_joint_state_goal(self, goal):
         """
