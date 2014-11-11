@@ -62,9 +62,6 @@ class Manipulation(object):
 
         rospy.sleep(1)
         self.__planning_scene_interface.add_yaml(yaml)
-        # self.__planning_scene_interface.add_ground()
-        #
-        # self.__planning_scene_interface.add_cam_mast()
 
         self.__grasp = None
 

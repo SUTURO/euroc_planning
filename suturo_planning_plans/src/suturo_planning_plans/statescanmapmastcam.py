@@ -89,7 +89,9 @@ class ScanMapMastCam(smach.State):
         # utils.map.publish_as_marker()
 
         if userdata.yaml.task_type == Task.TASK_5:
+            utils.map.all_unknowns_to_obstacle()
             utils.map.remove_puzzle_fixture(userdata.yaml)
+
 
         co = utils.map.to_collision_object()
         utils.manipulation.get_planning_scene().add_object(co)

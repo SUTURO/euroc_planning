@@ -205,7 +205,6 @@ class Map:
         max_iterations = 150
         while cell_changed and iterations < max_iterations:
             cell_changed = False
-            iterations += 1
             for x in range(0, len(self.field)):
                 for y in range(0, len(self.field[x])):
                     cell = self.get_cell_by_index(x, y)
@@ -229,7 +228,6 @@ class Map:
                                 cell_changed = True
                     # if a obstacle is surrounded by 2 or more obstacles with an other color, change this cell color to it
                     # needed to remove some noise
-                    # TODO: this causes an infinite loop in task5_v2 and v3! added iterations as workaround
                     elif cell.is_obstacle():
                         obstacles = self.get_surrounding_obstacles(x, y)
                         cell_color = cell.get_color_id()
@@ -244,8 +242,8 @@ class Map:
                             c = o_with_same_color[0]
                             cell.set_color(c[0].get_color_id())
                             cell_changed = True
+            iterations += 1
             self.publish_as_marker()
-            print "changed"
 
         rospy.logdebug("clean up map iterations: "+str(iterations))
         self.publish_as_marker()
