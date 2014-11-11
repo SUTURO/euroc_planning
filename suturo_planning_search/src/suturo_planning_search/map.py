@@ -251,8 +251,9 @@ class Map:
     def remove_puzzle_fixture(self, yaml):
         rospy.logdebug("remove_puzzle_fixture called!")
         if yaml.task_type == Task.TASK_5:
-            fixture_position = deepcopy(yaml.puzzle_fixture.position)
-            fixture_position = add_point(fixture_position, Point(0.115 if yaml.puzzle_fixture.position.x < 0 else -0.18, 0.165 if yaml.puzzle_fixture.position.y < 0 else 0.05, 0))
+            #fixture_position = deepcopy(yaml.puzzle_fixture.position)
+            #fixture_position = add_point(fixture_position, Point(0.115 if yaml.puzzle_fixture.position.x < 0 else -0.18, 0.165 if yaml.puzzle_fixture.position.y < 0 else 0.05, 0))
+            fixture_position = get_puzzle_fixture_center(yaml.puzzle_fixture)
             for x in range(0, len(self.field)):
                 for y in range(0, len(self.field[x])):
                     cell = self.get_cell_by_index(x, y)

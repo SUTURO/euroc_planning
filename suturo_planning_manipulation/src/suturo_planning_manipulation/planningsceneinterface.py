@@ -59,8 +59,10 @@ class PlanningSceneInterface(object):
             pose.pose = deepcopy(yaml.puzzle_fixture)
             #TODO: WTF?
             #if you change the Point shit here, also change it in map.py!
-            pose.pose.position = add_point(pose.pose.position, Point(0.115 if yaml.puzzle_fixture.position.x < 0 else -0.18, 0.165 if yaml.puzzle_fixture.position.y < 0 else 0.05, 0))
+            # pose.pose.position = add_point(pose.pose.position, Point(0.115 if yaml.puzzle_fixture.position.x < 0 else -0.18, 0.165 if yaml.puzzle_fixture.position.y < 0 else 0.05, 0))
+            pose.pose.position = get_puzzle_fixture_center(yaml.puzzle_fixture)
             box = self.make_box("puzzle", pose, [0.32, 0.32, 0.1])
+            print("puzzle_fixture collision object = "+str(box))
             self.safe_objects.append(box.id)
             self.add_object(box)
 

@@ -318,3 +318,19 @@ def orientation_to_vector(orientation):
     '''
     return qv_mult(orientation, Point(1, 0, 0))
 
+
+def get_puzzle_fixture_center(puzzle_fixture):
+    '''
+    Calculates the center of the puzzle fixture. Assumed fixture dimensions: 32cm x 32cm x 10cm
+    :param puzzle_fixture: geometry_msgs/Pose
+    :return: Point
+    '''
+    l = sqrt(2*0.30*0.30) / 2
+    v1 = orientation_to_vector(rotate_quaternion(deepcopy(puzzle_fixture.orientation), 0, 0, pi/4))
+    p1 = puzzle_fixture.position
+    v1norm = normalize(v1)
+    print("v1 = "+str(v1))
+    print("v1norm = "+str(v1norm))
+    p2 = Point(v1norm.x * l, v1norm.y * l, v1norm.z * l)
+    print("p2 len = " + str(sqrt(p2.x*p2.x + p2.y*p2.y)))
+    return add_point(p1, p2)
