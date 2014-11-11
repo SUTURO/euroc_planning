@@ -164,6 +164,8 @@ class Manipulation(object):
          """
         self.blow_up_objects(do_not_blow_up_list)
         path = self.__plan_group_to(goal_pose, move_group, None)
+        print "Expected Time for Trajectory:"
+        print self.__manService.get_timing(path)
         ret = self.move_with_plan_to(path)
         return ret
 

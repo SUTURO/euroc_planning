@@ -139,23 +139,6 @@ class ManipulationService(object):
         if len(path.joint_trajectory.points) == 0:
             return False
 
-        # joint_limits = []
-
-        # for every joint in the list, create the appropriate limits and store them
-        # for i in range(len(path.joint_trajectory.joint_names)):
-        #     limit = Limits()
-        #     joint_name = path.joint_trajectory.joint_names[i]
-        #     if joint_name.startswith("lwr"):
-        #         limit.max_velocity = 20 * pi / 180.0
-        #         limit.max_acceleration = 300 * pi / 180.0
-        #     if joint_name.startswith("axis"):
-        #         limit.max_velocity = 0.165
-        #         limit.max_acceleration = 4
-        #     if joint_name.startswith("joint_before_finger1"):
-        #         limit.max_velocity = 0.5
-        #         limit.max_acceleration = 20
-        #     joint_limits.append(limit)
-
         joint_limits = self.set_joint_limits(path.joint_trajectory.joint_names)
 
         # create the configuartionpath for the joints
