@@ -75,6 +75,9 @@ class Manipulation(object):
             moveit_commander.roscpp_shutdown()
             moveit_commander.os._exit(0)
 
+    def set_turbo_mode(self):
+        self.__manService.set_turbo_mode()
+
     def print_manipulation(self):
         # print "current joint state"
         # print self.get_current_joint_state()

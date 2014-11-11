@@ -23,6 +23,7 @@ class CamToDropzone(smach.State):
 
         if utils.manipulation is None:
             utils.manipulation = Manipulation()
+            utils.manipulation.set_turbo_mode()
 
         # TODO: Exception schmeissen wenn abort_after vergangen ist
         abort_after = 15

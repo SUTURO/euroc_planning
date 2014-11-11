@@ -225,10 +225,18 @@ class Map:
                         obstacles = self.get_surrounding_obstacles(x, y)
                         cell_color = cell.get_color_id()
                         obstacles_with_different_color = [c for c in obstacles if c[0].get_color_id() != cell_color]
-                        if len(obstacles_with_different_color) > 2:
-                            c = obstacles_with_different_color[0]
+                        o_with_same_color = []
+                        for o in obstacles_with_different_color:
+                            list = [c for c in obstacles_with_different_color if c[0].get_color_id() == o[0].get_color_id()]
+                            if len(list) > 2:
+                                o_with_same_color = list
+                                break
+                        if o_with_same_color:
+                            c = o_with_same_color[0]
                             cell.set_color(c[0].get_color_id())
                             cell_changed = True
+            self.publish_as_marker()
+            print "changed"
 
         self.publish_as_marker()
 

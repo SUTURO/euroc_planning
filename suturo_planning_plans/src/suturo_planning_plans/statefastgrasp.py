@@ -134,12 +134,12 @@ class FastGrasp(smach.State):
                 if j == 3:
                     return 'noPlanFound'
         if userdata.object_index == 1:
-            offset = rospy.Duration(1.5)
-        elif userdata.object_index == 2:
-            offset = rospy.Duration(1)
-        else:
             offset = rospy.Duration(2)
-        while rospy.Time.now() < self.__t_point_time - offset:
+        elif userdata.object_index == 2:
+            offset = rospy.Duration(4)
+        else:
+            offset = rospy.Duration(4)
+        while rospy.get_rostime() < self.__t_point_time - offset:
             rospy.sleep(0.01)
         self.__t_point.pose.position.z -= 0.07
         rospy.logdebug("FastGrasp: Plan 2")

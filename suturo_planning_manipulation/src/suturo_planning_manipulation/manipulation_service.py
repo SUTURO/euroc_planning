@@ -25,6 +25,25 @@ class ManipulationService(object):
         self.tcp_limits.rotational.max_velocity = 10 * pi / 180.0
         self.tcp_limits.rotational.max_acceleration = 100 * pi / 180.0
 
+        self.lwr_max_velocity = 0.37
+        self.lwr_max_acceleration = 5.3
+        self.axis_max_velocity = 0.165
+        self.axis_max_acceleration = 4
+        self.finger_max_velocity = 0.05
+        self.finger_max_acceleration = 5
+
+    def set_turbo_mode(self, factor=1.75):
+        self.tcp_limits.translational.max_velocity *= factor
+        self.tcp_limits.translational.max_acceleration *= factor
+        self.tcp_limits.rotational.max_velocity *= factor
+        self.tcp_limits.rotational.max_acceleration *= factor
+        self.lwr_max_velocity *= factor
+        self.lwr_max_acceleration *= factor
+        self.axis_max_velocity *= factor
+        self.axis_max_acceleration *= factor
+        self.finger_max_velocity = 0.5
+        self.finger_max_acceleration *= factor
+
 
     def set_joint_limits(self, joint_names):
         joint_limits = []
@@ -32,14 +51,14 @@ class ManipulationService(object):
             limit = Limits()
             joint_name = joint_names[i]
             if joint_name.startswith("lwr"):
-                limit.max_velocity = 0.37 #20 * pi / 180.0
-                limit.max_acceleration = 5.3 #300 * pi / 180.0
+                limit.max_velocity = self.lwr_max_velocity #20 * pi / 180.0
+                limit.max_acceleration = self.lwr_max_acceleration #300 * pi / 180.0
             if joint_name.startswith("axis"):
-                limit.max_velocity = 0.165
-                limit.max_acceleration = 4
+                limit.max_velocity = self.axis_max_velocity
+                limit.max_acceleration = self.axis_max_acceleration
             if joint_name.startswith("joint_before_finger1"):
-                limit.max_velocity = 0.05
-                limit.max_acceleration = 5
+                limit.max_velocity = self.finger_max_velocity
+                limit.max_acceleration = self.finger_max_acceleration
             joint_limits.append(limit)
         return joint_limits
 
