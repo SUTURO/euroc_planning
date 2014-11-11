@@ -1,6 +1,7 @@
 from geometry_msgs.msg._PointStamped import PointStamped
 from numpy.core.multiarray import dot
 from shape_msgs.msg._SolidPrimitive import SolidPrimitive
+from suturo_msgs.msg._Object import Object
 from suturo_planning_manipulation.manipulation_constants import hand_length, finger_length
 from copy import deepcopy
 from math import sqrt, pi, cos, sin, acos
@@ -15,12 +16,15 @@ from tf.transformations import quaternion_from_matrix, rotation_matrix, quaterni
 from geometry_msgs.msg._PoseStamped import PoseStamped
 
 def get_angle(p1, p2):
-    '''
+    """
     Calculates the angle between two points.
-    :param p1: Point
-    :param p2: Point
-    :return: angle as float
-    '''
+    :param p1: first point
+    :type: Point
+    :param p2: second point
+    :type: Point
+    :return: angle
+    :type: float
+    """
     v1 = p1
     if type(p1) is Point:
         v1 = (p1.x, p1.y, p1.z)
@@ -28,6 +32,7 @@ def get_angle(p1, p2):
     if type(p2) is Point:
         v2 = (p2.x, p2.y, p2.z)
     a = dot_product(v1,v2) / (magnitude(v1) * magnitude(v2))
+    #because fuck u python
     if a >= 0.9999999:
         a = 0.9999999
     elif a <= -0.9999999:
@@ -36,15 +41,19 @@ def get_angle(p1, p2):
 
 
 def three_points_to_quaternion(origin, to, roll=None):
-    '''
+    """
     Calculates a quaternion that points from "origin" to "to" and lies in the plane defined by "origin", "to" and "roll".
-    :param origin: Point
-    :param to: Point
-    :param roll: Point, optional camera is on top, when None
-    :return: Quaternion
-    '''
+    :param origin: form this point
+    :type: Point
+    :param to: to this point
+    :type: Point
+    :param roll: in a plane defined by this third point
+    :type: Point or None
+    :return: orientation
+    :type: Quaternion
+    """
     muh = False
-    if roll is None:
+    if roll is None: #TODO buggy
         roll = Point(0,0,origin.z+1.000001)
         muh = True
     n_1 = subtract_point(to, origin)
@@ -72,6 +81,13 @@ def three_points_to_quaternion(origin, to, roll=None):
 
 
 def get_fingertip(hand_pose):
+    """
+    Calculates the point between the finger tips, where objects will be hold.
+    :param hand_pose: hand pose
+    :type: PoseStamped
+    :return: point between fingers
+    :type: PointStamped
+    """
     grasp_point = PointStamped()
     grasp_point.point = set_vector_length(hand_length + finger_length, Point(1,0,0))
     grasp_point.point = qv_mult(hand_pose.pose.orientation, grasp_point.point)
@@ -81,12 +97,15 @@ def get_fingertip(hand_pose):
 
 
 def subtract_point(p1, p2):
-    '''
+    """
     p1 - p2
-    :param p1: Point / array
-    :param p2: Point / array
+    :param p1: first point
+    :type: Point/ (float(x), float(y), float(z))
+    :param p2: second point
+    :type: Point/ (float(x), float(y), float(z))
     :return: Point
-    '''
+    :type: Point
+    """
     v1 = p1
     if type(p1) is Point:
         v1 = (p1.x, p1.y, p1.z)
@@ -96,20 +115,41 @@ def subtract_point(p1, p2):
     return Point(*np.subtract(v1, v2))
 
 def euclidean_distance(p1, p2):
+    """
+    Calculates the euclidean distance between two points.
+    :param p1: first point
+    :type: Point
+    :param p2: second point
+    :type: Point
+    :return: distance
+    :type: float
+    """
     return magnitude(subtract_point(p1, p2))
 
 def euclidean_distance_in_2d(p1, p2):
+    """
+    Calculates the euclidean distance between two points, but ignores the z value.
+    :param p1: first point
+    :type: Point
+    :param p2: second point
+    :type: Point
+    :return: distance
+    :type: float
+    """
     p = deepcopy(p2)
     p.z = 0
     return magnitude(subtract_point(p1, p))
 
 def add_point(p1, p2):
-    '''
+    """
     p1 + p2
-    :param p1: Point / array
-    :param p2: Point / array
+    :param p1: first point
+    :type: Point/ (float(x), float(y), float(z))
+    :param p2: second point
+    :type: Point/ (float(x), float(y), float(z))
     :return: Point
-    '''
+    :type: Point
+    """
     v1 = p1
     if type(p1) is Point:
         v1 = (p1.x, p1.y, p1.z)
@@ -120,6 +160,13 @@ def add_point(p1, p2):
 
 
 def calc_object_volume(object):
+    """
+    Calculates the Volume of an object
+    :param object: object
+    :type: CollisionObject / Object
+    :return: volume
+    :type: float
+    """
     volume = 0
     for i in xrange(len(object.primitives)):
         if object.primitives[i].type == SolidPrimitive().BOX:
@@ -135,11 +182,13 @@ def calc_object_volume(object):
 
 
 def normalize(p):
-    '''
+    """
     Normalizes a point.
-    :param p: Point / array
-    :return: Point
-    '''
+    :param p: point
+    :type: Point / (float(x), float(y), float(z))
+    :return: normalized point
+    :type: Point
+    """
     v = p
     if type(p) is Point:
         v = (p.x, p.y, p.z)
@@ -150,21 +199,27 @@ def normalize(p):
     return result
 
 def set_vector_length(l, p):
-    '''
+    """
     Sets the length of "p" to "l"
-    :param l: float
-    :param p: Point / array
-    :return:Point
-    '''
+    :param l: desired length
+    :type: float
+    :param p: point
+    :type: Point / (float(x), float(y), float(z))
+    :return: point with desired length
+    :type: Point
+    """
     return multiply_point(l, normalize(p))
 
 def multiply_point(s, p):
-    '''
+    """
     p * s
-    :param s: float
-    :param p: Point / array
-    :return: Point
-    '''
+    :param s: factor
+    :type: float
+    :param p: point
+    :type: Point / (float(x), float(y), float(z))
+    :return: multiplied point
+    :type: Point
+    """
     v = p
     if type(p) is Point:
         v = (p.x, p.y, p.z)
@@ -172,12 +227,15 @@ def multiply_point(s, p):
 
 
 def dot_product(p1, p2):
-    '''
+    """
     p1 * p2
-    :param p1: Point / array
-    :param p2: Point / array
-    :return: scalar product as Point
-    '''
+    :param p1: first point
+    :type: Point / (float(x), float(y), float(z))
+    :param p2: second point
+    :type: Point / (float(x), float(y), float(z))
+    :return: scalar product
+    :type: float
+    """
     v1 = p1
     if type(p1) is Point:
         v1 = (p1.x, p1.y, p1.z)
@@ -188,11 +246,13 @@ def dot_product(p1, p2):
 
 
 def magnitude(q):
-    '''
+    """
     Calculates the length of a quaternion of point
     :param q: Quaternion/Point
-    :return: lenght as float
-    '''
+    :type: Point / Quaternion
+    :return: length
+    :type: float
+    """
     v = q
     if type(q) is Point:
         v = (q.x, q.y, q.z)
@@ -201,12 +261,15 @@ def magnitude(q):
     return np.linalg.norm(v)
 
 def cross_product(p1, p2):
-    '''
+    """
     p1 x p2
-    :param p1: Point / array
-    :param p2: Point / array
-    :return: Point
-    '''
+    :param p1: first point
+    :type: Point / (float(x), float(y), float(z))
+    :param p2: second point
+    :type: Point / (float(x), float(y), float(z))
+    :return: cross product
+    :type: Point
+    """
     v1 = p1
     if type(p1) is Point:
         v1 = (p1.x, p1.y, p1.z)
@@ -219,10 +282,15 @@ def rotate_quaternion(q, roll, pitch, yaw):
     '''
     Rotates a quaternion by roll, pitch, yaw.
     :param q: Quaternion
-    :param r: float
-    :param p: float
-    :param y: float
-    :return: Quaternion
+    :type: Quaternion
+    :param roll: roll
+    :type: float
+    :param pitch: pitch
+    :type: float
+    :param yaw: yaw
+    :type: float
+    :return: rotated quaternion
+    :type: Quaternion
     '''
     angle = quaternion_from_euler(roll, pitch, yaw)
     no = quaternion_multiply([q.x, q.y, q.z, q.w], angle)
@@ -231,29 +299,38 @@ def rotate_quaternion(q, roll, pitch, yaw):
 def rotate_quaternion_by_quaternion(q1, q2):
     """
     Rotates a quaternion by another quaternion
-    :param q1: Quaternion
-    :param q2: Quaternion
-    :return: Quaternion
+    :param q1: first Quaternion
+    :type: Quaternion
+    :param q2: second Quaternion
+    :type: Quaternion
+    :return: rotated Quaternion
+    :type: Quaternion
     """
     r = quaternion_multiply([q1.x, q1.y, q1.z, q1.w], [q2.x, q2.y, q2.z, q2.w])
-    return Quaternion(*no)
+    return Quaternion(*r)
 
 def euler_to_quaternion(roll, pitch, yaw):
-    '''
+    """
     Creates a quaternion out of roll, pitch, yaw
-    :param roll: float
-    :param pitch: float
-    :param yaw: float
-    :return: Quaternion
-    '''
+    :param roll:
+    :type: float
+    :param pitch:
+    :type: float
+    :param yaw:
+    :type: float
+    :return: Quaternion from roll pitch yaw
+    :type: Quaternion
+    """
     return Quaternion(*quaternion_from_euler(roll, pitch, yaw))
 
 def get_pitch(q):
-    '''
+    """
     Calculates the pitch of a quaternion.
     :param q: Quaternion
-    :return: float
-    '''
+    :type: Quaternion
+    :return: pitch of the quaternion
+    :type: float
+    """
     gripper_direction = qv_mult(q, Point(1, 0, 0))
     v = deepcopy(gripper_direction)
 
@@ -264,11 +341,13 @@ def get_pitch(q):
     return pitch
 
 def get_yaw(q):
-    '''
+    """
     Calculates the pitch of a quaternion.
     :param q: Quaternion
-    :return: float
-    '''
+    :type: Quaternion
+    :return: yaw of the quaternion
+    :type: float
+    """
     gripper_direction = qv_mult(q, Point(1, 0, 0))
     v = deepcopy(gripper_direction)
 
@@ -279,12 +358,15 @@ def get_yaw(q):
     return yaw
 
 def normalize2(v, tolerance=0.00001):
-    '''
+    """
     Normalize with tolerance.
-    :param v: (float, float, float, float)/ (float, float, float)
-    :param tolerance: float
-    :return: (float, float, float, float)/ (float, float, float)
-    '''
+    :param v: vector/ quaternion
+    :type: (float, float, float, float)/ (float, float, float)
+    :param tolerance: tolerance
+    :type: float
+    :return: normalized vector / quaternion
+    :type: (float, float, float, float)/ (float, float, float)
+    """
     mag2 = sum(n * n for n in v)
     if abs(mag2 - 1.0) > tolerance:
         mag = sqrt(mag2)
@@ -293,12 +375,15 @@ def normalize2(v, tolerance=0.00001):
 
 
 def qv_mult(q1, v1):
-    '''
+    """
     Transforms a vector by a quaternion
     :param q1: Quaternion
-    :param v1: Point
-    :return: Point
-    '''
+    :type: Quaternion
+    :param v1: vector
+    :type: Point
+    :return: transformed vector
+    :type: Point
+    """
     q = q1
     v = v1
     if type(q1) is Quaternion:
@@ -311,10 +396,13 @@ def qv_mult(q1, v1):
 
 
 def orientation_to_vector(orientation):
-    '''
-    Transforms a 1, 0, 0 vector by a quaternion
-    :param orientation: Quaternion
-    :return: Point
-    '''
+    """
+    Transforms a 1, 0, 0 vector by a quaternion, the "roll" information is lost.
+    :param orientation: orientation
+    :type: Quaternion
+    :return: vector
+    :type: Point
+
+    """
     return qv_mult(orientation, Point(1, 0, 0))
 

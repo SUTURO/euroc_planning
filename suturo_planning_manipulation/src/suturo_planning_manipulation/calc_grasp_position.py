@@ -26,13 +26,16 @@ from suturo_planning_visualization.visualization import visualize_point
 
 
 def calculate_grasp_position(collision_object, transform_func, cylinder_side=True, n=8):
-    '''
+    """
     Calculates grasp positions for the given collision object
-    :param collision_object: CollisionObject
+    :param collision_object:
+    :type: CollisionObject
     :param transform_func(object, frame_id): a function to transform objects to different frame_ids. (use Manipulation.transform_to)
     :param n: number of grasps around the side if it is a cylinder or every side ob the box
-    :return: list of PoseStamped
-    '''
+    :type: int
+    :return: list of grasp positions
+    :type: [PoseStamped]
+    """
     if len(collision_object.primitives) > 1:
         return calculate_grasp_position_list(collision_object, transform_func)
     if collision_object.primitives[0].type == shape_msgs.msg.SolidPrimitive().BOX:
@@ -43,12 +46,14 @@ def calculate_grasp_position(collision_object, transform_func, cylinder_side=Tru
 
 
 def calculate_grasp_position_list(collision_object, transform_func):
-    '''
-    Calculates grasp positions for a composition of collision objects
-    :param collision_object: CollisionObject
+    """
+    Calculates grasp positions for a composition of collision objects.
+    :param collision_object: object composition to be grapsed
+    :type: CollisionObject
     :param transform_func(object, frame_id): transform function
-    :return: list of PoseStamped
-    '''
+    :return: list of graps positions
+    :type: [PoseStamped]
+    """
     grasp_positions = []
     for i in range(0, len(collision_object.primitives)):
         co = CollisionObject()
@@ -60,23 +65,20 @@ def calculate_grasp_position_list(collision_object, transform_func):
 
         for j in range(0, len(temp)):
             tmp_pose = transform_func(co, "/" + collision_object.id).primitive_poses[0].position
-            # a = subtract_point(tmp_pose, collision_object.primitive_poses[0].position)
-            # if j == 0:
-            # print tmp_pose
             temp[j].pose.position = add_point(temp[j].pose.position, tmp_pose)
 
         grasp_positions.extend(temp)
 
-    # print grasp_positions
-
     return grasp_positions
 
 def get_pre_grasp(grasp):
-    '''
+    """
     Returns a position that should be taken before grasping.
-    :param grasp: PoseStamped
-    :return: PoseStamped that is further behind
-    '''
+    :param grasp: graps
+    :type: PoseStamped
+    :return: graps pose that is further behind
+    :type: PoseStamped
+    """
     pre_grasp = deepcopy(grasp)
     p = get_fingertip(grasp).point
     grasp_dir = subtract_point(grasp.pose.position, p)
@@ -88,9 +90,12 @@ def get_pre_grasp(grasp):
 def calculate_grasp_position_box(collision_object, n=8):
     '''
     Calculates grasp positions for a Box.
-    :param collision_object: CollisionObject
+    :param collision_object: box
+    :type: CollisionObject
     :param n: number of grasps around each side
-    :return: list of PoseStamped
+    :type: int
+    :return: list of possible graps
+    :type: [PoseStamped]
     '''
     grasp_positions = []
 
@@ -138,14 +143,19 @@ def calculate_grasp_position_box(collision_object, n=8):
 
 
 def make_grasp_pose(depth, gripper_origin, roll, frame_id):
-    '''
+    """
     Calculates a Pose pointing from gripper_origin to direction.
     :param depth: desired distance between gripper_origin and direction
-    :param gripper_origin: PoseStamped
-    :param roll: PoseStamped
-    :param frame_id: str
-    :return: PoseStamped
-    '''
+    :type: float
+    :param gripper_origin: origin of the gripper
+    :type: float
+    :param roll: point for roll
+    :type: Point
+    :param frame_id: frame_id
+    :type: str
+    :return: grasp pose
+    :type: PoseStamped
+    """
     grasp = PoseStamped()
     grasp.header.frame_id = frame_id
     grasp.pose.orientation = three_points_to_quaternion(gripper_origin, geometry_msgs.msg.Point(0, 0, 0), roll)
@@ -153,12 +163,15 @@ def make_grasp_pose(depth, gripper_origin, roll, frame_id):
     return grasp
 
 def calculate_grasp_position_cylinder(collision_object, side, n=4):
-    '''
+    """
     Calculates grasp positions for a Cylinder.
-    :param collision_object: CollisionObject
+    :param collision_object: cylinder
+    :type: CollisionObject
     :param n: number of grasp around the side
-    :return: list of PoseStamped
-    '''
+    :type: int
+    :return: list of possible graps
+    :type: [PoseStamped]
+    """
     grasp_positions = []
 
     d1 = finger_length
@@ -180,7 +193,7 @@ def calculate_grasp_position_cylinder(collision_object, side, n=4):
     grasp_positions.append(make_grasp_pose(depth, Point(0, 0, -1), Point(1, 0, 0), collision_object.id))
 
     #Points around the side of the cylinder
-    depth = d2 + hand_length
+    depth = d2 + hand_length-0.005
     grasp_positions.extend(make_scan_pose(Point(0,0,0), depth, 0, collision_object.id, 4))
 
     if side:
@@ -194,15 +207,21 @@ def calculate_grasp_position_cylinder(collision_object, side, n=4):
 
 
 def make_scan_pose(point, distance, angle, frame="/odom_combined", n=8):
-    '''
+    """
     Calculates "n" positions around and pointing to "point" with "distance" in an "angle"
     :param point: Point the positions will be pointing to
-    :param distance: float
-    :param angle: float, 0 = horizontally, pi/2 = downwards
-    :param frame: str, the frame that the positions will have
-    :param n: float, number of positions
-    :return: list of PoseStamped
-    '''
+    :type: Point
+    :param distance: distance from the point to tcp origin
+    :type: float
+    :param angle: pitch of the gripper, 0 = horizontally, pi/2 = downwards
+    :type: float
+    :param frame: the frame that the positions will have
+    :type: str
+    :param n: number of positions
+    :type: float
+    :return: list of scan poses
+    :type: [PoseStamped
+    """
     #TODO: assumes odom_combined
     look_positions = []
 

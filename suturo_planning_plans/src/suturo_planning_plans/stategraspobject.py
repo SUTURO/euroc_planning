@@ -58,13 +58,16 @@ class GraspObject(smach.State):
 
         utils.manipulation.open_gripper()
         grasp_positions = [utils.manipulation.transform_to(grasp) for grasp in grasp_positions]
+        utils.manipulation.blow_up_objects(do_not_blow_up_list=(collision_object_name))
         for grasp in grasp_positions:
-            plan_pre_grasp = plan_to_func(get_pre_grasp(grasp), blow_up=(collision_object_name))
+            plan_pre_grasp = plan_to_func(get_pre_grasp(grasp))
             if plan_pre_grasp is None:
                 continue
 
             rospy.logdebug("Plan to pregraspposition found")
-            plan_to_grasp = plan_to_func(grasp, blow_up=("map", collision_object_name), start_state=utils.manipulation.get_end_state(plan_pre_grasp))
+
+            utils.manipulation.blow_up_objects(do_not_blow_up_list=("map", collision_object_name))
+            plan_to_grasp = plan_to_func(grasp, start_state=utils.manipulation.get_end_state(plan_pre_grasp))
             if plan_to_grasp is None or not utils.manipulation.move_with_plan_to(plan_pre_grasp):
                 rospy.logdebug("Failed to move to Graspposition")
                 continue
@@ -79,6 +82,7 @@ class GraspObject(smach.State):
             rospy.sleep(1)
             if not utils.manipulation.close_gripper(collision_object, get_fingertip(utils.manipulation.transform_to(grasp))):
                 userdata.failed_object = userdata.object_to_move
+                utils.manipulation.blow_down_objects()
                 return 'fail'
             time.sleep(0.5)
             rospy.sleep(1.5)
@@ -89,6 +93,7 @@ class GraspObject(smach.State):
             if com is None:
                 rospy.logwarn("TF failed")
                 userdata.failed_object = userdata.object_to_move
+                utils.manipulation.blow_down_objects()
                 return 'fail'
 
             density = 1
@@ -115,7 +120,7 @@ class GraspObject(smach.State):
             # rospy.logdebug("the_pre_grasp = "+str(the_pre_grasp))
             # if rospy.is_shutdown():
                 # print("rospy.is_shutdown() returned true!!")
-            the_move_to_func = move_to_func(the_pre_grasp, blow_up=collision_object_name)
+            the_move_to_func = move_to_func(the_pre_grasp, do_not_blow_up_list=collision_object_name)
             # rospy.logdebug("the_move_to_func = "+str(the_move_to_func))
             # if rospy.is_shutdown():
             #     print("rospy.is_shutdown() returned true!!")
@@ -127,4 +132,5 @@ class GraspObject(smach.State):
             return 'success'
         rospy.logwarn("Grapsing failed.")
         userdata.failed_object = userdata.object_to_move
+        utils.manipulation.blow_down_objects()
         return 'fail'

@@ -8,7 +8,7 @@ class TidyUpObject(smach.StateMachine):
     def __init__(self):
         smach.StateMachine.__init__(self, outcomes=['success', 'fail'],
                                     input_keys=['yaml', 'enable_movement', 'object_to_move', 'place_position'],
-                                    output_keys=['placed_object'])
+                                    output_keys=['placed_object', 'failed_object'])
 
         with self:
             smach.StateMachine.add('GraspObject', GraspObject(),
@@ -27,3 +27,4 @@ class TidyUpObject(smach.StateMachine):
                                                 'notOnTarget': 'fail'})
 
         self.userdata.placed_object = None
+        self.userdata.failed_object = None

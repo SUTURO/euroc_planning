@@ -67,7 +67,7 @@ class PlaceObject(smach.State):
             rospy.logdebug("Try to place at: " + str(place_pose))
 
             if userdata.yaml.task_type != Task.TASK_5:
-                if not move_to_func(get_pre_place_position(place_pose), blow_up=(co.id)):
+                if not move_to_func(get_pre_place_position(place_pose), do_not_blow_up_list=(co.id)):
                     rospy.logwarn("Can't reach preplaceposition.")
                     continue
                 else:
@@ -76,7 +76,7 @@ class PlaceObject(smach.State):
                 time.sleep(0.5)
                 rospy.sleep(1)
             
-            if not move_to_func(place_pose, blow_up=(co.id, "map")):
+            if not move_to_func(place_pose, do_not_blow_up_list=(co.id, "map")):
                 rospy.logwarn("Can't reach placeposition.")
                 continue
             else:
@@ -105,8 +105,8 @@ class PlaceObject(smach.State):
             rospy.sleep(1)
 
             # post_place_pose = utils.manipulation.transform_to(place_pose, co.id)
-            if not move_to_func(get_pre_grasp(place_pose), blow_up=(co.id, "map")) and \
-                    not move_to_func(get_pre_place_position(place_pose), blow_up=(co.id, "map")):
+            if not move_to_func(get_pre_grasp(place_pose), do_not_blow_up_list=(co.id, "map")) and \
+                    not move_to_func(get_pre_place_position(place_pose), do_not_blow_up_list=(co.id, "map")):
                 rospy.logwarn("Can't reach postplaceposition. Continue anyway")
                 userdata.failed_object = None
                 return 'success'
