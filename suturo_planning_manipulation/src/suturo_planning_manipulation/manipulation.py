@@ -182,6 +182,16 @@ class Manipulation(object):
         self.blow_down_objects()
         return self.__manService.move(plan.motion_plan_response.trajectory)
 
+    def get_timing_for_path(self, path):
+        if path is None:
+            return False
+        if type(path) is RobotTrajectory:
+            timing_list =  self.__manService.get_timing(path, self.get_current_lwr_joint_state())
+        else:
+            timing_list =  self.__manService.get_timing(path.motion_plan_response.trajectory, self.get_current_lwr_joint_state())
+        time = timing_list[-1] - timing_list[0]
+        return time
+
     def plan_arm_to(self, goal_pose, start_state=None):
         """
         Plans from start_state to goal_pose with the arm group.
