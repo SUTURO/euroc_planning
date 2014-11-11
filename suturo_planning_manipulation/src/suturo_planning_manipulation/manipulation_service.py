@@ -17,7 +17,7 @@ class ManipulationService(object):
         rospy.wait_for_service(servicename)
         self.__move_service = rospy.ServiceProxy(servicename, MoveAlongJointPath)
         rospy.wait_for_service('/euroc_interface_node/get_timing_along_joint_path')
-        self.__timing_service = rospy.ServiceProxy(servicename, GetTimingAlongJointPath)
+        self.__timing_service = rospy.ServiceProxy('/euroc_interface_node/get_timing_along_joint_path', GetTimingAlongJointPath)
 
         self.tcp_limits = CartesianLimits()
         self.tcp_limits.translational.max_velocity = 0.18
@@ -139,7 +139,7 @@ class ManipulationService(object):
             return True
         raise ManipulationServiceException(resp.error_message)
 
-    def get_timing(self, path):
+    def get_timing(self, path, current_configuration):
         # check if moveit generated a trajectory
         if len(path.joint_trajectory.points) == 0:
             return False
@@ -173,8 +173,11 @@ class ManipulationService(object):
         ros_start_time = rospy.Time()
         ros_start_time.from_seconds(0)
 
+        blub = Configuration()
+        blub.q = current_configuration
+
         # call the service and store the response
-        resp = self.__timing_service(path.joint_trajectory.joint_names, config, joint_limits, self.tcp_limits)
+        resp = self.__timing_service(path.joint_trajectory.joint_names, blub, config, joint_limits, self.tcp_limits)
         return resp.time_at_via_point
 
     def pan_tilt(self, pan, tilt):

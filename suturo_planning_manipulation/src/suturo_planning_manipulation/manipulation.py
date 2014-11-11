@@ -164,8 +164,6 @@ class Manipulation(object):
          """
         self.blow_up_objects(do_not_blow_up_list)
         path = self.__plan_group_to(goal_pose, move_group, None)
-        print "Expected Time for Trajectory:"
-        print self.__manService.get_timing(path)
         ret = self.move_with_plan_to(path)
         return ret
 
@@ -183,6 +181,16 @@ class Manipulation(object):
             return self.__manService.move(plan)
         self.blow_down_objects()
         return self.__manService.move(plan.motion_plan_response.trajectory)
+
+    def get_timing_for_path(self, path):
+        if path is None:
+            return False
+        if type(path) is RobotTrajectory:
+            timing_list =  self.__manService.get_timing(path, self.get_current_lwr_joint_state())
+        else:
+            timing_list =  self.__manService.get_timing(path.motion_plan_response.trajectory, self.get_current_lwr_joint_state())
+        time = timing_list[-1] - timing_list[0]
+        return time
 
     def plan_arm_to(self, goal_pose, start_state=None):
         """
