@@ -98,15 +98,20 @@ class ManipulationService(object):
         ros_start_time = rospy.Time()
         ros_start_time.from_seconds(0)
 
-        # call the service and store the response
-        # rospy.logdebug("calling self.__move_service with "+str(path.joint_trajectory.joint_names) +", "+ str(config)+", "+str(ros_start_time)+", "+str(joint_limits)+", "+str(self.tcp_limits))
-        resp = self.__move_service(path.joint_trajectory.joint_names, config, ros_start_time, joint_limits, self.tcp_limits)
-        # rospy.logdebug("manipulation service move move_service return value = "+str(resp))
-        if resp.error_message:
+        done = False
+        while not done:
+            # call the service and store the response
+            # rospy.logdebug("calling self.__move_service with "+str(path.joint_trajectory.joint_names) +", "+ str(config)+", "+str(ros_start_time)+", "+str(joint_limits)+", "+str(self.tcp_limits))
+            resp = self.__move_service(path.joint_trajectory.joint_names, config, ros_start_time, joint_limits, self.tcp_limits)
+            # rospy.logdebug("manipulation service move move_service return value = "+str(resp))
+            if resp.error_message:
+                if resp.error_message.starts_with("Cannot obtain lock, concurrent service calls are not permitted."):
+                    continue
+                raise ManipulationServiceException(resp.error_message)
+            if resp.stop_reason == "path finished":
+                return True
+            done = True
             raise ManipulationServiceException(resp.error_message)
-        if resp.stop_reason == "path finished":
-            return True
-        raise ManipulationServiceException(resp.error_message)
 
     def direct_move(self, configuration):
 
