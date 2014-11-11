@@ -25,6 +25,7 @@ from manipulation_service import *
 import math
 # from suturo_planning_visualization.visualization import visualize_poses
 from suturo_planning_visualization.visualization import visualize_poses, visualize_pose
+from suturo_planning_manipulation import manipulation_constants
 from transformer import Transformer
 from euroc_c2_msgs.msg import *
 from euroc_c2_msgs.srv import *
@@ -935,6 +936,9 @@ class Manipulation(object):
             return True
         # print states
         return False
+
+    def set_movement_time(self, movement_time):
+        manipulation_constants.max_motion_time = movement_time
 
 
 # class for our own exception

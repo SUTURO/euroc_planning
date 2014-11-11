@@ -1,5 +1,7 @@
 import smach
 import rospy
+import suturo_planning_manipulation.manipulation_constants
+from suturo_planning_plans.utils import manipulation
 import utils
 import time
 from suturo_planning_manipulation.manipulation import Manipulation
@@ -24,6 +26,7 @@ class CamToDropzone(smach.State):
         if utils.manipulation is None:
             utils.manipulation = Manipulation()
             utils.manipulation.set_turbo_mode()
+            utils.manipulation.set_movement_time(9)
 
         # TODO: Exception schmeissen wenn abort_after vergangen ist
         abort_after = 15
