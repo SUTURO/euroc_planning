@@ -30,7 +30,7 @@ class ManipulationService(object):
         self.axis_max_velocity = 0.165
         self.axis_max_acceleration = 4
         self.finger_max_velocity = 0.05
-        self.finger_max_acceleration = 5
+        self.finger_max_acceleration = 15
 
     def set_turbo_mode(self, factor=1.75):
         self.tcp_limits.translational.max_velocity *= factor

@@ -34,7 +34,7 @@ class ScanMapArmCam(smach.State):
 
         i = 0
         r_id = 0
-
+        utils.manipulation.set_planning_time_arm_base(5)
         while len(regions) > 0 and utils.map.get_percent_cleared() < 0.985:
             if len(regions[r_id].get_boarder_cells()) < self.min_num_of_cells:
                 regions.remove(regions[r_id])
@@ -70,7 +70,7 @@ class ScanMapArmCam(smach.State):
             move_successfull = False
             while j < len(poses) and not move_successfull:
                 rospy.logdebug("try scan pose nr. " + str(j))
-                move_successfull = utils.manipulation.move_arm_and_base_to(poses[j], blow_up=("all"))
+                move_successfull = utils.manipulation.move_arm_and_base_to(poses[j], do_not_blow_up_list=("all"))
                 j += 1
             if move_successfull:
                 rospy.sleep(utils.waiting_time_before_scan)
@@ -85,6 +85,7 @@ class ScanMapArmCam(smach.State):
                 co = utils.map.to_collision_object()
                 utils.manipulation.get_planning_scene().add_object(co)
                 utils.map.mark_cell(next_point.x, next_point.y, False)
+                utils.manipulation.set_planning_time_arm_base(10)
                 return 'newImage'
             utils.map.mark_cell(next_point.x, next_point.y, False)
 
@@ -93,6 +94,7 @@ class ScanMapArmCam(smach.State):
         rospy.loginfo("can't update map any further")
         utils.map.all_unknowns_to_obstacle()
         self.finished = True
+        utils.manipulation.set_planning_time_arm_base(10)
         return 'mapScanned'
 
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from moveit_msgs.msg._AttachedCollisionObject import AttachedCollisionObject
 from suturo_msgs.msg._Task import Task
 
 __author__ = 'ichumuh'
@@ -32,10 +33,11 @@ class PlanningSceneInterface(object):
         pass
 
     def add_ground(self, height=-0.01):
-        '''
+        """
         Adds a big flat box to the planning scene.
-        :param height: float, z value
-        '''
+        :param height: z value
+        :type: float
+        """
         pose = PoseStamped()
         pose.header.frame_id = "/odom_combined"
         pose.pose.position = Point(0, 0, height)
@@ -45,6 +47,11 @@ class PlanningSceneInterface(object):
         self.add_object(box)
 
     def add_yaml(self, yaml):
+        """
+        Adds some fixed collision objects that are defined in the yaml description
+        :param yaml: yaml description of the task
+        :type: Task
+        """
         self.add_ground()
         if yaml is None:
             self.add_cam_mast(0.92, 0.92)
@@ -67,9 +74,13 @@ class PlanningSceneInterface(object):
             self.add_object(box)
 
     def add_cam_mast(self, x, y):
-        '''
+        """
         Adds a Cylinder where the cam mast is.
-        '''
+        :param x: x coordinate
+        :type: float
+        :param y: y coordinate
+        :type: float
+        """
         pose = PoseStamped()
         pose.header.frame_id = "/odom_combined"
         pose.pose.position = Point(x, y, 0.55)
@@ -86,13 +97,17 @@ class PlanningSceneInterface(object):
 
     @staticmethod
     def make_box(name, pose, size):
-        '''
+        """
         Creates a box collision object.
-        :param name: str, name of the box
-        :param pose: PoseStamped, position of the box
-        :param size: list of float
-        :return: CollisionObject
-        '''
+        :param name: name of the box
+        :type: str
+        :param pose: position of the box
+        :type: PoseStamped
+        :param size: box size
+        :type: [float(x), float(y), float(z)]
+        :return: box collision object
+        :type: CollisionObject
+        """
         co = CollisionObject()
         co.operation = CollisionObject.ADD
         co.id = name
@@ -106,13 +121,17 @@ class PlanningSceneInterface(object):
 
     @staticmethod
     def make_cylinder(name, pose, size):
-        '''
+        """
         Creates a cylinder collision object.
-        :param name: str, name of the cylinder
-        :param pose: PoseStamped, position of the cylinder
-        :param size: list of float
-        :return: CollisionObject
-        '''
+        :param name: name of the cylinder
+        :type: str
+        :param pose: position of the cylinder
+        :type: PoseStamped
+        :param size: cylinder size
+        :type: [float(height), float(radius)]
+        :return: cylinder collisionobject
+        :type: CollisionObject
+        """
         co = CollisionObject()
         co.operation = CollisionObject.ADD
         co.id = name
@@ -125,17 +144,20 @@ class PlanningSceneInterface(object):
         return co
 
     def get_collision_objects(self):
-        '''
-        :return: list of all CollisionObjects, that are currently in the planning scene
-        '''
+        """
+        :return: that are currently in the planning scene
+        :type: [CollisionObject]
+        """
         return self.get_planning_scene().world.collision_objects
 
     def get_collision_object(self, name):
-        '''
+        """
         Returns a collision object with the given name out of the planning scene.
-        :param name: str
-        :return: CollisionObject
-        '''
+        :param name: name of the desired object
+        :type: str
+        :return: desired collision object or None
+        :type: CollisionObject or None
+        """
         cos = self.get_collision_objects()
         for co in cos:
             if co.id == name:
@@ -143,15 +165,17 @@ class PlanningSceneInterface(object):
         return None
 
     def get_attached_objects(self):
-        '''
+        """
         :return: list of attached CollisionObject
-        '''
+        :type: [AttachedCollisionObject]
+        """
         return self.get_planning_scene().robot_state.attached_collision_objects
 
     def get_attached_object(self):
-        '''
+        """
         :return: the attached CollisionObject
-        '''
+        :type: AttachedCollisionObject or None
+        """
         acos = self.get_attached_objects()
         if len(acos) == 0:
             rospy.logerr("No objects attached!")
@@ -160,9 +184,9 @@ class PlanningSceneInterface(object):
             return acos[0]
 
     def get_planning_scene(self):
-        '''
+        """
         :return: the PlanningScene
-        '''
+        """
         try:
             ps = self.__ps_service_client(moveit_msgs.msg.PlanningSceneComponents(1023))
             return ps.scene

@@ -20,15 +20,20 @@ __author__ = 'ichumuh'
 
 
 def get_place_position(collision_object, destination, transform_func, d, grasp):
-    '''
+    """
     Calculates place position for a "collision_object" at "dest".
-    :param collision_object: CollisionObject
-    :param destination: PointStamped
+    :param collision_object: CollisionObject to be placed
+    :type: CollisionObject
+    :param destination:
+    :type: PointStamped
     :param transform_func(object, frame_id): a function to transform objects to different frame_ids. (use Manipulation.transform_to)
     :param d: dist from the grasped point to the tcp frame
-    :param grasp: PoseStamped
-    :return: list of PoseStamped
-    '''
+    :type: float
+    :param grasp: graps position
+    :type: PoseStamped
+    :return: list of possible place positions
+    :type: [PoseStamped]
+    """
     if len(collision_object.primitives) == 1:
         return get_place_position_for_single_object(collision_object, destination, transform_func, grasp,d)
     else:
@@ -38,9 +43,6 @@ def get_place_position(collision_object, destination, transform_func, d, grasp):
 def get_place_position_for_puzzle(destination, orientation):
     rospy.logdebug("get_place_position_for_puzzle")
     place_poses = []
-    #origin = deepcopy(destination.point)
-    #to = add_point(deepcopy(destination.point), Point(0, 0, -1))
-    #roll = add_point(deepcopy(destination.point), Point(1, 0, 0))
     pitch = pi/2
     if orientation_to_vector(rotate_quaternion(deepcopy(orientation), 0, pitch, 0)).z > 0:
         pitch = -pitch
@@ -69,15 +71,20 @@ def get_place_position_for_puzzle(destination, orientation):
     return place_poses
 
 def get_place_position_for_single_object(collision_object, destination, transform_func,  grasp, d):
-    '''
+    """
     Calculates place positions for a non composition of collision objects.
-    :param collision_object: CollisionObject
-    :param destination: PointStamped
+    :param collision_object: object to be placed
+    :type: CollisionObject
+    :param destination:
+    :type: PointStamped
     :param transform_func(object, frame_id): a function to transform objects to different frame_ids. (use Manipulation.transform_to)
     :param grasp: PoseStamped
+    :type: PoseStamped
     :param d: dist from the grasped point to the tcp frame
-    :return: list of PoseStamped
-    '''
+    :type: float
+    :return: list of possible place positions
+    :type: [PoseStamped]
+    """
     angle = get_pitch(grasp.pose.orientation)
     z_o = abs(grasp.pose.position.z) - (sin(angle) * d)
 
@@ -100,14 +107,20 @@ def get_place_position_for_single_object(collision_object, destination, transfor
     return place_poses
 
 def get_place_position_handle(collision_object, destination, transform_func, d):
-    '''
+    """
     Calculates place positions for a composition of collision objects.
-    :param collision_object: CollisionObject
-    :param destination: PointStamped
+    :param collision_object: object to be placed
+    :type: CollisionObject
+    :param destination:
+    :type: PointStamped
     :param transform_func(object, frame_id): a function to transform objects to different frame_ids. (use Manipulation.transform_to)
+    :param grasp: PoseStamped
+    :type: PoseStamped
     :param d: dist from the grasped point to the tcp frame
-    :return: list of PoseStamped
-    '''
+    :type: float
+    :return: list of possible place positions
+    :type: [PoseStamped]
+    """
     angle = 0
 
     place_pose = destination.point
@@ -123,34 +136,22 @@ def get_place_position_handle(collision_object, destination, transform_func, d):
     place_pose.z += abs(p2.point.y)
 
     place_poses = make_scan_pose(place_pose, d, angle)
+    #rotate place poses, depending on where the centroid of the object is, relative to the gripper
     if p2.point.y < 0:
         for i in range(0, len(place_poses)):
             place_poses[i].pose.orientation = rotate_quaternion(place_poses[i].pose.orientation, pi, 0, 0)
 
     return place_poses
 
-# def point_inBounding_box(object, point):
-#     o = CollisionObject()
-#     bounding_box = Point()
-#     for p in object.primitives:
-#         if p.type == SolidPrimitive.CYLINDER:
-#             bounding_box.x = p.dimensions[SolidPrimitive.CYLINDER_RADIUS]*2
-#             bounding_box.y = p.dimensions[SolidPrimitive.CYLINDER_RADIUS]*2
-#             bounding_box.z = p.dimensions[SolidPrimitive.CYLINDER_HEIGHT]
-#         else:
-#             bounding_box.x = p.dimensions[SolidPrimitive.BOX_X]
-#             bounding_box.y = p.dimensions[SolidPrimitive.BOX_Y]
-#             bounding_box.z = p.dimensions[SolidPrimitive.BOX_Z]
-
-    # if
-
 
 def get_grasped_part(collision_object, grasped_point):
     """
     Returns the grasped part of a collision object
-    :param collision_object: CollisionObject
+    :param collision_object: grapsed object
+    :type: CollisionObject
     :param transform_func(object, frame_id): a function to transform objects to different frame_ids. (use Manipulation.transform_to)
-    :return: (Point, float), grasped point and id of the grasped part
+    :return: grasped point and id of the grasped part
+    :type: (Point(grasped point), float(id))
     """
     #TODO: buggy, use bounding box instead of closed object centroid
     if grasped_point is None:
@@ -163,11 +164,13 @@ def get_grasped_part(collision_object, grasped_point):
     return (collision_object.primitive_poses[id], id)
 
 def get_pre_place_position(place_pose):
-    '''
+    """
     Returns a position that is higher than the place position, should be taken before placing.
-    :param place_pose: PoseStamped
-    :return: PoseStamped
-    '''
+    :param place_pose:
+    :type: PoseStamped
+    :return: pre place position
+    :type: PoseStamped
+    """
     pre_place_pose = deepcopy(place_pose)
     pre_place_pose.pose.position.z += pre_place_length
     return pre_place_pose

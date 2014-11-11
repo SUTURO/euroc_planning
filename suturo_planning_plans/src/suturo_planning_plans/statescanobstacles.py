@@ -96,20 +96,23 @@ class ScanObstacles(smach.State):
         visualize_poses(poses)
 
         if userdata.enable_movement:
-            move = utils.manipulation.move_arm_and_base_to
+            # move = utils.manipulation.move_arm_and_base_to
+            plan = utils.manipulation.plan_arm_and_base_to
         else:
-            move = utils.manipulation.move_to
+            # move = utils.manipulation.move_to
+            plan = utils.manipulation.plan_arm_to
 
+        utils.manipulation.blow_up_objects(do_not_blow_up_list=("map"))
         for pose in poses:
-            utils.manipulation.set_planning_time_arm(2)
-            if move(pose, blow_up=("map")):
-                utils.manipulation.set_planning_time_arm(5)
+            # utils.manipulation.set_planning_time_arm(2)
+            if utils.manipulation.move_with_plan_to(plan(pose)):
+                # utils.manipulation.set_planning_time_arm(5)
                 userdata.focused_point = region_centroid
 
                 rospy.logdebug('Wait for clock')
                 time.sleep(0.5)
                 rospy.sleep(2.5)
                 return 'newImage'
-
+        utils.manipulation.blow_down_objects()
         return 'mapScanned'
 

@@ -30,19 +30,13 @@ class Map:
     num_of_cells = 50
 
     def __init__(self, size):
-        # size_x = size
-        # size_y = size
         self.field = [[Cell() for i in range(self.num_of_cells)] for j in range(self.num_of_cells)]
         self.cell_size = 1.0 * size / self.num_of_cells
-        # self.cell_size = 1.0 * size / len(self.field[0])
         self.size = size
         self.max_coord = self.size / 2
-        # self.size = size_y
-        # self.max_coord = self.size / 2
         self.obstacle_regions = []
         self.unknown_regions = []
         self.__get_point_array = rospy.ServiceProxy('/suturo/GetPointArray', GetPointArray)
-        # rospy.sleep(1.0)
 
     def __del__(self):
         pass
@@ -263,7 +257,6 @@ class Map:
                     fixture_dist = euclidean_distance_in_2d(fixture_position, cell_coor)
                     if fixture_dist < 0.35:
                         rospy.logdebug("cell at ("+str(x)+","+str(y)+") marked as fixture cell")
-                        #cell.set_obstacle()
                         cell.set_mark()
                         if cell.is_unknown():
                             cell.highest_z = 0.1
@@ -277,10 +270,10 @@ class Map:
         self.publish_as_marker()
 
     def to_collision_object(self):
-        '''
+        """
         :return: the map as a collision object
         :type: CollisionObject
-        '''
+        """
         co = CollisionObject()
         co.header.frame_id = "/odom_combined"
         co.id = "map"

@@ -13,8 +13,9 @@ from geometry_msgs.msg._PointStamped import PointStamped
 from geometry_msgs.msg._Pose import Pose
 from geometry_msgs.msg._Vector3 import Vector3
 from moveit_msgs.msg import *
-from moveit_msgs.srv._GetMotionPlan import GetMotionPlan, GetMotionPlanRequest
+from moveit_msgs.srv._GetMotionPlan import GetMotionPlan, GetMotionPlanRequest, GetMotionPlanResponse
 import geometry_msgs.msg
+import rospy
 from std_msgs.msg._Duration import Duration
 from calc_grasp_position import *
 from place import get_place_position, get_pre_place_position, get_grasped_part
@@ -65,6 +66,8 @@ class Manipulation(object):
 
         self.__grasp = None
 
+        self.__collision_object_buffer = []
+
         rospy.loginfo("Manipulation started.")
 
     def __del__(self):
@@ -86,8 +89,10 @@ class Manipulation(object):
     def move_base(self, goal_pose):
         """
         Moves the arm's base to the goal position. (Don't use this for Task 1 and 2)
-        :param goal_pose: goal position as a PoseStamped
+        :param goal_pose: goal position
+        :type: PoseStamped
         :return: success of the movement
+        :type: bool
         """
         goal = [goal_pose.pose.position.x, goal_pose.pose.position.y]
         rospy.logdebug("Move base to: " + str(goal))
@@ -104,136 +109,161 @@ class Manipulation(object):
     def transform_to(self, pose_target, target_frame="/odom_combined"):
         """
         Transforms the pose_target into the target_frame.
-        :param pose_target: object to transform as PoseStamped/PointStamped/Vector3Stamped/CollisionObject/PointCloud2
+        :param pose_target: object to transform
+        :type: PoseStamped/PointStamped/Vector3Stamped/CollisionObject
         :param target_frame: goal frame id
+        :type: str
         :return: transformed object
+        :type: same as pose_target
         """
         return self.tf.transform_to(pose_target, target_frame)
 
-    def move_to(self, goal_pose, blow_up=()):
+    def move_to(self, goal_pose, do_not_blow_up_list=()):
         """
         Moves the endeffector to the goal position, without moving the base.
-        :param goal_pose: goal position as PoseStamped
+        :param goal_pose: goal position
+        :type: PoseStamped
         :return: success of the movement
+        :type: bool
         """
         rospy.logdebug("move_to called!")
-        return self.__move_group_to(goal_pose, self.__arm_group, blow_up)
+        return self.__move_group_to(goal_pose, self.__arm_group, do_not_blow_up_list)
 
-    def move_arm_and_base_to(self, goal_pose, blow_up=()):
+    def move_arm_and_base_to(self, goal_pose, do_not_blow_up_list=()):
         """
         Moves the endeffector to the goal position. (Don't use this for Task 1 and 2)
-        :param goal_pose: goal position as PoseStamped
+        :param goal_pose: goal position
+        :type: PoseStamped
         :return: success of the movement
+        :type: bool
         """
-        # print("move_arm_and_base_to called!")
-        # rospy.logdebug("move_arm_and_base_to called!")
-        if (math.isnan(goal_pose.pose.orientation.x) or
+        if type(goal_pose) is PoseStamped and ((math.isnan(goal_pose.pose.orientation.x) or
                 math.isnan(goal_pose.pose.orientation.y) or
                 math.isnan(goal_pose.pose.orientation.z) or
-                math.isnan(goal_pose.pose.orientation.w)):
+                math.isnan(goal_pose.pose.orientation.w))):
             rospy.loginfo('move_arm_and_base to goal pose with nan in orientation!')
             goal_pose.pose.orientation.x = 0.0
             goal_pose.pose.orientation.y = 0.0
             goal_pose.pose.orientation.z = 0.0
             goal_pose.pose.orientation.w = 1.0
-        # rospy.logdebug("move_arm_and_base_to goal_pose = " + str(goal_pose) + ", blow_up = "+str(blow_up))
-        # print("move_arm_and_base_to goal_pose = " + str(goal_pose) + ", blow_up = "+str(blow_up))
-        return self.__move_group_to(goal_pose, self.__arm_base_group, blow_up)
+        return self.__move_group_to(goal_pose, self.__arm_base_group, do_not_blow_up_list)
 
-    def __move_group_to(self, goal_pose, move_group, blow_up, blow_up_distance=0.02):
+    def __move_group_to(self, goal_pose, move_group, do_not_blow_up_list):
         """
          :param goal_pose: the pose which shall be arrived
+         :type: PoseStamped/str/[float]
          :param move_group: the move group which shall be moved
-         :param blow_up: True if collision objects shall be made bigger
+         :type: MoveGroupCommander
+         :param do_not_blow_up_list: list of objects which size should not be increased during planning,
+                "all" for all objects
+         :type: [str]
          :param blow_up_distance: Distance in m
-         :return:
+         :type: float
+         :return: success
+         :type: bool
          """
-        #rospy.logdebug("__move_group_to called!")
-        #rospy.logdebug("__move_group_to.goal_pose = "+str(goal_pose)+" .move_group = "+str(move_group)+" .blow_up = "+str(blow_up))
-        path = self.__plan_group_to(goal_pose, move_group, blow_up, None)
-        #rospy.logdebug("__move_group_to got a path: "+str(path))
+        self.blow_up_objects(do_not_blow_up_list)
+        path = self.__plan_group_to(goal_pose, move_group, None)
         ret = self.move_with_plan_to(path)
-        #rospy.logdebug("__move_group_to return value = "+str(ret))
         return ret
 
     def move_with_plan_to(self, plan):
-        #rospy.logdebug("move_with_plan_to called!")
-        #rospy.logdebug("move_with_plan_to.plan = "+str(plan))
+        """
+        Executes a plan.
+        :param plan: plan to execute
+        :type: GetMotionPlanResponse
+        :return: success
+        :type: bool
+        """
         if plan is None:
-            #rospy.logdebug("move_with_plan_to plan is None")
             return False
         if type(plan) is RobotTrajectory:
-            #rospy.logdebug("move_with_plan_to plan is RobotTrajectory")
             return self.__manService.move(plan)
-        #rospy.logdebug("plan is neither None nor RobotTrajectory")
+        self.blow_down_objects()
         return self.__manService.move(plan.motion_plan_response.trajectory)
 
-    def plan_arm_to(self, goal_pose, blow_up=(), start_state=None):
-        return self.__plan_group_to(goal_pose, self.__arm_group, blow_up, start_state)
+    def plan_arm_to(self, goal_pose, start_state=None):
+        """
+        Plans from start_state to goal_pose with the arm group.
+        :param goal_pose: the goal which shall be arrived
+        :type: PoseStamped (eef pose)/str (named pose)/[float] (joint state)
+        :param do_not_blow_up_list: list of objects which size should not be increased during planning,
+                "all" for all objects
+        :type: [str]
+        :param start_state: the robot state from which the the generated plan will start
+        :type: RobotState, None for current state
+        :return: success
+        :type: bool
+        """
+        return self.__plan_group_to(goal_pose, self.__arm_group, start_state)
 
-    def plan_arm_and_base_to(self, goal_pose, blow_up=(), start_state=None):
-        return self.__plan_group_to(goal_pose, self.__arm_base_group, blow_up, start_state)
+    def plan_arm_and_base_to(self, goal_pose, start_state=None):
+        """
+        Plans from start_state to goal_pose with the arm_base group.
+        :param goal_pose: the goal which shall be arrived
+        :type: PoseStamped (eef pose)/str (named pose)/[float] (joint state)
+        :param do_not_blow_up_list: list of objects which size should not be increased during planning,
+                "all" for all objects
+        :type: [str]
+        :param start_state: the robot state from which the the generated plan will start
+        :type: RobotState, None for current state
+        :return: success
+        :type: bool
+        """
+        return self.__plan_group_to(goal_pose, self.__arm_base_group, start_state)
 
-    def __plan_group_to(self, goal_pose, move_group, blow_up, start_state, blow_up_distance=0.015):
-        #rospy.logdebug("__plan_group_to called!")
-        original_objects = self.__planning_scene_interface.get_collision_objects()
-        if not blow_up is None and "all" not in blow_up:
-            for each in original_objects:
-                if each.id in blow_up:
-                    continue
-                if not each.id in self.__planning_scene_interface.safe_objects:
-                    if each.id == "map":
-                        bobj = self.__blow_up_map(each)
-                    else:
-                        bobj = self.__blow_up_object(each, blow_up_distance)
-                    self.__planning_scene_interface.add_object(bobj)
-            rospy.sleep(1.5)
-        # elif blow_up == 2:
-        # print "muh"
-        #     map = self.__planning_scene_interface.get_collision_object("map")
-        #     map = self.__blow_up_map(map)
-        #     self.__planning_scene_interface.add_object(map)
-        #     rospy.sleep(1.5)
-
+    def __plan_group_to(self, goal_pose, move_group, start_state):
+        """
+        Plans from start_state to goal_pose with the move_group group.
+        :param goal_pose: the goal which shall be arrived
+        :type: PoseStamped (eef pose)/str (named pose)/[float] (joint state)
+        :param do_not_blow_up_list: list of objects which size should not be increased during planning,
+                "all" for all objects
+        :type: [str]
+        :param start_state: the robot state from which the the generated plan will start
+        :type: RobotState, None for current state
+        :param blow_up_distance: Distance in m
+        :type: float
+        :return: success
+        :type: bool
+        """
         move_group.set_start_state_to_current_state()
         goal = deepcopy(goal_pose)
 
-        #rospy.logdebug("goal = " + str(goal))
         if type(goal) is str:
-            #rospy.logdebug("move_group.set_named_target")
+            #use normale planner
+            #TODO use planning service to avoid collisions with attached objects
             move_group.set_named_target(goal)
-            # rospy.logwarn("DANGER, for named targets, attached objects will be ignored.")
             plan = move_group.plan()
-            if blow_up != 0:
-                self.__planning_scene_interface.add_objects(original_objects)
             return plan
         elif type(goal) is PoseStamped:
-            #rospy.logdebug("goal is pose stamped")
             visualize_pose(goal)
             # Rotate the goal so that the gripper points from 0,0,0 to 1,0,0 with a 0,0,0,1 quaternion as orientation.
             goal.pose.orientation = rotate_quaternion(goal.pose.orientation, pi / 2, pi, pi / 2)
-            # rospy.logdebug("goal after rotation: " + str(goal))
             if goal.header.frame_id != "/odom_combined":
-                # rospy.logdebug("goal after transformation: " + str(goal))
                 goal = self.tf.transform_to(goal)
-
-                # move_group.set_pose_target(goal)
-        # else:
-        #     move_group.set_joint_value_target(goal)
 
         plan = self.plan(move_group, goal, start_state)
         if not plan is None:
+            #plan two times and concatenate plans, to be closer to the goal position
             plan2 = self.plan(move_group, goal, self.get_end_state(plan))
             plan.motion_plan_response.trajectory.joint_trajectory.points.extend(
                 plan2.motion_plan_response.trajectory.joint_trajectory.points[1:])
 
-        if blow_up != 0:
-            self.__planning_scene_interface.add_objects(original_objects)
-
-        #rospy.logdebug("_plan_group_to done, return value: "+str(plan))
         return plan
 
     def plan(self, move_group, goal, start_state):
+        """
+        Generates a plan by calling the MoveIt! service.
+        :param move_group: group to plan with
+        :type: MoveitCommander
+        :param goal: the goal which shall be arrived
+        :type: PoseStamped (eef pose)/ [float] (joint state)
+        :param start_state: the robot state from which the the generated plan will start
+        :type: RobotState, None for current state
+        :return: plan
+        :type: GetMotionPlanResponse or None if no plan found
+        """
         request = GetMotionPlanRequest()
         if start_state is None:
             request.motion_plan_request.start_state.is_diff = True
@@ -248,11 +278,11 @@ class Manipulation(object):
         constraint.name = "muh23"
 
         if type(goal) is PoseStamped:
-            pose_goal = self.__make_position_goal(move_group, goal)
+            pose_goal = self.__make_position_goal(move_group.get_end_effector_link(), goal)
             constraint.position_constraints.append(pose_goal[0])
             constraint.orientation_constraints.append(pose_goal[1])
         else:
-            joint_goal = self.__make_joint_state_goal(move_group, goal)
+            joint_goal = self.__make_joint_state_goal(goal)
             constraint.joint_constraints.extend(joint_goal)
 
         request.motion_plan_request.goal_constraints.append(constraint)
@@ -267,7 +297,13 @@ class Manipulation(object):
             rospy.logdebug("probably couldnt find a plan.")
             return None
 
-    def __make_joint_state_goal(self, move_group, goal):
+    def __make_joint_state_goal(self, goal):
+        """
+        Helpermethod to create a joint goal out of a joint state
+        :param goal: [float]
+        :return: list of joint goal constraints
+        :type: [JointConstraint]
+        """
         joint_goals = []
         joint_names = []
         if len(goal) == 7:
@@ -291,14 +327,23 @@ class Manipulation(object):
 
         return joint_goals
 
-    def __make_position_goal(self, move_group, goal):
+    def __make_position_goal(self, eef_link, goal):
+        """
+        Helper method to create a pose goal out of a posestamped.
+        :param eef_link: name of the eef link
+        :type: str
+        :param goal: eef goal position
+        :type: PoseStamped
+        :return:
+        :type: PositionConstraint
+        """
 
         position_tolerance = 0.00001
         orientation_tolerance = 0.001
 
         position_goal = PositionConstraint()
         position_goal.header = goal.header
-        position_goal.link_name = move_group.get_end_effector_link()
+        position_goal.link_name = eef_link
         position_goal.target_point_offset = Vector3()
 
         primitive = SolidPrimitive()
@@ -316,7 +361,7 @@ class Manipulation(object):
 
         orientation_goal = OrientationConstraint()
         orientation_goal.header = goal.header
-        orientation_goal.link_name = move_group.get_end_effector_link()
+        orientation_goal.link_name = eef_link
         orientation_goal.absolute_x_axis_tolerance = orientation_tolerance
         orientation_goal.absolute_y_axis_tolerance = orientation_tolerance
         orientation_goal.absolute_z_axis_tolerance = orientation_tolerance
@@ -326,7 +371,8 @@ class Manipulation(object):
 
     def get_base_origin(self):
         """
-        :return: The centre of the arm's base as PointStamped
+        :return: The centre of the arm's base
+        :type: PointStamped
         """
         current_pose = self.__base_group.get_current_joint_values()
         result = PointStamped()
@@ -336,16 +382,53 @@ class Manipulation(object):
 
     def get_eef_position(self):
         """
-        :return: The centre of the arm's base as PointStamped
+        :return: The centre of the arm's base
+        :type: PointStamped
         """
         current_pose = self.__arm_group.get_current_pose()
         return current_pose
 
+    def blow_up_objects(self, do_not_blow_up_list=(), blow_up_distance=0.015):
+        """
+        Increases the size of the collision objects in order to create more stable plans.
+        :param do_not_blow_up_list: list of object names that should not be blown up
+        :type: [str]
+        :param blow_up_distance: value by which the objects will be blown up
+        :type: float
+        """
+        if self.__collision_object_buffer:
+            rospy.loginfo("Tring to blow up objects, before they where blown back down")
+        else:
+            self.__collision_object_buffer = self.__planning_scene_interface.get_collision_objects()
+        #blow shit up
+        if not do_not_blow_up_list is None and "all" not in do_not_blow_up_list:
+            for each in self.__collision_object_buffer:
+                if each.id in do_not_blow_up_list:
+                    continue
+                if not each.id in self.__planning_scene_interface.safe_objects:
+                    if each.id == "map":
+                        bobj = self.__blow_up_map(each)
+                    else:
+                        bobj = self.__blow_up_object(each, blow_up_distance)
+                    self.__planning_scene_interface.add_object(bobj)
+            rospy.sleep(1.5)
+
+    def blow_down_objects(self):
+        """
+        Reverts the collision objects back to normal
+        """
+        if self.__collision_object_buffer:
+            self.__planning_scene_interface.add_objects(self.__collision_object_buffer)
+            self.__collision_object_buffer = []
+
     def __blow_up_object(self, bobject, factor):
         """
         :param bobject: Object to blow up
+        :type: CollisionObject
         :param factor: Blowup Factor
+        :type: float
         :return: Returns the Blown up object
+        :type: CollisionObject
         """
         o = deepcopy(bobject)
         for primitive in o.primitives:
@@ -356,6 +439,13 @@ class Manipulation(object):
         return o
 
     def __blow_up_map(self, object):
+        """
+        Special treatment for the map.
+        :param object: map
+        :type: CollisionObject
+        :return: bigger map
+        :type: CollisionObject
+        """
         o = deepcopy(object)
         for primitive in o.primitives:
             dim = []
@@ -366,11 +456,13 @@ class Manipulation(object):
         return o
 
     def get_end_state(self, plan_response):
-        # if type(plan_response) is RobotTrajectory:
-        # r = RobotTrajectory()
-        #     robot_state = RobotState()
-        #     robot_state.joint_state.header = r.
-
+        """
+        Extracts the endstate out of a plan.
+        :param plan_response: plan
+        :type: GetMotionPlanResponse
+        :return: end state of the plan
+        :type: RobotState
+        """
         r = plan_response
         robot_state = RobotState()
         robot_state.multi_dof_joint_state = r.motion_plan_response.trajectory_start.multi_dof_joint_state
@@ -385,24 +477,32 @@ class Manipulation(object):
 
     def get_current_joint_state(self):
         """
-        :return: current joint state as list of floats
+        :return: current joint state of the arm_base group.
+        :type: [float]
         """
         return self.__arm_base_group.get_current_joint_values()
 
     def get_current_gripper_state(self):
         """
-        :return: current joint state as list of floats
+        :return: current joint state
+        :type: [float]
         """
         return self.__gripper_group.get_current_joint_values()
 
     def get_current_lwr_joint_state(self):
+        """
+        :return: current joint state of the arm group.
+        :type: [float]
+        """
         return self.__arm_group.get_current_joint_values()
 
     def open_gripper(self, position=gripper_max_pose):
         """
-        Opens the gripper and detaches any attached collisionobject.
+        Opens the gripper and detaches any attached collision object.
         :param position: the desired finger position, max value if not specified.
+        :type: float
         :return: success of the movement
+        :type: bool
         """
 
         done = False
@@ -428,7 +528,9 @@ class Manipulation(object):
         """
         Closes the gripper completely or far enough to hold the object, when one is given
         :param object: Object that will be grasped.
+        :type: CollisionObject
         :return: success of the movement
+        :type: bool
         """
 
         rospy.logdebug("Closing Gripper")
@@ -490,9 +592,9 @@ class Manipulation(object):
 
         self.open_gripper()
         for grasp in grasp_positions:
-            if self.__move_group_to(get_pre_grasp(self.transform_to(grasp)), move_group, blow_up=("map", collision_object_name)):
+            if self.__move_group_to(get_pre_grasp(self.transform_to(grasp)), move_group, do_not_blow_up_list=("map", collision_object_name)):
 
-                if not self.__move_group_to(grasp, move_group, blow_up=("map", collision_object_name)):
+                if not self.__move_group_to(grasp, move_group, do_not_blow_up_list=("map", collision_object_name)):
                     continue
                 rospy.sleep(1)
                 self.close_gripper(collision_object, get_fingertip(self.transform_to(grasp)))
@@ -519,7 +621,7 @@ class Manipulation(object):
                 # print c
 
                 rospy.logdebug("lift object")
-                if not self.__move_group_to(get_pre_grasp(grasp), move_group, blow_up=("map", collision_object_name)):
+                if not self.__move_group_to(get_pre_grasp(grasp), move_group, do_not_blow_up_list=("map", collision_object_name)):
                     rospy.logdebug("couldnt lift object")
                 return True
         rospy.logwarn("Grapsing failed.")
@@ -529,10 +631,14 @@ class Manipulation(object):
         """
         Compares tow poses by calculating the distance to the centre of a collision object and
         returns -1/0/1 depending on which on is closer.
-        :param collision_object: collision object as CollisionObject
-        :param pose1: first pose as PoseStamped
-        :param pose2: second pose as PoseStamped
+        :param collision_object: collision object
+        :type: CollisionObject
+        :param pose1: first pose
+        :type: PoseStamped
+        :param pose2: second pose
+        :type: PoseStamped
         :return: pose1 > pose2
+        :type: int
         """
 
         center = self.get_center_of_mass(collision_object)
@@ -542,27 +648,38 @@ class Manipulation(object):
         p2 = get_fingertip(odom_pose2)
         d1 = euclidean_distance(center.point, p1.point)
         d2 = euclidean_distance(center.point, p2.point)
+        #if the object isnt the handle, put the side graspsfirst
         if len(collision_object.primitives) == 1:
             z1 = odom_pose1.pose.position.z
             z2 = odom_pose2.pose.position.z
             diff = z2 - z1
             return -1 if diff > 0 else 1 if diff < 0 else 0
         diff = d1 - d2
+        #if it is the handle, try to grasp from above first
         if 0.0 <= abs(diff) <= 0.015:
             z1 = odom_pose1.pose.position.z
             z2 = odom_pose2.pose.position.z
             diff = z2 - z1
         return 1 if diff > 0 else -1 if diff < 0 else 0
 
-    def filter_low_poses(self, list_of_poses):
+    def filter_low_poses(self, list_of_poses, min_grasp_height=0.1):
         """
         Filters out positions that are very close to the ground.
-        :param list_of_poses: list of PoseStamped in odom_combined
+        :param list_of_poses: list of poses in odom_combined
+        :type: [PoseStamped]
         :return: filtered list of PoseStamped
+        :type: [PoseStamped]
         """
         return [pose for pose in list_of_poses if self.tf.transform_to(pose).pose.position.z > min_grasp_height]
 
     def filter_close_poses(self, list_of_poses):
+        """
+        Filters out positions that are very close to the robots base.
+        :param list_of_poses: list of poses in odom_combined
+        :type: [PoseStamped]
+        :return: filtered list of PoseStamped
+        :type: [PoseStamped]
+        """
         base = self.get_base_origin()
         return [pose for pose in list_of_poses if
                 euclidean_distance_in_2d(base.point, self.tf.transform_to(pose).pose.position) > 0.35]
@@ -571,8 +688,11 @@ class Manipulation(object):
         """
         Calculates the weight of a collision object with the given density
         :param collision_object: CollisionObject
-        :param density: density as float
-        :return: weight as float
+        :type: CollisionObject
+        :param density: density
+        :type: float
+        :return: weight
+        :type: float
         """
         return calc_object_volume(collision_object) * density
 
@@ -580,7 +700,9 @@ class Manipulation(object):
         """
         Calculates the centre of a collision object.
         :param collision_object: CollisionObject
-        :return: centre of mass as PointStamped
+        :type: CollisionObject
+        :return: centre of mass
+        :type: PointStamped
         """
         p = PointStamped()
         p.header.frame_id = "/odom_combined"
@@ -644,9 +766,12 @@ class Manipulation(object):
     def load_object(self, mass, cog):
         """
         Tells euroc that and object has been grasped.
-        :param mass: mass of the object as float
-        :param cog: centre of mass as Vector3
+        :param mass: mass of the object
+        :type: float
+        :param cog: centre of mass
+        :type: Vector3
         :return: response message
+        :type: str
         """
         request = SetObjectLoadRequest()
         request.mass = mass
@@ -656,13 +781,19 @@ class Manipulation(object):
         return resp
 
     def get_planning_scene(self):
+        """
+        :return: planningscene
+        :type: PlanningScene
+        """
         return self.__planning_scene_interface
 
     def turn_arm(self, joint_value, joint=0):
         """
         Sets "link1" to "joint_value
-        :param joint_value: float #radian -2.96 to 2.96
+        :param joint_value: radian -2.96 to 2.96
+        :type: float
         :return: success of the movement
+        :type: bool
         """
         current_joint_values = self.__arm_group.get_current_joint_values()
         current_joint_values[joint] = joint_value
@@ -671,30 +802,55 @@ class Manipulation(object):
         return self.__manService.move(path)
 
     def get_arm_move_group(self):
+        """
+        :return: arm move group
+        :type: MoveitCommander
+        """
         return self.__arm_group
 
     def get_arm_base_move_group(self):
         return self.__arm_base_group
 
-    # def set_height_constraint(self, t=True):
-    # if t:
-    # self.__planning_scene_interface.add_ground(0.95)
-    #     else:
-    #         self.__planning_scene_interface.remove_object("ground0.95")
-
     def pan_tilt(self, pan, tilt):
         """
         Moves the scene cam.
-        :param pan: desired pan as float
-        :param tilt: desired tilt as float
+        :param pan: desired pan
+        :type: float
+        :param tilt: desired tilt
+        :type: float
         :return: success of the movement
+        :type: bool
         """
         return self.__manService.pan_tilt(pan, tilt)
 
     def set_planning_time_arm(self, time):
+        """
+        Sets the planning time of the arm move group.
+        :param time: planning time in sec
+        :type: float
+        :return: success
+        :type: bool
+        """
+        return self.__arm_group.set_planning_time(time)
+
+    def set_planning_time_arm_base(self, time):
+        """
+        Sets the planning time of the arm move group.
+        :param time: planning time in sec
+        :type: float
+        :return: success
+        :type: bool
+        """
         return self.__arm_group.set_planning_time(time)
 
     def direct_move(self, configuration):
+        """
+        Uses the euroc service directly to move into the desired configuration. Not collision detection, but faster.
+        :param configuration: desired configuration
+        :type: [float]
+        :return: success
+        :type: bool
+        """
         return self.__manService.direct_move(configuration)
 
     def scan_conveyor_pose(self):
