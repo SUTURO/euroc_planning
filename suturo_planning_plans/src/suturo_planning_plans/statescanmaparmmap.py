@@ -82,9 +82,9 @@ class ScanMapArmCam(smach.State):
                     i += 1
                     continue
                 rospy.logdebug("published")
+                utils.map.mark_cell(next_point.x, next_point.y, False)
                 co = utils.map.to_collision_object()
                 utils.manipulation.get_planning_scene().add_object(co)
-                utils.map.mark_cell(next_point.x, next_point.y, False)
                 utils.manipulation.set_planning_time_arm_base(10)
                 return 'newImage'
             utils.map.mark_cell(next_point.x, next_point.y, False)
@@ -93,6 +93,8 @@ class ScanMapArmCam(smach.State):
 
         rospy.loginfo("can't update map any further")
         utils.map.all_unknowns_to_obstacle()
+        co = utils.map.to_collision_object()
+        utils.manipulation.get_planning_scene().add_object(co)
         self.finished = True
         utils.manipulation.set_planning_time_arm_base(10)
         return 'mapScanned'

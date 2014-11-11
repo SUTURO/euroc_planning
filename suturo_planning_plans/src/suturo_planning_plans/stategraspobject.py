@@ -81,7 +81,7 @@ class GraspObject(smach.State):
             time.sleep(0.5)
             rospy.sleep(1)
             if not utils.manipulation.close_gripper(collision_object, get_fingertip(utils.manipulation.transform_to(grasp))):
-                userdata.failed_object = userdata.object_to_move
+                # userdata.failed_object = userdata.object_to_move
                 utils.manipulation.blow_down_objects()
                 return 'fail'
             time.sleep(0.5)
@@ -92,7 +92,7 @@ class GraspObject(smach.State):
             com = utils.manipulation.transform_to(com, "/tcp")
             if com is None:
                 rospy.logwarn("TF failed")
-                userdata.failed_object = userdata.object_to_move
+                # userdata.failed_object = userdata.object_to_move
                 utils.manipulation.blow_down_objects()
                 return 'fail'
 
@@ -117,17 +117,10 @@ class GraspObject(smach.State):
 
             rospy.logdebug("lift object")
             the_pre_grasp = get_pre_grasp(grasp)
-            # rospy.logdebug("the_pre_grasp = "+str(the_pre_grasp))
-            # if rospy.is_shutdown():
-                # print("rospy.is_shutdown() returned true!!")
             the_move_to_func = move_to_func(the_pre_grasp, do_not_blow_up_list=collision_object_name)
-            # rospy.logdebug("the_move_to_func = "+str(the_move_to_func))
-            # if rospy.is_shutdown():
-            #     print("rospy.is_shutdown() returned true!!")
 
             if not the_move_to_func:
                 rospy.logwarn("couldnt lift object. continue anyway")
-            # rospy.logdebug("graspobject: return success")
             userdata.failed_object = None
             return 'success'
         rospy.logwarn("Grapsing failed.")

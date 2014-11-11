@@ -247,6 +247,8 @@ class Manipulation(object):
         if not plan is None:
             #plan two times and concatenate plans, to be closer to the goal position
             plan2 = self.plan(move_group, goal, self.get_end_state(plan))
+            if plan2 is None:
+                return plan
             plan.motion_plan_response.trajectory.joint_trajectory.points.extend(
                 plan2.motion_plan_response.trajectory.joint_trajectory.points[1:])
 

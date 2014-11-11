@@ -13,6 +13,7 @@ class ChooseObject(smach.State):
 
     _ctr = 0
     failed_objects = []
+    retry = False
 
     def __init__(self):
         smach.State.__init__(self, outcomes=['objectChosen', 'noObjectsLeft', 'retry'],
@@ -21,10 +22,13 @@ class ChooseObject(smach.State):
 
     def execute(self, userdata):
         rospy.loginfo('Executing state ChooseObject')
-        rospy.loginfo("failed objects: " + str(self.failed_objects))
+        rospy.loginfo("number failed objects: " + str(len(self.failed_objects)))
 
-        if userdata.failed_object is not None:
+        if not self.retry and userdata.failed_object is not None and userdata.failed_object not in self.failed_objects:
+
             self.failed_objects.append(userdata.failed_object)
+
+        self.retry = False
 
         if len(userdata.clean_up_plan) > self._ctr:
             action = userdata.clean_up_plan[self._ctr]
@@ -38,6 +42,7 @@ class ChooseObject(smach.State):
                 rospy.loginfo(str(self.failed_objects))
                 rospy.loginfo("################################")
                 userdata.objects_found = deepcopy(self.failed_objects)
+
                 self.failed_objects = []
                 if userdata.enable_movement:
                     utils.manipulation.move_arm_and_base_to([0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0])
@@ -45,6 +50,7 @@ class ChooseObject(smach.State):
                     utils.manipulation.move_arm_and_base_to([0.0,0.0,0.0,0.0,0.0,0.0,0.0])
 
                 rospy.logwarn("not all objects where grapsed/placed, retry. if it crashes now it doesnt matter")
+                self.retry = True
                 return 'retry'
             return 'noObjectsLeft'
 

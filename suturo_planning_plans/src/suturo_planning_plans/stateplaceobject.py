@@ -109,12 +109,14 @@ class PlaceObject(smach.State):
                     not move_to_func(get_pre_place_position(place_pose), do_not_blow_up_list=(co.id, "map")):
                 rospy.logwarn("Can't reach postplaceposition. Continue anyway")
                 userdata.failed_object = None
+                self._retry = 0
                 return 'success'
             else:
                 rospy.logdebug("postplaceposition taken")
             rospy.sleep(0.25)
             rospy.loginfo("placed " + co.id)
             userdata.failed_object = None
+            self._retry = 0
             return 'success'
 
         #try to place the object where it currently is
@@ -126,7 +128,7 @@ class PlaceObject(smach.State):
         o.object.id = co.id
         o.mpe_object.id = co.id
         o.c_centroid = Point(0,0,0)
-        userdata.failed_object = [o]
+        userdata.failed_object = o
 
         self._retry += 1
         return 'noPlacePosition'
