@@ -2,4 +2,7 @@
 
 (defun main ()
   "Main function that executes when the executable is run"
-  (format t "Lisp executable generation is not catkin-ready... Doing nothing."))
+  (task1))
+
+(def-top-level-cram-function task1 ()
+  "Top level plan for task 1 of the euroc challenge")
