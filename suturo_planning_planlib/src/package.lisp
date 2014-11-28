@@ -1,2 +1,2 @@
-(defpackage suturo-planning-plablib
+(defpackage suturo-planning-planlib
   (:nicknames :planlib))
