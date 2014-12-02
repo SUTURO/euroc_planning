@@ -1,8 +1,12 @@
-(defpackage suturo-planning-executive
+(in-package :cl-user)
+
+(desig-props:def-desig-package suturo-planning-executive
   (:nicknames :exec)
   (:use #:cpl
+        #:roslisp
         #:roslisp-utilities
-        #:suturo-planning-pm-perception
-        #:suturo-planning-pm-manipulation
+        #:cram-designators
+        #:perception
+        #:manipulation
         #:suturo-planning-planlib)
   (:export #:main))

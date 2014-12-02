@@ -1,5 +1,8 @@
 (defsystem suturo-planning-pm-perception
-  :depends-on (roslisp)
+  :depends-on (roslisp
+               process-modules
+               designators
+               alexandria)
   :components
   ((:module "src"
             :components
