@@ -28,7 +28,7 @@
   "Returns a list of objects that can be perceived without
    moving and match the object-designator"
   ; TODO: Implement me
-  (roslisp:ros-info (perceive-object-processmodule) "Returning object.")
+  (roslisp:ros-info (action perceive) "Returning object.")
   (list obj-designator))
 
 (cpm:def-process-module suturo-planning-pm-perception (desig)

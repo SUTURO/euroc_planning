@@ -24,6 +24,13 @@
       suturo-planning-pm-perception)
      ,@body))
 
+(defmacro with-ros-node (&body body)
+  "Utility macro to start and stop a ROS node around a block"
+  `(prog2
+     (roslisp-utilities:startup-ros)
+     ,@body
+     (roslisp-utilities:shutdown-ros)))
+
 (defun main ()
   "Main function that executes when the executable is run"
   (task1))
@@ -35,8 +42,9 @@
                                                                  (ros-time)
                                                                  (cl-transforms:make-identity-pose)))
                                 (type cube)))))
-    (with-process-modules
-      (seq
-        (achieve `(object-picked ,obj))
-        ; (achieve `(object-put ,obj ,loc)) ; Put-down plan does not run yet
-        ))))
+    (with-ros-node
+      (with-process-modules
+        (seq
+          (achieve `(object-picked ,obj))
+          ; (achieve `(object-put ,obj ,loc)) ; Put-down plan does not run yet
+          )))))
