@@ -4,4 +4,12 @@
   (:nicknames :manipulation)
   (:use #:desig
         #:cl)
-  (:export #:suturo-planning-pm-manipulation))
+  (:export #:suturo-planning-pm-manipulation)
+  (:desig-properties
+    #:to
+    #:follow
+    #:grasp
+    #:lift
+    #:carry
+    #:pose
+    #:obj))

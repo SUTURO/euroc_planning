@@ -16,13 +16,20 @@
   (prog1
     (call-next-method)
     (roslisp:ros-info (suturo pm-perception)
-                      "Done executing action `~a' with parameters ~a."
+                      "Done executing action `~a'."
                       action-sym params)))
 
 (defmacro def-action-handler (name args &body body)
   (alexandria:with-gensyms (action-sym params)
     `(defmethod call-action ((,action-sym (eql ',name)) &rest ,params)
       (destructuring-bind ,args ,params ,@body))))
+
+(def-action-handler perceive (obj-designator)
+  "Returns a list of objects that can be perceived without
+   moving and match the object-designator"
+  ; TODO: Implement me
+  (roslisp:ros-info (perceive-object-processmodule) "Returning object.")
+  (list obj-designator))
 
 (cpm:def-process-module suturo-planning-pm-perception (desig)
   (apply #'call-action (reference desig)))

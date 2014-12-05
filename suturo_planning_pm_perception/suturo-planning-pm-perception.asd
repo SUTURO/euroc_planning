@@ -7,4 +7,5 @@
   ((:module "src"
             :components
             ((:file "package")
-             (:file "suturo-planning-pm-perception" :depends-on ("package"))))))
+             (:file "designators" :depends-on ("package"))
+             (:file "suturo-planning-pm-perception" :depends-on ("package" "designators"))))))
