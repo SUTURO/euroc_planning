@@ -27,12 +27,15 @@
 ; To see how these action handlers are implemented for the pr2, see
 ; https://github.com/cram-code/cram_pr2/blob/master/pr2_manipulation_process_module/src/action-handlers.lisp
 
+(def-action-handler navigation (goal)
+  "Moves the robot to the goal position")
+
 (def-action-handler follow (pose)
   "Follow head with pose."
   ; TODO: Implement me
   )
 
-(def-action-handler park (arms obj &optional obstacles)
+(def-action-handler park (obj)
   "Moves the arms to a park position"
   ; TODO: Implement me
   )
@@ -47,7 +50,7 @@
   ; TODO: Implement me
   )
 
-(def-action-handler put-down (obj-designator location grasp-assignments grasp-type)
+(def-action-handler put-down (obj-designator location)
   "Puts the object specified by the obj-designator down at a location"
   ; TODO: Implement me
   )

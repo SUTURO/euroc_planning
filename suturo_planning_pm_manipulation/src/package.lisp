@@ -7,9 +7,15 @@
   (:export #:suturo-planning-pm-manipulation)
   (:desig-properties
     #:to
+    #:type
+    #:navigation
+    #:goal
+    #:put-down
+    #:at
     #:follow
     #:grasp
     #:lift
     #:carry
+    #:park
     #:pose
     #:obj))

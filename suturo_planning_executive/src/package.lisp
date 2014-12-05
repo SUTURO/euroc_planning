@@ -3,9 +3,10 @@
 (desig-props:def-desig-package suturo-planning-executive
   (:nicknames :exec)
   (:use #:cpl
+        #:cpl-desig-supp
         #:cram-plan-library
+        #:cram-roslisp-common
         #:roslisp
-        #:roslisp-utilities
         #:cram-designators
         #:perception
         #:manipulation
@@ -14,6 +15,7 @@
   (:desig-properties
     #:type
     #:trajectory
+    #:navigation
     #:to
     #:grasp
     #:lift
@@ -22,6 +24,8 @@
     #:perceive
     #:pose
     #:obj
+    #:gripper
     #:of
+    #:at
     #:pose
     #:cube))
