@@ -1,4 +1,4 @@
-(in-package :cl-user)
+(in-package :perception)
 
 (desig-props:def-desig-package suturo-planning-pm-perception
   (:nicknames :perception)

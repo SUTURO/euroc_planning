@@ -1,6 +1,7 @@
 (defsystem suturo-planning-pm-perception
   :depends-on (roslisp 
-	       suturo_perception_msgs-srv
+               suturo_perception_msgs-srv
+               suturo_perception_msgs-msg
                process-modules
                designators
                alexandria)

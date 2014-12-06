@@ -1,4 +1,4 @@
-(in-package :pm-perception)
+(in-package :perception)
 
 (defun create-capability-string(&optional (cuboid 1) (pose-estimation nil) (object-ids nil))
   (let ((perception-capabilities "height,centroid,color"))
