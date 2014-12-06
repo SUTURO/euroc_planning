@@ -1,7 +1,11 @@
 (defsystem suturo-planning-pm-manipulation
-  :depends-on (roslisp)
+  :depends-on (roslisp
+               process-modules
+               designators
+               alexandria)
   :components
   ((:module "src"
             :components
             ((:file "package")
-             (:file "suturo-planning-pm-manipulation" :depends-on ("package"))))))
+             (:file "designators" :depends-on("package"))
+             (:file "suturo-planning-pm-manipulation" :depends-on ("package" "designators"))))))

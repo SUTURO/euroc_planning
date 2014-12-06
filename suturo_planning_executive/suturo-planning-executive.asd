@@ -2,6 +2,10 @@
   :depends-on (roslisp
                roslisp-utilities
                cram-language
+               cram-plan-library
+               cram-reasoning
+               process-modules
+               suturo-planning-environment
                suturo-planning-pm-perception
                suturo-planning-pm-manipulation
                suturo-planning-planlib)
