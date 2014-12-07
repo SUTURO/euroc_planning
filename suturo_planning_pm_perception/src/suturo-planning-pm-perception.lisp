@@ -2,7 +2,7 @@
 
 (defun call-gripper-service (options)
 ;;;  (with-ros-node ("two_ints_client")
-    (call-service "suturo/GetGripper" 'suturo_perception_msgs-srv:GetGripper :s options))
+    (roslisp:call-service "suturo/GetGripper" 'suturo_perception_msgs-srv:GetGripper :s options))
 
 (defun create-capability-string(&optional (cuboid 1) (pose-estimation nil) (object-ids nil))
   (let ((perception-capabilities "height,centroid,color"))
