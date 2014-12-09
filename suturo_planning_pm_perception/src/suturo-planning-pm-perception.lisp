@@ -1,10 +1,29 @@
 (in-package :perception)
 
+(defun get-gripper-perception (&optional (cuboid 1) (pose-estimation nil) (object-ids nil))
+  "get the objects recognized by the gripper camera"
+  (let (options)
+  (setf options (create-capability-string cuboid pose-estimation object-ids))
+  (call-gripper-service options)))
+
 (defun call-gripper-service (options)
-;;;  (with-ros-node ("two_ints_client")
-    (roslisp:call-service "suturo/GetGripper" 'suturo_perception_msgs-srv:GetGripper :s options))
+  "call the service suturo/GetGripper"
+  (roslisp:with-ros-node ("suturo/CallGripper")
+    (roslisp:call-service "suturo/GetGripper" 'suturo_perception_msgs-srv:GetGripper :s options)))
+
+(defun get-scene-perception (&optional (cuboid 1) (pose-estimation nil) (object-ids nil))
+  "get the objects recognized by the scene camera"
+  (let (options)
+  (setf options (create-capability-string cuboid pose-estimation object-ids))
+  (call-scene-service options)))
+
+(defun call-scene-service (options)
+  "call the service suturo/GetScene"
+  (roslisp:with-ros-node ("suturo/CallScene")
+    (roslisp:call-service "suturo/GetScene" 'suturo_perception_msgs-srv:GetScene :s options)))
 
 (defun create-capability-string(&optional (cuboid 1) (pose-estimation nil) (object-ids nil))
+  "Create the string that describes which capabilities are used by the perception"
   (let ((perception-capabilities "height,centroid,color"))
     (when cuboid
       (setf perception-capabilities (concatenate 'string perception-capabilities ",cuboid")))
@@ -17,6 +36,7 @@
           (setf s-ids (concatenate 'string "(" (subseq s-ids 0 (-(length s-ids) 1)) ")" ))
           (setf perception-capabilities (concatenate 'string perception-capabilities s-ids)))))
     (return-from create-capability-string perception-capabilities)))
+
 
 (defgeneric call-action (action &rest params))
 
