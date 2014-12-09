@@ -37,14 +37,14 @@
           (setf perception-capabilities (concatenate 'string perception-capabilities s-ids)))))
     (return-from create-capability-string perception-capabilities)))
 
-(defun recognize-objects-of-interest()
+(defun recognize-objects-of-interest(colors)
   "TODO:Write something meaningful"
   (let (color-message)
-    (setf color-message (list (roslisp:make-msg "std_msgs/ColorRGBA"
-                                          (r) 12 (g) 13 (b) 14 (a) 15)))
+    (dolist(color colors)
+      (setf color-message (list (roslisp:make-msg "std_msgs/ColorRGBA"
+                                                  (r) (nth 0 color) (g) (nth 1 color) (b) (nth 2 color) (a) (nth 3 color)))))
     (Roslisp:with-ros-node ("suturo/CallRecognizeOoI")
-      (roslisp:call-service "suturo/RecognizeOoI" 'suturo_perception_msgs-srv:RecognizeOoI :colors color-message))))
-
+      (roslisp:call-service "suturo/RecognizeOoI" 'suturo_perception_msgs-srv:RecognizeOoI :colors color-message)))))
 (defgeneric call-action (action &rest params))
 
 (defmethod call-action ((action-sym t) &rest params)
