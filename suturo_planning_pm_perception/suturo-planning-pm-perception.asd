@@ -1,5 +1,7 @@
 (defsystem suturo-planning-pm-perception
-  :depends-on (roslisp
+  :depends-on (roslisp 
+               suturo_perception_msgs-srv
+               suturo_perception_msgs-msg
                process-modules
                designators
                alexandria)
@@ -7,4 +9,5 @@
   ((:module "src"
             :components
             ((:file "package")
-             (:file "suturo-planning-pm-perception" :depends-on ("package"))))))
+             (:file "designators" :depends-on ("package"))
+             (:file "suturo-planning-pm-perception" :depends-on ("package" "designators"))))))

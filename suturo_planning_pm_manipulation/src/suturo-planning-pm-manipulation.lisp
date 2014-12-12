@@ -16,7 +16,7 @@
   (prog1
     (call-next-method)
     (roslisp:ros-info (suturo pm-manipulation)
-                      "Done executing action `~a' with parameters ~a."
+                      "Done executing action `~a'."
                       action-sym params)))
 
 (defmacro def-action-handler (name args &body body)
@@ -27,22 +27,35 @@
 ; To see how these action handlers are implemented for the pr2, see
 ; https://github.com/cram-code/cram_pr2/blob/master/pr2_manipulation_process_module/src/action-handlers.lisp
 
-(def-action-handler park (arms obj &optional obstacles)
+(def-action-handler navigation (goal)
+  "Moves the robot to the goal position")
+
+(def-action-handler follow (pose)
+  "Follow head with pose."
+  ; TODO: Implement me
+  )
+
+(def-action-handler park (obj)
   "Moves the arms to a park position"
   ; TODO: Implement me
   )
 
-(def-action-handler lift (arms distance)
+(def-action-handler lift (obj-designator)
   "Lifts an arm by a distance"
   ; TODO: Implement me
   )
 
-(def-action-handler grasp (obj-designator available-arms)
+(def-action-handler grasp (obj-designator)
   "Grasps the object specified by the obj-designator"
   ; TODO: Implement me
   )
 
-(def-action-handler put-down (obj-designator location grasp-assignments grasp-type)
+(def-action-handler carry (obj-designator)
+  "Carries the object"
+  ;TODO: Implement me
+  )
+
+(def-action-handler put-down (obj-designator location)
   "Puts the object specified by the obj-designator down at a location"
   ; TODO: Implement me
   )

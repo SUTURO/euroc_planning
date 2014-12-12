@@ -1,5 +1,6 @@
 (defsystem suturo-planning-planlib
-  :depends-on (roslisp)
+  :depends-on (roslisp
+               cram-plan-library)
   :components
   ((:module "src"
             :components

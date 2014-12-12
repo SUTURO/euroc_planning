@@ -2,6 +2,8 @@
   :depends-on (roslisp
                roslisp-utilities
                cram-language
+               cram-plan-library
+               cram-reasoning
                process-modules
                suturo-planning-environment
                suturo-planning-pm-perception
@@ -11,4 +13,5 @@
   ((:module "src"
             :components
             ((:file "package")
-             (:file "suturo-planning-executive" :depends-on ("package"))))))
+             (:file "belief" :depends-on ("package"))
+             (:file "suturo-planning-executive" :depends-on ("package" "belief"))))))
