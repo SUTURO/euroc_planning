@@ -5,7 +5,7 @@
                      (desig-prop ?designator (to follow))
                      (desig-prop ?designator (pose ?pose)))
 
-  (cram-reasoning:<- (action-desig ?designator (perceive ?obj))
+  (cram-reasoning:<- (action-desig ?designator (grasp ?obj))
                      (desig-prop ?designator (to grasp))
                      (desig-prop ?designator (obj ?obj)))
 

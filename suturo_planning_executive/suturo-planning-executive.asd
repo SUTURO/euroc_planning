@@ -13,4 +13,5 @@
   ((:module "src"
             :components
             ((:file "package")
-             (:file "suturo-planning-executive" :depends-on ("package"))))))
+             (:file "belief" :depends-on ("package"))
+             (:file "suturo-planning-executive" :depends-on ("package" "belief"))))))

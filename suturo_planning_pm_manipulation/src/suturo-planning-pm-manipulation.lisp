@@ -50,6 +50,11 @@
   ; TODO: Implement me
   )
 
+(def-action-handler carry (obj-designator)
+  "Carries the object"
+  ;TODO: Implement me
+  )
+
 (def-action-handler put-down (obj-designator location)
   "Puts the object specified by the obj-designator down at a location"
   ; TODO: Implement me
