@@ -1,5 +1,10 @@
 (in-package :perception)
 
+(defun init-perception-planning()
+  "Setting up the ros node"
+  (roslisp:start-ros-node "suturo/PerceptionPlanning")
+)
+
 (defun get-gripper-perception (&optional (cuboid 1) (pose-estimation nil) (object-ids nil))
   "get the objects recognized by the gripper camera"
   (let (options)
@@ -8,8 +13,7 @@
 
 (defun call-gripper-service (options)
   "call the service suturo/GetGripper"
-  (roslisp:with-ros-node ("suturo/CallGripper")
-    (roslisp:call-service "suturo/GetGripper" 'suturo_perception_msgs-srv:GetGripper :s options)))
+    (roslisp:call-service "suturo/GetGripper" 'suturo_perception_msgs-srv:GetGripper :s options))
 
 (defun get-scene-perception (&optional (cuboid 1) (pose-estimation nil) (object-ids nil))
   "get the objects recognized by the scene camera"
@@ -19,8 +23,7 @@
 
 (defun call-scene-service (options)
   "call the service suturo/GetScene"
-  (roslisp:with-ros-node ("suturo/CallScene")
-    (roslisp:call-service "suturo/GetScene" 'suturo_perception_msgs-srv:GetScene :s options)))
+  (roslisp:call-service "suturo/GetScene" 'suturo_perception_msgs-srv:GetScene :s options))
 
 (defun create-capability-string(&optional (cuboid 1) (pose-estimation nil) (object-ids nil))
   "Create the string that describes which capabilities are used by the perception"
@@ -43,8 +46,8 @@
     (dolist(color colors)
       (setf color-message (list (roslisp:make-msg "std_msgs/ColorRGBA"
                                                   (r) (nth 0 color) (g) (nth 1 color) (b) (nth 2 color) (a) (nth 3 color)))))
-    (Roslisp:with-ros-node ("suturo/CallRecognizeOoI")
-      (roslisp:call-service "suturo/RecognizeOoI" 'suturo_perception_msgs-srv:RecognizeOoI :colors color-message)))))
+      (roslisp:call-service "suturo/RecognizeOoI" 'suturo_perception_msgs-srv:RecognizeOoI :colors color-message)))
+
 (defgeneric call-action (action &rest params))
 
 (defmethod call-action ((action-sym t) &rest params)
