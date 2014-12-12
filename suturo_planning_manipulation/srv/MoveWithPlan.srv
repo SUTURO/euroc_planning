@@ -1,0 +1,7 @@
+#Request
+moveit_msgs/MotionPlanResponse plan
+
+---
+
+#Response
+bool result
