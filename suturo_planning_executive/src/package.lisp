@@ -11,7 +11,7 @@
         #:perception
         #:manipulation
         #:suturo-planning-planlib)
-  (:export #:main)
+  (:export #:task-selector #:task1)
   (:desig-properties
     #:type
     #:trajectory

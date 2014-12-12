@@ -41,5 +41,5 @@
     (FUNCALL (SYMBOL-FUNCTION (INTERN "ROS-HOME" :ROS-LOAD))))
    :IF-DOES-NOT-EXIST NIL)
   (FUNCALL
-   (SYMBOL-FUNCTION (READ-FROM-STRING "suturo-planning-executive:main")))
+   (SYMBOL-FUNCTION (READ-FROM-STRING "suturo-planning-executive:task-selector")))
   (QUIT))
