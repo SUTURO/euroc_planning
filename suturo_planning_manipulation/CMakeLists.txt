@@ -59,6 +59,7 @@ catkin_python_setup()
    Plan.srv
    MoveWithPlan.srv
    AddPlanningObjects.srv
+   MoveMastCam.srv
 )
 
 ## Generate actions in the 'action' folder

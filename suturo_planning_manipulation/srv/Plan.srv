@@ -6,13 +6,13 @@ uint8 MOVE_GROUP_ARM_BASE=3
 
 uint8 move_group
 string goal_pose_name
-geometry_msgs/PoseStamped goal
+geometry_msgs/PoseStamped goal_pose
+bool has_start_state
 moveit_msgs/RobotState start_state
-float32 max_movement_time
 
 ---
 
 #Response
-moveit_msgs/MotionPlanResponse plan
+moveit_msgs/RobotTrajectory plan
 
 

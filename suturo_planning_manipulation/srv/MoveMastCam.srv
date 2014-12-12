@@ -1,5 +1,6 @@
 #Request
-moveit_msgs/RobotTrajectory plan
+float32 pan
+float32 tilt
 
 ---
 

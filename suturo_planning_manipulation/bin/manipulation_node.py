@@ -3,6 +3,7 @@ from threading import Thread
 from geometry_msgs.msg import PointStamped
 import moveit_commander
 import moveit_msgs
+from moveit_msgs.msg import RobotState
 import rospy
 from suturo_planning_manipulation.srv import *
 from suturo_planning_manipulation.manipulation import Manipulation
@@ -13,13 +14,6 @@ __author__ = 'hansa'
 
 class ManipulationNode(object):
 
-    _MOVE_GROUP_MAPPING = {
-        PlanRequest.MOVE_GROUP_ARM: moveit_commander.MoveGroupCommander("arm"),
-        PlanRequest.MOVE_GROUP_ARM_BASE: moveit_commander.MoveGroupCommander("arm_base"),
-        PlanRequest.MOVE_GROUP_BASE: moveit_commander.MoveGroupCommander("base"),
-        PlanRequest.MOVE_GROUP_GRIPPER: moveit_commander.MoveGroupCommander("gripper")
-    }
-
     def __init__(self):
         rospy.init_node("Manipulation_Control")
         self.__manipulation = Manipulation()
@@ -27,7 +21,9 @@ class ManipulationNode(object):
         rospy.Service("suturo_plan", Plan, self.__handle_plan)
         rospy.Service("suturo_move_with_plan", MoveWithPlan, self.__handle_move_with_plan)
         rospy.Service("suturo_add_objects_to_planning_scene", AddPlanningObjects, self.__handle_add_objects)
+        rospy.Service("suturo_move_mastcam", MoveMastCam, self.__handle_mast_cam)
         self.__publisher = rospy.Publisher("suturo_manipulation_get_base_origin", PointStamped)
+
 
     def __handle_move(self, msg):
         goal_pose = self.__get_goal_pose(msg)
@@ -43,20 +39,31 @@ class ManipulationNode(object):
         return MoveResponse(result)
 
     def __handle_plan(self, msg):
-        move_group = self._MOVE_GROUP_MAPPING[msg.move_group]
-        plan = self.__manipulation.plan(move_group, msg.goal, msg.start_state, msg.max_movement_time)
-        if plan is not None:
-            return PlanResponse(plan=plan.motion_plan_response)
-        else:
-            return PlanResponse()
+        func = None
+        if msg.move_group == PlanRequest.MOVE_GROUP_ARM:
+            func = self.__manipulation.plan_arm_to
+        elif msg.move_group == PlanRequest.MOVE_GROUP_ARM_BASE:
+            func = self.__manipulation.plan_arm_and_base_to
+        goal = self.__get_goal_pose(msg)
+        start_state = None
+        if msg.has_start_state:
+            start_state = msg.start_state
+        plan = func(goal, start_state)
+        return PlanResponse(plan)
 
     def __handle_move_with_plan(self, msg):
-        plan = moveit_msgs.srv.GetMotionPlan(motion_plan_response=msg.plan)
-        result = self.__manipulation.move_with_plan_to(plan)
+        result = self.__manipulation.move_with_plan_to(msg.plan)
         return MoveWithPlanResponse(result=result)
 
     def __handle_add_objects(self, msg):
         self.__manipulation.get_planning_scene().add_objects(msg.objects)
+
+    def __handle_mast_cam(self, msg):
+        message = self.__manipulation.pan_tilt(msg.pan, msg.tilt)
+        result = False
+        if message.find("path finished") != -1:
+            result = True
+        return MoveMastCamResponse(result)
 
     def __publish_origin(self):
         rate = rospy.Rate(10)
@@ -75,9 +82,9 @@ class ManipulationNode(object):
 
     def __get_goal_pose(self, msg):
         if msg.goal_pose_name != '':
-            goal_pose = msg.goal_pose_name
+            return msg.goal_pose_name
         else:
-            goal_pose = msg.goal_pose
+            return msg.goal_pose
 
 
 if __name__ == "__main__":
