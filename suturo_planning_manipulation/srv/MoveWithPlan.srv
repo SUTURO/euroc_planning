@@ -1,0 +1,7 @@
+#Request
+moveit_msgs/RobotTrajectory plan
+
+---
+
+#Response
+bool result

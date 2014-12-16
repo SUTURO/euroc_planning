@@ -1,0 +1,18 @@
+#Request params
+uint8 MOVE_GROUP_ARM=0
+uint8 MOVE_GROUP_GRIPPER=1
+uint8 MOVE_GROUP_BASE=2
+uint8 MOVE_GROUP_ARM_BASE=3
+
+uint8 move_group
+string goal_pose_name
+geometry_msgs/PoseStamped goal_pose
+bool has_start_state
+moveit_msgs/RobotState start_state
+
+---
+
+#Response
+moveit_msgs/RobotTrajectory plan
+
+

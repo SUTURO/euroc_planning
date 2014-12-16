@@ -1,0 +1,8 @@
+#Request
+float32 pan
+float32 tilt
+
+---
+
+#Response
+bool result

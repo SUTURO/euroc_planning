@@ -13,9 +13,14 @@
      ,@body
      (roslisp-utilities:shutdown-ros)))
 
-(defun main ()
-  "Main function that executes when the executable is run"
-  (task1))
+(defun task-selector (&optional (tsk "task1"))
+  "Starts the plan for the task from the parameter server.
+
+   If no task is set in the parameter server, the task given
+   as argument will be started (default: task1)"
+  (with-ros-node
+    (let ((task (roslisp:get-param "/planning/task" tsk)))
+      (funcall (symbol-function (read-from-string (format nil "exec:~a" task)))))))
 
 (def-top-level-cram-function task1 ()
   "Top level plan for task 1 of the euroc challenge"
@@ -30,9 +35,8 @@
                                                                      (ros-time)
                                                                      (cl-transforms:make-identity-pose))))))
      (grasp-position (location '((to grasp)))))
-    (with-ros-node
-      (with-process-modules
-        (at-location (grasp-position)
-          (achieve `(object-in-hand ,obj))
-          (equate obj obj-in-hand) ; object is now in gripper
-          (achieve `(object-put ,obj ,put-down-location)))))))
+    (with-process-modules
+      (at-location (grasp-position)
+        (achieve `(object-in-hand ,obj))
+        (equate obj obj-in-hand) ; object is now in gripper
+        (achieve `(object-put ,obj ,put-down-location))))))

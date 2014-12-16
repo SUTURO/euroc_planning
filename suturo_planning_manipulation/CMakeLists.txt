@@ -8,11 +8,13 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   tf
+  geometry_msgs
+  moveit_msgs
+  message_generation
 )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -51,11 +53,14 @@ catkin_python_setup()
 # )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+ add_service_files(
+   FILES
+   Move.srv
+   Plan.srv
+   MoveWithPlan.srv
+   AddPlanningObjects.srv
+   MoveMastCam.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -65,10 +70,12 @@ catkin_python_setup()
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-# )
+generate_messages(
+    DEPENDENCIES
+    geometry_msgs
+    moveit_msgs
+    std_msgs  # Or other packages containing msgs
+)
 
 ###################################
 ## catkin specific configuration ##
@@ -82,7 +89,7 @@ catkin_python_setup()
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES suturo_planning_manipulation
-#  CATKIN_DEPENDS other_catkin_pkg
+  CATKIN_DEPENDS message_runtime
 #  DEPENDS system_lib
 )
 
@@ -145,14 +152,14 @@ catkin_package(
 #   # myfile2
 #   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 # )
-install(PROGRAMS bin/head_mover
-        DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+#install(PROGRAMS bin/head_mover
+#        DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
-install(PROGRAMS bin/head_mover2
-        DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+#install(PROGRAMS bin/head_mover2
+#        DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
-install(PROGRAMS bin/print_joint_values
-        DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+#install(PROGRAMS bin/print_joint_values
+#        DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 install(PROGRAMS src/suturo_planning_manipulation/publish_conveyor_frames.py
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
