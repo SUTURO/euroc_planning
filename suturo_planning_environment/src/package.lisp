@@ -6,6 +6,7 @@
         #:roslisp
         #:roslisp-utilities
         #:desig)
+  (:export #:get-model-pose)
   (:desig-properties
     #:at
     #:obj
