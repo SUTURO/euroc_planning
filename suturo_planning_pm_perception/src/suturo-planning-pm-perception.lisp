@@ -72,10 +72,16 @@
     `(defmethod call-action ((,action-sym (eql ',name)) &rest ,params)
       (destructuring-bind ,args ,params ,@body))))
 
+;;@INFO
+;; (desig-prop-value mydesig 'color)
+;; (defparameter mydesig (make-designator 'object `((color (1 2 3 4))) ))
 (def-action-handler perceive (obj-designator)
   "Returns a list of objects that can be perceived without
    moving and match the object-designator"
-  ; TODO: Implement me
+  
+  (recognize-objects-of-interest 
+   (desig-prop-value obj-designator 'color))
+
   (roslisp:ros-info (action perceive) "Returning object.")
   (list obj-designator))
 
