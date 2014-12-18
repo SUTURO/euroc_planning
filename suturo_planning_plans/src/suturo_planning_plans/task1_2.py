@@ -9,7 +9,7 @@ from suturo_planning_plans.statescanobstacles import ScanObstacles
 from suturo_planning_plans.statescanshadow import ScanShadow
 from suturo_planning_plans.statesearchobject import SearchObject
 from suturo_planning_plans.statetidyupobject import TidyUpObject
-
+from suturo_planning_plans.stateinterface import Interface
 
 class Task1(smach.StateMachine):
     def __init__(self, enable_movement, task):
@@ -18,6 +18,10 @@ class Task1(smach.StateMachine):
                                     output_keys=[])
 
         with self:
+            smach.StateMachine.add('Interface', Interface(),
+                                    transitions={'cmdReceived': 'ScanMapMastCam',
+                                                 'serviceBuild': 'Interface'})
+
             smach.StateMachine.add('ScanMapMastCam', ScanMapMastCam(),
                                    transitions={'mapScanned': 'ScanShadow'})
 
@@ -28,11 +32,11 @@ class Task1(smach.StateMachine):
             smach.StateMachine.add('ScanObstacles', ScanObstacles(),
                                    transitions={'mapScanned': 'ScanObstacles',
                                                 'newImage': 'ClassifyObjects',
-                                                'noRegionLeft': 'CleanUpPlan'})
+                                                'noRegionLeft': 'Interface'})
 
             smach.StateMachine.add('SearchObject', SearchObject(),
                                    transitions={'searchObject': 'ScanObstacles',
-                                                'noObjectsLeft': 'CleanUpPlan',
+                                                'noObjectsLeft': 'Interface',
                                                 'simStopped': 'fail'})
 
             smach.StateMachine.add('ClassifyObjects', ClassifyObjects(),
@@ -51,18 +55,18 @@ class Task1(smach.StateMachine):
                                                 'fail': 'FocusObjects'},
                                    remapping={'focused_object': 'object_to_focus'})
 
-            smach.StateMachine.add('CleanUpPlan', CleanUpPlan(),
-                                   transitions={'success': 'ChooseObject',
-                                                'fail': 'fail'})
+            #smach.StateMachine.add('CleanUpPlan', CleanUpPlan(),
+            #                       transitions={'success': 'ChooseObject',
+            #                                    'fail': 'fail'})
 
-            smach.StateMachine.add('ChooseObject', ChooseObject(),
-                                   transitions={'objectChosen': 'TidyUpObject',
-                                                'noObjectsLeft': 'success',
-                                                'retry': 'CleanUpPlan'})
+            #smach.StateMachine.add('ChooseObject', ChooseObject(),
+            #                       transitions={'objectChosen': 'TidyUpObject',
+            #                                    'noObjectsLeft': 'success',
+            #                                    'retry': 'CleanUpPlan'})
 
-            smach.StateMachine.add('TidyUpObject', TidyUpObject(),
-                                   transitions={'success': 'ChooseObject',
-                                                'fail': 'ChooseObject'})
+            #smach.StateMachine.add('TidyUpObject', TidyUpObject(),
+            #                       transitions={'success': 'ChooseObject',
+            #                                    'fail': 'ChooseObject'})
 
         self.userdata.objects_found = []
         self.userdata.perceived_objects = []

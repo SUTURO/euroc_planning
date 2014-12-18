@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(suturo_planning_plans)
+project(suturo_planning_interface)
 
 find_package(catkin REQUIRED COMPONENTS
   euroc_c2_msgs
