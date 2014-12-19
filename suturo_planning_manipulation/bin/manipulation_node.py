@@ -32,7 +32,7 @@ class ManipulationNode(object):
     def __handle_move(self, msg):
         goal_pose = self.__get_goal_pose(msg)
 
-        if msg.type == MoveRequest.ACTION_MOVE_TO:
+        if msg.type == MoveRequest.ACTION_MOVE_ARM_TO:
             result = self.__manipulation.move_to(goal_pose, msg.do_not_blow_up_list)
         elif msg.type == MoveRequest.ACTION_MOVE_ARM_AND_BASE_TO:
             result = self.__manipulation.move_arm_and_base_to(goal_pose, msg.do_not_blow_up_list)
@@ -83,7 +83,7 @@ class ManipulationNode(object):
         if obj == CollisionObject():
             obj = None
         grasp_point = msg.grasp_point
-        if grasp_point == PoseStamped():
+        if grasp_point == PointStamped():
             grasp_point = None
         return self.__manipulation.close_gripper(obj, grasp_point)
 

@@ -1,6 +1,6 @@
 #Request
 moveit_msgs/CollisionObject object
-geometry_msgs/PoseStamped grasp_point
+geometry_msgs/PointStamped grasp_point
 
 ---
 

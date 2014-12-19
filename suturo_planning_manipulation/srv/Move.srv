@@ -1,5 +1,5 @@
 #Request Parameters
-uint8 ACTION_MOVE_TO=0
+uint8 ACTION_MOVE_ARM_TO=0
 uint8 ACTION_MOVE_ARM_AND_BASE_TO=1
 uint8 ACTION_MOVE_BASE=2
 
