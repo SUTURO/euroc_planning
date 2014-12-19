@@ -14,6 +14,8 @@
   (:export #:task-selector #:task1)
   (:desig-properties
     #:type
+    #:max-distance
+    #:expected-object
     #:trajectory
     #:navigation
     #:to

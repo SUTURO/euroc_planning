@@ -58,8 +58,11 @@ catkin_python_setup()
    Move.srv
    Plan.srv
    MoveWithPlan.srv
-   AddPlanningObjects.srv
+   AddCollisionObjects.srv
    MoveMastCam.srv
+   GetCollisionObject.srv
+   OpenGripper.srv
+   CloseGripper.srv
 )
 
 ## Generate actions in the 'action' folder
