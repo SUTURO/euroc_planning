@@ -1,0 +1,60 @@
+includes:
+  - common_defaults.yml
+
+public_description:
+  task_name: task 1
+  description: there are 3 objects lying on the table (red_cube, cyan_cylinder, yellow_handle).
+    their projected origin needs to be placed in their respective target zones (zone_A, zone_B, zone_C) on the table.
+  
+  objects:
+    red_cube:
+      color: ff0000
+      description: a red cube
+      shape:
+        - type: box
+          size: [0.025, 0.025, 0.025]
+          pose: [0, 0, 0, 0, 0, 0]
+          density: 7850 # [kg/m³] ~steel
+      surface_material: aluminium
+    cyan_cylinder:
+      color: 00ffff
+      description: a cyan cylinder
+      shape:
+        - type: cylinder
+          radius: 0.024
+          length: 0.12
+          pose: [0, 0, 0, 0, 0, 0]
+          density: 19302 # [kg/m³] ~gold
+      surface_material: aluminium2
+    yellow_handle:
+      color: ffff00
+      description: a yellow compound of a cylinder with two cubes
+      shape:
+        - type: cylinder
+          radius: 0.01
+          length: 0.3
+          pose: [0, 0, 0.175, 0, 0, 0]
+          density: 2710 # [kg/m³] ~alloy
+        - type: box
+          size: [0.05, 0.05, 0.05]
+          pose: [0, 0, 0, 0, 0, 0]
+          density: 2710 # [kg/m³] ~alloy
+        - type: box
+          size: [0.05, 0.05, 0.05]
+          pose: [0, 0, 0.35, 0, 0, 0]
+          density: 2710 # [kg/m³] ~alloy
+      surface_material: aluminium
+  
+  target_zones:
+    zone_A:
+      expected_object: red_cube
+      target_position: [ -0.5, -0.5, 0 ]
+      max_distance: 0.025
+    zone_B:
+      expected_object: yellow_handle
+      target_position: [ 0.5, -0.5, 0 ]
+      max_distance: 0.05
+    zone_C:
+      expected_object: cyan_cylinder
+      target_position: [-0.5, 0, 0]
+      max_distance: 0.06
