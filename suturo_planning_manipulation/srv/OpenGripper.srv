@@ -1,0 +1,7 @@
+#Request
+float32 position
+
+---
+
+#Response
+bool result

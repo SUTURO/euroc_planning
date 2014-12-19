@@ -1,0 +1,8 @@
+#Request
+moveit_msgs/CollisionObject object
+geometry_msgs/PoseStamped grasp_point
+
+---
+
+#Response
+bool result

@@ -1,0 +1,7 @@
+#Request
+string name
+
+---
+
+#Response
+moveit_msgs/CollisionObject object
