@@ -14,7 +14,7 @@ from suturo_msgs.msg import Task
 from moveit_msgs.msg import CollisionObject
 from shape_msgs.msg import SolidPrimitive
 from geometry_msgs.msg import Pose
-from suturo_interface_msgs.srv import SearchObjects,SearchObjectsResponse
+from suturo_interface_msgs.srv import SearchObjects, SearchObjectsResponse
 import threading
 
 class Interface(smach.State):

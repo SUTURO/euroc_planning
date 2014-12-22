@@ -10,7 +10,6 @@ class Task(object):
     def __init__(self):
         self.data = TaskData()
 
-
 class Task1(Task):
     def __init__(self):
         super(Task1, self).__init__()
