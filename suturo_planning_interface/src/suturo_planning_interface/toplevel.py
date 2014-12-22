@@ -8,8 +8,11 @@ import time
 import start_nodes
 import signal
 import atexit
-from suturo_msgs.msg import Task
+from suturo_msgs.msg import Task as Task_message
+from suturo_interface_msgs.srv import Task as Task_service
+#import suturo_interface_msgs
 import utils
+from tasks import Task1, Task2, Task3, Task4, Task5, Task6
 
 __handling_exit = False
 # TODO: start classes when starting node
@@ -46,7 +49,14 @@ class Toplevel(object):
     def __init__(self, init_sim, task_name, savelog, initialization_time, logging, parent_pid=None):
         self.task_name = task_name
         self.init_sim = init_sim
+        self.task = None
+        self.configure_logging(logging, initialization_time)
 
+        rospy.init_node('suturo/toplevel')
+
+
+
+    def configure_logging(self,logging,initialization_time):
         print('toplevel: logging: ' + str(logging))
         if logging == 1:
             print('toplevel: Logging planning to console.')
@@ -56,8 +66,41 @@ class Toplevel(object):
             sys.stderr = __logger_process.stdin
             sys.stdout = __logger_process.stdin
 
+    def establish_toplevel_services(self):
+        plan_service = rospy.Service('suturo/toplevel/plan', Task_service, )
+        init_service = rospy.Service('suturo/toplevel/plan', Task_service, handle_add_two_ints)
+        pass
+
+    def in
+
+
+
+    # TODO:Exceptionhandling anpassen
+    def start_toplevel(self):
+        toplevel_thread = threading.Thread(target=self.execute_toplevel_thread)
+        rospy.loginfo('toplevel: Starting smach thread.')
+        toplevel_thread.start()
+        rospy.loginfo('toplevel: Waiting for smach thread to terminate.')
+        # Wait for ctrl-c
+        rospy.spin()
+
+    def execute_toplevel_thread(self):
+
+
+        if self.init_sim:
+            self.process_with_init_parameter()
+        else:
+            self.process_with_plan_parameter()
+
+    def process_with_init_parameter(self):
+        self.init_simulation(self.task_name)
+
+    def process_with_plan_parameter(self):
+        self.task = self.get_task_from_name()
+        YamlHandler.get_yaml()
+
     # TODO:replace sleep with a better solution
-    def init_simulation(self, task_name, userdata):
+    def init_simulation(self, task_name):
         start_nodes.StartSimulation(task_name)
         time.sleep(5)
         start_nodes.StartManipulation()
@@ -68,59 +111,19 @@ class Toplevel(object):
         time.sleep(5)
         # TaskTypeDeterminer.determine_task_type(userdata)
 
-# TODO:Exceptionhandling anpassen
-    def start_task(self):
-        toplevel_thread = threading.Thread(target=self.execute_task)
-        rospy.loginfo('toplevel: Starting smach thread.')
-        toplevel_thread.start()
-        rospy.loginfo('toplevel: Waiting for smach thread to terminate.')
-        # Wait for ctrl-c
-        rospy.spin()
-
-    def execute_task(self):
-            try:
-                if self.init_sim:
-                    self.process_with_init_parameter()
-                else:
-                    self.process_with_plan_parameter()
-            except BaseException, e:
-                print('BaseException while executing Task:')
-                print(traceback.print_exc())
-                # handle_uncaught_exception(sys.exc_info()[0], initialization_time, logging, parent_pid)
-            except:
-                print('Unhandled Exception while executing Task:')
-                print(traceback.print_exc())
-                # handle_uncaught_exception(sys.exc_info()[0], initialization_time, logging, parent_pid)
-
-    def process_with_init_parameter(self):
-        self.init_simulation(self.task_name)
-
-    def process_with_plan_parameter(self):
-        YamlHandler.get_yaml()
-        TaskTypeDeterminer.determine_task_type(self.userdata)
-
-
-
-class TaskTypeDeterminer(object):
-    @staticmethod
-    def determine_task_type(userdata):
-        rospy.loginfo('Executing state DetermineTaskType')
-        task_type = userdata.yaml.task_type
-        if task_type == Task.TASK_1:
-            ret = 'task1'
-        elif task_type == Task.TASK_2:
-            ret = 'task2'
-        elif task_type == Task.TASK_3:
-            ret = 'task3'
-        elif task_type == Task.TASK_4:
-            ret = 'task4'
-        elif task_type == Task.TASK_5:
-            ret = 'task5'
-        elif task_type == Task.TASK_6:
-            ret = 'task6'
-        else:
-            ret = 'fail'
-        rospy.loginfo('Executing task is from type ' + str(ret) + '.')
+    def get_task_from_name(self, task_name):
+        if task_name == "task1":
+            ret = Task1()
+        elif task_name == "task2":
+            ret = Task2()
+        elif task_name == "task3":
+            ret = Task3()
+        elif task_name == "task4":
+            ret = Task4
+        elif task_name == "task5":
+            ret = Task5
+        elif task_name == "task6":
+            ret = Task6
         return ret
 
 
@@ -150,3 +153,25 @@ class YamlHandler(object):
         self._yaml = msg
         rospy.loginfo('Parsed yaml: %s' % str(self._yaml))
         self._lock.release()
+
+
+class TaskTypeDeterminer(object):
+    @staticmethod
+    def determine_task_type(userdata):
+        rospy.loginfo('Executing state DetermineTaskType')
+        task_type = userdata.yaml.task_type
+        if task_type == Task.TASK_1:
+            ret = 'task1'
+        elif task_type == Task.TASK_2:
+            ret = 'task2'
+        elif task_type == Task.TASK_3:
+            ret = 'task3'
+        elif task_type == Task.TASK_4:
+            ret = 'task4'
+        elif task_type == Task.TASK_5:
+            ret = 'task5'
+        elif task_type == Task.TASK_6:
+            ret = 'task6'
+        else:
+            ret = 'fail'
+        rospy.loginfo('Executing task is from type ' + str(ret) + '.')
