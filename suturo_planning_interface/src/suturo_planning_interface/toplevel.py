@@ -13,6 +13,10 @@ from suturo_interface_msgs.srv import TaskDataService, TaskDataServiceRequest, T
 from search_objects import SearchObjects
 from scan_map import MapScanner
 from scan_obstacles import ScanObstacles
+from classify_objects import ClassifyObjects
+from focus_objects import FocusObjects
+from pose_estimate_objects import PoseEstimateObject
+
 import utils
 
 _pro_task_selector = None
@@ -94,6 +98,7 @@ class Toplevel(object):
         self.determine_task_type_state = TaskTypeDeterminer()
         self.map_scanner_state = MapScanner()
         self.scan_obstacles_state = ScanObstacles()
+
 
 
 class YamlHandler(object):

@@ -17,7 +17,6 @@ class PoseEstimateObject(smach.State):
 
     def _handle_pose_estimate_object(self, taskdata):
         rospy.loginfo('Executing state PoseEstimateObject')
-
         taskdata.sec_try = False
         taskdata.fitted_object = None
 
@@ -47,7 +46,7 @@ class PoseEstimateObject(smach.State):
 
         # TODO Investigate the result for the object that's closest to the original object we were interested in
         # TODO find proper threshold
-        corresponding_object_idx = utils.get_nearest_object_idx(userdata.focused_object, pose_estimated_objects, 0.1)
+        corresponding_object_idx = utils.get_nearest_object_idx(taskdata.focused_object, pose_estimated_objects, 0.1)
 
         # # TODO if more than one object were recognized, classify again and take the closest
         # if len(pose_estimated_objects) == 1:
