@@ -17,9 +17,7 @@ from actionlib_msgs.msg import GoalStatusArray
 from suturo_perception_msgs.msg import PerceptionNodeStatus
 from suturo_manipulation_msgs.msg import ManipulationNodeStatus
 from suturo_msgs.msg import Task
-from suturo_planning_yaml_pars0r.yaml_pars0r import YamlPars0r
-from suturo_planning_task_selector import task_selector
-
+from suturo_interface_msgs.srv import TaskDataService, TaskDataServiceResponse
 
 perception_process = None
 manipulation_process = None
@@ -29,17 +27,53 @@ executed_test_node_check = False
 __handling_exit = False
 
 
-class StartManipulation(smach.State):
+class StartManipulation(object):
     def __init__(self):
-        smach.State.__init__(self, outcomes=['success', 'fail'],
-                             input_keys=['initialization_time', 'logging', 'yaml'],
-                             output_keys=['manipulation_process', 'manipulation_conveyor_frames_process'])
         self.__move_group_status = False
         self.__move_group_status_subscriber = None
         self.__nodes_subscriber = None
         self.__manipulation_nodes_ready = False
         self.__required_nodes = None
         self.__started_nodes = []
+        self.start_service()
+
+    def start_service(self):
+        self.start_manipulation_service = rospy.Service('suturo/state/startManipulation', TaskDataService, self.start_manipulation)
+
+    def start_manipulation(self, req):
+        resp = TaskDataServiceResponse()
+        resp.taskdata = req.taskdata
+        rospy.loginfo('Executing TestNode init.')
+        subprocess.Popen('rosrun euroc_launch TestNode --init', shell=True)
+        rospy.loginfo('Executing state StartManipulation')
+        rospy.loginfo('Subscribing to /suturo/manipulation_node_status.')
+        self.__nodes_subscriber = rospy.Subscriber('/suturo/manipulation_node_status', ManipulationNodeStatus,
+                                             self.wait_for_manipulation)
+        rospy.loginfo('Subscribign to /move_group/status topic.')
+        rospy.sleep(1)
+        self.__move_group_status_subscriber = rospy.Subscriber('/move_group/status', GoalStatusArray,
+                                                               self.wait_for_move_group_status)
+        global manipulation_process
+        manipulation_process, manipulation_logger_process =\
+            utils.start_node('roslaunch euroc_launch manipulation.launch', resp.taskdata.initialization_time,
+                             resp.taskdata.logging, 'Manipulation')
+        resp.taskdata.manipulation_process = manipulation_process
+
+        while not self.__move_group_status and not self.__manipulation_nodes_ready:
+            time.sleep(1)
+
+        task_type = resp.taskdata.yaml.task_type
+        if task_type == Task.TASK_6:
+            global manipulation_conveyor_frames_process
+            rospy.loginfo('Starting publish_conveyor_frames.')
+            manipulation_conveyor_frames_process, manipulation_conveyor_frames_logger_process =\
+                utils.start_node('rosrun suturo_planning_manipulation publish_conveyor_frames.py',
+                                 resp.taskdata.initialization_time, resp.taskdata.logging, 'Conveyor frames')
+            resp.taskdata.manipulation_conveyor_frames_process = manipulation_conveyor_frames_process
+        else:
+            resp.taskdata.manipulation_conveyor_frames_process = None
+        resp.result = 'success'
+        return resp
 
     def wait_for_manipulation(self, msg):
         rospy.loginfo('Executing wait_for_manipulation')
@@ -75,48 +109,19 @@ class StartManipulation(smach.State):
         rospy.loginfo('/move_group/status has been published.')
         self.__move_group_status = True
 
-    def execute(self, userdata):
-        rospy.loginfo('Executing TestNode init.')
-        subprocess.Popen('rosrun euroc_launch TestNode --init', shell=True)
-        rospy.loginfo('Executing state StartManipulation')
-        rospy.loginfo('Subscribing to /suturo/manipulation_node_status.')
-        self.__nodes_subscriber = rospy.Subscriber('/suturo/manipulation_node_status', ManipulationNodeStatus,
-                                             self.wait_for_manipulation)
-        rospy.loginfo('Subscribign to /move_group/status topic.')
-        rospy.sleep(1)
-        self.__move_group_status_subscriber = rospy.Subscriber('/move_group/status', GoalStatusArray,
-                                                               self.wait_for_move_group_status)
-        global manipulation_process
-        manipulation_process, manipulation_logger_process =\
-            utils.start_node('roslaunch euroc_launch manipulation.launch', userdata.initialization_time,
-                             userdata.logging, 'Manipulation')
-        userdata.manipulation_process = manipulation_process
-
-        while not self.__move_group_status and not self.__manipulation_nodes_ready:
-            time.sleep(1)
-
-        task_type = userdata.yaml.task_type
-        if task_type == Task.TASK_6:
-            global manipulation_conveyor_frames_process
-            rospy.loginfo('Starting publish_conveyor_frames.')
-            manipulation_conveyor_frames_process, manipulation_conveyor_frames_logger_process =\
-                utils.start_node('rosrun suturo_planning_manipulation publish_conveyor_frames.py',
-                                 userdata.initialization_time, userdata.logging, 'Conveyor frames')
-            userdata.manipulation_conveyor_frames_process = manipulation_conveyor_frames_process
-        else:
-            userdata.manipulation_conveyor_frames_process = None
-        return 'success'
 
 
-class StartPerception(smach.State):
+class StartPerception(object):
     def __init__(self):
-        smach.State.__init__(self, outcomes=['success', 'fail'],
-                             input_keys=['initialization_time', 'logging', 'yaml'],
-                             output_keys=['perception_process'])
         self.__subscriber = None
         self.__perception_ready = False
         self.__required_nodes = None
         self.__started_nodes = []
+        self.task_type_service = None
+        self.start_service()
+
+    def start_service(self):
+        self.start_perception_service = rospy.Service('suturo/state/startPerception', TaskDataService, self.start_perception)
 
     def wait_for_perception(self, msg):
         rospy.loginfo('per: Executing wait_for_perception')
@@ -147,13 +152,15 @@ class StartPerception(smach.State):
         else:
             rospy.loginfo('per: Still waiting for perception.')
 
-    def execute(self, userdata):
+    def start_perception(self, req):
+        resp = TaskDataServiceResponse()
+        resp.taskdata = req.taskdata
         rospy.loginfo('Executing state StartPerception')
         rospy.loginfo('Subscribing to /suturo/perception_node_status.')
         self.__subscriber = rospy.Subscriber('/suturo/perception_node_status', PerceptionNodeStatus,
                                              self.wait_for_perception)
         rospy.sleep(1)
-        task_type = userdata.yaml.task_type
+        task_type = resp.taskdata.yaml.task_type
         if task_type == Task.TASK_4:
             task_num = '4'
         elif task_type == Task.TASK_6:
@@ -162,75 +169,87 @@ class StartPerception(smach.State):
             task_num = '1'
         global perception_process
         perception_process, perception_logger_process =\
-            utils.start_node('roslaunch euroc_launch perception_task' + task_num + '.launch', userdata.initialization_time,
-                             userdata.logging, 'Perception')
-        userdata.perception_process = perception_process
+            utils.start_node('roslaunch euroc_launch perception_task' + task_num + '.launch', resp.taskdata.initialization_time,
+                             resp.taskdata.logging, 'Perception')
+        resp.taskdata.perception_process = perception_process
         while not self.__perception_ready:
             time.sleep(1)
-        return 'success'
+        resp.result = 'success'
+        return resp
 
 
-class StartClassifier(smach.State):
+class StartClassifier(object):
     def __init__(self):
-        smach.State.__init__(self, outcomes=['success', 'fail'],
-                             input_keys=['initialization_time', 'logging'],
-                             output_keys=['classifier_process'])
+        self.start_service()
 
-    def execute(self, userdata):
+    def start_service(self):
+        self.start_classifier_service = rospy.Service('suturo/state/startClassifier', TaskDataService, self.start_classifier)
+
+    def start_classifier(self, req):
+        resp = TaskDataServiceResponse()
+        resp.taskdata = req.taskdata
         rospy.loginfo('Executing state StartClassifier')
         global classifier_process
         classifier_process, classifier_logger_process =\
-            utils.start_node('rosrun suturo_perception_classifier classifier.py', userdata.initialization_time,
-                             userdata.logging, 'Classifier')
-        userdata.classifier_process = classifier_process
-        return 'success'
+            utils.start_node('rosrun suturo_perception_classifier classifier.py', req.taskdata.initialization_time,
+                             req.taskdata.logging, 'Classifier')
+        req.taskdata.classifier_process = classifier_process
+        resp.result = 'success'
+        return resp
 
 
 class StartSimulation(smach.State):
     task_name = ''
 
-    def __init__(self, task_name):
-        self.task_name = task_name
+    def __init__(self):
         self.new_clock = False
         self.clock = None
-        smach.State.__init__(self, outcomes=['success', 'fail'],
-                             input_keys=[],
-                             output_keys=['yaml', 'objects_found'])
+        self.start_service()
+
+    def start_service(self):
+        self.start_simulation_service = rospy.Service('suturo/state/startSimulation', TaskDataService, self.start_simulation)
+
+    def start_simulation(self, req):
+        resp = TaskDataServiceResponse()
+        resp.taskdata = req.taskdata
+        rospy.loginfo('Executing state StartSimulation')
+        resp.taskdata.yaml = suturo_planning_task_selector.start_task(resp.taskdata.name)
+        rospy.loginfo('Got YAML description')
+        resp.taskdata.objects_found = []
+        rospy.loginfo('Waiting for clock.')
+        self.clock = rospy.Subscriber('clock', Clock, self.wait_for_clock)
+        while not self.new_clock:
+            time.sleep(1)
+        resp.result = 'success'
+        return resp
 
     def wait_for_clock(self, msg):
         rospy.loginfo('Clock has been published.')
         self.clock.unregister()
         self.new_clock = True
 
-    def execute(self, userdata):
-        rospy.loginfo('Executing state StartSimulation')
-        userdata.yaml = suturo_planning_task_selector.start_task(self.task_name)
-        rospy.loginfo('Got YAML description')
-        userdata.objects_found = []
-        rospy.loginfo('Waiting for clock.')
-        self.clock = rospy.Subscriber('clock', Clock, self.wait_for_clock)
-        while not self.new_clock:
-            time.sleep(1)
-        return 'success'
 
-
-class StopSimulation(smach.State):
+class StopSimulation(object):
     def __init__(self, savelog):
         self.savelog = savelog
-        smach.State.__init__(self, outcomes=['success', 'fail'],
-                             input_keys=['yaml', 'initialization_time', 'logging'],
-                             output_keys=[])
+        self.start_service()
 
-    def execute(self, userdata):
+    def start_service(self):
+        self.stop_simulation_service = rospy.Service('suturo/state/stopSimulation', TaskDataService, self.stop_simulation)
+
+    def stop_simulation(self, req):
+        resp = TaskDataServiceResponse()
+        resp.taskdata = req.taskdata
         rospy.loginfo('Executing state StopSimulation')
         if not executed_test_node_check:
-            check_node(userdata.initialization_time, userdata.logging)
+            check_node(resp.taskdata.initialization_time, resp.taskdata.logging)
         if self.savelog:
             save_task()
         stop_task()
         time.sleep(3)
         rospy.loginfo('Finished state StopSimulation')
-        return 'success'
+        resp.result = 'success'
+        return resp
 
 
 def check_node(initialization_time, logging):
@@ -246,27 +265,30 @@ def check_node(initialization_time, logging):
     rospy.loginfo('Finished TestNode check.')
 
 
-class StopNodes(smach.State):
+class StopNodes(object):
     def __init__(self):
-        smach.State.__init__(self, outcomes=['success', 'fail'],
-                             input_keys=['perception_process', 'manipulation_process',
-                                         'manipulation_conveyor_frames_process', 'classifier_process'],
-                             output_keys=[])
+        self.start_service()
 
-    def execute(self, userdata):
+    def start_service(self):
+        self.stop_nodes_service = rospy.Service('suturo/state/stopNodes', TaskDataService, self.stop_nodes)
+
+    def stop_nodes(self, req):
+        resp = TaskDataServiceResponse()
+        resp.taskdata = req.taskdata
         rospy.loginfo('Executing state StopNodes.')
-        if userdata.perception_process is not None:
-            exterminate(userdata.perception_process.pid, signal.SIGKILL, r=True)
-        if userdata.manipulation_process is not None:
-            exterminate(userdata.manipulation_process.pid, signal.SIGKILL, r=True)
-        if userdata.manipulation_conveyor_frames_process is not None:
-            exterminate(userdata.manipulation_conveyor_frames_process.pid, signal.SIGKILL, r=True)
-        if userdata.classifier_process is not None:
-            exterminate(userdata.classifier_process.pid, signal.SIGKILL, r=True)
+        if resp.taskdata.perception_process is not None:
+            exterminate(self.resp.perception_process.pid, signal.SIGKILL, r=True)
+        if resp.taskdata.manipulation_process is not None:
+            exterminate(self.resp.manipulation_process.pid, signal.SIGKILL, r=True)
+        if resp.taskdata.manipulation_conveyor_frames_process is not None:
+            exterminate(self.resp.manipulation_conveyor_frames_process.pid, signal.SIGKILL, r=True)
+        if resp.taskdata.classifier_process is not None:
+            exterminate(resp.taskdata.classifier_process.pid, signal.SIGKILL, r=True)
         rospy.signal_shutdown('Finished plan. Shutting down Node.')
         time.sleep(3)
         rospy.loginfo('Finished state StopNodes.')
-        return 'success'
+        resp.result = 'success'
+        return resp
 
 
 def exit_handler(signum=None, frame=None):
