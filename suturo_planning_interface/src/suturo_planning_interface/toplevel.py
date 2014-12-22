@@ -8,14 +8,17 @@ import time
 import start_nodes
 import signal
 import atexit
-from suturo_msgs.msg import Task as Task_message
-from suturo_interface_msgs.srv import Task as Task_service
-#import suturo_interface_msgs
+from suturo_msgs.msg import Task
+from suturo_interface_msgs.srv import TaskDataService, TaskDataServiceRequest, TaskDataServiceResponse
+from search_objects import SearchObjects
+from scan_map import MapScanner
+from scan_obstacles import ScanObstacles
 import utils
 from tasks import Task1, Task2, Task3, Task4, Task5, Task6
 
+_pro_task_selector = None
+_save_log = False
 __handling_exit = False
-# TODO: start classes when starting node
 
 def exit_handler(signum=None, frame=None):
     print('toplevel: exit_handler')
@@ -44,19 +47,13 @@ def handle_uncaught_exception(e, initialization_time, logging, parent_pid):
     rospy.signal_shutdown('Terminating Task due to unhandled exception.')
 
 
-# TODO: toplevel Parameter als Dict oder Klassenvariablen oder als Parameter direkt verwenden
 class Toplevel(object):
-    def __init__(self, init_sim, task_name, savelog, initialization_time, logging, parent_pid=None):
-        self.task_name = task_name
-        self.init_sim = init_sim
-        self.task = None
+    def __init__(self, initialization_time, logging):
         self.configure_logging(logging, initialization_time)
-
         rospy.init_node('suturo/toplevel')
+        self.start_init_service()
 
-
-
-    def configure_logging(self,logging,initialization_time):
+    def configure_logging(self, logging, initialization_time):
         print('toplevel: logging: ' + str(logging))
         if logging == 1:
             print('toplevel: Logging planning to console.')
@@ -66,40 +63,20 @@ class Toplevel(object):
             sys.stderr = __logger_process.stdin
             sys.stdout = __logger_process.stdin
 
-    def establish_toplevel_services(self):
-        plan_service = rospy.Service('suturo/toplevel/plan', Task_service, )
-        init_service = rospy.Service('suturo/toplevel/plan', Task_service, handle_add_two_ints)
-        pass
-
-    def in
-
-
-
-    # TODO:Exceptionhandling anpassen
-    def start_toplevel(self):
-        toplevel_thread = threading.Thread(target=self.execute_toplevel_thread)
-        rospy.loginfo('toplevel: Starting smach thread.')
-        toplevel_thread.start()
-        rospy.loginfo('toplevel: Waiting for smach thread to terminate.')
-        # Wait for ctrl-c
+    def start_init_service(self):
+        init_service = rospy.Service('suturo/toplevel/init', TaskDataService, self.init)
         rospy.spin()
 
-    def execute_toplevel_thread(self):
+    def init(self, req):
+        self.init_simulation(req.taskdata.name)
+        self.create_manipulation()
+        self.start_state_nodes()
+        resp = TaskDataServiceResponse()
+        resp.taskdata = req.taskdata
+        resp.result = 'success'
+        return resp
 
-
-        if self.init_sim:
-            self.process_with_init_parameter()
-        else:
-            self.process_with_plan_parameter()
-
-    def process_with_init_parameter(self):
-        self.init_simulation(self.task_name)
-
-    def process_with_plan_parameter(self):
-        self.task = self.get_task_from_name()
-        YamlHandler.get_yaml()
-
-    # TODO:replace sleep with a better solution
+    # TODO:replace sleep with a better solution(Plane-52)
     def init_simulation(self, task_name):
         start_nodes.StartSimulation(task_name)
         time.sleep(5)
@@ -109,30 +86,27 @@ class Toplevel(object):
         time.sleep(5)
         start_nodes.StartClassifier()
         time.sleep(5)
-        # TaskTypeDeterminer.determine_task_type(userdata)
 
-    def get_task_from_name(self, task_name):
-        if task_name == "task1":
-            ret = Task1()
-        elif task_name == "task2":
-            ret = Task2()
-        elif task_name == "task3":
-            ret = Task3()
-        elif task_name == "task4":
-            ret = Task4
-        elif task_name == "task5":
-            ret = Task5
-        elif task_name == "task6":
-            ret = Task6
-        return ret
+    def create_manipulation(self):
+        pass
+
+    def start_state_nodes(self):
+        search_object_state = SearchObjects()
+        determine_task_type_state = TaskTypeDeterminer()
+        map_scanner_state = MapScanner()
+        scan_obstacles_state = ScanObstacles()
 
 
 class YamlHandler(object):
-    @staticmethod
-    def get_yaml(self, userdata):
+    def __init__(self):
+        self.start_service()
         self._yaml = None
         self._lock = None
 
+    def start_service(self):
+        yaml_handler_service = rospy.Service('suturo/state/YamlHandler', TaskDataService, self.get_yaml)
+
+    def get_yaml(self, req):
         self._lock = threading.Lock()
         subscriber = rospy.Subscriber("suturo/yaml_pars0r", Task, self.parse_yaml)
         rospy.loginfo('Waiting for yaml')
@@ -144,10 +118,14 @@ class YamlHandler(object):
             self._lock.acquire()
 
         rospy.loginfo('Got yaml %s' % str(self._yaml))
-        userdata.yaml = self._yaml
         self._lock.release()
 
-    @staticmethod
+        resp = TaskDataServiceResponse()
+        resp.taskdata = req.taskdata
+        resp.taskdata.yaml = self._yaml
+        resp.result = 'success'
+        return resp
+
     def parse_yaml(self, msg):
         self._lock.acquire()
         self._yaml = msg
@@ -156,10 +134,15 @@ class YamlHandler(object):
 
 
 class TaskTypeDeterminer(object):
-    @staticmethod
-    def determine_task_type(userdata):
+    def __init__(self):
+        self.start_service()
+
+    def start_service(self):
+        task_type_service = rospy.Service('suturo/state/TaskTypeDeterminer', TaskDataService, self.determine_task_type)
+
+    def determine_task_type(self, req):
         rospy.loginfo('Executing state DetermineTaskType')
-        task_type = userdata.yaml.task_type
+        task_type = req.taskdata.yaml.task_type
         if task_type == Task.TASK_1:
             ret = 'task1'
         elif task_type == Task.TASK_2:
@@ -174,4 +157,9 @@ class TaskTypeDeterminer(object):
             ret = 'task6'
         else:
             ret = 'fail'
+
+        resp = TaskDataServiceResponse()
+        resp.taskdata = req.taskdata
+        resp.result = ret
         rospy.loginfo('Executing task is from type ' + str(ret) + '.')
+        return resp
