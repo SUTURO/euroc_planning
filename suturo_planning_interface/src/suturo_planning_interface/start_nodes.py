@@ -72,6 +72,7 @@ class StartManipulation(object):
             resp.taskdata.manipulation_conveyor_frames_process = manipulation_conveyor_frames_process
         else:
             resp.taskdata.manipulation_conveyor_frames_process = None
+        rospy.loginfo('Sucessfully started Manipulation')
         resp.result = 'success'
         return resp
 
@@ -152,6 +153,7 @@ class StartPerception(object):
         else:
             rospy.loginfo('per: Still waiting for perception.')
 
+
     def start_perception(self, req):
         resp = TaskDataServiceResponse()
         resp.taskdata = req.taskdata
@@ -174,6 +176,7 @@ class StartPerception(object):
         resp.taskdata.perception_process = perception_process
         while not self.__perception_ready:
             time.sleep(1)
+        rospy.loginfo('Sucessfully started Perception')
         resp.result = 'success'
         return resp
 
@@ -195,6 +198,7 @@ class StartClassifier(object):
                              req.taskdata.logging, 'Classifier')
         req.taskdata.classifier_process = classifier_process
         resp.result = 'success'
+        rospy.loginfo('Sucessfully started Classifier')
         return resp
 
 
@@ -220,6 +224,7 @@ class StartSimulation(smach.State):
         self.clock = rospy.Subscriber('clock', Clock, self.wait_for_clock)
         while not self.new_clock:
             time.sleep(1)
+        rospy.loginfo('Sucessfully started Simulation')
         resp.result = 'success'
         return resp
 
