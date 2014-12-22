@@ -14,7 +14,6 @@ from search_objects import SearchObjects
 from scan_map import MapScanner
 from scan_obstacles import ScanObstacles
 import utils
-from tasks import Task1, Task2, Task3, Task4, Task5, Task6
 
 _pro_task_selector = None
 _save_log = False
@@ -64,7 +63,7 @@ class Toplevel(object):
             sys.stdout = __logger_process.stdin
 
     def start_init_service(self):
-        init_service = rospy.Service('suturo/toplevel/init', TaskDataService, self.init)
+        self.init_service = rospy.Service('suturo/toplevel/init', TaskDataService, self.init)
         rospy.spin()
 
     def init(self, req):
@@ -91,10 +90,10 @@ class Toplevel(object):
         pass
 
     def start_state_nodes(self):
-        search_object_state = SearchObjects()
-        determine_task_type_state = TaskTypeDeterminer()
-        map_scanner_state = MapScanner()
-        scan_obstacles_state = ScanObstacles()
+        self.search_object_state = SearchObjects()
+        self.determine_task_type_state = TaskTypeDeterminer()
+        self.map_scanner_state = MapScanner()
+        self.scan_obstacles_state = ScanObstacles()
 
 
 class YamlHandler(object):
@@ -104,9 +103,11 @@ class YamlHandler(object):
         self._lock = None
 
     def start_service(self):
-        yaml_handler_service = rospy.Service('suturo/state/YamlHandler', TaskDataService, self.get_yaml)
+        self.yaml_handler_service = rospy.Service('suturo/state/YamlHandler', TaskDataService, self.get_yaml)
 
     def get_yaml(self, req):
+        resp = TaskDataServiceResponse()
+        resp.taskdata = req.taskdata
         self._lock = threading.Lock()
         subscriber = rospy.Subscriber("suturo/yaml_pars0r", Task, self.parse_yaml)
         rospy.loginfo('Waiting for yaml')
@@ -120,8 +121,6 @@ class YamlHandler(object):
         rospy.loginfo('Got yaml %s' % str(self._yaml))
         self._lock.release()
 
-        resp = TaskDataServiceResponse()
-        resp.taskdata = req.taskdata
         resp.taskdata.yaml = self._yaml
         resp.result = 'success'
         return resp
@@ -138,11 +137,13 @@ class TaskTypeDeterminer(object):
         self.start_service()
 
     def start_service(self):
-        task_type_service = rospy.Service('suturo/state/TaskTypeDeterminer', TaskDataService, self.determine_task_type)
+        self.task_type_service = rospy.Service('suturo/state/TaskTypeDeterminer', TaskDataService, self.determine_task_type)
 
     def determine_task_type(self, req):
+        resp = TaskDataServiceResponse()
+        resp.taskdata = req.taskdata
         rospy.loginfo('Executing state DetermineTaskType')
-        task_type = req.taskdata.yaml.task_type
+        task_type = resp.taskdata.yaml.task_type
         if task_type == Task.TASK_1:
             ret = 'task1'
         elif task_type == Task.TASK_2:
@@ -158,8 +159,6 @@ class TaskTypeDeterminer(object):
         else:
             ret = 'fail'
 
-        resp = TaskDataServiceResponse()
-        resp.taskdata = req.taskdata
         resp.result = ret
         rospy.loginfo('Executing task is from type ' + str(ret) + '.')
         return resp
