@@ -1,12 +1,6 @@
 import rospy
 import suturo_planning_plans.utils as utils
-from geometry_msgs.msg import PoseStamped
-from suturo_planning_manipulation.mathemagie import set_vector_length, add_point
 from suturo_planning_search.map import Map
-from suturo_planning_manipulation.manipulation import Manipulation
-from math import *
-from suturo_msgs.msg import Task
-from std_srvs.srv import Empty
 
 from suturo_interface_msgs.srv import TaskDataService, TaskDataServiceRequest, TaskDataServiceResponse
 
@@ -19,7 +13,7 @@ class MapScanner(object):
         self.create_service()
 
     def create_service(self):
-        s = rospy.Service(self.NAME_SERVICE, TaskDataService, self.scan_map)
+        rospy.Service(self.NAME_SERVICE, TaskDataService, self._handle_scan_map)
 
     def _scan_map_part(self, param1, param2):
         utils.manipulation.pan_tilt(param1, param2)
