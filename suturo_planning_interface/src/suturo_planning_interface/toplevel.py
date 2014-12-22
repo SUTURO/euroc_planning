@@ -47,7 +47,6 @@ def handle_uncaught_exception(e, initialization_time, logging, parent_pid):
     rospy.signal_shutdown('Terminating Task due to unhandled exception.')
 
 
-# TODO: toplevel Parameter als Dict oder Klassenvariablen oder als Parameter direkt verwenden
 class Toplevel(object):
     def __init__(self, initialization_time, logging):
         self.configure_logging(logging, initialization_time)
