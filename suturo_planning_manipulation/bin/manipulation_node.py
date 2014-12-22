@@ -20,7 +20,7 @@ class ManipulationNode(object):
         rospy.Service("/suturo/manipulation/move", Move, self.__handle_move)
         rospy.Service("/suturo/manipulation/plan", Plan, self.__handle_plan)
         rospy.Service("/suturo/manipulation/move_with_plan", MoveWithPlan, self.__handle_move_with_plan)
-        rospy.Service("/suturo/manipulation/add_collision_objects", AddPlanningObjects, self.__handle_add_objects)
+        rospy.Service("/suturo/manipulation/add_collision_objects", AddCollisionObjects, self.__handle_add_objects)
         rospy.Service("/suturo/manipulation/get_collision_object", GetCollisionObject, self.__handle_get_collision_object)
         rospy.Service("/suturo/manipulation/move_mastcam", MoveMastCam, self.__handle_mast_cam)
         rospy.Service("/suturo/manipulation/open_gripper", OpenGripper, self.__handle_open_gripper)
