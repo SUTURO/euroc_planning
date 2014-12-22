@@ -1,7 +1,6 @@
 import time
 import math
 import utils
-import rospy
 from geometry_msgs.msg import Point
 from suturo_interface_msgs.srv import TaskDataService, TaskDataServiceResponse
 from suturo_planning_interface.mathemagie import euclidean_distance, get_angle, subtract_point
@@ -9,7 +8,7 @@ from suturo_planning_manipulation.calc_grasp_position import make_scan_pose
 from suturo_planning_visualization.visualization import visualize_poses
 
 
-class ScanObstacles():
+class ScanObstacles(object):
 
     def __init__(self, service_name="suturo/state/scan_obstacles"):
         self.__classified_regions = []

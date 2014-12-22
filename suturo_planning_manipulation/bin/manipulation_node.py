@@ -7,6 +7,10 @@ from suturo_planning_manipulation import manipulation_constants
 from suturo_planning_manipulation.manipulation import Manipulation
 from moveit_msgs.msg import CollisionObject
 from geometry_msgs.msg import PoseStamped
+from suturo_planning_manipulation.manipulation_constants import MOVE_SERVICE, MOVE_WITH_PLAN_SERVICE, \
+    ADD_COLLISION_OBJECTS_SERVICE, GET_COLLSISION_OBJECT_SERVICE, MOVE_MASTCAM_SERVICE, OPEN_GRIPPER_SERVICE, \
+    CLOSE_GRIPPER_SERVICE, BASE_ORIGIN_TOPIC, GET_EEF_POSITION_TOPIC
+from suturo_planning_manipulation.manipulation_constants import PLAN_SERVICE
 
 
 __author__ = 'hansa'
@@ -17,17 +21,16 @@ class ManipulationNode(object):
     def __init__(self):
         rospy.init_node("Manipulation_Control")
         self.__manipulation = Manipulation()
-        rospy.Service("/suturo/manipulation/move", Move, self.__handle_move)
-        rospy.Service("/suturo/manipulation/plan", Plan, self.__handle_plan)
-        rospy.Service("/suturo/manipulation/move_with_plan", MoveWithPlan, self.__handle_move_with_plan)
-        rospy.Service("/suturo/manipulation/add_collision_objects", AddCollisionObjects, self.__handle_add_objects)
-        rospy.Service("/suturo/manipulation/get_collision_object", GetCollisionObject, self.__handle_get_collision_object)
-        rospy.Service("/suturo/manipulation/move_mastcam", MoveMastCam, self.__handle_mast_cam)
-        rospy.Service("/suturo/manipulation/open_gripper", OpenGripper, self.__handle_open_gripper)
-        rospy.Service("/suturo/manipulation/close_gripper", CloseGripper, self.__handle_close_gripper)
-
-        self.__publisher = rospy.Publisher("suturo_manipulation_get_base_origin", PointStamped)
-
+        rospy.Service(MOVE_SERVICE, Move, self.__handle_move)
+        rospy.Service(PLAN_SERVICE, Plan, self.__handle_plan)
+        rospy.Service(MOVE_WITH_PLAN_SERVICE, MoveWithPlan, self.__handle_move_with_plan)
+        rospy.Service(ADD_COLLISION_OBJECTS_SERVICE, AddCollisionObjects, self.__handle_add_objects)
+        rospy.Service(GET_COLLSISION_OBJECT_SERVICE, GetCollisionObject, self.__handle_get_collision_object)
+        rospy.Service(MOVE_MASTCAM_SERVICE, MoveMastCam, self.__handle_mast_cam)
+        rospy.Service(OPEN_GRIPPER_SERVICE, OpenGripper, self.__handle_open_gripper)
+        rospy.Service(CLOSE_GRIPPER_SERVICE, CloseGripper, self.__handle_close_gripper)
+        self.__base_publisher = rospy.Publisher(BASE_ORIGIN_TOPIC, PointStamped)
+        self.__eef_position_publisher = rospy.Publisher(GET_EEF_POSITION_TOPIC, PointStamped)
 
     def __handle_move(self, msg):
         goal_pose = self.__get_goal_pose(msg)
@@ -87,14 +90,15 @@ class ManipulationNode(object):
             grasp_point = None
         return self.__manipulation.close_gripper(obj, grasp_point)
 
-    def __publish_origin(self):
+    def __publish(self):
         rate = rospy.Rate(10)
         while not rospy.is_shutdown():
-            self.__publisher.publish(self.__manipulation.get_base_origin())
+            self.__base_publisher.publish(self.__manipulation.get_base_origin())
+            self.__eef_position_publisher.publish(self.__manipulation.get_eef_position())
             rate.sleep()
 
     def start(self):
-        publisher_thread = Thread(target=self.__publish_origin)
+        publisher_thread = Thread(target=self.__publish)
         publisher_thread.start()
         while not rospy.is_shutdown():
             try:
