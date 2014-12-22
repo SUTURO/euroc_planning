@@ -18,6 +18,7 @@ from suturo_planning_interface.toplevel import Toplevel
 _pro_task_selector = None
 _save_log = False
 __handling_exit = False
+toplevel = None
 
 
 def exit_handler(signum=None, frame=None):
@@ -49,6 +50,7 @@ atexit.register(exit_handler)
 def main(initialization_time, logging):
     start_task_selector()
     rospy.sleep(5)
+    global toplevel
     toplevel = Toplevel(initialization_time, logging)
 
 
@@ -109,5 +111,4 @@ if __name__ == '__main__':
     if initialization_time is None:
         initialization_time = datetime.now().isoformat('-')
     print('start_task: Going to execute main.')
-    main(task, '--plan' in sys.argv, '--init' in sys.argv, _save_log, '--no-ts' in sys.argv, initialization_time,
-         logging, parent)
+    main(initialization_time, logging)
