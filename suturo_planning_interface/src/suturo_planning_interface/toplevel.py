@@ -16,6 +16,10 @@ from scan_obstacles import ScanObstacles
 from classify_objects import ClassifyObjects
 from focus_objects import FocusObjects
 from pose_estimate_objects import PoseEstimateObject
+from scan_shadow import ScanShadow
+from start_nodes import StartClassifier, StartManipulation, StartPerception, StartSimulation, StopNodes, StopSimulation
+from suturo_planning_interface import utils
+from suturo_planning_manipulation.manipulation import Manipulation
 
 import utils
 
@@ -71,7 +75,6 @@ class Toplevel(object):
         rospy.spin()
 
     def init(self, req):
-        self.init_simulation(req.taskdata.name)
         self.create_manipulation()
         self.start_state_nodes()
         resp = TaskDataServiceResponse()
@@ -79,26 +82,26 @@ class Toplevel(object):
         resp.result = 'success'
         return resp
 
-    # TODO:replace sleep with a better solution(Plane-52)
-    def init_simulation(self, task_name):
-        start_nodes.StartSimulation(task_name)
-        time.sleep(5)
-        start_nodes.StartManipulation()
-        time.sleep(5)
-        start_nodes.StartPerception()
-        time.sleep(5)
-        start_nodes.StartClassifier()
-        time.sleep(5)
-
     def create_manipulation(self):
-        pass
+        utils.manipulation = Manipulation()
 
     def start_state_nodes(self):
         self.search_object_state = SearchObjects()
         self.determine_task_type_state = TaskTypeDeterminer()
         self.map_scanner_state = MapScanner()
         self.scan_obstacles_state = ScanObstacles()
-
+        self.classify_objects_state = ClassifyObjects()
+        self.focus_objects_state = FocusObjects()
+        # TODO: Pose estimate object(s) Name anpassen
+        self.pose_estimate_objects_state = PoseEstimateObject()
+        self.scan_map_state = MapScanner()
+        self.scan_shadow_state = ScanShadow()
+        self.start_simulation_state = StartSimulation()
+        self.start_perception_state = StartPerception()
+        self.start_manipulation_sate = StartManipulation()
+        self.start_classifier_state = StartClassifier()
+        self.stop_simulation_state = StopSimulation()
+        self.stop_nodes_state = StopNodes()
 
 
 class YamlHandler(object):
