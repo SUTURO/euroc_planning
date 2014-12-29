@@ -50,7 +50,7 @@ def handle_uncaught_exception(e, initialization_time, logging, parent_pid):
 class Toplevel(object):
     def __init__(self, initialization_time, logging):
         self.configure_logging(logging, initialization_time)
-        rospy.init_node('suturo/toplevel')
+        rospy.init_node('suturo_toplevel')
         self.start_init_service()
 
     def configure_logging(self, logging, initialization_time):
@@ -64,6 +64,7 @@ class Toplevel(object):
             sys.stdout = __logger_process.stdin
 
     def start_init_service(self):
+        print("Waiting for service call suturo/toplevel/init")
         init_service = rospy.Service('suturo/toplevel/init', TaskDataService, self.init)
         rospy.spin()
 
