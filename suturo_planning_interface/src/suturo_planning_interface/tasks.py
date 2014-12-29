@@ -1,5 +1,9 @@
 import rospy
+from suturo_perception_msgs.msg import EurocObject
+from suturo_interface_msgs.msg import TaskData
+import suturo_msgs.msg
 
+from suturo_msgs.msg import Task
 
 class TaskInit(object):
     def __init__(self):
@@ -8,7 +12,7 @@ class TaskInit(object):
 
 class Task(object):
     def __init__(self):
-        self.data = TaskData()
+        self.data = create_default_task_data()
 
 class Task1(Task):
     def __init__(self):
@@ -46,19 +50,20 @@ class Task6(Task):
         self.data.name = "task6"
 
 
-# TODO: irgendwo anders hin packen
-class TaskData(object):
-    def __init__(self):
-        self.objects_found = []
-        self.perceived_objects = []
-        self.fitted_object = None
-        self.fitted_objects = []
-        self.enable_movement = False
-        self.name = None
-        self.cell_coords = []
-        self.sec_try = False
-        self.sec_try_done = False
-        self.failed_object = None
-        self.initialization_time = None
-        self.logging = None
-        self.yaml = None
+def create_default_task_data():
+    taskdata = TaskData()
+    taskdata.objects_found = []
+    #taskdata.perceived_objects = []
+    taskdata.fitted_object = EurocObject()
+    taskdata.fitted_objects = []
+    taskdata.enable_movement = False
+    taskdata.name = ""
+    #taskdata.cell_coords = []
+    taskdata.sec_try = False
+    taskdata.sec_try_done = False
+    taskdata.failed_object = EurocObject()
+    taskdata.initialization_time = rospy.get_rostime()
+    taskdata.logging = 0
+    taskdata.yaml = suturo_msgs.msg.Task()
+    taskdata.object_to_move = EurocObject()
+    return taskdata

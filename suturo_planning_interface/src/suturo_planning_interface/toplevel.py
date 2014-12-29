@@ -8,8 +8,11 @@ import time
 import start_nodes
 import signal
 import atexit
+import tasks
 from suturo_msgs.msg import Task
 from suturo_interface_msgs.srv import TaskDataService, TaskDataServiceRequest, TaskDataServiceResponse
+from suturo_interface_msgs.srv import StartPlanning, StartPlanningRequest, StartPlanningResponse
+from suturo_interface_msgs.msg import TaskData
 from search_objects import SearchObjects
 from scan_map import MapScanner
 from scan_obstacles import ScanObstacles
@@ -20,6 +23,7 @@ from scan_shadow import ScanShadow
 from start_nodes import StartClassifier, StartManipulation, StartPerception, StartSimulation, StopNodes, StopSimulation
 from suturo_planning_interface import utils
 from suturo_planning_manipulation.manipulation import Manipulation
+
 
 import utils
 
@@ -72,15 +76,14 @@ class Toplevel(object):
 
     def start_init_service(self):
         print("Waiting for service call suturo/toplevel/init")
-        self.init_service = rospy.Service('suturo/toplevel/init', TaskDataService, self.init)
+        self.init_service = rospy.Service('suturo/toplevel/init', StartPlanning, self.init)
         rospy.spin()
 
-    def init(self, req):
+    def init(self, resq):
         self.create_manipulation()
         self.start_state_nodes()
-        resp = TaskDataServiceResponse()
-        resp.taskdata = req.taskdata
-        resp.result = 'success'
+        resp = StartPlanningResponse()
+        resp.taskdata = tasks.create_default_task_data()
         return resp
 
     def create_manipulation(self):
@@ -95,13 +98,13 @@ class Toplevel(object):
         self.focus_objects_state = FocusObjects()
         # TODO: Pose estimate object(s) Name anpassen
         self.pose_estimate_objects_state = PoseEstimateObject()
-        self.scan_map_state = MapScanner()
+        #self.scan_map_state = MapScanner()
         self.scan_shadow_state = ScanShadow()
         self.start_simulation_state = StartSimulation()
         self.start_perception_state = StartPerception()
         self.start_manipulation_sate = StartManipulation()
         self.start_classifier_state = StartClassifier()
-        self.stop_simulation_state = StopSimulation()
+        self.stop_simulation_state = StopSimulation(False)
         self.stop_nodes_state = StopNodes()
 
 

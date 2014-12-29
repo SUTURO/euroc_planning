@@ -6,7 +6,7 @@ from suturo_planning_interface.utils import get_valid_objects, classify_object, 
 
 
 class ClassifyObjects(object):
-    def __init__(self, service_name="suturo/state/scan_obstacles"):
+    def __init__(self, service_name="suturo/state/classify_objects"):
         rospy.Service(service_name, TaskDataService, self.__handle_call)
 
     def __handle_call(self, msg):

@@ -17,7 +17,7 @@ class ScanShadow(smach.State):
         self._create_service()
 
     def _create_service(self):
-        rospy.Service(self.NAME_SERVICE, TaskDataService, self._handle_focus_object)
+        rospy.Service(self.NAME_SERVICE, TaskDataService, self._handle_scan_shadow)
 
     def _handle_scan_shadow(self, taskdata):
         rospy.loginfo('Executing state ScanShadow')

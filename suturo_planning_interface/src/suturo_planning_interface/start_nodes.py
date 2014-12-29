@@ -235,7 +235,12 @@ class StartSimulation(smach.State):
 
 
 class StopSimulation(object):
+
     def __init__(self, savelog):
+        """
+        :param savelog: boolean, whether logs should be saved
+        :return:
+        """
         self.savelog = savelog
         self.start_service()
 
