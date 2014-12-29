@@ -13,8 +13,15 @@ from suturo_interface_msgs.srv import TaskDataService, TaskDataServiceRequest, T
 from search_objects import SearchObjects
 from scan_map import MapScanner
 from scan_obstacles import ScanObstacles
+from classify_objects import ClassifyObjects
+from focus_objects import FocusObjects
+from pose_estimate_objects import PoseEstimateObject
+from scan_shadow import ScanShadow
+from start_nodes import StartClassifier, StartManipulation, StartPerception, StartSimulation, StopNodes, StopSimulation
+from suturo_planning_interface import utils
+from suturo_planning_manipulation.manipulation import Manipulation
+
 import utils
-from tasks import Task1, Task2, Task3, Task4, Task5, Task6
 
 _pro_task_selector = None
 _save_log = False
@@ -65,11 +72,10 @@ class Toplevel(object):
 
     def start_init_service(self):
         print("Waiting for service call suturo/toplevel/init")
-        init_service = rospy.Service('suturo/toplevel/init', TaskDataService, self.init)
+        self.init_service = rospy.Service('suturo/toplevel/init', TaskDataService, self.init)
         rospy.spin()
 
     def init(self, req):
-        self.init_simulation(req.taskdata.name)
         self.create_manipulation()
         self.start_state_nodes()
         resp = TaskDataServiceResponse()
@@ -77,25 +83,26 @@ class Toplevel(object):
         resp.result = 'success'
         return resp
 
-    # TODO:replace sleep with a better solution(Plane-52)
-    def init_simulation(self, task_name):
-        start_nodes.StartSimulation(task_name)
-        time.sleep(5)
-        start_nodes.StartManipulation()
-        time.sleep(5)
-        start_nodes.StartPerception()
-        time.sleep(5)
-        start_nodes.StartClassifier()
-        time.sleep(5)
-
     def create_manipulation(self):
-        pass
+        utils.manipulation = Manipulation()
 
     def start_state_nodes(self):
-        search_object_state = SearchObjects()
-        determine_task_type_state = TaskTypeDeterminer()
-        map_scanner_state = MapScanner()
-        scan_obstacles_state = ScanObstacles()
+        self.search_object_state = SearchObjects()
+        self.determine_task_type_state = TaskTypeDeterminer()
+        self.map_scanner_state = MapScanner()
+        self.scan_obstacles_state = ScanObstacles()
+        self.classify_objects_state = ClassifyObjects()
+        self.focus_objects_state = FocusObjects()
+        # TODO: Pose estimate object(s) Name anpassen
+        self.pose_estimate_objects_state = PoseEstimateObject()
+        self.scan_map_state = MapScanner()
+        self.scan_shadow_state = ScanShadow()
+        self.start_simulation_state = StartSimulation()
+        self.start_perception_state = StartPerception()
+        self.start_manipulation_sate = StartManipulation()
+        self.start_classifier_state = StartClassifier()
+        self.stop_simulation_state = StopSimulation()
+        self.stop_nodes_state = StopNodes()
 
 
 class YamlHandler(object):
@@ -105,9 +112,11 @@ class YamlHandler(object):
         self._lock = None
 
     def start_service(self):
-        yaml_handler_service = rospy.Service('suturo/state/YamlHandler', TaskDataService, self.get_yaml)
+        self.yaml_handler_service = rospy.Service('suturo/state/YamlHandler', TaskDataService, self.get_yaml)
 
     def get_yaml(self, req):
+        resp = TaskDataServiceResponse()
+        resp.taskdata = req.taskdata
         self._lock = threading.Lock()
         subscriber = rospy.Subscriber("suturo/yaml_pars0r", Task, self.parse_yaml)
         rospy.loginfo('Waiting for yaml')
@@ -121,8 +130,6 @@ class YamlHandler(object):
         rospy.loginfo('Got yaml %s' % str(self._yaml))
         self._lock.release()
 
-        resp = TaskDataServiceResponse()
-        resp.taskdata = req.taskdata
         resp.taskdata.yaml = self._yaml
         resp.result = 'success'
         return resp
@@ -139,11 +146,13 @@ class TaskTypeDeterminer(object):
         self.start_service()
 
     def start_service(self):
-        task_type_service = rospy.Service('suturo/state/TaskTypeDeterminer', TaskDataService, self.determine_task_type)
+        self.task_type_service = rospy.Service('suturo/state/TaskTypeDeterminer', TaskDataService, self.determine_task_type)
 
     def determine_task_type(self, req):
+        resp = TaskDataServiceResponse()
+        resp.taskdata = req.taskdata
         rospy.loginfo('Executing state DetermineTaskType')
-        task_type = req.taskdata.yaml.task_type
+        task_type = resp.taskdata.yaml.task_type
         if task_type == Task.TASK_1:
             ret = 'task1'
         elif task_type == Task.TASK_2:
@@ -159,8 +168,6 @@ class TaskTypeDeterminer(object):
         else:
             ret = 'fail'
 
-        resp = TaskDataServiceResponse()
-        resp.taskdata = req.taskdata
         resp.result = ret
         rospy.loginfo('Executing task is from type ' + str(ret) + '.')
         return resp
