@@ -13,6 +13,4 @@
             ((:file "package")
              (:file "designators" :depends-on ("package"))
              (:file "recognized-object" :depends-on ("package"))
-             (:file "search-objects" :depends-on ("package"))
-             (:file "suturo-planning-plan" :depends-on ("package"))
              (:file "suturo-planning-pm-perception" :depends-on ("package" "designators"))))))
