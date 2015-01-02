@@ -15,16 +15,16 @@ class PoseEstimateObject(smach.State):
     def _create_service(self):
         rospy.Service(self.NAME_SERVICE, TaskDataService, self._handle_pose_estimate_object)
 
-    def _handle_pose_estimate_object(self, data):
+    def _handle_pose_estimate_object(self, req):
         rospy.loginfo('Executing state PoseEstimateObject')
+        taskdata = req.taskdata
+        taskdata.focused_object = taskdata.object_to_focus
 
-        data.taskdata.focused_object = data.taskdata.object_to_focus
-
-        data.taskdata.sec_try = False
-        data.taskdata.fitted_object = None
+        taskdata.sec_try = False
+        taskdata.fitted_object = None
 
         # Get the ID of the classified object from the YAML file
-        ids = utils.get_yaml_objects_nrs(data.taskdata.yaml, data.taskdata.focused_object.object.id)
+        ids = utils.get_yaml_objects_nrs(taskdata.yaml, taskdata.focused_object.object.id)
 
         # pose_estimated = perception.get_gripper_perception(pose_estimation=True, object_ids=ids)[0] # OLD
         pose_estimated_objects = perception.get_gripper_perception(pose_estimation=True, cuboid=False, object_ids=ids)
@@ -33,15 +33,15 @@ class PoseEstimateObject(smach.State):
 
         if pose_estimated_objects is None:
             rospy.logwarn('Couldn\'t get gripper perception.')
-            if not data.taskdata.sec_try_done:
-                data.taskdata.sec_try = True
-            return TaskDataServiceResponse(taskdata = data.taskdata, result = "fail")
+            if not taskdata.sec_try_done:
+                taskdata.sec_try = True
+            return TaskDataServiceResponse(taskdata = taskdata, result = "fail")
 
         if not pose_estimated_objects:
             rospy.logdebug('No object found for pose estimation.')
-            if not data.taskdata.sec_try_done:
-                data.taskdata.sec_try = True
-            return TaskDataServiceResponse(taskdata = data.taskdata, result = "fail")
+            if not taskdata.sec_try_done:
+                taskdata.sec_try = True
+            return TaskDataServiceResponse(taskdata = taskdata, result = "fail")
 
 
         # Convert the poses to odom_combined
@@ -49,7 +49,7 @@ class PoseEstimateObject(smach.State):
 
         # TODO Investigate the result for the object that's closest to the original object we were interested in
         # TODO find proper threshold
-        corresponding_object_idx = utils.get_nearest_object_idx(data.taskdata.focused_object, pose_estimated_objects, 0.1)
+        corresponding_object_idx = utils.get_nearest_object_idx(taskdata.focused_object, pose_estimated_objects, 0.1)
 
         # # TODO if more than one object were recognized, classify again and take the closest
         # if len(pose_estimated_objects) == 1:
@@ -63,9 +63,9 @@ class PoseEstimateObject(smach.State):
         # TODO Call the perception again
         if corresponding_object_idx is None:
             rospy.logdebug('Couldn\'t find the desired object on the next lookup again')
-            if not data.taskdata.sec_try_done:
-                data.taskdata.sec_try = True
-            return TaskDataServiceResponse(taskdata = data.taskdata, result = "fail")
+            if not taskdata.sec_try_done:
+                taskdata.sec_try = True
+            return TaskDataServiceResponse(taskdata = taskdata, result = "fail")
 
 
         pose_estimated = pose_estimated_objects[corresponding_object_idx]
@@ -73,17 +73,17 @@ class PoseEstimateObject(smach.State):
 
         if pose_estimated is None or not pose_estimated.mpe_success:
             rospy.logwarn('Poseestimation failed.')
-            if not data.taskdata.sec_try_done:
-                data.taskdata.sec_try = True
-            return TaskDataServiceResponse(taskdata = data.taskdata, result = "fail")
+            if not taskdata.sec_try_done:
+                taskdata.sec_try = True
+            return TaskDataServiceResponse(taskdata = taskdata, result = "fail")
 
 
-        data.taskdata.fitted_object = pose_estimated
+        taskdata.fitted_object = pose_estimated
 
         rospy.loginfo('Publishing objects into planning scene.')
         utils.publish_collision_objects([pose_estimated.mpe_object])
 
-        return TaskDataServiceResponse(taskdata = data.taskdata, result = "success")
+        return TaskDataServiceResponse(taskdata = taskdata, result = "success")
 
 
 

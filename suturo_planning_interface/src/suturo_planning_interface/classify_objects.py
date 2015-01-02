@@ -9,15 +9,15 @@ class ClassifyObjects(object):
     def __init__(self, service_name="suturo/state/classify_objects"):
         rospy.Service(service_name, TaskDataService, self.__handle_call)
 
-    def __handle_call(self, msg):
-        response = TaskDataServiceResponse()
-        response.result = self.__classify(msg.taskdata)
-        response.taskdata = msg.taskdata
-        return response
+    def __handle_call(self, req):
+        resp = TaskDataServiceResponse()
+        resp.result = self.__classify(req.taskdata)
+        resp.taskdata = req.taskdata
+        return resp
 
-    def __classify(self, userdata):
+    def __classify(self, taskdata):
         rospy.loginfo('Executing state ClassifyObject')
-        userdata.sec_try = False
+        taskdata.sec_try = False
 
         rospy.loginfo('Using simple perception.')
         get_gripper = perception.get_gripper_perception()
@@ -28,14 +28,14 @@ class ClassifyObjects(object):
         perceived_objects = get_valid_objects(get_gripper)
         rospy.logdebug('Found ' + str(len(get_gripper)) + ' objects, ' + str(len(perceived_objects)) + ' are valid.')
         if not perceived_objects:
-            if not userdata.sec_try_done:
-                userdata.sec_try = True
+            if not taskdata.sec_try_done:
+                taskdata.sec_try = True
             return 'noObject'
 
         collision_objects = []
         matched_objects = []
         found_object_names = []
-        for obj in userdata.objects_found:
+        for obj in taskdata.objects_found:
             found_object_names.append(obj.mpe_object.id)
 
         for obj in perceived_objects:
@@ -65,12 +65,12 @@ class ClassifyObjects(object):
                     matched_objects.append(matched_obj)
 
         # publish_collision_objects(collision_objects)
-        userdata.classified_objects = matched_objects
+        taskdata.classified_objects = matched_objects
 
         # check if it was an object
         if matched_objects:
             return 'objectsClassified'
         else:
-            if not userdata.sec_try_done:
-                userdata.sec_try = True
+            if not taskdata.sec_try_done:
+                taskdata.sec_try = True
             return 'noObject'

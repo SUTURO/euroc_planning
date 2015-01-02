@@ -28,8 +28,9 @@ class MapScanner(object):
         self._scan_map_part(-0.2, 0.5)
 
 
-    def _handle_scan_map(self, data):
+    def _handle_scan_map(self, req):
+        taskdata = req.taskdata
         rospy.loginfo('Scanning map')
         utils.map = Map(2)
         self._scan_map()
-        return TaskDataServiceResponse(taskdata = data.taskdata, result = self.RETURN_VAL_MAP_SCANNED)
+        return TaskDataServiceResponse(taskdata = taskdata, result = self.RETURN_VAL_MAP_SCANNED)

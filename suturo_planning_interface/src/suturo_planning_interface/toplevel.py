@@ -23,6 +23,7 @@ from scan_shadow import ScanShadow
 from start_nodes import StartClassifier, StartManipulation, StartPerception, StartSimulation, StopNodes, StopSimulation
 from suturo_planning_interface import utils
 from suturo_planning_manipulation.manipulation import Manipulation
+from suturo_planning_task_selector import start_task
 
 
 import utils
@@ -62,6 +63,7 @@ class Toplevel(object):
     def __init__(self, initialization_time, logging):
         self.configure_logging(logging, initialization_time)
         rospy.init_node('suturo_toplevel')
+        #start_task("task1_v1")
         self.start_init_service()
 
     def configure_logging(self, logging, initialization_time):
