@@ -22,16 +22,16 @@ toplevel = None
 
 
 def exit_handler(signum=None, frame=None):
-    print('start_task: exit_handler')
-    print('start_task: signum: ' + str(signum) + ', frame: ' + str(frame))
+    print('startup: exit_handler')
+    print('startup: signum: ' + str(signum) + ', frame: ' + str(frame))
     global __handling_exit
     global _save_log
     print 'rospy.is_shutdown() = ' + str(rospy.is_shutdown())
     if __handling_exit:
-        print('start_task: Already handling exit.')
+        print('startup: Already handling exit.')
         return
     __handling_exit = True
-    print('start_task: Checking for task selector.')
+    print('startup: Checking for task selector.')
     global _pro_task_selector
     if _pro_task_selector is not None:
         print 'Stopping TaskSelector'
@@ -39,7 +39,7 @@ def exit_handler(signum=None, frame=None):
         exterminate(_pro_task_selector.pid, signal.SIGINT)
     #print('Exiting moveit_commander.')
     #moveit_commander.os._exit(0)
-    print('start_task: Exiting exit_handler')
+    print('startup: Exiting exit_handler')
 
 
 signal.signal(signal.SIGINT, exit_handler)
@@ -62,7 +62,7 @@ def start_task_selector():
 
 
 def rospy_exit_handler():
-    print('start_task: rospy_exit_handler')
+    print('startup: rospy_exit_handler')
     global _save_log
     if not start_nodes.executed_test_node_check:
         start_nodes.check_node(initialization_time, logging)
@@ -77,7 +77,7 @@ def rospy_exit_handler():
         stop_task()
     print('Going to sleep a sec.')
     time.sleep(2)
-    print('start_task: Exiting rospy_exit_handler.')
+    print('startup: Exiting rospy_exit_handler.')
 
 if __name__ == '__main__':
     task = sys.argv[1]
@@ -85,7 +85,7 @@ if __name__ == '__main__':
     try:
         opts, args = getopt.getopt(argv, '', ['save', 'plan', 'init', 'no-ts', 'inittime=', 'logging=', 'parent='])
     except getopt.GetoptError:
-        print('start_task: Could not parse parameters.')
+        print('startup: Could not parse parameters.')
         sys.exit(2)
     #print ('opts: ' + str(opts))
     #print ('args: ' + str(args))
@@ -110,5 +110,5 @@ if __name__ == '__main__':
 
     if initialization_time is None:
         initialization_time = datetime.now().isoformat('-')
-    print('start_task: Going to execute main.')
+    print('startup: Going to execute main.')
     main(initialization_time, logging)

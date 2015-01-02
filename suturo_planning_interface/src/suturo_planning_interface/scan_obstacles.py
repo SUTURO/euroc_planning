@@ -15,25 +15,26 @@ class ScanObstacles(object):
         self.next_cluster = 0
         rospy.Service(service_name, TaskDataService, self.__handle_call)
 
-    def __handle_call(self, msg):
+    def __handle_call(self, req):
         response = TaskDataServiceResponse()
-        response.result = self.__scan_obstacles(msg.taskdata)
-        response.taskdata = msg.taskdata
+        taskdata = req.taskdata
+        response.result = self.__scan_obstacles(taskdata)
+        response.taskdata = taskdata
         return response
 
-    def __scan_obstacles(self, userdata):
+    def __scan_obstacles(self, taskdata):
         rospy.loginfo('Executing state ScanObstacles')
-        userdata.sec_try_done = False
-        if userdata.sec_try:
+        taskdata.sec_try_done = False
+        if taskdata.sec_try:
             current_region = self.classified_regions[self.next_cluster-1][0]
-            userdata.sec_try_done = True
+            taskdata.sec_try_done = True
         else:
             #get regions
             if len(self.classified_regions) == 0:
                 obstacle_cluster = utils.map.get_obstacle_regions()
                 rospy.logdebug(str(len(self.classified_regions)) + " regions found.")
                 print '#####################################'
-                self.classified_regions = utils.map.undercover_classifier(obstacle_cluster, userdata.yaml.objects)
+                self.classified_regions = utils.map.undercover_classifier(obstacle_cluster, taskdata.yaml.objects)
                 print self.classified_regions
                 print '#####################################'
                 base = utils.manipulation.get_base_origin().point
@@ -62,7 +63,7 @@ class ScanObstacles(object):
 
         # If the arm cannot move ignore distant regions
         # TODO find the best max distance
-        if not userdata.enable_movement:
+        if not taskdata.enable_movement:
             rospy.logdebug('Distance of the current region to the arm: %s' % str(dist_to_region))
             if dist_to_region > 1.1:
                 rospy.logwarn('Current region is out of reach. Ignoring it.')
@@ -73,12 +74,12 @@ class ScanObstacles(object):
 
         poses = make_scan_pose(region_centroid, distance, angle, n=16)
 
-        if not userdata.enable_movement:
+        if not taskdata.enable_movement:
             poses = utils.manipulation.filter_close_poses(poses)
 
         poses = utils.map.filter_invalid_scan_poses2(region_centroid.x, region_centroid.y, poses)
 
-        if userdata.sec_try:
+        if taskdata.sec_try:
             current_pose = utils.manipulation.get_eef_position().pose.position
             current_pose.z = 0
             region_to_eef = subtract_point(region_centroid, current_pose)
@@ -87,7 +88,7 @@ class ScanObstacles(object):
 
         visualize_poses(poses)
 
-        if userdata.enable_movement:
+        if taskdata.enable_movement:
             # move = utils.manipulation.move_arm_and_base_to
             plan = utils.manipulation.plan_arm_and_base_to
         else:
@@ -99,7 +100,7 @@ class ScanObstacles(object):
             # utils.manipulation.set_planning_time_arm(2)
             if utils.manipulation.move_with_plan_to(plan(pose)):
                 # utils.manipulation.set_planning_time_arm(5)
-                userdata.focused_point = region_centroid
+                taskdata.focused_point = region_centroid
 
                 rospy.logdebug('Wait for clock')
                 time.sleep(0.5)

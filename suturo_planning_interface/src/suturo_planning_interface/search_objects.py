@@ -12,18 +12,19 @@ class SearchObjects():
         self._missing_objects = None
         rospy.Service(self.NAME_SERVICE, TaskDataService, self.handle_search_objects)
 
-    def handle_search_objects(self, data):
+    def handle_search_objects(self, req):
         """
         Servicehandler for the service NAME_SERVICE
         :param taskdata: The given Servicerequest - Parameter
         :return: The required response object
         """
         rospy.loginfo("Searching objects")
-        self._check_missing_objects(data.taskdata.yaml.objects)
-        self._check_found_objects(data.taskdata.fitted_objects, data.taskdata.objects_found)
+        taskdata = req.taskdata
+        self._check_missing_objects(taskdata.yaml.objects)
+        self._check_found_objects(taskdata.fitted_objects, taskdata.objects_found)
         self._print_found_objects()
         state_transition = self._check_all_objects_found()
-        return TaskDataServiceResponse(taskdata = data.taskdata, result = state_transition)
+        return TaskDataServiceResponse(taskdata = taskdata, result = state_transition)
 
     def _check_missing_objects(self, yaml_objects):
         "Searches for missing objects and fills self._missing_objects. This is done once!"
