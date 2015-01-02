@@ -329,8 +329,8 @@ class YamlPars0r:
     def parse_twist(twist):
         rospy.loginfo('parse_twist')
         rospy.logdebug('parse_twist: parsing ' + str(twist))
-        f_linear = Vector3(float('inf'), float('inf'), float('inf'))
-        f_angular = Vector3(float('inf'), float('inf'), float('inf'))
+        f_linear = Vector3(float(0), float(0), float(0))
+        f_angular = Vector3(float(0), float(0), float(0))
         if twist is not None:
             try:
                 f_linear.x = twist[0]

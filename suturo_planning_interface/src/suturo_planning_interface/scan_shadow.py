@@ -2,7 +2,7 @@ __author__ = 'andreas'
 
 import rospy
 import smach
-import utils
+from suturo_planning_interface import utils
 from suturo_interface_msgs.srv import TaskDataService, TaskDataServiceRequest, TaskDataServiceResponse
 
 
@@ -19,7 +19,7 @@ class ScanShadow(smach.State):
     def _create_service(self):
         rospy.Service(self.NAME_SERVICE, TaskDataService, self._handle_scan_shadow)
 
-    def _handle_scan_shadow(self, taskdata):
+    def _handle_scan_shadow(self, data):
         rospy.loginfo('Executing state ScanShadow')
         scan_poses = ['shadow_pose1', 'shadow_pose2']
 
@@ -40,4 +40,4 @@ class ScanShadow(smach.State):
         co = utils.map.to_collision_object()
         utils.manipulation.get_planning_scene().add_object(co)
 
-        return TaskDataServiceResponse(taskdata = taskdata, result = self.RET_VAL_DONE)
+        return TaskDataServiceResponse(taskdata = data.taskdata, result = self.RET_VAL_DONE)

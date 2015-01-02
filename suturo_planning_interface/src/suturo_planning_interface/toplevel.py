@@ -79,12 +79,17 @@ class Toplevel(object):
         self.init_service = rospy.Service('suturo/toplevel/init', StartPlanning, self.init)
         rospy.spin()
 
-    def init(self, resq):
-        self.create_manipulation()
-        self.start_state_nodes()
+    def init(self, req):
         resp = StartPlanningResponse()
         resp.taskdata = tasks.create_default_task_data()
+        resp.taskdata = self.create_yaml(resp.taskdata)
+        self.create_manipulation()
+        self.start_state_nodes()
         return resp
+
+    def create_yaml(self, data):
+        self.yaml_handler = YamlHandler()
+        return self.yaml_handler.get_yaml(data)
 
     def create_manipulation(self):
         utils.manipulation = Manipulation()
@@ -98,7 +103,7 @@ class Toplevel(object):
         self.focus_objects_state = FocusObjects()
         # TODO: Pose estimate object(s) Name anpassen
         self.pose_estimate_objects_state = PoseEstimateObject()
-        #self.scan_map_state = MapScanner()
+        #self.scan_map_state = MapScanner() TODO: Exception, da Mapscanner schon aufgerufen wird
         self.scan_shadow_state = ScanShadow()
         self.start_simulation_state = StartSimulation()
         self.start_perception_state = StartPerception()
@@ -110,16 +115,16 @@ class Toplevel(object):
 
 class YamlHandler(object):
     def __init__(self):
-        self.start_service()
+        """"""
+        #self.start_service()
         self._yaml = None
         self._lock = None
 
-    def start_service(self):
-        self.yaml_handler_service = rospy.Service('suturo/state/YamlHandler', TaskDataService, self.get_yaml)
+    #def start_service(self):
+    #    self.yaml_handler_service = rospy.Service('suturo/state/yaml_handler', TaskDataService, self.get_yaml)
+    #    rospy.spin()
 
-    def get_yaml(self, req):
-        resp = TaskDataServiceResponse()
-        resp.taskdata = req.taskdata
+    def get_yaml(self, data):
         self._lock = threading.Lock()
         subscriber = rospy.Subscriber("suturo/yaml_pars0r", Task, self.parse_yaml)
         rospy.loginfo('Waiting for yaml')
@@ -133,9 +138,8 @@ class YamlHandler(object):
         rospy.loginfo('Got yaml %s' % str(self._yaml))
         self._lock.release()
 
-        resp.taskdata.yaml = self._yaml
-        resp.result = 'success'
-        return resp
+        data.yaml = self._yaml
+        return data
 
     def parse_yaml(self, msg):
         self._lock.acquire()

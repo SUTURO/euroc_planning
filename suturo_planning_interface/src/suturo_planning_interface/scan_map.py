@@ -1,5 +1,5 @@
 import rospy
-import suturo_planning_plans.utils as utils
+from suturo_planning_interface import utils
 from suturo_planning_search.map import Map
 
 from suturo_interface_msgs.srv import TaskDataService, TaskDataServiceRequest, TaskDataServiceResponse
@@ -28,8 +28,8 @@ class MapScanner(object):
         self._scan_map_part(-0.2, 0.5)
 
 
-    def _handle_scan_map(self, taskdata):
+    def _handle_scan_map(self, data):
         rospy.loginfo('Scanning map')
-        self._scan_map()
         utils.map = Map(2)
-        return TaskDataServiceResponse(taskdata = taskdata, result = self.RETURN_VAL_MAP_SCANNED)
+        self._scan_map()
+        return TaskDataServiceResponse(taskdata = data.taskdata, result = self.RETURN_VAL_MAP_SCANNED)

@@ -2,6 +2,7 @@ import rospy
 from suturo_perception_msgs.msg import EurocObject
 from suturo_interface_msgs.msg import TaskData
 import suturo_msgs.msg
+from geometry_msgs.msg import Point
 
 from suturo_msgs.msg import Task
 
@@ -53,6 +54,9 @@ class Task6(Task):
 def create_default_task_data():
     taskdata = TaskData()
     taskdata.objects_found = []
+    taskdata.classified_objects = []
+    taskdata.object_to_focus = EurocObject()
+    taskdata.objects_to_focus = []
     #taskdata.perceived_objects = []
     taskdata.fitted_object = EurocObject()
     taskdata.fitted_objects = []
@@ -66,4 +70,5 @@ def create_default_task_data():
     taskdata.logging = 0
     taskdata.yaml = suturo_msgs.msg.Task()
     taskdata.object_to_move = EurocObject()
+    taskdata.focused_point = Point()
     return taskdata
