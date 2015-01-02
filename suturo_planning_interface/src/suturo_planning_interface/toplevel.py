@@ -20,7 +20,7 @@ from classify_objects import ClassifyObjects
 from focus_objects import FocusObjects
 from pose_estimate_objects import PoseEstimateObject
 from scan_shadow import ScanShadow
-from start_nodes import StartClassifier, StartManipulation, StartPerception, StartSimulation, StopNodes, StopSimulation
+from start_nodes import StartClassifier, StartManipulation, StartPerception, StartSimulation, StopNodes, StopSimulation, StartYamlParser
 from suturo_planning_interface import utils
 from suturo_planning_manipulation.manipulation import Manipulation
 from suturo_planning_task_selector import start_task
@@ -63,7 +63,7 @@ class Toplevel(object):
     def __init__(self, initialization_time, logging):
         self.configure_logging(logging, initialization_time)
         rospy.init_node('suturo_toplevel')
-        #start_task("task1_v1")
+        start_task("task1_v1")
         self.start_init_service()
 
     def configure_logging(self, logging, initialization_time):
@@ -103,6 +103,7 @@ class Toplevel(object):
         self.scan_obstacles_state = ScanObstacles()
         self.classify_objects_state = ClassifyObjects()
         self.focus_objects_state = FocusObjects()
+        self.yaml_parser_state = StartYamlParser()
         # TODO: Pose estimate object(s) Name anpassen
         self.pose_estimate_objects_state = PoseEstimateObject()
         #self.scan_map_state = MapScanner() TODO: Exception, da Mapscanner schon aufgerufen wird

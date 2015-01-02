@@ -28,7 +28,7 @@ executed_test_node_check = False
 __handling_exit = False
 
 
-class YamlParserServices():
+class StartYamlParser():
     def __init__(self):
         self.start_service()
 

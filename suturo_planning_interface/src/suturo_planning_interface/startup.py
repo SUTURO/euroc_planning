@@ -49,7 +49,7 @@ atexit.register(exit_handler)
 
 def main(initialization_time, logging):
     start_task_selector()
-    rospy.sleep(5)
+    rospy.sleep(10)
     global toplevel
     toplevel = Toplevel(initialization_time, logging)
 
