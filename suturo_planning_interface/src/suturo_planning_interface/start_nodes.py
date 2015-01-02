@@ -18,6 +18,7 @@ from suturo_perception_msgs.msg import PerceptionNodeStatus
 from suturo_manipulation_msgs.msg import ManipulationNodeStatus
 from suturo_msgs.msg import Task
 from suturo_interface_msgs.srv import TaskDataService, TaskDataServiceResponse
+from suturo_planning_yaml_pars0r.yaml_pars0r import YamlPars0r
 
 perception_process = None
 manipulation_process = None
@@ -25,6 +26,18 @@ manipulation_conveyor_frames_process = None
 classifier_process = None
 executed_test_node_check = False
 __handling_exit = False
+
+
+class YamlParserServices():
+    def __init__(self):
+        self.start_service()
+
+    def start_service(self):
+        self.start_yaml_parser = rospy.Service('suturo/state/startYamlParser', TaskDataService,
+                                                        self.start_yaml_parser)
+
+    def start_yaml_parser(self, req):
+        self.yaml_parser = YamlPars0r()
 
 
 class StartManipulation(object):
@@ -38,7 +51,8 @@ class StartManipulation(object):
         self.start_service()
 
     def start_service(self):
-        self.start_manipulation_service = rospy.Service('suturo/state/startManipulation', TaskDataService, self.start_manipulation)
+        self.start_manipulation_service = rospy.Service('suturo/state/startManipulation', TaskDataService,
+                                                        self.start_manipulation)
 
     def start_manipulation(self, req):
         resp = TaskDataServiceResponse()
@@ -122,7 +136,8 @@ class StartPerception(object):
         self.start_service()
 
     def start_service(self):
-        self.start_perception_service = rospy.Service('suturo/state/startPerception', TaskDataService, self.start_perception)
+        self.start_perception_service = rospy.Service('suturo/state/startPerception', TaskDataService,
+                                                      self.start_perception)
 
     def wait_for_perception(self, msg):
         rospy.loginfo('per: Executing wait_for_perception')
@@ -171,7 +186,8 @@ class StartPerception(object):
             task_num = '1'
         global perception_process
         perception_process, perception_logger_process =\
-            utils.start_node('roslaunch euroc_launch perception_task' + task_num + '.launch', resp.taskdata.initialization_time,
+            utils.start_node('roslaunch euroc_launch perception_task' + task_num + '.launch',
+                             resp.taskdata.initialization_time,
                              resp.taskdata.logging, 'Perception')
         resp.taskdata.perception_process = perception_process
         while not self.__perception_ready:
@@ -186,7 +202,8 @@ class StartClassifier(object):
         self.start_service()
 
     def start_service(self):
-        self.start_classifier_service = rospy.Service('suturo/state/startClassifier', TaskDataService, self.start_classifier)
+        self.start_classifier_service = rospy.Service('suturo/state/startClassifier', TaskDataService,
+                                                      self.start_classifier)
 
     def start_classifier(self, req):
         resp = TaskDataServiceResponse()
@@ -211,7 +228,8 @@ class StartSimulation(smach.State):
         self.start_service()
 
     def start_service(self):
-        self.start_simulation_service = rospy.Service('suturo/state/startSimulation', TaskDataService, self.start_simulation)
+        self.start_simulation_service = rospy.Service('suturo/state/startSimulation', TaskDataService,
+                                                      self.start_simulation)
 
     def start_simulation(self, req):
         resp = TaskDataServiceResponse()
@@ -245,7 +263,8 @@ class StopSimulation(object):
         self.start_service()
 
     def start_service(self):
-        self.stop_simulation_service = rospy.Service('suturo/state/stopSimulation', TaskDataService, self.stop_simulation)
+        self.stop_simulation_service = rospy.Service('suturo/state/stopSimulation', TaskDataService,
+                                                     self.stop_simulation)
 
     def stop_simulation(self, req):
         resp = TaskDataServiceResponse()
