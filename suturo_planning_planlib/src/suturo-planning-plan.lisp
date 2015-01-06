@@ -6,6 +6,7 @@
 (defvar *name-node* "statemachine" "The name of the ros-node")
 (defvar *name-service-init* "suturo/toplevel/init" "The name of the init service") 
 (defvar *timeout-service* 10 "The time to wait for a service")
+(defvar *state* (make-fluent :name :state) "The current state")
 
 (defun plan ()
   (roslisp:with-ros-node (*name-node*)
@@ -54,7 +55,8 @@
           (let 
               ((value (roslisp:call-service full-service-name 'suturo_interface_msgs-srv:TaskDataService :taskdata *taskdata*))) 
             (setf *taskdata* (roslisp:msg-slot-value value 'taskdata))
-            (setf *current-transition* (roslisp:msg-slot-value value 'result)))))))
+            (setf *current-transition* (roslisp:msg-slot-value value 'result))
+            )))))
 
 (defun done ()
   (format t "Done")
