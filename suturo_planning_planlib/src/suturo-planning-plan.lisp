@@ -40,15 +40,21 @@
 (defvar *timeout-service* 10 "The time to wait for a service")
 (defvar *state* (make-fluent :name :state) "The current state")
 
+(defconstant +service-name-move-mastcam+ "/suturo/manipulation/move_mastcam" "The name of the service to move the mastcam")
+(defconstant +service-name-add-point-cloud+ "/suturo/add_point_cloud" "The name of the service to add a point cloud")
+(defconstant +service-name-move-robot+ "/suturo/manipulation/move" "The name of the service to move the robot")
+(defconstant +service-name-get-base-origin+ "/suturo/get_base_origin" "The name of the service to get the base origin")
+(defconstant +waiting-time-before-scan+ 1)
+
 (defun plan ()
   (roslisp:with-ros-node (*name-node*)
     (cpl-impl:top-level
       (cpl-impl:par
         (state-init)
         (state-scan-map)
+        (state-scan-shadow)
         (loop while (not (eql (value *current-state*) :state-end)) do
-          (cond 
-            ((and (eql (value *current-state*) :state-scan-map) (eql (value *current-transition*) :transition-map-scanned )) (call-service-state "scan_shadow")) 
+          (cond  
             ((and (eql (value *current-state*) :state-scan-shadow) (eql (value *current-transition*) :transition-success )) (call-service-state "search_objects")) 
             ((and (eql (value *current-state*) :state-search-objects) (eql (value *current-transition*) :transition-missing-objects)) (call-service-state "scan_obstacles"))
             ((and (eql (value *current-state*) :state-search-objects) (eql (value *current-transition*) :transition-no-objects-left)) (done))
@@ -65,10 +71,10 @@
             ((and (eql (value *current-state*) :state-pose-estimate-object) (eql (value *current-transition*) :transition-fail)) (call-service-state "focus_objects"))))))))
 
 (defun call-init ()
-  (format t "Calling init ")
+  (print "Calling init ")
   (if (not (roslisp:wait-for-service *name-service-init* *timeout-service*))
            (progn 
-             (format t "Timed out")
+             (print "Timed out")
              (setf (value *current-transition*) :transition-timed-out))
            (progn 
              (setf (value *taskdata*) (roslisp:call-service *name-service-init* 'suturo_interface_msgs-srv:StartPlanning))
@@ -77,7 +83,7 @@
 (defun call-service-state (service-name)
   (let
       ((full-service-name (concatenate 'string "suturo/state/" service-name)))
-    (format t (concatenate 'string "calling service: " service-name))
+    (print (concatenate 'string "calling service: " service-name))
     (if (not (roslisp:wait-for-service full-service-name *timeout-service*))
         (let 
             ((timed-out-text (concatenate 'string "Timed out waiting for service " service-name)))
@@ -114,14 +120,14 @@
     ((string= str "scan_shadow") :state-scan-shadow)
     ((string= str "search_objects") :state-search-objects)
     ((string= str "scan_obstacles") :state-scan-obstacles)
-    ((string= str "classify_objects") :state-classify_objects)
+    ((string= str "classify_objects") :state-classify-objects)
     ((string= str "focus_objects") :state-focus-objects)
-    ((string= str "pose-estimate-object") :state-pose-estimate-object)))
+    ((string= str "pose_estimate_object") :state-pose-estimate-object)))
 
 (def-cram-function state-init ()
     (loop while T do
       (cpl-impl:wait-for (fl-and (eql *current-state* :state-init) (eql *current-transition* :transition-start)))
-      (format t "Executing state init ")
+      (print "Executing state init ")
       (setf (value *current-transition*) (call-init) )))
 
 (defun done ()
