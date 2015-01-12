@@ -88,7 +88,8 @@ class FocusObject():
     def __init__(self):
         rospy.Service(self.NAME_SERVICE, TaskDataService, self._handle_focus)
 
-    def _handle_focus(self, taskdata):
+    def _handle_focus(self, req):
+        taskdata = req.taskdata
         rospy.loginfo('Executing state FocusObject')
         rospy.loginfo('Trying to focus %s' % taskdata.object_to_focus.object.id)
         taskdata.focused_object = None

@@ -2,6 +2,7 @@
   :depends-on (roslisp
                cram-plan-library
                cram-language
+               cl-utilities
                suturo_interface_msgs-srv
                suturo_planning_manipulation-srv)              
   :components

@@ -53,18 +53,15 @@
         (state-init)
         (state-scan-map)
         (state-scan-shadow)
+        (state-search-objects)
         (loop while (not (eql (value *current-state*) :state-end)) do
           (cond  
-            ((and (eql (value *current-state*) :state-scan-shadow) (eql (value *current-transition*) :transition-success )) (call-service-state "search_objects")) 
             ((and (eql (value *current-state*) :state-search-objects) (eql (value *current-transition*) :transition-missing-objects)) (call-service-state "scan_obstacles"))
             ((and (eql (value *current-state*) :state-search-objects) (eql (value *current-transition*) :transition-no-objects-left)) (done))
             ((and (eql (value *current-state*) :state-scan-obstacles) (eql (value *current-transition*) :transition-map-scanned)) (call-service-state "scan_obstacles")) 
             ((and (eql (value *current-state*) :state-scan-obstacles) (eql (value *current-transition*) :transition-new-image)) (call-service-state "classify_objects")) 
             ((and (eql (value *current-state*) :state-scan-obstacles) (eql (value *current-transition*) :transition-no-region-left)) (done)) 
-            ((and (eql (value *current-state*) :state-classify-objects) (eql (value *current-transition*) :transition-objects-classified)) (call-service-state "focus_objects")) 
-            ((and (eql (value *current-state*) :state-classify-objects) (eql (value *current-transition*) :transition-no-object)) (call-service-state "search_objects")) 
-            ((and (eql (value *current-state*) :state-focus-objects) (eql (value *current-transition*) :transition-success)) (call-service-state "search_objects")) 
-            ((and (eql (value *current-state*) :state-focus-objects) (eql (value *current-transition*) :transition-fail)) (call-service-state "search_objects")) 
+            ((and (eql (value *current-state*) :state-classify-objects) (eql (value *current-transition*) :transition-objects-classified)) (call-service-state "focus_objects"))  
             ((and (eql (value *current-state*) :state-focus-objects) (eql (value *current-transition*) :transition-focus-handle)) (call-service-state "pose_estimate_object")) 
             ((and (eql (value *current-state*) :state-focus-objects) (eql (value *current-transition*) :transition-focus-object)) (call-service-state "pose_estimate_object")) 
             ((and (eql (value *current-state*) :state-pose-estimate-object) (eql (value *current-transition*) :transition-success)) (call-service-state "focus_objects")) 
@@ -77,7 +74,7 @@
              (print "Timed out")
              (setf (value *current-transition*) :transition-timed-out))
            (progn 
-             (setf (value *taskdata*) (roslisp:call-service *name-service-init* 'suturo_interface_msgs-srv:StartPlanning))
+             (setf (value *taskdata*) (roslisp:msg-slot-value(roslisp:call-service *name-service-init* 'suturo_interface_msgs-srv:StartPlanning) 'taskdata))
              (setf (value *current-transition*) :transition-successful))))
 
 (defun call-service-state (service-name)
