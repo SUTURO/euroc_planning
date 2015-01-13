@@ -36,7 +36,8 @@
 (defvar *current-transition* (make-fluent :name :current-transition :value :transition-start) "The transition returned from a state")
 (defvar *taskdata* (make-fluent :name :taskdata :value nil) "The needed data for the state machine")
 (defvar *name-node* "statemachine" "The name of the ros-node")
-(defvar *name-service-init* "suturo/toplevel/init" "The name of the init service") 
+(defvar *name-service-init* "suturo/toplevel/init" "The name of the init service")
+(defvar *name-service-create-taskdata* "suturo/toplevel/create_task_data" "Name of the service to get an object of taskdata") 
 (defvar *timeout-service* 10 "The time to wait for a service")
 (defvar *state* (make-fluent :name :state) "The current state")
 
@@ -53,7 +54,6 @@
 
 (defun plan ()
   (roslisp:with-ros-node (*name-node*)
-    (start-up-dependency-nodes)
     (cpl-impl:top-level
       (cpl-impl:par
         (state-init)
@@ -73,15 +73,14 @@
             ((and (eql (value *current-state*) :state-pose-estimate-object) (eql (value *current-transition*) :transition-success)) (call-service-state "focus_objects")) 
             ((and (eql (value *current-state*) :state-pose-estimate-object) (eql (value *current-transition*) :transition-fail)) (call-service-state "focus_objects"))))))))
 
-(defun call-init ()
+(defun call-create-taskdata ()
   (print "Calling init ")
-  (if (not (roslisp:wait-for-service *name-service-init* *timeout-service*))
+  (if (not (roslisp:wait-for-service *name-service-create-taskdata* *timeout-service*))
            (progn 
              (print "Timed out")
              (setf (value *current-transition*) :transition-timed-out))
            (progn 
-             (setf (value *taskdata*) (roslisp:msg-slot-value(roslisp:call-service *name-service-init* 'suturo_interface_msgs-srv:StartPlanning) 'taskdata))
-             (setf (value *current-transition*) :transition-successful))))
+             (setf (value *taskdata*) (roslisp:msg-slot-value(roslisp:call-service *name-service-create-taskdata* 'suturo_interface_msgs-srv:StartPlanning) 'taskdata)))))
 
 (defun call-service-state (service-name)
   (let
@@ -131,7 +130,10 @@
     (loop while T do
       (cpl-impl:wait-for (fl-and (eql *current-state* :state-init) (eql *current-transition* :transition-start)))
       (print "Executing state init ")
-      (setf (value *current-transition*) (call-init) )))
+      (call-create-taskdata)
+      (start-up-dependency-nodes) 
+      (call-service-state "init") 
+      (setf (value *current-transition*) :transition-successful)))
 
 (defun done ()
   (format t "Done")
