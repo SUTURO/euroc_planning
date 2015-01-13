@@ -97,8 +97,10 @@ class Toplevel(object):
         self.init_service = rospy.Service('suturo/state/init', TaskDataService, self.init)
 
     def init(self, req):
-        resp = req
+        resp = TaskDataServiceResponse()
+        resp.taskdata = req.taskdata
         self.create_manipulation()
+        resp.result = 'success'
         return resp
 
     def create_manipulation(self):
