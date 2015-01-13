@@ -45,9 +45,15 @@
 (defconstant +service-name-move-robot+ "/suturo/manipulation/move" "The name of the service to move the robot")
 (defconstant +service-name-get-base-origin+ "/suturo/get_base_origin" "The name of the service to get the base origin")
 (defconstant +waiting-time-before-scan+ 1)
+  
+(defun start-up-dependency-nodes()
+  (call-service-state "start_manipulation")
+  (call-service-state "start_perception")
+  (call-service-state "start_classifier"))
 
 (defun plan ()
   (roslisp:with-ros-node (*name-node*)
+    (start-up-dependency-nodes)
     (cpl-impl:top-level
       (cpl-impl:par
         (state-init)

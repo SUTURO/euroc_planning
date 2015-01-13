@@ -4,6 +4,7 @@
                cram-language
                cl-utilities
                suturo_interface_msgs-srv
+               suturo_interface_msgs-msg
                suturo_planning_manipulation-srv)              
   :components
   ((:module "src"
