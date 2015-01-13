@@ -11,7 +11,7 @@ import time
 from suturo_planning_task_selector import start_task, stop_task, save_task
 from suturo_planning_task_selector import task_selector
 from suturo_planning_manipulation.total_annihilation import exterminate
-from suturo_planning_plans import start_nodes
+from suturo_planning_interface import start_nodes
 from suturo_planning_interface.toplevel import Toplevel
 
 
