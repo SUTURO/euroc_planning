@@ -64,6 +64,7 @@ class Toplevel(object):
         self.configure_logging(logging, initialization_time)
         rospy.init_node('suturo_toplevel')
         start_task("task1_v1")
+        self.start_state_nodes()
         self.start_init_service()
 
     def configure_logging(self, logging, initialization_time):
@@ -86,7 +87,6 @@ class Toplevel(object):
         resp.taskdata = tasks.create_default_task_data()
         resp.taskdata = self.create_yaml(resp.taskdata)
         self.create_manipulation()
-        self.start_state_nodes()
         return resp
 
     def create_yaml(self, data):

@@ -51,6 +51,7 @@ def main(initialization_time, logging):
     start_task_selector()
     rospy.sleep(10)
     global toplevel
+    print "Start toplevel"
     toplevel = Toplevel(initialization_time, logging)
 
 
