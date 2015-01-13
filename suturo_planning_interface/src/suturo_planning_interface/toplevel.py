@@ -62,7 +62,7 @@ def handle_uncaught_exception(e, initialization_time, logging, parent_pid):
 class Toplevel(object):
     def __init__(self, initialization_time, logging):
         self.configure_logging(logging, initialization_time)
-        rospy.init_node('suturo_toplevel')
+        rospy.init_node('suturo_toplevel', log_level=rospy.DEBUG)
         start_task("task1_v1")
         self.start_task_data_creator_service()
         self.start_init_service()
