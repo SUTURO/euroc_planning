@@ -64,8 +64,10 @@ class Toplevel(object):
         self.configure_logging(logging, initialization_time)
         rospy.init_node('suturo_toplevel')
         start_task("task1_v1")
-        self.start_state_nodes()
+        self.start_task_data_creator_service()
         self.start_init_service()
+        self.start_state_nodes()
+        rospy.spin()
 
     def configure_logging(self, logging, initialization_time):
         print('toplevel: logging: ' + str(logging))
@@ -77,21 +79,27 @@ class Toplevel(object):
             sys.stderr = __logger_process.stdin
             sys.stdout = __logger_process.stdin
 
-    def start_init_service(self):
-        print("Waiting for service call suturo/toplevel/init")
-        self.init_service = rospy.Service('suturo/toplevel/init', StartPlanning, self.init)
-        rospy.spin()
+    def start_task_data_creator_service(self):
+        self.init_service = rospy.Service('suturo/toplevel/create_task_data', StartPlanning, self.create_task_data)
 
-    def init(self, req):
+    def create_task_data(self, req):
         resp = StartPlanningResponse()
         resp.taskdata = tasks.create_default_task_data()
         resp.taskdata = self.create_yaml(resp.taskdata)
-        self.create_manipulation()
         return resp
 
     def create_yaml(self, data):
         self.yaml_handler = YamlHandler()
         return self.yaml_handler.get_yaml(data)
+
+    def start_init_service(self):
+        print("Waiting for service call suturo/state/init")
+        self.init_service = rospy.Service('suturo/state/init', TaskDataService, self.init)
+
+    def init(self, req):
+        resp = req
+        self.create_manipulation()
+        return resp
 
     def create_manipulation(self):
         utils.manipulation = Manipulation()
