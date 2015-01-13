@@ -219,7 +219,7 @@ class StartClassifier(object):
         return resp
 
 
-class StartSimulation(smach.State):
+class StartSimulation(object):
     task_name = ''
 
     def __init__(self):
