@@ -71,7 +71,6 @@ class StartManipulation(object):
         manipulation_process, manipulation_logger_process =\
             utils.start_node('roslaunch euroc_launch manipulation.launch', resp.taskdata.initialization_time,
                              resp.taskdata.logging, 'Manipulation')
-        resp.taskdata.manipulation_process = manipulation_process
 
         while not self.__move_group_status and not self.__manipulation_nodes_ready:
             time.sleep(1)
@@ -83,9 +82,9 @@ class StartManipulation(object):
             manipulation_conveyor_frames_process, manipulation_conveyor_frames_logger_process =\
                 utils.start_node('rosrun suturo_planning_manipulation publish_conveyor_frames.py',
                                  resp.taskdata.initialization_time, resp.taskdata.logging, 'Conveyor frames')
-            resp.taskdata.manipulation_conveyor_frames_process = manipulation_conveyor_frames_process
+            manipulation_conveyor_frames_process = manipulation_conveyor_frames_process
         else:
-            resp.taskdata.manipulation_conveyor_frames_process = None
+            manipulation_conveyor_frames_process = None
         rospy.loginfo('Sucessfully started Manipulation')
         resp.result = 'success'
         return resp
@@ -189,7 +188,6 @@ class StartPerception(object):
             utils.start_node('roslaunch euroc_launch perception_task' + task_num + '.launch',
                              resp.taskdata.initialization_time,
                              resp.taskdata.logging, 'Perception')
-        resp.taskdata.perception_process = perception_process
         while not self.__perception_ready:
             time.sleep(1)
         rospy.loginfo('Sucessfully started Perception')
@@ -213,7 +211,6 @@ class StartClassifier(object):
         classifier_process, classifier_logger_process =\
             utils.start_node('rosrun suturo_perception_classifier classifier.py', req.taskdata.initialization_time,
                              req.taskdata.logging, 'Classifier')
-        req.taskdata.classifier_process = classifier_process
         resp.result = 'success'
         rospy.loginfo('Sucessfully started Classifier')
         return resp
@@ -305,14 +302,14 @@ class StopNodes(object):
         resp = TaskDataServiceResponse()
         resp.taskdata = req.taskdata
         rospy.loginfo('Executing state StopNodes.')
-        if resp.taskdata.perception_process is not None:
-            exterminate(self.resp.perception_process.pid, signal.SIGKILL, r=True)
-        if resp.taskdata.manipulation_process is not None:
-            exterminate(self.resp.manipulation_process.pid, signal.SIGKILL, r=True)
-        if resp.taskdata.manipulation_conveyor_frames_process is not None:
-            exterminate(self.resp.manipulation_conveyor_frames_process.pid, signal.SIGKILL, r=True)
-        if resp.taskdata.classifier_process is not None:
-            exterminate(resp.taskdata.classifier_process.pid, signal.SIGKILL, r=True)
+        if perception_process is not None:
+            exterminate(perception_process.pid, signal.SIGKILL, r=True)
+        if manipulation_process is not None:
+            exterminate(manipulation_process.pid, signal.SIGKILL, r=True)
+        if manipulation_conveyor_frames_process is not None:
+            exterminate(manipulation_conveyor_frames_process.pid, signal.SIGKILL, r=True)
+        if classifier_process is not None:
+            exterminate(classifier_process.pid, signal.SIGKILL, r=True)
         rospy.signal_shutdown('Finished plan. Shutting down Node.')
         time.sleep(3)
         rospy.loginfo('Finished state StopNodes.')
