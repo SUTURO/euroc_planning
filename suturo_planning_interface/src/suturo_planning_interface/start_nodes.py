@@ -9,7 +9,7 @@ import atexit
 from suturo_planning_manipulation.total_annihilation import exterminate
 import suturo_planning_task_selector
 import threading
-from suturo_planning_plans import utils
+from suturo_planning_interface import utils
 from suturo_planning_task_selector import save_task
 from suturo_planning_task_selector import stop_task
 from rosgraph_msgs.msg import Clock
