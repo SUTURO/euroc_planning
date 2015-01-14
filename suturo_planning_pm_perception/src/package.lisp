@@ -5,7 +5,8 @@
   (:use #:desig
         #:cl
         #:cl-transforms)
-  (:export #:suturo-planning-pm-perception)
+  (:export #:suturo-planning-pm-perception
+           #:get-gripper-perception )
   (:desig-properties
     #:to
     #:color

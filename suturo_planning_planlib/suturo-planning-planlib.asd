@@ -5,7 +5,9 @@
                cl-utilities
                suturo_interface_msgs-srv
                suturo_interface_msgs-msg
-               suturo_planning_manipulation-srv)              
+               suturo_planning_manipulation-srv              
+               suturo-planning-pm-perception)
+
   :components
   ((:module "src"
             :components
