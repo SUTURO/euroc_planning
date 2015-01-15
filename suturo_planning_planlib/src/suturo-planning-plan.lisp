@@ -57,6 +57,10 @@
   (call-service-state "start_perception")
   (call-service-state "start_classifier"))
 
+(defun start-up-simulation()
+  (setf-msg (value *taskdata*) (name) "task1_v1")
+  (call-service-state "start_simulation"))
+
 (defun plan ()
   (roslisp:with-ros-node (*name-node*)
     (cpl-impl:top-level
@@ -150,6 +154,7 @@
       (print "Executing state init ")
       (setf (value *current-transition*) :transition-nil)
       (call-create-taskdata)
+      (start-up-simulation) 
       (start-up-dependency-nodes) 
       (call-service-state "init") 
       (setf (value *current-transition*) :transition-successful)))
