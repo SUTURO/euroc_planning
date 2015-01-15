@@ -62,7 +62,10 @@ def handle_uncaught_exception(e, initialization_time, logging, parent_pid):
 class Toplevel(object):
     def __init__(self, initialization_time, logging):
         self.configure_logging(logging, initialization_time)
-        rospy.init_node('suturo_toplevel', log_level=rospy.DEBUG)
+        set_sim_time = subprocess.Popen('rosrun suturo_planning_interface start_sim.py', stdout=subprocess.PIPE,
+                                          shell=True, preexec_fn=os.setsid)
+        set_sim_time.wait()
+        rospy.init_node('suturo_toplevel', log_level=rospy.INFO)
         start_task("task1_v1")
         self.start_task_data_creator_service()
         self.start_init_service()
