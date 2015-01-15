@@ -9,6 +9,14 @@
 :state-classify-objects
 :state-focus-objects
 :state-pose-estimate-object
+:state-clean-up-plan
+:state-choose-object
+:state-grasp-object
+:state-place-object
+:state-check-placement
+:state-end
+:state-fail
+
 
 ;;Keywords for the different transitions
 :transition-start
@@ -25,6 +33,15 @@
 :transition-focus-handle
 :transition-focus-object
 :transition-timed-out
+:transition-object-chosen
+:transition-retry
+:transition-object-not-in-planning-scene
+:transition-no-grasp-position
+:transition-no-object-attached
+:transition-no-place-position
+:transition-on-target
+:transition-not-on-target
+
 
 (defstruct (state-data :conc-name)
   "Represents the position of the mast cam"
@@ -49,6 +66,7 @@
 (defconstant +service-name-euroc-object-to-odom-combined+ "/suturo/euroc_object_to_odom_combined" "The name of the service to convert an EurocObject the a odom combined one")
 (defconstant +service-name-add-collision-objects+ "/suturo/manipulation/add_collision_objects" "The nme of the service to add collision objects to the current scene")
 (defconstant +waiting-time-before-scan+ 1)
+(defconstant +service-name-get-collision-object+ "/suturo/manipulation/get_collision_object" "The name of the service to get a collision object of the planning scene")
   
 (defun start-up-dependency-nodes()
   (call-service-state "start_manipulation")
@@ -65,18 +83,33 @@
         (state-search-objects)
         (state-classify-objects)
         (state-pose-estimate-object)
-        (loop while (not (eql (value *current-state*) :state-end)) do
+        (loop while (not (or (eql (value *current-state*) :state-end) (eql (value *current-state*) :state-fail))) do
           (cond  
             ((and (eql (value *current-state*) :state-search-objects) (eql (value *current-transition*) :transition-missing-objects)) (call-service-state "scan_obstacles"))
-            ((and (eql (value *current-state*) :state-search-objects) (eql (value *current-transition*) :transition-no-objects-left)) (done))
+            ((and (eql (value *current-state*) :state-search-objects) (eql (value *current-transition*) :transition-no-objects-left)) (call-service-state "clean_up_plan"))
             ((and (eql (value *current-state*) :state-scan-obstacles) (eql (value *current-transition*) :transition-map-scanned)) (call-service-state "scan_obstacles")) 
            ;; ((and (eql (value *current-state*) :state-scan-obstacles) (eql (value *current-transition*) :transition-new-image)) (call-service-state "classify_objects")) 
-            ((and (eql (value *current-state*) :state-scan-obstacles) (eql (value *current-transition*) :transition-no-region-left)) (done)) 
+            ((and (eql (value *current-state*) :state-scan-obstacles) (eql (value *current-transition*) :transition-no-region-left)) (call-service-state "clean_up_plan")) 
             ((and (eql (value *current-state*) :state-classify-objects) (eql (value *current-transition*) :transition-objects-classified)) (call-service-state "focus_objects"))  
             ;((and (eql (value *current-state*) :state-focus-objects) (eql (value *current-transition*) :transition-focus-handle)) (call-service-state "pose_estimate_object")) 
             ;((and (eql (value *current-state*) :state-focus-objects) (eql (value *current-transition*) :transition-focus-object)) (call-service-state "pose_estimate_object")) 
             ((and (eql (value *current-state*) :state-pose-estimate-object) (eql (value *current-transition*) :transition-success)) (call-service-state "focus_objects")) 
-            ((and (eql (value *current-state*) :state-pose-estimate-object) (eql (value *current-transition*) :transition-fail)) (call-service-state "focus_objects"))))))))
+            ((and (eql (value *current-state*) :state-pose-estimate-object) (eql (value *current-transition*) :transition-fail)) (call-service-state "focus_objects"))
+            ((and (eql (value *current-state*) :state-clean-up-plan) (eql (value *current-transition*) :transition-success)) (call-service-state "choose_object"))
+            ((and (eql (value *current-state*) :state-clean-up-plan) (eql (value *current-transition*) :transition-fail)) (fail))
+            ((and (eql (value *current-state*) :state-choose-object) (eql (value *current-transition*) :transition-object-chosen)) (call-service-state "grasp_object"))
+            ((and (eql (value *current-state*) :state-choose-object) (eql (value *current-transition*) :transition-success)) (done))
+            ((and (eql (value *current-state*) :state-choose-object) (eql (value *current-transition*) :transition-retry)) (call-service-state "clean_up_plan"))
+            ((and (eql (value *current-state*) :state-grasp-object) (eql (value *current-transition*) :transition-success)) (call-service-state "place_object"))
+            ((and (eql (value *current-state*) :state-grasp-object) (eql (value *current-transition*) :transition-object-not-in-planning-scene)) (fail))
+            ((and (eql (value *current-state*) :state-grasp-object) (eql (value *current-transition*) :transition-no-grasp-position)) (fail))
+            ((and (eql (value *current-state*) :state-grasp-object) (eql (value *current-transition*) :transition-fail)) (fail))
+            ((and (eql (value *current-state*) :state-place-object) (eql (value *current-transition*) :transition-success)) (call-service-state "check_placement"))
+            ((and (eql (value *current-state*) :state-place-object) (eql (value *current-transition*) :transition-fail)) (fail))
+            ((and (eql (value *current-state*) :state-place-object) (eql (value *current-transition*) :transition-no-object-attached)) (call-service-state "grasp_object"))
+            ((and (eql (value *current-state*) :state-place-object) (eql (value *current-transition*) :transition-no-place-position)) (call-service-sate "place_object"))
+            ((eql (value *current-state*) :state-check-placement) (call-service-state "choose_object"))))))))
+
 
 (defun call-create-taskdata ()
   (print "Calling create taskdata ")
@@ -118,7 +151,15 @@
     ((string= str "noObject") :transition-no-object)
     ((string= str "fail") :transition-fail)
     ((string= str "focusHandle") :transition-focus-handle)
-    ((string= str "focusObject") :transition-focus-object)))
+    ((string= str "focusObject") :transition-focus-object)
+    ((string= str "objectChosen") :transition-object-chosen)
+    ((string= str "retry") :transition-retry)
+    ((string= str "objectNotInPlanningscene") :transition-object-not-in-planning-scene)
+    ((string= str "noGraspPosition") :transition-no-grasp-position)
+    ((string= str "noObjectAttached") :transition-no-object-attached)
+    ((string= str "noPlacePosition") :transition-no-place-position)
+    ((string= str "onTarget") :transition-on-target)
+    ((string= str "notOnTarget") :transition-not-on-target)))
 
 (defun string-state-to-keyword(str)
   (cond
@@ -129,7 +170,14 @@
     ((string= str "scan_obstacles") :state-scan-obstacles)
     ((string= str "classify_objects") :state-classify-objects)
     ((string= str "focus_objects") :state-focus-objects)
-    ((string= str "pose_estimate_object") :state-pose-estimate-object)))
+    ((string= str "pose_estimate_object") :state-pose-estimate-object)
+    ((string= str "clean_up_plan") :state-clean-up-plan)
+    ((string= str "choose_object") :state-choose-object)
+    ((string= str "grasp_object") :state-grasp-object)
+    ((string= str "place_object") :state-place-object)
+    ((string= str "check_placement") :state-check-placement)
+    ((string= str "end") :state-end)
+    ((string= str "fail") :state-fail)))
 
 (def-cram-function state-init ()
     (loop while T do
@@ -142,4 +190,8 @@
 
 (defun done ()
   (format t "Done")
-  (setf *current-state* "end"))
+  (setf (value *current-state*) :state-end))
+
+(defun fail ()
+  (format t "FAILED!")
+  (setf (value *current-state*) :state-fail))

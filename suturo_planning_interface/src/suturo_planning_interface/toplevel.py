@@ -8,6 +8,8 @@ import time
 import start_nodes
 import signal
 import atexit
+from suturo_planning_interface.clean_up_plan import ChooseObjectService, CleanUpService
+from suturo_planning_interface.tidy_up import GraspObject, PlaceObjectService, CheckPlacementService
 import tasks
 from suturo_msgs.msg import Task
 from suturo_interface_msgs.srv import TaskDataService, TaskDataServiceRequest, TaskDataServiceResponse
@@ -121,6 +123,12 @@ class Toplevel(object):
         self.pose_estimate_objects_state = PoseEstimateObject()
         #self.scan_map_state = MapScanner() TODO: Exception, da Mapscanner schon aufgerufen wird
         self.scan_shadow_state = ScanShadow()
+        self.choose_object_state = ChooseObjectService()
+        self.clean_up_plan_state = CleanUpService()
+        self.grasp_object_state = GraspObject()
+        self.place_object_state = PlaceObjectService()
+        self.check_placement_state = CheckPlacementService()
+
         self.start_simulation_state = StartSimulation()
         self.start_perception_state = StartPerception()
         self.start_manipulation_sate = StartManipulation()
