@@ -70,6 +70,7 @@
                                 (fl-and (eql *current-state* :state-focus-objects) (eql *current-transition* :transition-success) )
                                 (fl-and (eql *current-state* :state-focus-objects) (eql *current-transition* :transition-fail))))
       (print "Executing state search objects")
+      (setf (value *current-transition*) :transition-nil)
       (setf (value *current-state*) :state-search-objects)
       (add-yaml-target-objects)
       (handle-found-objects)

@@ -76,20 +76,11 @@
     (loop for object across objects do
       (vector-push-extend (roslisp:msg-slot-value (call-euroc-object-to-odom-combined object) 'converted) converted-objects))
     converted-objects))
-      
-
-(defun call-add-collision-objects(objects)
-  (print "Calling add collision objects")
-  (if (not (roslisp:wait-for-service +service-name-add-collision-objects+ *timeout-service*))
-      (progn 
-        (print "Timed out")
-        (setf (value *current-transition*) :transition-timed-out)) 
-      (roslisp:call-service +service-name-add-collision-objects+ 'suturo_planning_manipulation-srv:AddCollisionObjects :objects objects)))
-
 
 (def-cram-function state-pose-estimate-object ()
     (loop while T do
       (cpl-impl:wait-for (fl-and (eql *current-state* :state-focus-objects) (fl-or (eql *current-transition* :transition-focus-handle) (eql *current-transition* :transition-focus-object))))
       (print "Executing state pose estimate object")
+      (setf (value *current-transition*) :transition-nil)
       (setf (value *current-state*) :state-pose-estimate-object)
       (setf (value *current-transition*) (pose-estimate))))

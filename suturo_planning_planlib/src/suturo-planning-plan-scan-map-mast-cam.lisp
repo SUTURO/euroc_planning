@@ -38,6 +38,7 @@
     (loop while T do
       (cpl-impl:wait-for (fl-and (eql *current-state* :state-init) (eql *current-transition* :transition-successful)))
       (print "Executing state scan map")
+      (setf (value *current-transition*) :transition-nil)
       (setf (value *current-state*) :state-scan-map)
       (scan-map)
       (setf (value *current-transition*) :transition-map-scanned)))
