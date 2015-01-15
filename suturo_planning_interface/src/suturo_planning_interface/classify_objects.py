@@ -27,6 +27,7 @@ class ClassifyObjects(object):
 
         perceived_objects = get_valid_objects(get_gripper)
         rospy.logdebug('Found ' + str(len(get_gripper)) + ' objects, ' + str(len(perceived_objects)) + ' are valid.')
+
         if not perceived_objects:
             if not taskdata.sec_try_done:
                 taskdata.sec_try = True

@@ -169,7 +169,6 @@ def get_nearest_object_idx(obj, objects, treshold):
 
 def euroc_object_to_odom_combined(euroc_object):
     header = Header(0, rospy.Time(0), euroc_object.frame_id)
-
     # Convert the centroid
     camera_point = PointStamped()
     camera_point.header = header
@@ -177,14 +176,12 @@ def euroc_object_to_odom_combined(euroc_object):
     odom_point = manipulation.transform_to(camera_point, '/odom_combined')
     euroc_object.c_centroid = odom_point.point
     euroc_object.frame_id = '/odom_combined'
-
     # Convert the cuboid
     if euroc_object.c_cuboid_success:
         cuboid_posestamped = PoseStamped(header, euroc_object.object.primitive_poses[0])
         cuboid_posestamped = manipulation.transform_to(cuboid_posestamped, '/odom_combined')
         euroc_object.object.primitive_poses[0] = cuboid_posestamped.pose
         euroc_object.object.header.frame_id = '/odom_combined'
-
     # Convert the mpe_object
     if euroc_object.mpe_success:
         for i in range(0, len(euroc_object.mpe_object.primitive_poses)):

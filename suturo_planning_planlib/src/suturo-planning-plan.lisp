@@ -45,6 +45,9 @@
 (defconstant +service-name-add-point-cloud+ "/suturo/add_point_cloud" "The name of the service to add a point cloud")
 (defconstant +service-name-move-robot+ "/suturo/manipulation/move" "The name of the service to move the robot")
 (defconstant +service-name-get-base-origin+ "/suturo/get_base_origin" "The name of the service to get the base origin")
+(defconstant +service-name-classify-objects+ "suturo/Classifier" "The name of the service to classify objects")
+(defconstant +service-name-euroc-object-to-odom-combined+ "/suturo/euroc_object_to_odom_combined" "The name of the service to convert an EurocObject the a odom combined one")
+(defconstant +service-name-add-collision-objects+ "/suturo/manipulation/add_collision_objects" "The nme of the service to add collision objects to the current scene")
 (defconstant +waiting-time-before-scan+ 1)
   
 (defun start-up-dependency-nodes()
@@ -60,21 +63,23 @@
         (state-scan-map)
         (state-scan-shadow)
         (state-search-objects)
+        (state-classify-objects)
+        (state-pose-estimate-object)
         (loop while (not (eql (value *current-state*) :state-end)) do
           (cond  
             ((and (eql (value *current-state*) :state-search-objects) (eql (value *current-transition*) :transition-missing-objects)) (call-service-state "scan_obstacles"))
             ((and (eql (value *current-state*) :state-search-objects) (eql (value *current-transition*) :transition-no-objects-left)) (done))
             ((and (eql (value *current-state*) :state-scan-obstacles) (eql (value *current-transition*) :transition-map-scanned)) (call-service-state "scan_obstacles")) 
-            ((and (eql (value *current-state*) :state-scan-obstacles) (eql (value *current-transition*) :transition-new-image)) (call-service-state "classify_objects")) 
+           ;; ((and (eql (value *current-state*) :state-scan-obstacles) (eql (value *current-transition*) :transition-new-image)) (call-service-state "classify_objects")) 
             ((and (eql (value *current-state*) :state-scan-obstacles) (eql (value *current-transition*) :transition-no-region-left)) (done)) 
             ((and (eql (value *current-state*) :state-classify-objects) (eql (value *current-transition*) :transition-objects-classified)) (call-service-state "focus_objects"))  
-            ((and (eql (value *current-state*) :state-focus-objects) (eql (value *current-transition*) :transition-focus-handle)) (call-service-state "pose_estimate_object")) 
-            ((and (eql (value *current-state*) :state-focus-objects) (eql (value *current-transition*) :transition-focus-object)) (call-service-state "pose_estimate_object")) 
+            ;((and (eql (value *current-state*) :state-focus-objects) (eql (value *current-transition*) :transition-focus-handle)) (call-service-state "pose_estimate_object")) 
+            ;((and (eql (value *current-state*) :state-focus-objects) (eql (value *current-transition*) :transition-focus-object)) (call-service-state "pose_estimate_object")) 
             ((and (eql (value *current-state*) :state-pose-estimate-object) (eql (value *current-transition*) :transition-success)) (call-service-state "focus_objects")) 
             ((and (eql (value *current-state*) :state-pose-estimate-object) (eql (value *current-transition*) :transition-fail)) (call-service-state "focus_objects"))))))))
 
 (defun call-create-taskdata ()
-  (print "Calling init ")
+  (print "Calling create taskdata ")
   (if (not (roslisp:wait-for-service *name-service-create-taskdata* *timeout-service*))
            (progn 
              (print "Timed out")

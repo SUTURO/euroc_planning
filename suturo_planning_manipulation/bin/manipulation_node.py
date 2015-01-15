@@ -12,7 +12,6 @@ from suturo_planning_manipulation.manipulation_constants import MOVE_SERVICE, MO
     CLOSE_GRIPPER_SERVICE, BASE_ORIGIN_TOPIC, GET_EEF_POSITION_TOPIC
 from suturo_planning_manipulation.manipulation_constants import PLAN_SERVICE
 
-
 __author__ = 'hansa'
 
 
@@ -64,6 +63,7 @@ class ManipulationNode(object):
 
     def __handle_add_objects(self, msg):
         self.__manipulation.get_planning_scene().add_objects(msg.objects)
+        return AddCollisionObjectsResponse()
 
     def __handle_mast_cam(self, msg):
         message = self.__manipulation.pan_tilt(msg.pan, msg.tilt)

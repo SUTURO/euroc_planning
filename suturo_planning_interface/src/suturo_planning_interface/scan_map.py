@@ -4,6 +4,7 @@ from suturo_planning_search.map import Map
 from suturo_interface_msgs.srv import TaskDataService, TaskDataServiceRequest, TaskDataServiceResponse
 from suturo_interface_msgs.srv import AddPointCloud, AddPointCloudRequest, AddPointCloudResponse
 from suturo_interface_msgs.srv import GetBaseOrigin, GetBaseOriginRequest, GetBaseOriginResponse
+from suturo_interface_msgs.srv import EurocObjectToOdomCombined, EurocObjectToOdomCombinedRequest, EurocObjectToOdomCombinedResponse
 
 class MapScanner(object):
 
@@ -11,6 +12,7 @@ class MapScanner(object):
     RETURN_VAL_MAP_SCANNED = 'mapScanned'
     NAME_SERVICE_POINT_CLOUD = '/suturo/add_point_cloud'
     NAME_SERVICE_GET_BASE_ORIGIN = "/suturo/get_base_origin"
+    NAME_SERVICE_EUROC_OBJECT_TO_ODOM_COMBINED = "/suturo/euroc_object_to_odom_combined"
 
     def __init__(self):
         self.create_service()
@@ -19,6 +21,17 @@ class MapScanner(object):
         rospy.Service(self.NAME_SERVICE, TaskDataService, self._handle_scan_map)
         rospy.Service(self.NAME_SERVICE_POINT_CLOUD, AddPointCloud, self._handle_add_point_cloud)
         rospy.Service(self.NAME_SERVICE_GET_BASE_ORIGIN, GetBaseOrigin, self._handle_get_base_origin)
+        rospy.Service(self.NAME_SERVICE_EUROC_OBJECT_TO_ODOM_COMBINED, EurocObjectToOdomCombined,
+                      self._handle_euroc_to_combined)
+
+
+    def _handle_euroc_to_combined(self, req):
+        print(req)
+        print(req.toConvert)
+        resp = EurocObjectToOdomCombinedResponse()
+        utils.euroc_object_to_odom_combined(req.toConvert)
+        resp.converted = req.toConvert
+        return resp
 
     def _handle_get_base_origin(self, req):
         arm_base = utils.manipulation.get_base_origin()
