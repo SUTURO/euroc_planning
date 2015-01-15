@@ -30,6 +30,7 @@
     (loop while T do
       (cpl-impl:wait-for (fl-and (eql *current-state* :state-scan-map) (eql *current-transition* :transition-map-scanned)))
       (print "Executing state scan shadow")
+      (setf (value *current-transition*) :transition-nil)
       (setf (value *current-state*) :state-scan-shadow)
       (scan-poses)
       (setf (value *current-transition*) :transition-success)))

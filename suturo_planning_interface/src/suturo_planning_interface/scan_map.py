@@ -5,6 +5,8 @@ from suturo_interface_msgs.srv import TaskDataService, TaskDataServiceRequest, T
 from suturo_interface_msgs.srv import AddPointCloud, AddPointCloudRequest, AddPointCloudResponse
 from suturo_interface_msgs.srv import GetBaseOrigin, GetBaseOriginRequest, GetBaseOriginResponse
 from suturo_interface_msgs.srv import EurocObjectToOdomCombined, EurocObjectToOdomCombinedRequest, EurocObjectToOdomCombinedResponse
+from suturo_interface_msgs.srv import MarkRegionAsObjectUnderPoint, MarkRegionAsObjectUnderPointRequest, MarkRegionAsObjectUnderPointResponse
+from suturo_interface_msgs.srv import CurrentMapToCollisionObject, CurrentMapToCollisionObjectRequest, CurrentMapToCollisionObjectResponse
 
 class MapScanner(object):
 
@@ -13,6 +15,8 @@ class MapScanner(object):
     NAME_SERVICE_POINT_CLOUD = '/suturo/add_point_cloud'
     NAME_SERVICE_GET_BASE_ORIGIN = "/suturo/get_base_origin"
     NAME_SERVICE_EUROC_OBJECT_TO_ODOM_COMBINED = "/suturo/euroc_object_to_odom_combined"
+    NAME_SERVICE_CURRENT_MAP_TO_COLLISION_OBJECT = "/suturo/current_map_to_collision_object"
+    NAME_SERVICE_MARK_REGION_AS_OBJECT_UNDER_POINT = "suturo/mark_region_as_object_under_point"
 
     def __init__(self):
         self.create_service()
@@ -23,7 +27,20 @@ class MapScanner(object):
         rospy.Service(self.NAME_SERVICE_GET_BASE_ORIGIN, GetBaseOrigin, self._handle_get_base_origin)
         rospy.Service(self.NAME_SERVICE_EUROC_OBJECT_TO_ODOM_COMBINED, EurocObjectToOdomCombined,
                       self._handle_euroc_to_combined)
+        rospy.Service(self.NAME_SERVICE_CURRENT_MAP_TO_COLLISION_OBJECT, CurrentMapToCollisionObject,
+                      self._handle_current_map_to_collision_object)
+        rospy.Service(self.NAME_SERVICE_MARK_REGION_AS_OBJECT_UNDER_POINT, MarkRegionAsObjectUnderPoint,
+                      self._handle_mark_region_as_object_unter_point)
 
+    def _handle_mark_region_as_object_unter_point(self, req):
+        resp = MarkRegionAsObjectUnderPointResponse()
+        resp.result = utils.map.mark_region_as_object_under_point(req.x, req.y)
+        return resp
+
+    def _handle_current_map_to_collision_object(self, req):
+        resp = CurrentMapToCollisionObjectResponse()
+        resp.object = utils.map.to_collision_object()
+        return resp
 
     def _handle_euroc_to_combined(self, req):
         print(req)

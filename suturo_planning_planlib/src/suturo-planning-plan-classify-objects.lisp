@@ -68,14 +68,18 @@
 
 
 (defun handle-object (matched-object found-object-names matched-objects)
+  (print "Found object")
   (let ((id-already-found nil))
     (loop for name across found-object-names do
       (if (= (roslisp:msg-slot-value (roslisp:msg-slot-value matched-object 'object) 'id) name )
-          (setf id-already-found T)))
+          (progn
+            (print "id already found")
+            (setf id-already-found T))))
     (if (not id-already-found)
         (progn
           ;;Todo euroc-object-to-odom-combined
-          (vector-push-extend (call-euroc-object-to-odom-combined matched-object) matched-objects)))))
+          (print "new object found")
+          (vector-push-extend (roslisp:msg-slot-value (call-euroc-object-to-odom-combined matched-object)'converted) matched-objects)))))
 
 
 (defun call-classify-object (object)
@@ -100,5 +104,6 @@
     (loop while T do
       (cpl-impl:wait-for (fl-and (eql *current-state* :state-scan-obstacles) (eql *current-transition* :transition-new-image) ))
       (print "Executing state classify objects")
+      (setf (value *current-transition*) :transition-nil)
       (setf (value *current-state*) :state-classify-objects)
       (setf (value *current-transition*) (classify))))

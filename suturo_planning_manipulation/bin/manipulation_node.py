@@ -30,7 +30,8 @@ class ManipulationNode(object):
         rospy.Service(CLOSE_GRIPPER_SERVICE, CloseGripper, self.__handle_close_gripper)
         self.__base_publisher = rospy.Publisher(BASE_ORIGIN_TOPIC, PointStamped)
         self.__eef_position_publisher = rospy.Publisher(GET_EEF_POSITION_TOPIC, PointStamped)
-
+        print("ASDFASDFASFLKJKDJSFKJLASDFKJLDKFDKJLFKDSFHDSKFK############################################################################")
+    
     def __handle_move(self, msg):
         goal_pose = self.__get_goal_pose(msg)
 
