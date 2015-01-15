@@ -18,6 +18,7 @@ __author__ = 'hansa'
 class ManipulationNode(object):
 
     def __init__(self):
+        print("init ManipulationNode")
         rospy.init_node("Manipulation_Control")
         self.__manipulation = Manipulation()
         rospy.Service(MOVE_SERVICE, Move, self.__handle_move)
@@ -114,5 +115,6 @@ class ManipulationNode(object):
 
 
 if __name__ == "__main__":
+    print("manipulation_node name == main")
     node = ManipulationNode()
     node.start()

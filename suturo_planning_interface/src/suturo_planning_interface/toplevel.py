@@ -1,18 +1,18 @@
-import traceback
 import os
 import sys
-import rospy
 import threading
 import subprocess
 import time
-import start_nodes
 import signal
 import atexit
-import tasks
+
+import rospy
 from suturo_msgs.msg import Task
-from suturo_interface_msgs.srv import TaskDataService, TaskDataServiceRequest, TaskDataServiceResponse
-from suturo_interface_msgs.srv import StartPlanning, StartPlanningRequest, StartPlanningResponse
-from suturo_interface_msgs.msg import TaskData
+from suturo_interface_msgs.srv import TaskDataService, TaskDataServiceResponse
+from suturo_interface_msgs.srv import StartPlanning, StartPlanningResponse
+
+import start_nodes
+import tasks
 from search_objects import SearchObjects
 from scan_map import MapScanner
 from scan_obstacles import ScanObstacles
@@ -21,12 +21,10 @@ from focus_objects import FocusObjects
 from pose_estimate_objects import PoseEstimateObject
 from scan_shadow import ScanShadow
 from start_nodes import StartClassifier, StartManipulation, StartPerception, StartSimulation, StopNodes, StopSimulation, StartYamlParser
-from suturo_planning_interface import utils
 from suturo_planning_manipulation.manipulation import Manipulation
 from suturo_planning_task_selector import start_task
-
-
 import utils
+
 
 _pro_task_selector = None
 _save_log = False
@@ -66,7 +64,7 @@ class Toplevel(object):
                                           shell=True, preexec_fn=os.setsid)
         set_sim_time.wait()
         rospy.init_node('suturo_toplevel', log_level=rospy.INFO)
-        start_task("task1_v1")
+        #start_task("task1_v1")
         self.start_task_data_creator_service()
         self.start_init_service()
         self.start_state_nodes()
@@ -88,7 +86,7 @@ class Toplevel(object):
     def create_task_data(self, req):
         resp = StartPlanningResponse()
         resp.taskdata = tasks.create_default_task_data()
-        resp.taskdata = self.create_yaml(resp.taskdata)
+        #resp.taskdata = self.create_yaml(resp.taskdata)
         return resp
 
     def create_yaml(self, data):
@@ -123,7 +121,7 @@ class Toplevel(object):
         self.scan_shadow_state = ScanShadow()
         self.start_simulation_state = StartSimulation()
         self.start_perception_state = StartPerception()
-        self.start_manipulation_sate = StartManipulation()
+        self.start_manipulation_state = StartManipulation()
         self.start_classifier_state = StartClassifier()
         self.stop_simulation_state = StopSimulation(False)
         self.stop_nodes_state = StopNodes()
