@@ -86,12 +86,11 @@ class Toplevel(object):
     def create_task_data(self, req):
         resp = StartPlanningResponse()
         resp.taskdata = tasks.create_default_task_data()
-        #resp.taskdata = self.create_yaml(resp.taskdata)
         return resp
 
-    def create_yaml(self, data):
-        self.yaml_handler = YamlHandler()
-        return self.yaml_handler.get_yaml(data)
+#    def create_yaml(self, data):
+#        self.yaml_handler = YamlHandler()
+#        return self.yaml_handler.get_yaml(data)
 
     def start_init_service(self):
         print("Waiting for service call suturo/state/init")
@@ -127,39 +126,39 @@ class Toplevel(object):
         self.stop_nodes_state = StopNodes()
 
 
-class YamlHandler(object):
-    def __init__(self):
-        """"""
-        #self.start_service()
-        self._yaml = None
-        self._lock = None
-
-    #def start_service(self):
-    #    self.yaml_handler_service = rospy.Service('suturo/state/yaml_handler', TaskDataService, self.get_yaml)
-    #    rospy.spin()
-
-    def get_yaml(self, data):
-        self._lock = threading.Lock()
-        subscriber = rospy.Subscriber("suturo/yaml_pars0r", Task, self.parse_yaml)
-        rospy.loginfo('Waiting for yaml')
-
-        self._lock.acquire()
-        while self._yaml is None:
-            self._lock.release()
-            time.sleep(0.05)
-            self._lock.acquire()
-
-        rospy.loginfo('Got yaml %s' % str(self._yaml))
-        self._lock.release()
-
-        data.yaml = self._yaml
-        return data
-
-    def parse_yaml(self, msg):
-        self._lock.acquire()
-        self._yaml = msg
-        rospy.loginfo('Parsed yaml: %s' % str(self._yaml))
-        self._lock.release()
+# class YamlHandler(object):
+#     def __init__(self):
+#         """"""
+#         #self.start_service()
+#         self._yaml = None
+#         self._lock = None
+#
+#     #def start_service(self):
+#     #    self.yaml_handler_service = rospy.Service('suturo/state/yaml_handler', TaskDataService, self.get_yaml)
+#     #    rospy.spin()
+#
+#     def get_yaml(self, data):
+#         self._lock = threading.Lock()
+#         subscriber = rospy.Subscriber("suturo/yaml_pars0r", Task, self.parse_yaml)
+#         rospy.loginfo('Waiting for yaml')
+#
+#         self._lock.acquire()
+#         while self._yaml is None:
+#             self._lock.release()
+#             time.sleep(0.05)
+#             self._lock.acquire()
+#
+#         rospy.loginfo('Got yaml %s' % str(self._yaml))
+#         self._lock.release()
+#
+#         data.yaml = self._yaml
+#         return data
+#
+#     def parse_yaml(self, msg):
+#         self._lock.acquire()
+#         self._yaml = msg
+#         rospy.loginfo('Parsed yaml: %s' % str(self._yaml))
+#         self._lock.release()
 
 
 class TaskTypeDeterminer(object):
