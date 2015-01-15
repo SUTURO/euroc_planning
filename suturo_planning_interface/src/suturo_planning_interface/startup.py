@@ -81,21 +81,16 @@ def rospy_exit_handler():
     print('startup: Exiting rospy_exit_handler.')
 
 if __name__ == '__main__':
-    task = sys.argv[1]
-    argv = sys.argv[2:]
+    argv = sys.argv[1:]
     try:
         opts, args = getopt.getopt(argv, '', ['save', 'plan', 'init', 'no-ts', 'inittime=', 'logging=', 'parent='])
     except getopt.GetoptError:
         print('startup: Could not parse parameters.')
         sys.exit(2)
-    #print ('opts: ' + str(opts))
-    #print ('args: ' + str(args))
     initialization_time = None
     logging = 0
     parent = None
     for opt, arg in opts:
-        # print ('opt: ' + str(opt))
-        # print ('arg: ' + str(arg))
         if opt == '--save':
             _save_log = True
         elif opt == '--init':

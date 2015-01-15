@@ -1,20 +1,20 @@
-import traceback
 import os
 import sys
-import rospy
 import threading
 import subprocess
 import time
-import start_nodes
 import signal
 import atexit
 from suturo_planning_interface.clean_up_plan import ChooseObjectService, CleanUpService
-from suturo_planning_interface.tidy_up import GraspObject, PlaceObjectService, CheckPlacementService
+from suturo_planning_interface.tidy_up import GraspObjectService, PlaceObjectService, CheckPlacementService
 import tasks
+import rospy
 from suturo_msgs.msg import Task
-from suturo_interface_msgs.srv import TaskDataService, TaskDataServiceRequest, TaskDataServiceResponse
-from suturo_interface_msgs.srv import StartPlanning, StartPlanningRequest, StartPlanningResponse
-from suturo_interface_msgs.msg import TaskData
+from suturo_interface_msgs.srv import TaskDataService, TaskDataServiceResponse
+from suturo_interface_msgs.srv import StartPlanning, StartPlanningResponse
+
+import start_nodes
+import tasks
 from search_objects import SearchObjects
 from scan_map import MapScanner
 from scan_obstacles import ScanObstacles
@@ -23,12 +23,10 @@ from focus_objects import FocusObjects
 from pose_estimate_objects import PoseEstimateObject
 from scan_shadow import ScanShadow
 from start_nodes import StartClassifier, StartManipulation, StartPerception, StartSimulation, StopNodes, StopSimulation, StartYamlParser
-from suturo_planning_interface import utils
 from suturo_planning_manipulation.manipulation import Manipulation
 from suturo_planning_task_selector import start_task
-
-
 import utils
+
 
 _pro_task_selector = None
 _save_log = False
@@ -68,7 +66,7 @@ class Toplevel(object):
                                           shell=True, preexec_fn=os.setsid)
         set_sim_time.wait()
         rospy.init_node('suturo_toplevel', log_level=rospy.INFO)
-        start_task("task1_v1")
+        #start_task("task1_v1")
         self.start_task_data_creator_service()
         self.start_init_service()
         self.start_state_nodes()
@@ -90,12 +88,11 @@ class Toplevel(object):
     def create_task_data(self, req):
         resp = StartPlanningResponse()
         resp.taskdata = tasks.create_default_task_data()
-        resp.taskdata = self.create_yaml(resp.taskdata)
         return resp
 
-    def create_yaml(self, data):
-        self.yaml_handler = YamlHandler()
-        return self.yaml_handler.get_yaml(data)
+#    def create_yaml(self, data):
+#        self.yaml_handler = YamlHandler()
+#        return self.yaml_handler.get_yaml(data)
 
     def start_init_service(self):
         print("Waiting for service call suturo/state/init")
@@ -125,51 +122,51 @@ class Toplevel(object):
         self.scan_shadow_state = ScanShadow()
         self.choose_object_state = ChooseObjectService()
         self.clean_up_plan_state = CleanUpService()
-        self.grasp_object_state = GraspObject()
+        self.grasp_object_state = GraspObjectService()
         self.place_object_state = PlaceObjectService()
         self.check_placement_state = CheckPlacementService()
 
         self.start_simulation_state = StartSimulation()
         self.start_perception_state = StartPerception()
-        self.start_manipulation_sate = StartManipulation()
+        self.start_manipulation_state = StartManipulation()
         self.start_classifier_state = StartClassifier()
         self.stop_simulation_state = StopSimulation(False)
         self.stop_nodes_state = StopNodes()
 
 
-class YamlHandler(object):
-    def __init__(self):
-        """"""
-        #self.start_service()
-        self._yaml = None
-        self._lock = None
-
-    #def start_service(self):
-    #    self.yaml_handler_service = rospy.Service('suturo/state/yaml_handler', TaskDataService, self.get_yaml)
-    #    rospy.spin()
-
-    def get_yaml(self, data):
-        self._lock = threading.Lock()
-        subscriber = rospy.Subscriber("suturo/yaml_pars0r", Task, self.parse_yaml)
-        rospy.loginfo('Waiting for yaml')
-
-        self._lock.acquire()
-        while self._yaml is None:
-            self._lock.release()
-            time.sleep(0.05)
-            self._lock.acquire()
-
-        rospy.loginfo('Got yaml %s' % str(self._yaml))
-        self._lock.release()
-
-        data.yaml = self._yaml
-        return data
-
-    def parse_yaml(self, msg):
-        self._lock.acquire()
-        self._yaml = msg
-        rospy.loginfo('Parsed yaml: %s' % str(self._yaml))
-        self._lock.release()
+# class YamlHandler(object):
+#     def __init__(self):
+#         """"""
+#         #self.start_service()
+#         self._yaml = None
+#         self._lock = None
+#
+#     #def start_service(self):
+#     #    self.yaml_handler_service = rospy.Service('suturo/state/yaml_handler', TaskDataService, self.get_yaml)
+#     #    rospy.spin()
+#
+#     def get_yaml(self, data):
+#         self._lock = threading.Lock()
+#         subscriber = rospy.Subscriber("suturo/yaml_pars0r", Task, self.parse_yaml)
+#         rospy.loginfo('Waiting for yaml')
+#
+#         self._lock.acquire()
+#         while self._yaml is None:
+#             self._lock.release()
+#             time.sleep(0.05)
+#             self._lock.acquire()
+#
+#         rospy.loginfo('Got yaml %s' % str(self._yaml))
+#         self._lock.release()
+#
+#         data.yaml = self._yaml
+#         return data
+#
+#     def parse_yaml(self, msg):
+#         self._lock.acquire()
+#         self._yaml = msg
+#         rospy.loginfo('Parsed yaml: %s' % str(self._yaml))
+#         self._lock.release()
 
 
 class TaskTypeDeterminer(object):
