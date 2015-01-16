@@ -2,7 +2,7 @@ from copy import deepcopy
 import smach
 import rospy
 from geometry_msgs.msg import PointStamped
-from suturo_planning_plans import utils
+from suturo_planning_interface import utils
 from std_msgs.msg import Header
 from suturo_msgs.msg import Task
 from suturo_msgs.msg import TargetZone

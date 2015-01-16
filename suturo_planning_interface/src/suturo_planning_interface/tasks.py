@@ -71,4 +71,5 @@ def create_default_task_data():
     taskdata.yaml = suturo_msgs.msg.Task()
     taskdata.object_to_move = EurocObject()
     taskdata.focused_point = Point()
+    taskdata.clean_up_plan = []
     return taskdata
