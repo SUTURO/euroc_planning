@@ -1,5 +1,6 @@
 import rospy
 import time
+from math import pi
 from suturo_planning_interface import mathemagie
 from suturo_planning_interface import utils
 from geometry_msgs.msg import Point

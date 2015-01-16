@@ -1,6 +1,7 @@
 from copy import deepcopy
 import rospy
 from suturo_interface_msgs.srv import TaskDataService, TaskDataServiceResponse
+from suturo_planning_interface import utils
 
 __author__ = 'tobi'
 
