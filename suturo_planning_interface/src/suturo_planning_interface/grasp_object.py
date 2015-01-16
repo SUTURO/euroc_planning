@@ -7,8 +7,8 @@ from mathemagie import get_fingertip, subtract_point, magnitude
 from suturo_interface_msgs.srv import TaskDataServiceResponse, TaskDataService
 import time
 
-class GraspObjectService(object):
-    NAME_SERVICE = 'suturo/state/grasp_object'
+class GraspObject(object):
+    SERVICE_NAME = 'suturo/state/grasp_object'
 
     def __init__(self):
         self._create_service()
@@ -20,7 +20,6 @@ class GraspObjectService(object):
         taskdata = req.taskdata
         result = self.__grasp(taskdata)
         return TaskDataServiceResponse(taskdatata = taskdata, result = result)
-
 
     def __grasp(self, taskdata):
         rospy.loginfo('Executing state GraspObject')

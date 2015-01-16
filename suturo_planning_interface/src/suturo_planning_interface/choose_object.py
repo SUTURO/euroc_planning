@@ -7,6 +7,10 @@ __author__ = 'tobi'
 class ChooseObject(object):
     SERVICE_NAME = "suturo/state/choose_object"
 
+    _ctr = 0
+    failed_objects = []
+    retry = False
+
     def __init__(self):
         self._create_service()
 

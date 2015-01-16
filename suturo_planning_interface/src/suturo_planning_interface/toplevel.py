@@ -7,6 +7,10 @@ import signal
 import atexit
 from suturo_planning_interface.clean_up_plan import CleanUpPlan
 from suturo_planning_interface.choose_object import ChooseObject
+from suturo_planning_interface.grasp_object import GraspObject
+from suturo_planning_interface.place_object import PlaceObject
+from suturo_planning_interface.check_placement import CheckPlacement
+
 #from suturo_planning_interface.tidy_up import GraspObjectService, PlaceObjectService, CheckPlacementService
 import tasks
 import rospy
@@ -123,9 +127,9 @@ class Toplevel(object):
         self.scan_shadow_state = ScanShadow()
         self.choose_object_state = ChooseObject()
         self.clean_up_plan_state = CleanUpPlan()
-        #self.grasp_object_state = GraspObjectService()
-        #self.place_object_state = PlaceObjectService()
-        #self.check_placement_state = CheckPlacementService()
+        self.grasp_object_state = GraspObject()
+        self.place_object_state = PlaceObject()
+        self.check_placement_state = CheckPlacement()
 
         self.start_simulation_state = StartSimulation()
         self.start_perception_state = StartPerception()

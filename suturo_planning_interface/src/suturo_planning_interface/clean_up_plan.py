@@ -6,7 +6,6 @@ from suturo_interface_msgs.srv import TaskDataService, TaskDataServiceResponse
 from suturo_msgs.msg import Task, TargetZone
 from suturo_planning_interface import mathemagie
 from suturo_planning_interface import utils
-from suturo_planning_plans.statechooseobject import CleanUpPlan, ChooseObject
 
 __author__ = 'hansa'
 
