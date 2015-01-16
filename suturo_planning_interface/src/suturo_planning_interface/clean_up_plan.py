@@ -11,7 +11,7 @@ from suturo_planning_plans.statechooseobject import CleanUpPlan, ChooseObject
 __author__ = 'hansa'
 
 
-class CleanUpService(object):
+class CleanUpPlan(object):
 
     SERVICE_NAME = "suturo/state/clean_up_plan"
 

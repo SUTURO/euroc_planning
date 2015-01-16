@@ -5,8 +5,9 @@ import subprocess
 import time
 import signal
 import atexit
-from suturo_planning_interface.clean_up_plan import ChooseObjectService, CleanUpService
-from suturo_planning_interface.tidy_up import GraspObjectService, PlaceObjectService, CheckPlacementService
+from suturo_planning_interface.clean_up_plan import CleanUpPlan
+from suturo_planning_interface.choose_object import ChooseObject
+#from suturo_planning_interface.tidy_up import GraspObjectService, PlaceObjectService, CheckPlacementService
 import tasks
 import rospy
 from suturo_msgs.msg import Task
@@ -120,11 +121,11 @@ class Toplevel(object):
         self.pose_estimate_objects_state = PoseEstimateObject()
         #self.scan_map_state = MapScanner() TODO: Exception, da Mapscanner schon aufgerufen wird
         self.scan_shadow_state = ScanShadow()
-        self.choose_object_state = ChooseObjectService()
-        self.clean_up_plan_state = CleanUpService()
-        self.grasp_object_state = GraspObjectService()
-        self.place_object_state = PlaceObjectService()
-        self.check_placement_state = CheckPlacementService()
+        self.choose_object_state = ChooseObject()
+        self.clean_up_plan_state = CleanUpPlan()
+        #self.grasp_object_state = GraspObjectService()
+        #self.place_object_state = PlaceObjectService()
+        #self.check_placement_state = CheckPlacementService()
 
         self.start_simulation_state = StartSimulation()
         self.start_perception_state = StartPerception()

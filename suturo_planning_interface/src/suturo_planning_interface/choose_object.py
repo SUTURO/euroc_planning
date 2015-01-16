@@ -4,7 +4,7 @@ from suturo_interface_msgs.srv import TaskDataService, TaskDataServiceResponse
 
 __author__ = 'tobi'
 
-class ChooseObjectService(object):
+class ChooseObject(object):
     SERVICE_NAME = "suturo/state/choose_object"
 
     def __init__(self):
