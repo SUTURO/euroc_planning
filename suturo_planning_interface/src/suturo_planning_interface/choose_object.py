@@ -28,9 +28,9 @@ class ChooseObject(object):
         rospy.loginfo('Executing state ChooseObject')
         rospy.loginfo("number failed objects: " + str(len(self.failed_objects)))
 
-        if not self.retry and userdata.failed_object is not None and userdata.failed_object not in self.failed_objects:
+        #if not self.retry and userdata.failed_object is not None and userdata.failed_object not in self.failed_objects:
 
-            self.failed_objects.append(userdata.failed_object)
+            #self.failed_objects.append(userdata.failed_object)
 
         self.retry = False
 

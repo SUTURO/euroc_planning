@@ -136,6 +136,7 @@
           (roslisp:ros-warn nil t timed-out-text)
           (setf (value *current-transition*) :transition-timed-out))
         (progn
+          (setf (value *current-transition*) :transition-nil)
           (setf (value *current-state*) (string-state-to-keyword service-name))
           (let 
               ((value (roslisp:call-service full-service-name 'suturo_interface_msgs-srv:TaskDataService :taskdata (value *taskdata*)))) 
