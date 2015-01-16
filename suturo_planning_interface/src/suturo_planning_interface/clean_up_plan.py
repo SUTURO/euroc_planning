@@ -17,7 +17,6 @@ class CleanUpService(object):
 
     def __init__(self):
         rospy.Service(self.SERVICE_NAME, TaskDataService, self.__handle_request)
-        self.__clean_up = CleanUpPlan()
 
     def __handle_request(self, request):
         taskdata = request.taskdata
@@ -139,15 +138,3 @@ class CleanUpService(object):
         return PointStamped(header, point)
 
 
-class ChooseObjectService(object):
-    SERVICE_NAME = "suturo/state/choose_object"
-
-    def __init__(self):
-        rospy.Service(self.SERVICE_NAME, TaskDataService, self.__handle_request)
-        self.__choose = ChooseObject()
-
-    def __handle_request(self, request):
-        taskdata = request.taskdata
-        taskdata.clean_up_plan = map(lambda action: (action.object, action), taskdata.clean_up_plan)
-        result = self.__choose.execute(taskdata)
-        return TaskDataServiceResponse(taskdata=taskdata, result=result)

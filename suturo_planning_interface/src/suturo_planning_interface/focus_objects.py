@@ -6,7 +6,7 @@ from suturo_planning_manipulation import calc_grasp_position, mathemagie
 from suturo_interface_msgs.srv import TaskDataService, TaskDataServiceRequest, TaskDataServiceResponse
 
 
-class FocusObjects():
+class FocusObjects(object):
 
     NAME_SERVICE = 'suturo/state/focus_objects'
     RETURN_VAL_NO_MORE_OBJECTS_TO_FOCUS = 'success'

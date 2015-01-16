@@ -1,7 +1,7 @@
 import rospy
 from suturo_interface_msgs.srv import TaskDataService, TaskDataServiceRequest, TaskDataServiceResponse
 
-class SearchObjects():
+class SearchObjects(object):
 
     RETURN_VAL_MISSING_OBJECTS = 'missingObjects'
     RETURN_VAL_ALL_OBJECTS_FOUND = 'noObjectsLeft'

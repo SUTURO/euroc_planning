@@ -6,7 +6,7 @@ from suturo_planning_interface import utils
 from suturo_interface_msgs.srv import TaskDataService, TaskDataServiceRequest, TaskDataServiceResponse
 
 
-class ScanShadow(smach.State):
+class ScanShadow(object):
 
     # _ctr = 0
 
