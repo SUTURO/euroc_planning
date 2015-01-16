@@ -1,11 +1,13 @@
 from math import isinf
 from geometry_msgs.msg import Vector3
-import rospy, utils
+import rospy
+from suturo_planning_interface import utils
 from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_position, get_pre_grasp
 from suturo_planning_visualization.visualization import visualize_poses
 from mathemagie import get_fingertip, subtract_point, magnitude
 from suturo_interface_msgs.srv import TaskDataServiceResponse, TaskDataService
 import time
+from suturo_perception_msgs.msg import EurocObject
 
 class GraspObject(object):
     SERVICE_NAME = 'suturo/state/grasp_object'
@@ -19,7 +21,7 @@ class GraspObject(object):
     def __handle_request(self, req):
         taskdata = req.taskdata
         result = self.__grasp(taskdata)
-        return TaskDataServiceResponse(taskdatata = taskdata, result = result)
+        return TaskDataServiceResponse(taskdata = taskdata, result = result)
 
     def __grasp(self, taskdata):
         rospy.loginfo('Executing state GraspObject')
@@ -41,7 +43,7 @@ class GraspObject(object):
 
         rospy.logdebug("Grasping: " + str(collision_object))
 
-        grasp_positions = calculate_grasp_position(collision_object, utils.manipulation.transform_to)
+        grasp_positions = calculate_grasp_position(collision_object, utils.manipulation.transform_to) #PoseStamped[]
 
         #filter out some invalid grasps
         grasp_positions = utils.manipulation.filter_low_poses(grasp_positions)
@@ -123,7 +125,7 @@ class GraspObject(object):
 
             if not the_move_to_func:
                 rospy.logwarn("couldnt lift object. continue anyway")
-            taskdata.failed_object = None
+            taskdata.failed_object = EurocObject()
             return 'success'
         rospy.logwarn("Grapsing failed.")
         taskdata.failed_object = taskdata.object_to_move

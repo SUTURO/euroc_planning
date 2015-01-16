@@ -3,7 +3,8 @@ from suturo_perception_msgs.msg import EurocObject
 from suturo_interface_msgs.msg import TaskData
 import suturo_msgs.msg
 from geometry_msgs.msg import Point
-
+from geometry_msgs.msg import PointStamped
+from geometry_msgs.msg import PoseStamped
 from suturo_msgs.msg import Task
 
 class TaskInit(object):
@@ -72,4 +73,8 @@ def create_default_task_data():
     taskdata.object_to_move = EurocObject()
     taskdata.focused_point = Point()
     taskdata.clean_up_plan = []
+    taskdata.place_position = PointStamped()
+    taskdata.dist_to_obj = 0
+    taskdata.grasp = PoseStamped()
+    taskdata.placed_object = ""
     return taskdata

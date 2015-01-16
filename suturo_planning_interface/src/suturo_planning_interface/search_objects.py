@@ -39,7 +39,7 @@ class SearchObjects(object):
         Checks if the objects in fitted_objects are new. If they are, continues to check the new objects with the missing ones. If
         a missing object is found, deletes the object from the list missing_objects und appends it to objects_found
         :param fitted_objects:
-        :param objects_found:
+        :param :
         """
         for obj in fitted_objects:
             # Check if the object was already found

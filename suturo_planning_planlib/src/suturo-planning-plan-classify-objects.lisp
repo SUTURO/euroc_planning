@@ -71,7 +71,7 @@
   (print "Found object")
   (let ((id-already-found nil))
     (loop for name across found-object-names do
-      (if (= (roslisp:msg-slot-value (roslisp:msg-slot-value matched-object 'object) 'id) name )
+      (if (string= (roslisp:msg-slot-value (roslisp:msg-slot-value matched-object 'object) 'id) name )
           (progn
             (print "id already found")
             (setf id-already-found T))))

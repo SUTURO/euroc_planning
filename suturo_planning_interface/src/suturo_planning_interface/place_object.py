@@ -9,12 +9,14 @@ from suturo_planning_manipulation.manipulation_constants import *
 from suturo_msgs.msg import Task
 from suturo_planning_manipulation.mathemagie import *
 from suturo_interface_msgs.srv import TaskDataService, TaskDataServiceResponse
-from suturo_planning_plans import utils
+from suturo_planning_interface import utils
+from geometry_msgs.msg import PointStamped
+from geometry_msgs.msg import Point
 
 class PlaceObject(object):
 
     _retry = 0
-    SERVICE_NAME = "sutro/state/place_object"
+    SERVICE_NAME = "suturo/state/place_object"
 
     def __init__(self):
         self._create_service()
@@ -30,14 +32,14 @@ class PlaceObject(object):
     def execute(self, taskdata):
         rospy.loginfo('Executing state PlaceObject')
 
-        destination = taskdata.target_position
+        destination = taskdata.place_position
 
         if self._retry == 2:
             rospy.logwarn('Failed to place two times. Dropping object.')
             self._retry = 0
             if not utils.manipulation.open_gripper():
                 #cant happen
-                taskdata.failed_object = None
+                taskdata.failed_object = EurocObject()
                 return 'fail'
 
         if taskdata.enable_movement:
@@ -48,7 +50,7 @@ class PlaceObject(object):
         co = utils.manipulation.get_planning_scene().get_attached_object()
         if co is None:
             self._retry = 0
-            taskdata.failed_object = None
+            taskdata.failed_object = EurocObject()
             return 'noObjectAttached'
         co = co.object
         rospy.logdebug("Placing: " + str(co))
@@ -93,13 +95,13 @@ class PlaceObject(object):
             gripper_target = min(utils.manipulation.get_current_gripper_state()[1] + 0.002, gripper_max_pose)
             if not utils.manipulation.open_gripper(gripper_target):
                 #cant happen
-                taskdata.failed_object = None
+                taskdata.failed_object = EurocObject()
                 return 'fail'
 
             rospy.sleep(3)
             if not utils.manipulation.open_gripper():
                 #cant happen
-                taskdata.failed_object = None
+                taskdata.failed_object = EurocObject()
                 return 'fail'
 
             if taskdata.yaml.task_type == Task.TASK_5:
@@ -112,14 +114,14 @@ class PlaceObject(object):
             if not move_to_func(get_pre_grasp(place_pose), do_not_blow_up_list=(co.id, "map")) and \
                     not move_to_func(get_pre_place_position(place_pose), do_not_blow_up_list=(co.id, "map")):
                 rospy.logwarn("Can't reach postplaceposition. Continue anyway")
-                taskdata.failed_object = None
+                taskdata.failed_object = EurocObject()
                 self._retry = 0
                 return 'success'
             else:
                 rospy.logdebug("postplaceposition taken")
             rospy.sleep(0.25)
             rospy.loginfo("placed " + co.id)
-            taskdata.failed_object = None
+            taskdata.failed_object = EurocObject()
             self._retry = 0
             return 'success'
 

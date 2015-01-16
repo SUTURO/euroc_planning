@@ -3,7 +3,7 @@ import rospy
 from suturo_interface_msgs.srv import TaskDataService, TaskDataServiceResponse
 
 class CheckPlacement(object):
-    SERVICE_NAME = "sutro/state/check_placement"
+    SERVICE_NAME = "suturo/state/check_placement"
 
     def __init__(self):
         self._create_service()

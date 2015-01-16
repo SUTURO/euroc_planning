@@ -6,7 +6,7 @@ from suturo_interface_msgs.srv import TaskDataService, TaskDataServiceResponse
 from suturo_msgs.msg import Task, TargetZone
 from suturo_planning_interface import mathemagie
 from suturo_planning_interface import utils
-
+from suturo_interface_msgs.msg import CleanUpAction
 __author__ = 'hansa'
 
 
@@ -72,18 +72,24 @@ class CleanUpPlan(object):
         rospy.logdebug('Objects in target zones: %s' % str(objects_in_tzs))
         rospy.logdebug('Target zones for objects: %s' % str(tzs_for))
 
+        print("Objects in tzs: "+ str(len(objects_in_tzs)))
+        print('Objects in target zones: ' + str(objects_in_tzs))
+        print('Target zones for objects: ' + str(tzs_for))
+
         # If no object is in a target zone
         if not objects_in_tzs:
             plan = map(lambda obj: (obj, get_pose(obj)), found_objects)
 
         # If one object is in a target zone
         elif len(objects_in_tzs) == 1:
+            print("Im in == 1")
             found_objects.remove(objects_in_tzs[0][0])
             plan.append((objects_in_tzs[0][0], get_pose(objects_in_tzs[0][0])))
             plan += map(lambda obj: (obj, get_pose(obj)), found_objects)
 
         # If two objects are in a target zone
         elif len(objects_in_tzs) == 2:
+            print("Im in == 2")
             found_objects.remove(objects_in_tzs[0][0])
             found_objects.remove(objects_in_tzs[1][0])
 
@@ -107,6 +113,7 @@ class CleanUpPlan(object):
 
         # If all three objects are in a target zone
         elif len(objects_in_tzs) == 3:
+            print("Im in == 3")
             # Place the first object next to its targetzone
             plan.append((objects_in_tzs[0][0],
                          self._pose_near_target_zone(objects_in_tzs[0][1], header)))
@@ -119,8 +126,18 @@ class CleanUpPlan(object):
                 plan.append((objects_in_tzs[1][0], get_pose(objects_in_tzs[1][0])))
 
             plan.append((objects_in_tzs[0][0], get_pose(objects_in_tzs[0][0])))
+        else:
+            print("Im in nothing")
 
-        userdata.clean_up_plan = plan
+        wrapped_plan = []
+        for tupel in plan:
+            action = CleanUpAction()
+            action.object = tupel[0]
+            action.target_position = tupel[1]
+            wrapped_plan.append(action)
+
+        print("plan size: " + str(len(plan)))
+        userdata.clean_up_plan = wrapped_plan
         return 'success'
 
     @staticmethod

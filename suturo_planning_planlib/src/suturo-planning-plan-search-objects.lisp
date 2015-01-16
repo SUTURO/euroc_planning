@@ -1,6 +1,7 @@
 (in-package :planlib)
 
 ;;Vll die Objekte aufgrund der id's vergleichen anstatt der kompletten objekte ?
+;;TODO MISSING OBJECTS NOT DELETED !?!?!?!
 
 (defparameter *missing-objects* nil "A vector that contains every object that hasnt been found yet")
 (defparameter *found-objects* (make-array 0 :fill-pointer 0 :adjustable t) "A vector that contains every found object")
@@ -29,6 +30,7 @@
             (print "New object found")
             (vector-push-extend fitted-object *found-objects*)
             (vector-remove-object *missing-objects* fitted-object)))))
+  (setf-msg (value *taskdata*) (objects_found) *found-objects*)
   (print "end handle found objects"))
 
 (defun vector-contains-obj(vec obj)
