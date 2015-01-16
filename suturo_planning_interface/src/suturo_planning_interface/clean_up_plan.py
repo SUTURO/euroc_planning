@@ -16,6 +16,9 @@ class CleanUpService(object):
     SERVICE_NAME = "suturo/state/clean_up_plan"
 
     def __init__(self):
+        self._create_service()
+
+    def _create_service(self):
         rospy.Service(self.SERVICE_NAME, TaskDataService, self.__handle_request)
 
     def __handle_request(self, request):
@@ -136,5 +139,3 @@ class CleanUpService(object):
             point.y += tgt.max_distance + 0.05
 
         return PointStamped(header, point)
-
-

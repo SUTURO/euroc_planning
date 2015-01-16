@@ -6,15 +6,15 @@ from suturo_planning_visualization.visualization import visualize_poses
 from mathemagie import get_fingertip, subtract_point, magnitude
 from suturo_interface_msgs.srv import TaskDataServiceResponse, TaskDataService
 import time
-from suturo_planning_plans.statecheckplacement import CheckPlacement
-from suturo_planning_plans.stateplaceobject import PlaceObject
-
 
 class GraspObjectService(object):
     NAME_SERVICE = 'suturo/state/grasp_object'
 
     def __init__(self):
-        rospy.Service(self.NAME_SERVICE, TaskDataService, self.__handle_request)
+        self._create_service()
+
+    def _create_service(self):
+        rospy.Service(self.SERVICE_NAME, TaskDataService, self.__handle_request)
 
     def __handle_request(self, req):
         taskdata = req.taskdata

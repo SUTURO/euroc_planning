@@ -1,7 +1,5 @@
 from copy import deepcopy
-from geometry_msgs.msg import PointStamped
 import rospy
-from std_msgs.msg import Header
 from suturo_interface_msgs.srv import TaskDataService, TaskDataServiceResponse
 
 __author__ = 'tobi'
