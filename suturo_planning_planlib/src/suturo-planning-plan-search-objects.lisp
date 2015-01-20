@@ -19,7 +19,7 @@
    the object is added to *found-objects* and removed from *missing-objects*."
   (print "handle found objects")
   (print (length (roslisp:msg-slot-value (value *taskdata*) 'fitted_objects)))
-  (sleep 30) ;; Warum muss ich hier warten ?? Wenn nicht gewartet wird, ist beim zweiten Aufruf von search object das "fitted_objects" noch mit keinem Objekt belegt. Die For-Schleife wird umgangen
+  ;(sleep 30) ;; Warum muss ich hier warten ?? Wenn nicht gewartet wird, ist beim zweiten Aufruf von search object das "fitted_objects" noch mit keinem Objekt belegt. Die For-Schleife wird umgangen
   (print (length (roslisp:msg-slot-value (value *taskdata*) 'fitted_objects)))
  (let ((fitted-objects (roslisp:msg-slot-value (value *taskdata*) 'fitted_objects))) 
     ;;Check if the vector fitted-objects contains objects that aren't already in *found-objects*
