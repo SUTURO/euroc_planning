@@ -2,7 +2,6 @@
 
 (defconstant +move-group-arm+ 0 "Type parameter for the service call +service-name-move-robot+")
 (defconstant +move-group-arm-base+ 1 "Type parameter for the service call +service-name-move-robot+")
-;(defconstant MOVE_GROUP_GRIPPER
 (defconstant MOVE_GROUP_BASE 2 "Type parameter for the service call +service-name-move-robot+")
 (defconstant +scan-poses+ (list "shadow_pose1" "shadow_pose2") "Poses that can't be scanned by the mast cam")
 
