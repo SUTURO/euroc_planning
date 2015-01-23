@@ -7,6 +7,7 @@ from suturo_interface_msgs.srv import GetBaseOrigin, GetBaseOriginRequest, GetBa
 from suturo_interface_msgs.srv import EurocObjectToOdomCombined, EurocObjectToOdomCombinedRequest, EurocObjectToOdomCombinedResponse
 from suturo_interface_msgs.srv import MarkRegionAsObjectUnderPoint, MarkRegionAsObjectUnderPointRequest, MarkRegionAsObjectUnderPointResponse
 from suturo_interface_msgs.srv import CurrentMapToCollisionObject, CurrentMapToCollisionObjectRequest, CurrentMapToCollisionObjectResponse
+from suturo_interface_msgs.srv import GetPercentCleared, GetPercentClearedResponse
 
 class MapScanner(object):
 
@@ -17,6 +18,7 @@ class MapScanner(object):
     NAME_SERVICE_EUROC_OBJECT_TO_ODOM_COMBINED = "/suturo/euroc_object_to_odom_combined"
     NAME_SERVICE_CURRENT_MAP_TO_COLLISION_OBJECT = "/suturo/current_map_to_collision_object"
     NAME_SERVICE_MARK_REGION_AS_OBJECT_UNDER_POINT = "suturo/mark_region_as_object_under_point"
+    NAME_SERVICE_GET_PERCENT_CLEARED = "suturo/map/get_percent_cleared"
 
     def __init__(self):
         self.create_service()
@@ -31,6 +33,8 @@ class MapScanner(object):
                       self._handle_current_map_to_collision_object)
         rospy.Service(self.NAME_SERVICE_MARK_REGION_AS_OBJECT_UNDER_POINT, MarkRegionAsObjectUnderPoint,
                       self._handle_mark_region_as_object_unter_point)
+        rospy.Service(self.NAME_SERVICE_GET_PERCENT_CLEARED, GetPercentCleared,
+                      self.__handle_get_percent_cleared)
 
     def _handle_mark_region_as_object_unter_point(self, req):
         resp = MarkRegionAsObjectUnderPointResponse()
@@ -84,3 +88,7 @@ class MapScanner(object):
         self._scan_map_part(0, 1.1)
         self._scan_map_part(-0.2825, 0.775)
         self._scan_map_part(-0.2, 0.5)
+
+    def __handle_get_percent_cleared(self, request):
+        percent = utils.map.get_percent_cleared()
+        return GetPercentClearedResponse(percent=percent)
