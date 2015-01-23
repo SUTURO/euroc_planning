@@ -21,5 +21,4 @@ def main():
     #start_task("task1_v1")
 
 if __name__ == '__main__':
-    print('Test.')
     main()

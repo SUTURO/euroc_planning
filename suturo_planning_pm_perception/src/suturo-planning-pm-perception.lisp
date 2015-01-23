@@ -1,9 +1,5 @@
 (in-package :perception)
 
-(defun init-perception-planning()
-  "Setting up the ros node"
-  (roslisp:start-ros-node "suturo/PerceptionPlanning")
-)
 
 (defun get-gripper-perception (&optional (cuboid 1) (pose-estimation nil) (object-ids nil))
   "get the objects recognized by the gripper camera"
