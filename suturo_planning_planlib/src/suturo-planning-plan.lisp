@@ -84,8 +84,8 @@
     (cpl-impl:top-level
       (cpl-impl:par
         (state-init task_name)
-        (state-scan-map)
-        (state-scan-shadow)
+        ;(state-scan-map)
+        ;(state-scan-shadow)
         (state-search-objects)
         (state-classify-objects)
         (state-pose-estimate-object)
@@ -208,3 +208,11 @@
 (defun fail ()
   (format t "FAILED!")
   (setf (value *current-state*) :state-fail))
+
+;;TODO define archieve map-scanned
+;;TODO define reasoning in executive (Verknüpfung zu goal erreicht / nicht erreicht)
+;;TODO über perform (action) im pm_manipulation eine action für map scannen erstellen 
+(def-goal (achieve (map-scanned))
+    (perform scan-map-action))
+    
+    

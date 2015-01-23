@@ -67,3 +67,10 @@
                       (equate obj obj-in-hand) ; object is now in gripper
                       (achieve `(object-put ,obj ,put-down-location))))
                   found-objects target-zones))))))
+
+
+(def top-level-cram-function task1-tmp ()
+  (plan)
+  (print "Waiting")
+  (cpl-impl:wait-for (fl-and (eql *current-state* :state-init) (eql *current-transition* :transition-successful)))
+  (achieve `(map-scanned)))

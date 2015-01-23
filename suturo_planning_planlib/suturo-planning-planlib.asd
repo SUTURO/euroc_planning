@@ -15,8 +15,6 @@
              (:file "suturo-planning-plan" :depends-on ("package"))
              (:file "search-objects" :depends-on ("package"))
              (:file "suturo-planning-plan-search-objects" :depends-on("package" "suturo-planning-plan"))
-             (:file "suturo-planning-plan-scan-map-mast-cam" :depends-on("package" "suturo-planning-plan"))
-             (:file "suturo-planning-plan-scan-shadow" :depends-on("package" "suturo-planning-plan"))
              (:file "suturo-planning-plan-init" :depends-on("package" "suturo-planning-plan"))
              (:file "suturo-planning-plan-classify-objects" :depends-on("package" "suturo-planning-plan"))
              (:file "suturo-planning-plan-pose-estimate-object" :depends-on("package" "suturo-planning-plan"))

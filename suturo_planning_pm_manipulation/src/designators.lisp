@@ -9,6 +9,8 @@
                      (desig-prop ?designator (to grasp))
                      (desig-prop ?designator (obj ?obj)))
 
+  (cram-reasoning:<- (action-desig ?designator (action)))
+
   (cram-reasoning:<- (action-desig ?designator (lift ?obj))
                      (desig-prop ?designator (to lift))
                      (desig-prop ?designator (obj ?obj)))
