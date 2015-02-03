@@ -24,14 +24,20 @@
             angle-threshold)))
 
 (defun is-map-scanned()
+  "TODO Set timeout "
   (let ((is-scanned nil)
         (percentage 0))
-    (if (not (roslisp:wait-for-service "suturo/map/get_percent_cleared" *timeout-service*))
+    (print "Im in is map scanned")
+    (if (not (roslisp:wait-for-service "suturo/map/get_percent_cleared" 1))
         (roslisp:ros-warn nil t (concatenate 'string "Following service timed out: " "suturo/map/get_percent_cleared" ))
         (progn
-          (setf percentage (roslisp:msg-slot-value (roslisp:call-service  "suturo/map/get_percent_cleared" 'suturo_interface_msgs-srv:GetPercentCleared) 'percentage))
+          (print "calling service percent cleared")
+          (setf percentage (roslisp:msg-slot-value (roslisp:call-service  "suturo/map/get_percent_cleared" 'suturo_interface_msgs-srv:GetPercentCleared) 'percent))
+          (print "Service call done")
+          (format t "~$" percentage)
           (if (> percentage 0.95)
               (setf is-scanned T))))
+    (print "Returning is scanned")
     is-scanned))
 
 
@@ -60,6 +66,8 @@
     (cram-reasoning:lisp-fun yes ?object ?location))
 
   (cram-reasoning:<- (map-scanned)
+    (cram-reasoning:lisp-pred is-map-scanned)
+    (print "Im doooonnnneee !!!!!!!!!!")
     ;;TODO: Check if 95% of the map is scanned
    )
 

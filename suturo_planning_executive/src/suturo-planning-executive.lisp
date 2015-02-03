@@ -69,8 +69,23 @@
                   found-objects target-zones))))))
 
 
-(def top-level-cram-function task1-tmp ()
-  (plan)
-  (print "Waiting")
-  (cpl-impl:wait-for (fl-and (eql *current-state* :state-init) (eql *current-transition* :transition-successful)))
-  (achieve `(map-scanned)))
+(def-top-level-cram-function task1-tmp ()
+  (roslisp:with-ros-node "testExecution"
+  (with-process-modules
+    (cpl-impl:par
+      (planlib:do-planning "task1_v1")
+      (progn
+        (print "Waiting")
+        (cpl-impl:wait-for (fl-and (eql *current-state* :state-init) (eql *current-transition* :transition-successful)))
+        (achieve `(suturo-planning-planlib::map-scanned)))))))
+
+(declare-goal greet-person (person) ; wie defgeneric
+  (format t "Trying to greet ~a~%" person)) ; :before defgeneric
+
+(def-goal (greet-person mama)
+  (format t "Hi Mum!"))
+
+;(def-goal (greet-person ?person)
+; (format t "Actually greeting ~a~%" person)) ; wie defmethod
+  
+;(greet-person 'mama)

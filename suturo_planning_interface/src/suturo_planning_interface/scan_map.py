@@ -21,6 +21,8 @@ class MapScanner(object):
     NAME_SERVICE_GET_PERCENT_CLEARED = "suturo/map/get_percent_cleared"
 
     def __init__(self):
+        if utils.map is None:
+            utils.map = Map(2)
         self.create_service()
 
     def create_service(self):
@@ -61,8 +63,6 @@ class MapScanner(object):
         return resp
 
     def _handle_add_point_cloud(self, req):
-        if utils.map is None:
-            utils.map = Map(2)
         if req.arm_origin is not None:
             print(req.arm_origin)
             utils.map.add_point_cloud(req.arm_origin, scene_cam=req.scenecam)

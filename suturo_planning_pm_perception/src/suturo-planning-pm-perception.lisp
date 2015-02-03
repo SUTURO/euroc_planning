@@ -72,14 +72,17 @@
 ;; (desig-prop-value mydesig 'color)
 ;; (defparameter mydesig (make-designator 'object `((color (1 2 3 4))) ))
 (def-action-handler perceive (obj-designator)
-  "Returns a list of objects that can be perceived without
-   moving and match the object-designator"
-  
-  (recognize-objects-of-interest 
-   (desig-prop-value obj-designator 'color))
+  (print "ASDFFF"))
 
-  (roslisp:ros-info (action perceive) "Returning object.")
-  (list obj-designator))
+
+(def-action-handler perceive-scene-with (scenecam)
+  ;;(call-service-add-point-cloud scenecam)
+  (print "ASDSD"))
+
+(defun call-service-add-point-cloud(scenecam)
+  (if (not (roslisp:wait-for-service +service-name-add-point-cloud+ +timeout-service+))
+      (roslisp:ros-warn nil t (concatenate 'string "Following service timed out: " +service-name-add-point-cloud+))
+      (roslisp:call-service +service-name-add-point-cloud+ 'suturo_interface_msgs-srv:AddPointCloud :scenecam scenecam)))
 
 (cpm:def-process-module suturo-planning-pm-perception (desig)
   (apply #'call-action (reference desig)))

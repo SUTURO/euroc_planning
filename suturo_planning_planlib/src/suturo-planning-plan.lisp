@@ -58,17 +58,12 @@
 (defvar *timeout-service* 10 "The time to wait for a service")
 (defvar *state* (make-fluent :name :state) "The current state")
 
-(defconstant +service-name-move-mastcam+ "/suturo/manipulation/move_mastcam" "The name of the service to move the mastcam")
-(defconstant +service-name-add-point-cloud+ "/suturo/add_point_cloud" "The name of the service to add a point cloud")
-(defconstant +service-name-move-robot+ "/suturo/manipulation/move" "The name of the service to move the robot")
-(defconstant +service-name-get-base-origin+ "/suturo/get_base_origin" "The name of the service to get the base origin")
 (defconstant +service-name-classify-objects+ "suturo/Classifier" "The name of the service to classify objects")
 (defconstant +service-name-euroc-object-to-odom-combined+ "/suturo/euroc_object_to_odom_combined" "The name of the service to convert an EurocObject the a odom combined one")
 (defconstant +service-name-get-collision-object+ "/suturo/manipulation/get_collision_object" "The name of the service to get a collision object of the planning scene")
 (defconstant +service-name-add-collision-objects+ "/suturo/manipulation/add_collision_objects" "The name of the service to add collision objects to the current scene")
 (defconstant +service-name-mark-region-as-object-under-point+ "/suturo/mark_region_as_object_under_point" "The name of the service to mark a region as object")
 (defconstant +service-name-current-map-to-collision-object+ "/suturo/current_map_to_collision_object")
-(defconstant +waiting-time-before-scan+ 1)  
 
 (defun start-up-dependency-nodes()
   (call-service-state "start_manipulation")
@@ -79,13 +74,9 @@
   (setf-msg (value *taskdata*) (name) task_name)
   (call-service-state "start_simulation"))
 
-(defun plan (task_name)
-  (roslisp:with-ros-node (*name-node*)
-    (cpl-impl:top-level
+(defun do-planning (task_name)
       (cpl-impl:par
         (state-init task_name)
-        ;(state-scan-map)
-        ;(state-scan-shadow)
         (state-search-objects)
         (state-classify-objects)
         (state-pose-estimate-object)
@@ -97,20 +88,20 @@
             ((and (eql (value *current-state*) :state-scan-obstacles) (eql (value *current-transition*) :transition-map-scanned)) (call-service-state "scan_obstacles")) 
             ((and (eql (value *current-state*) :state-scan-obstacles) (eql (value *current-transition*) :transition-no-region-left)) (call-service-state "clean_up_plan")) 
             ((and (eql (value *current-state*) :state-clean-up-plan) (eql (value *current-transition*) :transition-success)) (call-service-state "choose_object"))
-            ((and (eql (value *current-state*) :state-clean-up-plan) (eql (value *current-transition*) :transition-fail)) (fail))
+            ((and (eql (value *current-state*) :state-clean-up-plan) (eql (value *current-transition*) :transition-fail)) (failed))
             ((and (eql (value *current-state*) :state-choose-object) (eql (value *current-transition*) :transition-object-chosen)) (call-service-state "grasp_object"))
             ((and (eql (value *current-state*) :state-choose-object) (eql (value *current-transition*) :transition-success)) (done))
             ((and (eql (value *current-state*) :state-choose-object) (eql (value *current-transition*) :transition-retry)) (call-service-state "clean_up_plan"))
             ((and (eql (value *current-state*) :state-choose-object) (eql (value *current-transition*) :transition-no-objects-left)) (done))
             ((and (eql (value *current-state*) :state-grasp-object) (eql (value *current-transition*) :transition-success)) (call-service-state "place_object"))
-            ((and (eql (value *current-state*) :state-grasp-object) (eql (value *current-transition*) :transition-object-not-in-planning-scene)) (fail))
-            ((and (eql (value *current-state*) :state-grasp-object) (eql (value *current-transition*) :transition-no-grasp-position)) (fail))
-            ((and (eql (value *current-state*) :state-grasp-object) (eql (value *current-transition*) :transition-fail)) (fail))
+            ((and (eql (value *current-state*) :state-grasp-object) (eql (value *current-transition*) :transition-object-not-in-planning-scene)) (failed))
+            ((and (eql (value *current-state*) :state-grasp-object) (eql (value *current-transition*) :transition-no-grasp-position)) (failed))
+            ((and (eql (value *current-state*) :state-grasp-object) (eql (value *current-transition*) :transition-fail)) (failed))
             ((and (eql (value *current-state*) :state-place-object) (eql (value *current-transition*) :transition-success)) (call-service-state "check_placement"))
-            ((and (eql (value *current-state*) :state-place-object) (eql (value *current-transition*) :transition-fail)) (fail))
+            ((and (eql (value *current-state*) :state-place-object) (eql (value *current-transition*) :transition-fail)) (failed))
             ((and (eql (value *current-state*) :state-place-object) (eql (value *current-transition*) :transition-no-object-attached)) (call-service-state "grasp_object"))
             ((and (eql (value *current-state*) :state-place-object) (eql (value *current-transition*) :transition-no-place-position)) (call-service-state "place_object"))
-            ((eql (value *current-state*) :state-check-placement) (call-service-state "choose_object"))))))))
+            ((eql (value *current-state*) :state-check-placement) (call-service-state "choose_object"))))))
 
 (defun call-create-taskdata ()
   (print "Calling create taskdata ")
@@ -205,14 +196,11 @@
   (format t "Done")
   (setf (value *current-state*) :state-end))
 
-(defun fail ()
+(defun failed ()
   (format t "FAILED!")
   (setf (value *current-state*) :state-fail))
 
-;;TODO define archieve map-scanned
-;;TODO define reasoning in executive (Verknüpfung zu goal erreicht / nicht erreicht)
-;;TODO über perform (action) im pm_manipulation eine action für map scannen erstellen 
-(def-goal (achieve (map-scanned))
-    (perform scan-map-action))
+(def-goal (cram-plan-library:achieve (map-scanned))
+  (perform (make-designator 'action '((to scan-map)))))
     
     

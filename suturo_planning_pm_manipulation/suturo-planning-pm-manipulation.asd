@@ -2,11 +2,16 @@
   :depends-on (roslisp
                process-modules
                designators
-               alexandria)
+               alexandria
+               suturo_interface_msgs-srv
+               suturo_interface_msgs-msg
+               suturo_planning_manipulation-srv
+               suturo_perception_msgs-srv
+               suturo-planning-constants)
   :components
   ((:module "src"
             :components
             ((:file "package")
              (:file "designators" :depends-on("package"))
              (:file "suturo-planning-pm-manipulation" :depends-on ("package" "designators"))
-             (:file "suturo-planning-pm-manipulation-scan-map" :depends-on ("package" "designators"))))))
+             (:file "suturo-planning-pm-manipulation-scan-map" :depends-on ("package" "designators" "suturo-planning-pm-manipulation"))))))

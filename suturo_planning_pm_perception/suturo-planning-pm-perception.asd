@@ -6,7 +6,8 @@
                process-modules
                designators
                alexandria
-               cl-transforms)
+               cl-transforms
+               suturo-planning-constants)
   :components
   ((:module "src"
             :components

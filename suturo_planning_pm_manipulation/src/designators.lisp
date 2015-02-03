@@ -9,7 +9,10 @@
                      (desig-prop ?designator (to grasp))
                      (desig-prop ?designator (obj ?obj)))
 
-  (cram-reasoning:<- (action-desig ?designator (action)))
+  (cram-reasoning:<- (action-desig ?designator (move-mast-cam ?pan ?tilt))
+                     (desig-prop ?designator (to move-mast-cam))
+                     (desig-prop ?designator (pan ?pan))
+                     (desig-prop ?designator (tilt ?tilt)))
 
   (cram-reasoning:<- (action-desig ?designator (lift ?obj))
                      (desig-prop ?designator (to lift))
@@ -41,5 +44,6 @@
                          (desig-prop ?designator (to carry))
                          (desig-prop ?designator (type navigation))
                          (desig-prop ?designator (to put-down))
-                         (desig-prop ?designator (to park))))
+                         (desig-prop ?designator (to park))
+                         (desig-prop ?designator (to move-mast-cam))))
   (cram-reasoning:<- (cram-process-modules:available-process-module suturo-planning-pm-manipulation)))
