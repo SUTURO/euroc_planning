@@ -11,7 +11,10 @@
            #:*current-state*
            #:*current-transition*
            #:*taskdata*
-           #:map-scanned)
+           #:map-scanned
+           #:map-scanning-failed
+           #:objects-information-failed
+           #:objects-in-place-failed)
   (:desig-properties
    #:to 
    #:pan

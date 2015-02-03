@@ -2,6 +2,8 @@
 
 (defun yes (&rest args) t)
 
+(defun no (&rest args) nil)
+
 (defun is-robot-looking-at (location)
   "Checks if the robot is looking at the given location"
   ; TODO: Needs implementation
@@ -70,6 +72,14 @@
     (print "Im doooonnnneee !!!!!!!!!!")
     ;;TODO: Check if 95% of the map is scanned
    )
+
+  (cram-reasoning:<- (objects-informed)
+    ; TODO: Implement me
+    (cram-reasoning:lisp-pred no))
+
+  (cram-reasoning:<- (objects-in-place ?objects)
+    ; TODO: Implement me
+    (cram-reasoning:lisp-pred no))
 
   (cram-reasoning:<- (holds ?occasion)
     (cram-reasoning:call ?occasion)))
