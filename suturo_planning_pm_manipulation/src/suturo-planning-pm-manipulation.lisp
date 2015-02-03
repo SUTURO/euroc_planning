@@ -1,5 +1,13 @@
 (in-package :manipulation)
 
+;; Variables
+(defvar *timeout-service* 10 "The time to wait for a service")
+
+; Service Names to use
+(defconstant +close-gripper-service+ "/suturo/manipulation/close_gripper")
+
+
+; Helper functions
 (defgeneric call-action (action &rest params))
 
 (defmethod call-action ((action-sym t) &rest params)
@@ -24,6 +32,16 @@
     `(defmethod call-action ((,action-sym (eql ',name)) &rest ,params)
       (destructuring-bind ,args ,params ,@body))))
 
+(defmethod call-ros-service (service-name &rest args)
+  (if (not (roslisp:wait-for-service service-name *timeout-service*))
+    (let ((timed-out-text (concatenate 'string "Times out waiting for service" service-name)))
+      (roslisp:ros-warn nil t timed-out-text))
+    (progn
+      (roslisp:call-service service-name args)
+    )
+  )
+)
+
 ; To see how these action handlers are implemented for the pr2, see
 ; https://github.com/cram-code/cram_pr2/blob/master/pr2_manipulation_process_module/src/action-handlers.lisp
 
@@ -42,13 +60,22 @@
 
 (def-action-handler lift (obj-designator)
   "Lifts an arm by a distance"
+  
   ; TODO: Implement me
   )
 
 (def-action-handler grasp (obj-designator)
   "Grasps the object specified by the obj-designator"
-  ; TODO: Implement me
+  (let ((collision-object (desig-prop-value obj-designator 'collision-object)))
+    (let ((request (roslisp:make-request 'suturo_planning_manipulation-srv:CloseGripper collision-object nil)))
+      (let ((response (call-ros-service +close-gripper-service+ request)))
+        (if (not (roslisp:msg-slot-value response 'result))
+            (fail 'manipulation-failure)
+        )
+      )
+    )
   )
+)
 
 (def-action-handler carry (obj-designator)
   "Carries the object"

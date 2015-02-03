@@ -5,9 +5,10 @@
                alexandria
                suturo_interface_msgs-srv
                suturo_interface_msgs-msg
-               suturo_planning_manipulation-srv
                suturo_perception_msgs-srv
                suturo-planning-constants)
+               moveit_msgs-msg
+               suturo_planning_manipulation-srv)
   :components
   ((:module "src"
             :components
