@@ -6,7 +6,7 @@
                suturo_interface_msgs-srv
                suturo_interface_msgs-msg
                suturo_perception_msgs-srv
-               suturo-planning-constants)
+               suturo-planning-constants
                moveit_msgs-msg
                suturo_planning_manipulation-srv)
   :components

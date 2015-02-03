@@ -74,18 +74,13 @@
 (def-action-handler perceive (obj-designator)
   (print "ASDFFF"))
 
-
 (def-action-handler perceive-scene-with (scenecam)
-  ;;(call-service-add-point-cloud scenecam)
-  (print "ASDSD"))
+  (call-service-add-point-cloud scenecam))
 
 (defun call-service-add-point-cloud(scenecam)
   (if (not (roslisp:wait-for-service +service-name-add-point-cloud+ +timeout-service+))
       (roslisp:ros-warn nil t (concatenate 'string "Following service timed out: " +service-name-add-point-cloud+))
       (roslisp:call-service +service-name-add-point-cloud+ 'suturo_interface_msgs-srv:AddPointCloud :scenecam scenecam)))
-
-(def-action-handler perceive-scene-with (scenecam)
-  (format t "Works... ~a" scenecam))
 
 (cpm:def-process-module suturo-planning-pm-perception (desig)
   (apply #'call-action (reference desig)))

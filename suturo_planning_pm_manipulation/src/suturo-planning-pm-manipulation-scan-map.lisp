@@ -6,8 +6,9 @@
       (roslisp:ros-warn nil t (concatenate 'string "Following service timed out: " +service-name-move-mastcam+))
       (roslisp:call-service +service-name-move-mastcam+ 'suturo_planning_manipulation-srv:MoveMastCam :pan pan :tilt tilt)))
 
-(def-action-handler move-arm-cam (pose) 
+(def-action-handler move-arm-cam-pose-name (pose) 
   "Moves the mast cam to the given position"
   (if (not (roslisp:wait-for-service +service-name-move-robot+ +timeout-service+))
       (roslisp:ros-warn nil t (concatenate 'string "Following service timed out: " +service-name-move-robot+))
       (roslisp:call-service +service-name-move-robot+ 'suturo_planning_manipulation-srv:Move :type +move-group-arm+ :goal_pose_name pose)))
+

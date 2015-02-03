@@ -13,9 +13,9 @@
   (perform (make-designator 'action '((to move-mast-cam) (pan -0.2) (tilt 0.5))))
   (perform (make-designator 'action '((to perceive-scene-with) (scenecam T)))))
 
-(defun asdf ()
-  (make-designator 'action '((to perceive-scene-with) (scenecam T))))
-
+(def-cram-function scan-shadow ()
+  
+)
 
 (def-goal (cram-plan-library:achieve (map-scanned))
     (scan-map-mast-cam))

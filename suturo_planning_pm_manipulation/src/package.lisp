@@ -24,4 +24,6 @@
     #:obj
     #:pan
     #:tilt
+    #:move-arm-cam
+    #:pose-name
     #:move-mast-cam))
