@@ -2,7 +2,9 @@
   :depends-on (roslisp
                process-modules
                designators
-               alexandria)
+               alexandria
+               moveit_msgs-msg
+               suturo_planning_manipulation-srv)
   :components
   ((:module "src"
             :components
