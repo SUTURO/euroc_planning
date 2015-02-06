@@ -7,4 +7,5 @@
       (defconstant +service-name-add-point-cloud+ "/suturo/add_point_cloud" "The name of the service to add a point cloud")
       (defconstant +service-name-move-robot+ "/suturo/manipulation/move" "The name of the service to move the robot")
       (defconstant +service-name-get-base-origin+ "/suturo/get_base_origin" "The name of the service to get the base origin")
-      (defconstant +timeout-service+ 10 "The time to wait for a service")))
+      (defconstant +timeout-service+ 10 "The time to wait for a service")
+      (defconstant +base-origin-topic+ "/suturo/manipulation/get_base_origin")))

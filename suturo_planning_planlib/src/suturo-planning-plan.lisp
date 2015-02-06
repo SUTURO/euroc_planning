@@ -190,6 +190,7 @@
       (start-up-simulation task_name) 
       (start-up-dependency-nodes) 
       (call-service-state "init") 
+      (manipulation:init)
       (setf (value *current-transition*) :transition-successful)))
 
 (defun done ()

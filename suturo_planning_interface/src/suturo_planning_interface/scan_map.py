@@ -57,7 +57,6 @@ class MapScanner(object):
         return resp
 
     def _handle_get_base_origin(self, req):
-        arm_base = utils.manipulation.get_base_origin()
         resp = GetBaseOriginResponse()
         resp.base_origin = arm_base.point
         return resp

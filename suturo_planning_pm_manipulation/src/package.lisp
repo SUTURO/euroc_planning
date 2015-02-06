@@ -3,12 +3,16 @@
 (desig-props:def-desig-package suturo-planning-pm-manipulation
   (:nicknames :manipulation)
   (:use #:desig
-        #:cl
-        #:cl-transforms
+        #:constants
+        #:cram-plan-library
         #:roslisp
+        #:cl-transforms
+        #:cl
         #:constants)
   (:export #:suturo-planning-pm-manipulation
            #:scan-map
+           #:*base-origin*
+           #:init 
            #:scan-map-action)
   (:desig-properties
     #:to

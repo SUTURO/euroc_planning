@@ -77,10 +77,17 @@
 (def-action-handler perceive-scene-with (scenecam)
   (call-service-add-point-cloud scenecam))
 
-(defun call-service-add-point-cloud(scenecam)
+(def-action-handler perceive-scene-with-origin (scenecam arm-origin)
+  (call-service-add-point-cloud scenecam arm-origin))
+
+(defun call-service-add-point-cloud(scenecam &optional arm-origin)
   (if (not (roslisp:wait-for-service +service-name-add-point-cloud+ +timeout-service+))
       (roslisp:ros-warn nil t (concatenate 'string "Following service timed out: " +service-name-add-point-cloud+))
-      (roslisp:call-service +service-name-add-point-cloud+ 'suturo_interface_msgs-srv:AddPointCloud :scenecam scenecam)))
+      (progn
+        (if (not arm-origin)
+            (roslisp:call-service +service-name-add-point-cloud+ 'suturo_interface_msgs-srv:AddPointCloud :scenecam scenecam)
+            (roslisp:call-service +service-name-add-point-cloud+ 'suturo_interface_msgs-srv:AddPointCloud :scenecam scenecam :arm_origin arm-origin)))))
+
 
 (cpm:def-process-module suturo-planning-pm-perception (desig)
   (apply #'call-action (reference desig)))

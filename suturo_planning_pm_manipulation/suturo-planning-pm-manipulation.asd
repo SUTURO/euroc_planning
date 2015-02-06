@@ -1,5 +1,7 @@
 (defsystem suturo-planning-pm-manipulation
   :depends-on (roslisp
+               cram-plan-library
+               cram-language
                process-modules
                designators
                alexandria

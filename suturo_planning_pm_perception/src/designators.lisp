@@ -6,6 +6,11 @@
                      (desig-prop ?designator (to perceive))
                      (desig-prop ?designator (obj ?obj)))
 
+  (cram-reasoning:<- (action-desig ?designator (perceive-scene-with-origin ?scenecam ?base-origin))
+                     (desig-prop ?designator (to perceive-scene-with))
+                     (desig-prop ?designator (scenecam ?scenecam))
+                     (desig-prop ?designator (base-origin ?base-origin)))
+
   (cram-reasoning:<- (action-desig ?designator (perceive-scene-with ?scenecam))
                      (desig-prop ?designator (to perceive-scene-with))
                      (desig-prop ?designator (scenecam ?scenecam))))

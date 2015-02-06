@@ -9,5 +9,6 @@
            #:+service-name-add-point-cloud+
            #:+service-name-move-robot+
            #:+service-name-get-base-origin+
+           #:+base-origin-topic+ 
            #:+timeout-service+))
 
