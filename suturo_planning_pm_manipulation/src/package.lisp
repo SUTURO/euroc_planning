@@ -6,7 +6,9 @@
         #:constants
         #:cram-plan-library
         #:roslisp
-        #:cl)
+        #:cl-transforms
+        #:cl
+        #:constants)
   (:export #:suturo-planning-pm-manipulation
            #:scan-map
            #:*base-origin*

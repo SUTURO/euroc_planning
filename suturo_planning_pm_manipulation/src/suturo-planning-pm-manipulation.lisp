@@ -15,10 +15,6 @@
 ;; Variables
 (defvar *timeout-service* 10 "The time to wait for a service")
 
-; Service Names to use
-(defconstant +close-gripper-service+ "/suturo/manipulation/close_gripper")
-
-
 ; Helper functions
 (defgeneric call-action (action &rest params))
 
@@ -60,12 +56,12 @@
 
 (def-action-handler follow (pose)
   "Follow head with pose."
-  ; TODO: Implement me
+  ; Will not be implemented as we don't have a head to follow an object
   )
 
 (def-action-handler park (obj)
   "Moves the arms to a park position"
-  ; TODO: Implement me
+  ; Will not be implemented as we don't have a parking position
   )
 
 (def-action-handler lift (obj-designator)
@@ -89,8 +85,8 @@
 
 (def-action-handler carry (obj-designator)
   "Carries the object"
-  ;TODO: Implement me
-  )
+  ; Will not be implemented as we have nothing to do within this action
+)
 
 (def-action-handler put-down (obj-designator location)
   "Puts the object specified by the obj-designator down at a location"

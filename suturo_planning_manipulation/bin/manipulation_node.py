@@ -89,7 +89,9 @@ class ManipulationNode(object):
         grasp_point = msg.grasp_point
         if grasp_point == PointStamped():
             grasp_point = None
-        return self.__manipulation.close_gripper(obj, grasp_point)
+        result = self.__manipulation.close_gripper(obj, grasp_point)
+        joint_state = self.__manipulation.get_current_gripper_state()
+        return (result, joint_state)
 
     def __publish(self):
         rate = rospy.Rate(10)
