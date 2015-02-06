@@ -6,3 +6,4 @@ geometry_msgs/PointStamped grasp_point
 
 #Response
 bool result
+sensor_msgs/JointState joint_state
