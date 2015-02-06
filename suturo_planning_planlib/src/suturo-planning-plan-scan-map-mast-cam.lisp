@@ -22,7 +22,3 @@
   (perform (make-designator 'action `((to perceive-scene-with) (scenecam nil) (arm-origin ,(value manipulation:*base-origin*)))))
   (perform (make-designator 'action `((to move-arm-cam ) (pose-name ,(second +scan-poses+)))))
   (perform (make-designator 'action `((to perceive-scene-with) (scenecam nil) (arm-origin ,(value manipulation:*base-origin*))))))
-
-(def-goal (cram-plan-library:achieve (map-scanned))
-  (scan-map-mast-cam)
-  (scan-shadow))

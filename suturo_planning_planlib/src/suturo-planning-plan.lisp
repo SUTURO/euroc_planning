@@ -200,8 +200,3 @@
 (defun failed ()
   (format t "FAILED!")
   (setf (value *current-state*) :state-fail))
-
-(def-goal (cram-plan-library:achieve (map-scanned))
-  (perform (make-designator 'action '((to scan-map)))))
-    
-    
