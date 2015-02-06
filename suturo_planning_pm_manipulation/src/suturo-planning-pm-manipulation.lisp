@@ -11,10 +11,6 @@
 (defun base-origin-cb (msg)
   (setf (cpl:value *base-origin*) (roslisp:msg-slot-value msg 'point)))
 
-
-;; Variables
-(defvar *timeout-service* 10 "The time to wait for a service")
-
 ; Helper functions
 (defgeneric call-action (action &rest params))
 
@@ -41,7 +37,7 @@
       (destructuring-bind ,args ,params ,@body))))
 
 (defmethod call-ros-service (service-name &rest args)
-  (if (not (roslisp:wait-for-service service-name *timeout-service*))
+  (if (not (roslisp:wait-for-service service-name +timeout-service+))
     (let ((timed-out-text (concatenate 'string "Times out waiting for service" service-name)))
       (roslisp:ros-warn nil t timed-out-text))
     (progn
@@ -64,19 +60,29 @@
   ; Will not be implemented as we don't have a parking position
   )
 
-(def-action-handler lift (obj-designator)
-  "Lifts an arm by a distance"
-  
-  ; TODO: Implement me
-  )
+;(def-action-handler lift (obj-designator)
+;  "Lifts an arm by a distance"
+;  (with-desig-props (grasp-point) obj-designator
+;    (let ((position (make-msg "geometry_msgs/Point" :x (first grasp-point)
+;                                                    :y (second grasp-point)
+;                                                    :z (third grasp-point))))
+;      (let (request (make-request 'suturo_planning_manipulation-srv:Move
+;                      (slot
+;    ) 
+;  )
+;)
 
-(def-action-handler grasp (obj-designator)
+(def-action-handler grasp (object-designator)
   "Grasps the object specified by the obj-designator"
-  (let ((collision-object (desig-prop-value obj-designator 'collision-object)))
+  (with-desig-propst (collision-object) obj-designator
     (let ((request (roslisp:make-request 'suturo_planning_manipulation-srv:CloseGripper collision-object nil)))
-      (let ((response (call-ros-service +close-gripper-service+ request)))
-        (if (not (roslisp:msg-slot-value response 'result))
+      (let ((response (call-ros-service +service-name-close-gripper+ request)))
+        (with-fields (result joint_state) response
+          (if (not result)
             (fail 'manipulation-failure)
+            (with-fields (position) joint_state
+              (make-designator 'action (update-designator-properties `((grasp-point (position))) (description object-designator))))
+          )
         )
       )
     )
