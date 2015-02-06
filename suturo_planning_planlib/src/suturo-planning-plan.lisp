@@ -81,13 +81,12 @@
         (state-classify-objects)
         (state-pose-estimate-object)
         (state-focus-objects)
+        (state-clean-up-plan)
+        (state-choose-object)
         (loop while (not (or (eql (value *current-state*) :state-end) (eql (value *current-state*) :state-fail))) do
           (cond  
             ((and (eql (value *current-state*) :state-search-objects) (eql (value *current-transition*) :transition-missing-objects)) (call-service-state "scan_obstacles"))
-            ((and (eql (value *current-state*) :state-search-objects) (eql (value *current-transition*) :transition-no-objects-left)) (call-service-state "clean_up_plan"))
             ((and (eql (value *current-state*) :state-scan-obstacles) (eql (value *current-transition*) :transition-map-scanned)) (call-service-state "scan_obstacles")) 
-            ((and (eql (value *current-state*) :state-scan-obstacles) (eql (value *current-transition*) :transition-no-region-left)) (call-service-state "clean_up_plan")) 
-            ((and (eql (value *current-state*) :state-clean-up-plan) (eql (value *current-transition*) :transition-success)) (call-service-state "choose_object"))
             ((and (eql (value *current-state*) :state-clean-up-plan) (eql (value *current-transition*) :transition-fail)) (failed))
             ((and (eql (value *current-state*) :state-choose-object) (eql (value *current-transition*) :transition-object-chosen)) (call-service-state "grasp_object"))
             ((and (eql (value *current-state*) :state-choose-object) (eql (value *current-transition*) :transition-success)) (done))
@@ -100,8 +99,7 @@
             ((and (eql (value *current-state*) :state-place-object) (eql (value *current-transition*) :transition-success)) (call-service-state "check_placement"))
             ((and (eql (value *current-state*) :state-place-object) (eql (value *current-transition*) :transition-fail)) (failed))
             ((and (eql (value *current-state*) :state-place-object) (eql (value *current-transition*) :transition-no-object-attached)) (call-service-state "grasp_object"))
-            ((and (eql (value *current-state*) :state-place-object) (eql (value *current-transition*) :transition-no-place-position)) (call-service-state "place_object"))
-            ((eql (value *current-state*) :state-check-placement) (call-service-state "choose_object"))))))
+            ((and (eql (value *current-state*) :state-place-object) (eql (value *current-transition*) :transition-no-place-position)) (call-service-state "place_object"))))))
 
 (defun call-create-taskdata ()
   (print "Calling create taskdata ")
