@@ -30,4 +30,7 @@
     #:of
     #:at
     #:pose
-    #:cube))
+    #:cube
+    #:scenecam
+    #:perceive-scene-with
+    #:scan-map))

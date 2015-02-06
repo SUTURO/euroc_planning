@@ -1,0 +1,5 @@
+(in-package :cl-user)
+
+(defpackage suturo-planning-constants
+  (:nicknames :constants)
+  (:use #:roslisp))

@@ -2,6 +2,8 @@
 
 (defun yes (&rest args) t)
 
+(defun no (&rest args) nil)
+
 (defun is-robot-looking-at (location)
   "Checks if the robot is looking at the given location"
   ; TODO: Needs implementation
@@ -22,6 +24,24 @@
             (tf:orientation pose-1)
             (tf:orientation pose-2))
             angle-threshold)))
+
+(defun is-map-scanned()
+  "TODO Set timeout "
+  (let ((is-scanned nil)
+        (percentage 0))
+    (print "Im in is map scanned")
+    (if (not (roslisp:wait-for-service "suturo/map/get_percent_cleared" 1))
+        (roslisp:ros-warn nil t (concatenate 'string "Following service timed out: " "suturo/map/get_percent_cleared" ))
+        (progn
+          (print "calling service percent cleared")
+          (setf percentage (roslisp:msg-slot-value (roslisp:call-service  "suturo/map/get_percent_cleared" 'suturo_interface_msgs-srv:GetPercentCleared) 'percent))
+          (print "Service call done")
+          (format t "~$" percentage)
+          (if (> percentage 0.95)
+              (setf is-scanned T))))
+    (print "Returning is scanned")
+    is-scanned))
+
 
 (defmethod cram-plan-knowledge:holds (occasion &optional time-specification)
   "Taken from simple_belief since the package pulls too many dependencies"
@@ -46,6 +66,29 @@
   (cram-reasoning:<- (cram-plan-library:object-put ?object ?location)
     ; TODO: check if object was really put down at location
     (cram-reasoning:lisp-fun yes ?object ?location))
+
+  (cram-reasoning:<- (map-scanned)
+    (cram-reasoning:lisp-pred is-map-scanned))
+
+  (cram-reasoning:<- (objects-informed)
+    ; TODO: Implement me
+    (cram-reasoning:lisp-pred no))
+
+  (cram-reasoning:<- (unknown-scanned)
+    ; TODO: Implement me
+    (cram-reasoning:lisp-pred no))
+
+  (cram-reasoning:<- (object-classified ?object)
+    ; TODO: Implement me
+    (cram-reasoning:lisp-pred no))
+
+  (cram-reasoning:<- (pose-estimated ?object)
+    ; TODO: Implement me
+    (cram-reasoning:lisp-pred no))
+
+  (cram-reasoning:<- (objects-in-place ?objects)
+    ; TODO: Implement me
+    (cram-reasoning:lisp-pred no))
 
   (cram-reasoning:<- (holds ?occasion)
     (cram-reasoning:call ?occasion)))

@@ -42,28 +42,52 @@
 
 (def-top-level-cram-function task1 ()
   "Top level plan for task 1 of the euroc challenge"
-  (let* ((task-variation (roslisp:get-param "/planning/task_variation" "1"))
-         (xml-zones (roslisp::xml-rpc-struct-alist
-                      (roslisp:get-param
-                        (format nil "/task1_~a/public_description/target_zones"
-                                    task-variation))))
-         (target-zones (mapcar #'parse-target-zone xml-zones))
-         ; TODO: get objects and locations from perceived world
-         (obj-location (make-designator 'location `((pose ,(cl-tf:pose->pose-stamped "/map"
-                                                             (ros-time)
-                                                             (cl-transforms:make-identity-pose))))))
-         (found-objects (repeat (make-designator 'object `((at ,obj-location)
-                                                           (type cube))) (length target-zones)))
-         (obj (car found-objects)))
-    (with-designators
-      ((obj-in-hand (object `((at ,(make-designator 'location '((gripper gripper)))))))
-       (grasp-position (location '((to grasp)))))
-      (let ((put-down-location (car target-zones)))
-        (with-process-modules
-          (mapcar (lambda (obj target-zone) ; TODO: probably needs better matching of objects to target zones
-                    (roslisp:ros-info (task1) "Placing object ~a in target zone ~a" obj target-zone)
-                    (at-location (grasp-position)
-                      (achieve `(object-in-hand ,obj))
-                      (equate obj obj-in-hand) ; object is now in gripper
-                      (achieve `(object-put ,obj ,put-down-location))))
-                  found-objects target-zones))))))
+  (with-process-modules
+    (with-retry-counters ((all-retry-count 2)
+                          (scan-map-retry-count 2)
+                          (inform-objects-retry-count 2)
+                          (objects-in-place-retry-count 3))
+      (with-failure-handling
+        ((simple-plan-failure (e)
+           (declare (ignore e))
+           (ros-warn (toplevel task1) "Something failed.")
+           (do-retry all-retry-count
+             (ros-warn (toplevel task1) "Retrying all.")
+             (reset-counter scan-map-retry-count)
+             (reset-counter inform-objects-retry-count)
+             (reset-counter objects-in-place-retry-count)
+             (retry))))
+        (with-failure-handling
+          ((map-scanning-failed (e)
+             (declare (ignore e))
+             (ros-warn (toplevel task1) "Failed to scan map.")
+             (do-retry scan-map-retry-count
+               (ros-warn (toplevel task1) "Retrying.")
+               (retry))))
+          (achieve '(map-scanned))
+          (with-failure-handling
+            ((objects-information-failed (e)
+               (declare (ignore e))
+               (ros-warn (toplevel task1) "Failed to inform objects.")
+               (do-retry inform-objects-retry-count
+                 (ros-warn (toplevel task1) "Retrying.")
+                 (retry))))
+            (let ((objects (achieve '(objects-informed))))
+              (with-failure-handling
+                ((objects-in-place-failed (e)
+                   (declare (ignore e))
+                   (ros-warn (toplevel task1) "Failed to put objects in place.")
+                   (do-retry objects-in-place-retry-count
+                     (ros-warn (toplevel task1) "Retrying.")
+                     (retry))))
+                (achieve `(objects-in-place ,objects))))))))))
+
+(def-top-level-cram-function task1-tmp ()
+  (roslisp:with-ros-node "testExecution"
+  (with-process-modules
+    (cpl-impl:par
+      (planlib:do-planning "task1_v1")
+      (progn
+        (print "Waiting")
+        (cpl-impl:wait-for (fl-and (eql *current-state* :state-init) (eql *current-transition* :transition-successful)))
+        (achieve `(suturo-planning-planlib::map-scanned)))))))

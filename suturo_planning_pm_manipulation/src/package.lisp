@@ -3,8 +3,16 @@
 (desig-props:def-desig-package suturo-planning-pm-manipulation
   (:nicknames :manipulation)
   (:use #:desig
+        #:constants
+        #:cram-plan-library
+        #:roslisp
+        #:cl-transforms
         #:cl)
-  (:export #:suturo-planning-pm-manipulation)
+  (:export #:suturo-planning-pm-manipulation
+           #:scan-map
+           #:*base-origin*
+           #:init 
+           #:scan-map-action)
   (:desig-properties
     #:to
     #:type
@@ -18,4 +26,9 @@
     #:carry
     #:park
     #:pose
-    #:obj))
+    #:obj
+    #:pan
+    #:tilt
+    #:move-arm-cam
+    #:pose-name
+    #:move-mast-cam))

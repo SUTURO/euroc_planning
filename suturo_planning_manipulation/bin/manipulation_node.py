@@ -31,7 +31,6 @@ class ManipulationNode(object):
         rospy.Service(CLOSE_GRIPPER_SERVICE, CloseGripper, self.__handle_close_gripper)
         self.__base_publisher = rospy.Publisher(BASE_ORIGIN_TOPIC, PointStamped)
         self.__eef_position_publisher = rospy.Publisher(GET_EEF_POSITION_TOPIC, PointStamped)
-        print("ASDFASDFASFLKJKDJSFKJLASDFKJLDKFDKJLFKDSFHDSKFK############################################################################")
     
     def __handle_move(self, msg):
         goal_pose = self.__get_goal_pose(msg)
@@ -90,7 +89,9 @@ class ManipulationNode(object):
         grasp_point = msg.grasp_point
         if grasp_point == PointStamped():
             grasp_point = None
-        return self.__manipulation.close_gripper(obj, grasp_point)
+        result = self.__manipulation.close_gripper(obj, grasp_point)
+        joint_state = self.__manipulation.get_current_gripper_state()
+        return (result, joint_state)
 
     def __publish(self):
         rate = rospy.Rate(10)
