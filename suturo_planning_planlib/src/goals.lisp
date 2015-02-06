@@ -1,7 +1,8 @@
 (in-package :planlib)
 
 (def-goal (achieve (map-scanned))
-  (scan-map-mast-cam))
+  (scan-map-mast-cam)
+  (scan-shadow))
 
 (def-goal (achieve (objects-informed))
   ; TODO: Implement me correctly

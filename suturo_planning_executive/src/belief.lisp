@@ -68,10 +68,7 @@
     (cram-reasoning:lisp-fun yes ?object ?location))
 
   (cram-reasoning:<- (map-scanned)
-    (cram-reasoning:lisp-pred is-map-scanned)
-    (print "Im doooonnnneee !!!!!!!!!!")
-    ;;TODO: Check if 95% of the map is scanned
-   )
+    (cram-reasoning:lisp-pred is-map-scanned))
 
   (cram-reasoning:<- (objects-informed)
     ; TODO: Implement me
