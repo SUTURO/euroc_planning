@@ -40,16 +40,6 @@
                                                                                                (caddr target-position))
                                                                  (cl-transforms:make-identity-rotation)))))))
 
-;; Dummy goal definitions. Uncomment to overwrite correct goal definition
-
-(def-goal (cram-plan-library:achieve (map-scanned)))
-
-(def-goal (cram-plan-library:achieve (objects-informed)))
-
-(def-goal (cram-plan-library:achieve (objects-in-place ?objs))
-  (fail 'objects-in-place-failed))
-
-
 (def-top-level-cram-function task1 ()
   "Top level plan for task 1 of the euroc challenge"
   (with-process-modules

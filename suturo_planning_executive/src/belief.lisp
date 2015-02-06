@@ -77,6 +77,18 @@
     ; TODO: Implement me
     (cram-reasoning:lisp-pred no))
 
+  (cram-reasoning:<- (unknown-scanned)
+    ; TODO: Implement me
+    (cram-reasoning:lisp-pred no))
+
+  (cram-reasoning:<- (object-classified ?object)
+    ; TODO: Implement me
+    (cram-reasoning:lisp-pred no))
+
+  (cram-reasoning:<- (pose-estimated ?object)
+    ; TODO: Implement me
+    (cram-reasoning:lisp-pred no))
+
   (cram-reasoning:<- (objects-in-place ?objects)
     ; TODO: Implement me
     (cram-reasoning:lisp-pred no))

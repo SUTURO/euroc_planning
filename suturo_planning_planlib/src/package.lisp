@@ -12,6 +12,11 @@
            #:*current-transition*
            #:*taskdata*
            #:map-scanned
+           #:objects-informed
+           #:unknown-scanned
+           #:object-classified
+           #:pose-estimated
+           #:objects-in-place
            #:map-scanning-failed
            #:objects-information-failed
            #:objects-in-place-failed)
