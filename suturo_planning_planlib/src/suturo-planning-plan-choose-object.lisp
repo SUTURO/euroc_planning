@@ -1,27 +1,31 @@
 (in-package :planlib)
 
+(defparameter *object-to-move* NIL)
+(defparameter *objects-handled* 0)
+
 (defun handle-choose-object()
-  "Chooses an object from the clean up plan that should be tidied up next."
-  (print "handle choose object")
-  (save-taskdata)
-  (init-choose-object)
-  (get-clean-up-plan)
-  (print (length *clean-up-plan*))
-)
+  (choose-object)
+  (increment-objects-handled)
+  )
 
-(defun init-choose-object()
-  (defparameter *clean-up-plan* (make-array 0 :fill-pointer 0 :adjustable t))
-)
+(defun choose-object()
+  (setf *object-to-move* (aref *clean-up-plan* *objects-handled*))
+  )
 
-(defun save-taskdata()
-  (defparameter *taskdata-backup *taskdata*)
-)
+(defun increment-objects-handled()
+  (incf *objects-handled*)
+  )
 
-(defun restore-choose-object()
-  (init-choose-object)
-  (setf *taskdata* *taskdata-backup*)
-)
-
-(defun get-clean-up-plan()
-  (setf *clean-up-plan* (cl-utilities:copy-array(roslisp:msg-slot-value (value *taskdata*) 'clean_up_plan))))
-
+(def-cram-function state-choose-object ()
+  (loop while T do
+      (cpl-impl:wait-for  (fl-or
+                           (fl-and (eql *current-state* :state-clean-up-plan) (eql *current-transition* :transition-success)) 
+                           (eql *current-state* :state-check-placement)
+                           ))
+      (print "Executing choose-object")
+      (setf (value *current-transition*) :transition-nil)
+      (setf (value *current-state*) :state-choose-object)
+      (handle-choose-object)
+      (if (= (length *clean-up-plan*) *objects-handled*)
+          (setf (value *current-transition*) :transition-success )
+          (setf (value *current-transition*) :transition-object-chosen))))

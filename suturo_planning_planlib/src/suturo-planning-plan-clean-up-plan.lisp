@@ -1,38 +1,23 @@
 (in-package :planlib)
 
-(defparameter *target-zones* NIL)
-(defparameter *target-zone-for-object* NIL)
-(defparameter *found-objects* NIL "A vector that contains every found object")
-(defparameter *clean-up-plan* NIL)
-(defparameter *objects-in-target-zones* NIL)
+(defparameter *target-zones* (make-array 0 :fill-pointer 0 :adjustable t))
+(defparameter *target-zone-for-object* (make-hash-table :test 'equal))
+(defparameter *clean-up-plan* (make-array 0 :fill-pointer 0 :adjustable t))
+(defparameter *objects-in-target-zones* (make-array 0 :fill-pointer 0 :adjustable t))
 (defparameter *taskdata-backup* NIL)
 (defparameter *debug-continue* NIL)
 
 (defun clean-up-plan()
   "Determine the order in which the found objects will be tidied up."
-  (print "handle clean up plan")
-  (save-taskdata)
-  (init-clean-up-plan)
-  (debug-stop)
   (get-target-zones-from-userdata)
-  (debug-stop)
   (map-target-zones-to-object)
-  (debug-stop)
   (get-objects-located-in-target-zones)
-  (debug-stop)
+  (create-plan)
+  ;; here the objects should be sorted
 )
 
 (defun debug-stop()
   (wait-for *debug-continue*)
-  (setf *debug-continue* NIL)
-)
-
-(defun init-clean-up-plan()
-  (setf *target-zones* (make-array 0 :fill-pointer 0 :adjustable t))
-  (setf *target-zone-for-object* (make-hash-table :test 'equal))
-  (setf *found-objects* (make-array 0 :fill-pointer 0 :adjustable t))
-  (setf *clean-up-plan* (make-array 0 :fill-pointer 0 :adjustable t))
-  (setf *objects-in-target-zones* (make-array 0 :fill-pointer 0 :adjustable t))
 )
 
 (defun save-taskdata()
@@ -52,17 +37,18 @@
 
 (defun map-target-zones-to-object()
   (loop for target-zone across *target-zones* do
-    (let (expected-object) 
-      (setf expected-object (roslisp:msg-slot-value (value target-zone) 'expected-object))
+    (let (expected-object)
+      (setf expected-object (roslisp:msg-slot-value (value target-zone) 'expected_object))
       (setf (gethash expected-object *target-zone-for-object*) target-zone))))
 
 (defun get-objects-located-in-target-zones()
   (let ((target-zone))
   (loop for euroc-obj across *found-objects* do
+    (print euroc-obj)
     (setf target-zone (in-target-zone euroc-obj))
     (if target-zone
         (if (not (is-object-expected euroc-obj target-zone))
-            (append *target-zones* target-zone))))))
+            (vector-push-extend *objects-in-target-zones* target-zone))))))
 
 (defun is-object-expected(euroc-obj target-zone)
   (let ((expected-object (roslisp:msg-slot-value (value target-zone) 'expected-object))
@@ -71,15 +57,15 @@
         t nil)))
 
 (defun in-target-zone(euroc-obj)
-  (let ((obj-centroid (roslisp:msg-slot-value (value euroc-obj) 'c-centroid))
+  (let ((obj-centroid (roslisp:msg-slot-value (value euroc-obj) 'c_centroid))
         (target-zone-centroid)
         (dist 0)
         (max-distance 0))
-    (setf-msg (value obj-centroid) (z) 0)
+    (setf-msg obj-centroid (z) 0)
     (loop named distance-loop for target-zone across *target-zones* do
-      (setf target-zone-centroid (roslisp:msg-slot-value (value target-zone) 'target-position))
+      (setf target-zone-centroid (roslisp:msg-slot-value (value target-zone) 'target_position))
       (setf dist (get-euclidean-distance obj-centroid target-zone-centroid))
-      (setf max-distance (roslisp:msg-slot-value (value target-zone) 'max-distance))
+      (setf max-distance (roslisp:msg-slot-value (value target-zone) 'max_distance))
         (if (< dist max-distance)
             (return-from distance-loop target-zone)
             NIL))))
@@ -91,6 +77,31 @@
                         (expt (- (roslisp:msg-slot-value centroid1 'z) (roslisp:msg-slot-value centroid2 'z)) 2))))))
 
 
+(defun create-plan()
+  (let ((plan-element (make-array 2 :fill-pointer 0)))
+  (if (= (length *objects-in-target-zones*) 0)
+      (loop for obj across *found-objects* do
+        (vector-push obj plan-element)
+        (vector-push (get-pose obj) plan-element)
+        (vector-push-extend plan-element *clean-up-plan*)
+        (print "Added to plan:")
+        (print (get-id obj))))))
+
+
+(defun get-id(obj)
+  (roslisp:msg-slot-value (roslisp:msg-slot-value (value obj) 'mpe_object) 'id))
+
+(defun get-pose(obj)
+  (let ((obj_id (get-id obj))
+        (target-position))
+    (setf target-position (roslisp:msg-slot-value (value (gethash obj_id *target-zone-for-object*)) 'target_position))
+    (make-msg "geometry_msgs/PointStamped" (header) (create-header) (point) target-position)    
+))
+
+(defun create-header()
+  (make-msg "std_msgs/Header" (frame_id) "odom_combined")
+)
+
 (def-cram-function state-clean-up-plan ()
     (loop while T do
       (cpl-impl:wait-for  (fl-or
@@ -101,4 +112,7 @@
       (print "Executing clean-up-plan")
       (setf (value *current-transition*) :transition-nil)
       (setf (value *current-state*) :state-clean-up-plan)
-      (setf (value *current-transition*) (clean-up-plan))))
+      (clean-up-plan)
+      (if (> (length *target-zones*) 0)
+          (setf (value *current-transition*) :transition-success )
+          (setf (value *current-transition*) :transition-fail))))

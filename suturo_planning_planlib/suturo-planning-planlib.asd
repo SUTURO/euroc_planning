@@ -21,4 +21,6 @@
              (:file "suturo-planning-plan-classify-objects" :depends-on("package" "suturo-planning-plan"))
              (:file "suturo-planning-plan-pose-estimate-object" :depends-on("package" "suturo-planning-plan"))
              (:file "suturo-planning-plan-focus-objects" :depends-on("package" "suturo-planning-plan"))
+             (:file "suturo-planning-plan-clean-up-plan" :depends-on("package" "suturo-planning-plan"))
+             (:file "suturo-planning-plan-choose-object" :depends-on("package" "suturo-planning-plan"))
              (:file "suturo-planning-planlib" :depends-on ("package"))))))
