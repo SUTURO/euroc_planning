@@ -4,9 +4,13 @@
   (:nicknames :manipulation)
   (:use #:desig
         #:constants
+        #:cram-plan-library
+        #:roslisp
         #:cl)
   (:export #:suturo-planning-pm-manipulation
            #:scan-map
+           #:*base-origin*
+           #:init 
            #:scan-map-action)
   (:desig-properties
     #:to

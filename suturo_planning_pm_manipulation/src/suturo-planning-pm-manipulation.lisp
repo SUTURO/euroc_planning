@@ -1,5 +1,17 @@
 (in-package :manipulation)
 
+(defvar *base-origin* (cpl:make-fluent :name :base-origin :value nil)"The current center of the base as geometry_msgs:Point")
+
+(defun init ()
+  (init-base-origin-subscriber))
+
+(defun init-base-origin-subscriber()
+  (roslisp:subscribe +base-origin-topic+ 'geometry_msgs-msg:PointStamped #'base-origin-cb))
+ 
+(defun base-origin-cb (msg)
+  (setf (cpl:value *base-origin*) (roslisp:msg-slot-value msg 'point)))
+
+
 ;; Variables
 (defvar *timeout-service* 10 "The time to wait for a service")
 
@@ -37,9 +49,7 @@
     (let ((timed-out-text (concatenate 'string "Times out waiting for service" service-name)))
       (roslisp:ros-warn nil t timed-out-text))
     (progn
-      (roslisp:call-service service-name args)
-    )
-  )
+      (roslisp:call-service service-name args)))
 )
 
 ; To see how these action handlers are implemented for the pr2, see

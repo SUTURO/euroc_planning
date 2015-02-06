@@ -17,5 +17,8 @@
    #:pan
    #:tilt
    #:scenecam
+   #:base-origin
    #:perceive-scene-with
+   #:move-arm-cam
+   #:pose-name
    #:move-mast-cam))

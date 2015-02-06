@@ -14,4 +14,5 @@
     #:perceive
     #:perceive-scene-with
     #:scenecam
+    #:base-origin
     #:obj))
