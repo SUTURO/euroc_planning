@@ -31,4 +31,7 @@
     #:tilt
     #:move-arm-cam
     #:pose-name
-    #:move-mast-cam))
+    #:move-mast-cam
+    #:collision-object
+    #:grasp-point
+    #:collision-object-name))

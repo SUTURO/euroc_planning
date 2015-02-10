@@ -60,21 +60,28 @@
   ; Will not be implemented as we don't have a parking position
   )
 
-;(def-action-handler lift (obj-designator)
-;  "Lifts an arm by a distance"
-;  (with-desig-props (grasp-point) obj-designator
-;    (let ((position (make-msg "geometry_msgs/Point" :x (first grasp-point)
-;                                                    :y (second grasp-point)
-;                                                    :z (third grasp-point))))
-;      (let (request (make-request 'suturo_planning_manipulation-srv:Move
-;                      (slot
-;    ) 
-;  )
-;)
+(def-action-handler lift (grasp-point collision-object-name)
+  "Lifts an arm by a distance"
+  (let ((position (make-msg "geometry_msgs/Point" :x (first grasp-point)
+                                                  :y (second grasp-point)
+                                                  :z (third grasp-point))))
+    (let ((request (make-request 'suturo_planning_manipulation-srv:Move
+                    (roslisp-msg-protocol:symbol-code 'suturo_planning_manipulation-srv:Move-Request :ACTION_MOVE_ARM_TO)
+                    position
+                    collision-object-name))
+      )
+      (let ((response (call-ros-service request)))
+        (if (not (msg-slot-value response 'result))
+          (fail 'manipulation-failure)
+        )
+      )
+    )
+  ) 
+)
 
 (def-action-handler grasp (object-designator)
   "Grasps the object specified by the obj-designator"
-  (with-desig-propst (collision-object) obj-designator
+  (with-desig-props (collision-object) obj-designator
     (let ((request (roslisp:make-request 'suturo_planning_manipulation-srv:CloseGripper collision-object nil)))
       (let ((response (call-ros-service +service-name-close-gripper+ request)))
         (with-fields (result joint_state) response
