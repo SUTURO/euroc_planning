@@ -27,6 +27,10 @@
    #:scenecam
    #:base-origin
    #:perceive-scene-with
-   #:move-arm-cam
+   #:classify-object
+   #:focus-object
+   #:pose-estimate-object
+   #:move-mast-cam
    #:pose-name
-   #:move-mast-cam))
+   #:obj
+   #:move-arm-cam))
