@@ -1,0 +1,10 @@
+(in-package :constants)
+
+(define-condition map-scanning-failed (cpl-impl:simple-plan-failure) ()
+  (:default-initargs :format-control "map-scanning-failed"))
+(define-condition moving-mast-cam-failed (cpl-impl:simple-plan-failure) ()
+  (:default-initargs :format-control "moving-mast-cam-failed"))
+(define-condition objects-information-failed (cpl-impl:simple-plan-failure) ()
+  (:default-initargs :format-control "objects-information-failed"))
+(define-condition objects-in-place-failed (cpl-impl:simple-plan-failure) ()
+  (:default-initargs :format-control "objects-in-place-failed"))

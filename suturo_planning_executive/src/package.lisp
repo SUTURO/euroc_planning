@@ -8,6 +8,7 @@
         #:cram-roslisp-common
         #:roslisp
         #:cram-designators
+        #:constants
         #:perception
         #:manipulation
         #:suturo-planning-planlib)

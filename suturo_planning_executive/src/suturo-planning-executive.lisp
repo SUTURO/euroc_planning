@@ -58,7 +58,7 @@
              (reset-counter objects-in-place-retry-count)
              (retry))))
         (with-failure-handling
-          ((map-scanning-failed (e)
+          (((or map-scanning-failed moving-mast-cam-failed) (e)
              (declare (ignore e))
              (ros-warn (toplevel task1) "Failed to scan map.")
              (do-retry scan-map-retry-count
