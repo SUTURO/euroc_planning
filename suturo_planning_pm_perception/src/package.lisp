@@ -5,6 +5,7 @@
   (:use #:desig
         #:cl
         #:cl-transforms
+        #:cpl-impl
         #:constants)
   (:export #:suturo-planning-pm-perception
            #:get-gripper-perception)
