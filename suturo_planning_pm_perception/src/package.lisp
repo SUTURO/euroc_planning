@@ -13,6 +13,9 @@
     #:color
     #:perceive
     #:perceive-scene-with
+    #:classify-object
+    #:focus-object
+    #:pose-estimate-object
     #:scenecam
     #:base-origin
     #:obj))
