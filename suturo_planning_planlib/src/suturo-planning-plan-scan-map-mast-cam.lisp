@@ -22,3 +22,8 @@
   (perform (make-designator 'action `((to perceive-scene-with) (scenecam nil) (arm-origin ,(value manipulation:*base-origin*)))))
   (perform (make-designator 'action `((to move-arm-cam ) (pose-name ,(second +scan-poses+)))))
   (perform (make-designator 'action `((to perceive-scene-with) (scenecam nil) (arm-origin ,(value manipulation:*base-origin*))))))
+
+
+(defun blub ()
+  (let ((regions-with-same-color (make-array 0 :fill-pointer 0 :adjustable t)))
+    ))
