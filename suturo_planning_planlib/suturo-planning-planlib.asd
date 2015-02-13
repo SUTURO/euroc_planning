@@ -12,7 +12,8 @@
                suturo_perception_msgs-msg
                suturo-planning-pm-manipulation
                suturo-planning-pm-perception
-               suturo-planning-constants)              
+               suturo-planning-constants
+               std_msgs-msg)              
   :components
   ((:module "src"
             :components

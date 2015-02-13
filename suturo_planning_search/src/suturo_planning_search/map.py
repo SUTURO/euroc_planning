@@ -49,44 +49,32 @@ class Map:
         print(regions)
         resp.obstacle_regions = []
         for region in regions:
-            print("Handling region")
+            print("handle_get_obstacle regifishon")
             region_msg = suturo_environment_msgs.msg.Region()
             avg = region.get_avg()
             region_msg.avg_x = avg[0]
-            print(region_msg.avg_x)
             region_msg.avg_y = avg[1]
-            print(region_msg.avg_y)
             region_msg.cells = []
             for cell in region.cells:
                 region_msg.cells.append(cell.to_msg())
-            print(region_msg.cells)
             region_msg.id = region.id
-            print(region_msg.id)
             region_msg.min_x = region.min_x
-            print(region_msg.min_x)
             region_msg.max_x = region.max_x
-            print(region_msg.max_x)
             region_msg.min_y = region.min_y
-            print(region_msg.min_y)
             region_msg.max_y = region.max_y
-            print(region_msg.max_y)
             region_msg.was_merged = region.was_merged
-            print(region_msg.was_merged)
             region_msg.is_closed = region.is_closed
-            print(region_msg.is_closed)
             region_msg.cell_coords = Int32Array2D() #content: [[x0,y0],[x1,y1],...]
             region_msg.cell_coords.data = []
+            region_msg.color_hex = region.get_color_hex()
             print(region.cell_coords)
             for cell_coord in region.cell_coords:
                 cell_coord_msg = Int32Array()
                 cell_coord_msg.data = []
                 cell_coord_msg.data.append(cell_coord[0])
                 cell_coord_msg.data.append(cell_coord[1])
-                print("BBBB")
                 region_msg.cell_coords.data.append(cell_coord_msg)
-            print("Addin region_msg")
             resp.obstacle_regions.append(region_msg)
-            print("DONE")
         return resp
 
 
