@@ -5,6 +5,7 @@
   (:use #:desig
         #:cl
         #:cl-transforms
+        #:cpl-impl
         #:constants)
   (:export #:suturo-planning-pm-perception
            #:get-gripper-perception)
@@ -13,6 +14,9 @@
     #:color
     #:perceive
     #:perceive-scene-with
+    #:classify-object
+    #:focus-object
+    #:pose-estimate-object
     #:scenecam
     #:base-origin
     #:obj))

@@ -1,5 +1,7 @@
 (defsystem suturo-planning-pm-perception
   :depends-on (roslisp 
+               cram-plan-library
+               cram-language
                suturo_perception_msgs-srv
                suturo_perception_msgs-msg
                suturo_interface_msgs-srv

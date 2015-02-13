@@ -10,6 +10,7 @@ from suturo_perception_msgs.srv._GetPointArray import GetPointArray, GetPointArr
 from visualization_msgs.msg import Marker, MarkerArray
 from suturo_planning_visualization import visualization
 from suturo_planning_manipulation.transformer import Transformer
+import suturo_environment_msgs
 
 __author__ = 'ichumuh'
 
@@ -75,6 +76,16 @@ class Cell:
         return other.is_obstacle() and self.is_obstacle() or \
                other.is_free() and self.is_free() or \
                other.is_unknown() and self.is_unknown()
+
+    def to_msg(self):
+        cell = suturo_environment_msgs.msg.Cell()
+        cell.average_z = self.average_z
+        cell.highest_z = self.highest_z
+        cell.marked = self.marked
+        cell.state = self.state
+        cell.treshold_min_point = self.threshold_min_points
+        cell.points = self.points
+        return cell
 
     def update_cell(self, z, color):
         """

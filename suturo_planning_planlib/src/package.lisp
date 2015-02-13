@@ -5,9 +5,11 @@
   (:use #:roslisp
         #:cpl
         #:cram-plan-library
+        #:cram-language
         #:constants
         #:cram-designators
         #:cl-transforms)
+        #:cram-language-designator-support)
   (:export #:do-planning
            #:*current-state*
            #:*current-transition*
@@ -17,10 +19,7 @@
            #:unknown-scanned
            #:object-classified
            #:pose-estimated
-           #:objects-in-place
-           #:map-scanning-failed
-           #:objects-information-failed
-           #:objects-in-place-failed)
+           #:objects-in-place)
   (:desig-properties
    #:to 
    #:pan
@@ -28,6 +27,10 @@
    #:scenecam
    #:base-origin
    #:perceive-scene-with
-   #:move-arm-cam
+   #:classify-object
+   #:focus-object
+   #:pose-estimate-object
+   #:move-mast-cam
    #:pose-name
-   #:move-mast-cam))
+   #:obj
+   #:move-arm-cam))

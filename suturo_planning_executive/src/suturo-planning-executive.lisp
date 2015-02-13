@@ -58,7 +58,7 @@
              (reset-counter objects-in-place-retry-count)
              (retry))))
         (with-failure-handling
-          ((map-scanning-failed (e)
+          (((or map-scanning-failed moving-mast-cam-failed) (e)
              (declare (ignore e))
              (ros-warn (toplevel task1) "Failed to scan map.")
              (do-retry scan-map-retry-count
@@ -90,4 +90,6 @@
       (progn
         (print "Waiting")
         (cpl-impl:wait-for (fl-and (eql *current-state* :state-init) (eql *current-transition* :transition-successful)))
-        (achieve `(suturo-planning-planlib::map-scanned)))))))
+        (achieve `(suturo-planning-planlib::map-scanned))
+        (setf (value *current-state*) :state-scan-shadow)
+        (setf (value *current-transition*) :transition-success))))))
