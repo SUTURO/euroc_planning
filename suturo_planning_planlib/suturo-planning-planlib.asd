@@ -5,6 +5,8 @@
                cram-language
                cl-utilities
                cram-reasoning
+               suturo-planning-environment
+               geometry_msgs-msg
                suturo_interface_msgs-srv
                suturo_interface_msgs-msg
                suturo_planning_manipulation-srv

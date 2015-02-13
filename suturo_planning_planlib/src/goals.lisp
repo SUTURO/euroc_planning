@@ -30,6 +30,16 @@
                                       (obj ,?object)))))
 
 (def-goal (achieve (objects-in-place ?objects))
-  ; TODO: Implement me correcty
-  (achieve `(object-in-hand nil))
-  (achieve `(object-placed-at nil nil)))
+  (let ((target-zones (get-target-zones)))
+    (mapcar (lambda (object)
+              (let ((matching-target-zone (find-matching-target-zone object target-zones)))
+                (seq
+                  (achieve `(object-in-hand ,object))
+                  (equate (current-desig object)
+                          (copy-designator (current-desig object)
+                                           :new-description `((at ,(make-designator 'location '((gripper gripper)))))))
+                  (achieve `(object-placed-at ,(current-desig object) ,matching-target-zone))
+                  (equate (current-desig object)
+                          (copy-designator (current-desig object)
+                                           :new-description `((at ,matching-target-zone)))))))
+            ?objects)))

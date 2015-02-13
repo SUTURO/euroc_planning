@@ -14,4 +14,5 @@
             :components
             ((:file "package")
              (:file "gazebo" :depends-on ("package"))
-             (:file "suturo-planning-environment" :depends-on ("package" "gazebo"))))))
+             (:file "suturo-planning-environment" :depends-on ("package" "gazebo"))
+             (:file "target-zones" :depends-on ("package"))))))

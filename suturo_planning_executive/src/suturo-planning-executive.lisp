@@ -24,24 +24,6 @@
     (let ((task (roslisp:get-param "/planning/task" tsk)))
       (funcall (symbol-function (read-from-string (format nil "exec:~a" task)))))))
 
-(defun repeat (elem n)
-  (when (> n 0)
-    (cons (cram-designators:copy-designator elem) (repeat elem (- n 1)))))
-
-(defun parse-target-zone (zone)
-  (let* ((zone-descr (cdr zone))
-         (expected-object (roslisp::get-xml-rpc-struct-member zone-descr ':|expected_object|))
-         (max-distance (roslisp::get-xml-rpc-struct-member zone-descr ':|max_distance|))
-         (target-position (roslisp::get-xml-rpc-struct-member zone-descr ':|target_position|)))
-    (make-designator 'location `((expected-object ,expected-object)
-                                 (max-distance ,max-distance)
-                                 (pose ,(cl-tf:make-pose-stamped "/map"
-                                                                 (ros-time)
-                                                                 (cl-transforms:make-3d-vector (car target-position)
-                                                                                               (cadr target-position)
-                                                                                               (caddr target-position))
-                                                                 (cl-transforms:make-identity-rotation)))))))
-
 (def-top-level-cram-function task1 ()
   "Top level plan for task 1 of the euroc challenge"
   (with-process-modules
