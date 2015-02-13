@@ -9,6 +9,13 @@
            #:+service-name-add-point-cloud+
            #:+service-name-move-robot+
            #:+service-name-get-base-origin+
+           #:+service-name-euroc-object-to-odom-combined+ 
+           #:+service-name-classify-objects+
+
+           #:+topic-name-get-yaml+
+           
            #:+base-origin-topic+ 
            #:+timeout-service+))
+
+
 

@@ -19,7 +19,7 @@
   )
 
 (def-goal (achieve (pose-estimated ?object))
-  ; TODO: Implement me
+    (pose-estimate-object ?object)
   )
 
 (def-goal (achieve (objects-in-place ?objects))

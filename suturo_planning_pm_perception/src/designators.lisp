@@ -6,6 +6,10 @@
                      (desig-prop ?designator (to perceive))
                      (desig-prop ?designator (obj ?obj)))
 
+  (cram-reasoning:<- (action-desig ?designator (pose-estimate-object ?id))
+                     (desig-prop ?designator (to pose-estimate-object))
+                     (desig-prop ?designator (id ?obj)))
+
   (cram-reasoning:<- (action-desig ?designator (perceive-scene-with-origin ?scenecam ?base-origin))
                      (desig-prop ?designator (to perceive-scene-with))
                      (desig-prop ?designator (scenecam ?scenecam))
@@ -19,5 +23,6 @@
                                                    cram-process-modules:available-process-module)
   (cram-reasoning:<- (cram-process-modules:matching-process-module ?designator suturo-planning-pm-perception)
                      (or (desig-prop ?designator (to perceive))
+                         (desig-prop ?designator (to pose-estimate-object))
                          (desig-prop ?designator (to perceive-scene-with))))
   (cram-reasoning:<- (cram-process-modules:available-process-module suturo-planning-pm-perception)))

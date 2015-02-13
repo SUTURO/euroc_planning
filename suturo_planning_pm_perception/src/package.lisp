@@ -15,4 +15,6 @@
     #:perceive-scene-with
     #:scenecam
     #:base-origin
+    #:pose-estimate-object
+    #:id
     #:obj))

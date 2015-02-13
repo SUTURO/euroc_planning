@@ -10,6 +10,7 @@
         #:cram-designators
         #:perception
         #:manipulation
+        #:constants
         #:suturo-planning-planlib)
   (:export #:task-selector #:task1)
   (:desig-properties
