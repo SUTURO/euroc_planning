@@ -8,7 +8,7 @@
         #:cram-language
         #:constants
         #:cram-designators
-        #:cl-transforms)
+        #:cl-transforms
         #:cram-language-designator-support)
   (:export #:do-planning
            #:*current-state*
