@@ -22,6 +22,8 @@
            #:objects-in-place)
   (:desig-properties
    #:to 
+   #:pose-estimate-object
+   #:id
    #:pan
    #:tilt
    #:scenecam

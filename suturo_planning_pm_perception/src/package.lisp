@@ -19,4 +19,6 @@
     #:pose-estimate-object
     #:scenecam
     #:base-origin
+    #:pose-estimate-object
+    #:id
     #:obj))

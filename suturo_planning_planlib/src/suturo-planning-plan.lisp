@@ -58,8 +58,6 @@
 (defvar *timeout-service* 10 "The time to wait for a service")
 (defvar *state* (make-fluent :name :state) "The current state")
 
-(defconstant +service-name-classify-objects+ "suturo/Classifier" "The name of the service to classify objects")
-(defconstant +service-name-euroc-object-to-odom-combined+ "/suturo/euroc_object_to_odom_combined" "The name of the service to convert an EurocObject the a odom combined one")
 (defconstant +service-name-get-collision-object+ "/suturo/manipulation/get_collision_object" "The name of the service to get a collision object of the planning scene")
 (defconstant +service-name-add-collision-objects+ "/suturo/manipulation/add_collision_objects" "The name of the service to add collision objects to the current scene")
 (defconstant +service-name-mark-region-as-object-under-point+ "/suturo/mark_region_as_object_under_point" "The name of the service to mark a region as object")

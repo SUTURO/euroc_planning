@@ -23,7 +23,7 @@
                                       (obj ,?object)))))
 
 (def-goal (achieve (pose-estimated ?object))
-  ; TODO: Implement me correcty
+    (pose-estimate-object ?object)
   (perform (make-designator 'action `((to focus-object)
                                       (obj ,?object))))
   (perform (make-designator 'action `((to pose-estimate-object)

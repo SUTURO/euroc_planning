@@ -9,5 +9,8 @@
       (defconstant +service-name-get-base-origin+ "/suturo/get_base_origin" "The name of the service to get the base origin")
       (defconstant +service-name-get-obstacle-regions+ "/suturo/environment/get_obstacle_regions" "The name of the service to get the obstacle regions")
       (defconstant +service-name-get-map+ "/suturo/environment/get_map" "The name of the service to get the map")
+      (defconstant +service-name-euroc-object-to-odom-combined+ "/suturo/euroc_object_to_odom_combined" "The name of the service to convert an EurocObject the a odom combined one")
+      (defconstant +service-name-classify-objects+ "suturo/Classifier" "The name of the service to classify objects")
+      (defconstant +topic-name-get-yaml+ "suturo/yaml_pars0r" "The name of the topic to receive the yaml file")
       (defconstant +timeout-service+ 10 "The time to wait for a service")
       (defconstant +base-origin-topic+ "/suturo/manipulation/get_base_origin")))
