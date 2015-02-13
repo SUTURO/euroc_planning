@@ -8,6 +8,7 @@
         #:cram-roslisp-common
         #:roslisp
         #:cram-designators
+        #:constants
         #:perception
         #:manipulation
         #:constants
@@ -34,4 +35,10 @@
     #:cube
     #:scenecam
     #:perceive-scene-with
+    #:move-mast-cam
+    #:move-arm-cam
+    #:pose-name
+    #:classify-object
+    #:focus-object
+    #:pose-estimate-object
     #:scan-map))

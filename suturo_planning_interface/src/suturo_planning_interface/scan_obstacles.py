@@ -27,11 +27,13 @@ class ScanObstacles(object):
         rospy.loginfo('Executing state ScanObstacles')
         taskdata.sec_try_done = False
         if taskdata.sec_try:
+            rospy.loginfo("scan_obstacles: sec_try")
             current_region = self.classified_regions[self.next_cluster-1][0]
             taskdata.sec_try_done = True
         else:
             #get regions
             if len(self.classified_regions) == 0:
+                rospy.loginfo("scan_obstacles: classified_regions == 0 first try")
                 obstacle_cluster = utils.map.get_obstacle_regions()
                 rospy.logdebug(str(len(self.classified_regions)) + " regions found.")
                 print '#####################################'
@@ -43,8 +45,9 @@ class ScanObstacles(object):
                 # x[0].get_number_of_cells())
 
             if self.next_cluster >= len(self.classified_regions):
+                rospy.loginfo("scan_obstacles: searched all cluster")
                 rospy.loginfo("searched all cluster")
-                return 'noRegionLeft'
+                return 'noRegioqnLeft'
 
             current_region = self.classified_regions[self.next_cluster][0]
             rospy.logdebug("current region: " + str(self.next_cluster) + "\n" + str(current_region) +
@@ -70,6 +73,8 @@ class ScanObstacles(object):
                 rospy.logwarn('Current region is out of reach. Ignoring it.')
                 return 'mapScanned'
 
+        rospy.loginfo("scan_obstacles: the arm movement to an obstacle")
+
         angle = 1.2
         distance = 0.6 + current_region.get_number_of_cells()*0.008
 
@@ -81,6 +86,7 @@ class ScanObstacles(object):
         poses = utils.map.filter_invalid_scan_poses2(region_centroid.x, region_centroid.y, poses)
 
         if taskdata.sec_try:
+            rospy.loginfo("scan_obstacles: the arm movement to an obstacle; sec_try")
             current_pose = utils.manipulation.get_eef_position().pose.position
             current_pose.z = 0
             region_to_eef = subtract_point(region_centroid, current_pose)

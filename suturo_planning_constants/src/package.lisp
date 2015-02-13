@@ -15,7 +15,14 @@
            #:+topic-name-get-yaml+
            
            #:+base-origin-topic+ 
-           #:+timeout-service+))
+           #:+timeout-service+
+           ; ^^^ Constants ^^^
+           ; vvv Failures vvv
+           #:map-scanning-failed
+           #:moving-mast-cam-failed
+           #:moving-arm-failed
+           #:objects-information-failed
+           #:objects-in-place-failed))
 
 
 

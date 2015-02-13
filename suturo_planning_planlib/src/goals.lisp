@@ -11,16 +11,23 @@
   (achieve `(pose-estimated nil)))
 
 (def-goal (achieve (unknown-scanned))
-  ; TODO: Implement me
-  )
+  ; TODO: Implement me correcty
+  (perform (make-designator 'action '((to move-arm-cam)
+                                      (pose-name nil))))
+  (perform (make-designator 'action '((to perceive-scene-with)
+                                      (scenecam nil)))))
 
 (def-goal (achieve (object-classified ?object))
-  ; TODO: Implement me
-  )
+  ; TODO: Implement me correcty
+  (perform (make-designator 'action `((to classify-object)
+                                      (obj ,?object)))))
 
 (def-goal (achieve (pose-estimated ?object))
     (pose-estimate-object ?object)
-  )
+  (perform (make-designator 'action `((to focus-object)
+                                      (obj ,?object))))
+  (perform (make-designator 'action `((to pose-estimate-object)
+                                      (obj ,?object)))))
 
 (def-goal (achieve (objects-in-place ?objects))
   ; TODO: Implement me correcty

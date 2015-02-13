@@ -18,9 +18,11 @@
                      (desig-prop ?designator (to move-arm-cam))
                      (desig-prop ?designator (pose-name ?pose-name)))
 
-  (cram-reasoning:<- (action-desig ?designator (lift ?obj))
+  (cram-reasoning:<- (action-desig ?designator (lift ?grasp-point ?collision-object-name))
                      (desig-prop ?designator (to lift))
-                     (desig-prop ?designator (obj ?obj)))
+                     (desig-prop ?designator (obj ?obj))
+                     (desig-prop ?obj (grasp-point ?grasp-point))
+                     (desig-prop ?obj (collision-object-name ?collision-object-name)))
 
   (cram-reasoning:<- (action-desig ?designator (carry ?obj))
                      (desig-prop ?designator (to carry))
