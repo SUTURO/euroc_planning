@@ -8,5 +8,6 @@
       (defconstant +service-name-move-robot+ "/suturo/manipulation/move" "The name of the service to move the robot")
       (defconstant +service-name-get-base-origin+ "/suturo/get_base_origin" "The name of the service to get the base origin")
       (defconstant +service-name-get-obstacle-regions+ "/suturo/environment/get_obstacle_regions" "The name of the service to get the obstacle regions")
+      (defconstant +service-name-get-map+ "/suturo/environment/get_map" "The name of the service to get the map")
       (defconstant +timeout-service+ 10 "The time to wait for a service")
       (defconstant +base-origin-topic+ "/suturo/manipulation/get_base_origin")))
