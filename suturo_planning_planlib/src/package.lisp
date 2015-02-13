@@ -6,7 +6,8 @@
         #:cpl
         #:cram-plan-library
         #:constants
-        #:cram-designators)
+        #:cram-designators
+        #:cl-transforms)
   (:export #:do-planning
            #:*current-state*
            #:*current-transition*

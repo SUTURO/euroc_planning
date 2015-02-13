@@ -2,6 +2,8 @@
 import rospy
 from threading import Thread
 from geometry_msgs.msg import PointStamped
+from std_msgs.msg import Empty
+from suturo_manipulation_msgs.srv import BlowUpObjects, CreatePosesForScanning, CreatePosesForScanningResponse
 from suturo_planning_manipulation.srv import *
 from suturo_planning_manipulation import manipulation_constants
 from suturo_planning_manipulation.manipulation import Manipulation
@@ -9,8 +11,11 @@ from moveit_msgs.msg import CollisionObject
 from geometry_msgs.msg import PoseStamped
 from suturo_planning_manipulation.manipulation_constants import MOVE_SERVICE, MOVE_WITH_PLAN_SERVICE, \
     ADD_COLLISION_OBJECTS_SERVICE, GET_COLLSISION_OBJECT_SERVICE, MOVE_MASTCAM_SERVICE, OPEN_GRIPPER_SERVICE, \
-    CLOSE_GRIPPER_SERVICE, BASE_ORIGIN_TOPIC, GET_EEF_POSITION_TOPIC
+    CLOSE_GRIPPER_SERVICE, BASE_ORIGIN_TOPIC, GET_EEF_POSITION_TOPIC, CREATE_POSES_FOR_OBJECT_SCANNING_SERVICE, \
+    BLOW_DOWN_OBJECTS_SERVICE, BLOW_UP_OBJECTS_SERVICE
 from suturo_planning_manipulation.manipulation_constants import PLAN_SERVICE
+from suturo_planning_manipulation.calc_grasp_position import make_scan_pose
+from suturo_planning_interface import utils
 
 __author__ = 'hansa'
 
@@ -29,8 +34,30 @@ class ManipulationNode(object):
         rospy.Service(MOVE_MASTCAM_SERVICE, MoveMastCam, self.__handle_mast_cam)
         rospy.Service(OPEN_GRIPPER_SERVICE, OpenGripper, self.__handle_open_gripper)
         rospy.Service(CLOSE_GRIPPER_SERVICE, CloseGripper, self.__handle_close_gripper)
+        rospy.Service(CREATE_POSES_FOR_OBJECT_SCANNING_SERVICE, CreatePosesForScanning,
+                      self.__handle_create_poses_for_scanning)
+        rospy.Service(BLOW_UP_OBJECTS_SERVICE, BlowUpObjects, self.__handle_blow_up_objects)
+        rospy.Service(BLOW_DOWN_OBJECTS_SERVICE, Empty, self.__handle_blow_down_objects)
+
         self.__base_publisher = rospy.Publisher(BASE_ORIGIN_TOPIC, PointStamped)
         self.__eef_position_publisher = rospy.Publisher(GET_EEF_POSITION_TOPIC, PoseStamped)
+
+    def __handle_create_poses_for_scanning(self, msg):
+        __region_centroid = msg.centroid
+        __angle = msg.angle
+        __distance = msg.distance
+        __quantity = msg.quantity
+
+        poses = make_scan_pose(__region_centroid, __distance, __angle, __quantity)
+        poses = self.__manipulation.filter_close_poses(poses)
+        poses = utils.map.filter_invalid_scan_poses2(__region_centroid.x, __region_centroid.y, poses)
+        return CreatePosesForScanningResponse(poses)
+
+    def __handle_blow_down_objects(self, msg):
+        self.__manipulation.blow_down_objects()
+
+    def __handle_blow_up_objects(self, msg):
+        self.__manipulation.blow_up_objects(msg.do_not_blow_up_list, msg.distance)
     
     def __handle_move(self, msg):
         goal_pose = self.__get_goal_pose(msg)
