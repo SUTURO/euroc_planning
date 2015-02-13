@@ -106,4 +106,5 @@
       (print "Executing state classify objects")
       (setf (value *current-transition*) :transition-nil)
       (setf (value *current-state*) :state-classify-objects)
+      (find-objects-in-map)
       (setf (value *current-transition*) (classify))))
