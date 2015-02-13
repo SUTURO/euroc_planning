@@ -11,7 +11,8 @@
            #:+service-name-get-base-origin+
            #:+service-name-euroc-object-to-odom-combined+ 
            #:+service-name-classify-objects+
-
+           #:+service-name-create-poses-for-object-scanning+
+	   
            #:+topic-name-get-yaml+
            
            #:+base-origin-topic+ 
@@ -22,7 +23,14 @@
            #:moving-mast-cam-failed
            #:moving-arm-failed
            #:objects-information-failed
-           #:objects-in-place-failed))
+           #:objects-in-place-failed
+
+	   #:+suturo-planning-constants-defined+
+	   #:+scan-obstacles-angle+
+	   #:+scan-obstacles-distance-parameter-factor+
+	   #:+scan-obstacles-distance-parameter-offset+
+	   #:+scan-obstacles-number-of-poses+
+	   #:+scan-obstacles-arm-max-distance+))
 
 
 
