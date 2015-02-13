@@ -33,13 +33,31 @@
   (let ((target-zones (get-target-zones)))
     (mapcar (lambda (object)
               (let ((matching-target-zone (find-matching-target-zone object target-zones)))
-                (seq
-                  (achieve `(object-in-hand ,object))
-                  (equate (current-desig object)
-                          (copy-designator (current-desig object)
-                                           :new-description `((at ,(make-designator 'location '((gripper gripper)))))))
-                  (achieve `(object-placed-at ,(current-desig object) ,matching-target-zone))
-                  (equate (current-desig object)
-                          (copy-designator (current-desig object)
-                                           :new-description `((at ,matching-target-zone)))))))
+                (with-retry-counters ((pick-up-retry-count 2)
+                                      (put-down-retry-count 2))
+                  (seq
+                    (with-failure-handling
+                      (((or manipulation-failure
+                            manipulation-pose-unreachable) (e)
+                        (declare (ignore e))
+                        (ros-warn (objects-in-place) "Failed to pick up object.")
+                        (do-retry pick-up-retry-count
+                          (ros-warn (objects-in-place) "Retrying.")
+                          (retry))))
+                      (achieve `(object-in-hand ,object))
+                      (equate (current-desig object)
+                              (copy-designator (current-desig object)
+                                               :new-description `((at ,(make-designator 'location '((gripper gripper))))))))
+                    (with-failure-handling
+                      (((or manipulation-failure
+                            manipulation-pose-unreachable) (e)
+                        (declare (ignore e))
+                        (ros-warn (objects-in-place) "Failed to put down object.")
+                        (do-retry put-down-retry-count
+                          (ros-warn (objects-in-place) "Retrying.")
+                          (retry))))
+                      (achieve `(object-placed-at ,(current-desig object) ,matching-target-zone))
+                      (equate (current-desig object)
+                              (copy-designator (current-desig object)
+                                               :new-description `((at ,matching-target-zone)))))))))
             ?objects)))

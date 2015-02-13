@@ -6,6 +6,7 @@
         #:environment
         #:cpl
         #:cram-plan-library
+        #:cram-plan-failures
         #:cram-language
         #:constants
         #:cram-designators

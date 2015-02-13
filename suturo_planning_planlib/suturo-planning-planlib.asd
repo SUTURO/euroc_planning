@@ -2,6 +2,7 @@
   :depends-on (roslisp
                designators
                cram-plan-library
+               cram-plan-failures
                cram-language
                cl-utilities
                cram-reasoning
