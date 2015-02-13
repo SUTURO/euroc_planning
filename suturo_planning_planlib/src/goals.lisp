@@ -5,10 +5,38 @@
   (scan-shadow))
 
 (def-goal (achieve (objects-informed))
-  ; TODO: Implement me correctly
-  (achieve `(unknown-scanned))
-  (achieve `(object-classified nil))
-  (achieve `(pose-estimated nil)))
+  (with-retry-counters ((unknown-scanned-retry-count 2))
+    (with-failure-handling
+      ((simple-plan-failure (e)
+         (declare (ignore e))
+         (ros-warn (objects-informed) "Failed to scan unknown regions.")
+         (do-retry unknown-scanned-retry-count
+           (ros-warn (objects-informed) "Retrying.")
+           (retry))
+         (fail 'objects-information-failed)))
+      (let ((objects (achieve `(unknown-scanned))))
+        (mapcar (lambda (object)
+                  (with-retry-counters ((object-classified-retry-count 2)
+                                        (pose-estimated-retry-count 2))
+                    (with-failure-handling
+                      ((simple-plan-failure (e)
+                         (declare (ignore e))
+                         (ros-warn (objects-informed) "Failed to classify object.")
+                         (do-retry object-classified-retry-count
+                           (ros-warn (objects-informed) "Retrying.")
+                           (retry))
+                         (fail 'objects-information-failed)))
+                      (let ((classified-object (achieve `(object-classified object))))
+                        (with-failure-handling
+                          ((simple-plan-failure (e)
+                             (declare (ignore e))
+                             (ros-warn (objects-informed) "Failed to estimate pose for object.")
+                             (do-retry pose-estimated-retry-count
+                               (ros-warn (objects-informed) "Retrying.")
+                               (retry))
+                             (fail 'objects-information-failed)))
+                          (achieve `(pose-estimated classified-object)))))))
+                objects)))))
 
 (def-goal (achieve (unknown-scanned))
   ; TODO: Implement me correcty
