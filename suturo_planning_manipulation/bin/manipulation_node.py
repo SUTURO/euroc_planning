@@ -2,7 +2,7 @@
 import rospy
 from threading import Thread
 from geometry_msgs.msg import PointStamped
-from std_msgs.msg import Empty
+from std_srvs.srv import Empty
 from suturo_manipulation_msgs.srv import BlowUpObjects, CreatePosesForScanning, CreatePosesForScanningResponse
 from suturo_planning_manipulation.srv import *
 from suturo_planning_manipulation import manipulation_constants

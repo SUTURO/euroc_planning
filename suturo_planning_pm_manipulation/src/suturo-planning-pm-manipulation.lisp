@@ -106,5 +106,12 @@
   ; TODO: Implement me
   )
 
+;;----------service calls ----------------------------
+(defun call-add-collision-objects(objects)
+  (print "Calling add collision objects")
+  (if (not (roslisp:wait-for-service +service-name-add-collision-objects+ +timeout-service+))
+        (print "Timed out")
+        (roslisp:call-service +service-name-add-collision-objects+ 'suturo_planning_manipulation-srv:AddCollisionObjects :objects objects)))
+
 (cpm:def-process-module suturo-planning-pm-manipulation (desig)
   (apply #'call-action (reference desig)))

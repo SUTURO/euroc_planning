@@ -12,6 +12,7 @@
            #:scan-map
            #:*base-origin*
            #:init 
+           #:call-add-collision-objects
            #:scan-map-action)
   (:desig-properties
     #:to

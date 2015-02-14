@@ -59,7 +59,6 @@
 (defvar *state* (make-fluent :name :state) "The current state")
 
 (defconstant +service-name-get-collision-object+ "/suturo/manipulation/get_collision_object" "The name of the service to get a collision object of the planning scene")
-(defconstant +service-name-add-collision-objects+ "/suturo/manipulation/add_collision_objects" "The name of the service to add collision objects to the current scene")
 (defconstant +service-name-mark-region-as-object-under-point+ "/suturo/mark_region_as_object_under_point" "The name of the service to mark a region as object")
 (defconstant +service-name-current-map-to-collision-object+ "/suturo/current_map_to_collision_object")
 

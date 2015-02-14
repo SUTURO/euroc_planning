@@ -13,7 +13,7 @@
                suturo-planning-pm-manipulation
                suturo-planning-pm-perception
                suturo-planning-constants
-               std_msgs-msg)              
+               suturo_environment_msgs-srv)              
   :components
   ((:module "src"
             :components
@@ -23,8 +23,8 @@
              (:file "suturo-planning-plan-scan-map-mast-cam" :depends-on ("package"))
              (:file "suturo-planning-plan-search-objects" :depends-on("package" "suturo-planning-plan"))
              (:file "suturo-planning-plan-init" :depends-on("package" "suturo-planning-plan"))
-             (:file "suturo-planning-find-objects-in-map" :depends-on("package" "suturo-planning-plan"))
-             (:file "suturo-planning-plan-classify-objects" :depends-on("package" "suturo-planning-plan" "suturo-planning-find-objects-in-map"))
+             (:file "suturo-planning-plan-find-objects-in-map" :depends-on("package" "suturo-planning-plan"))
+             (:file "suturo-planning-plan-classify-objects" :depends-on("package" "suturo-planning-plan" "suturo-planning-plan-find-objects-in-map"))
              (:file "suturo-planning-plan-pose-estimate-object" :depends-on("package" "suturo-planning-plan"))
              (:file "suturo-planning-plan-focus-objects" :depends-on("package" "suturo-planning-plan"))
              (:file "suturo-planning-plan-clean-up-plan" :depends-on("package" "suturo-planning-plan"))

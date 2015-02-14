@@ -94,18 +94,9 @@
               (if (or (not pose-estimated-object) (not (roslisp:msg-slot-value pose-estimated-object 'mpe_success)))
                   (print "Pose estimation failed, couldn't pose estimate object")
                   (progn
-                    (call-add-collision-objects (vector (roslisp:msg-slot-value pose-estimated-object 'mpe_object))))))))))
+                    ;;(call-add-collision-objects (vector (roslisp:msg-slot-value pose-estimated-object 'mpe_object))) TODO 
+                    )))))))
       
-(defun call-service-add-point-cloud(scenecam &optional arm-origin)
-  (if (not (roslisp:wait-for-service +service-name-add-point-cloud+ +timeout-service+))
-      (progn
-        (roslisp:ros-warn nil t (concatenate 'string "Following service timed out: " +service-name-add-point-cloud+))
-        (fail 'map-scanning-failed))
-      (progn
-        (if (not arm-origin)
-            (roslisp:call-service +service-name-add-point-cloud+ 'suturo_interface_msgs-srv:AddPointCloud :scenecam scenecam)
-            (roslisp:call-service +service-name-add-point-cloud+ 'suturo_interface_msgs-srv:AddPointCloud :scenecam scenecam :arm_origin arm-origin)))))
-
 
 ;;-------------------classify--------------------------------
 
@@ -122,7 +113,7 @@
         ((= (roslisp:msg-slot-value matched-object 'c_type) type-obstacle) (handle-object-obstacle matched-object))
         ((or (= (roslisp:msg-slot-value matched-object 'c_type) type-unknown) (= (roslisp:msg-slot-value matched-object 'c_type) type-table)) 
          (handle-object-unknown-or-table matched-object))
-        ((= (roslisp:msg-slot-value matched-object 'c_type) type-object) (handle-object matched-object))))))
+        ((= (roslisp:msg-slot-value matched-object 'c_type) type-object) (handle-object matched-object)))))
 
 (defun handle-object-obstacle (matched-object)
   (if (roslisp:msg-slot-value matched-object 'c_cuboid_success)
@@ -136,6 +127,8 @@
   (print "Found object")
   (roslisp:msg-slot-value (call-euroc-object-to-odom-combined matched-object)'converted))
 
+;;--------------Service calls ----------------------
+
 (defun call-classify-object (object)
   (print "Calling classify object ")
   (if (not (roslisp:wait-for-service +service-name-classify-objects+ +timeout-service+))
@@ -147,6 +140,18 @@
   (if (not (roslisp:wait-for-service +service-name-euroc-object-to-odom-combined+ +timeout-service+))
       (print "Timed out")
       (roslisp:call-service +service-name-euroc-object-to-odom-combined+ 'suturo_interface_msgs-srv:EurocObjectToOdomCombined :toConvert object)))
+
+(defun call-service-add-point-cloud(scenecam &optional arm-origin)
+  (if (not (roslisp:wait-for-service +service-name-add-point-cloud+ +timeout-service+))
+      (progn
+        (roslisp:ros-warn nil t (concatenate 'string "Following service timed out: " +service-name-add-point-cloud+))
+        (fail 'map-scanning-failed))
+      (progn
+        (if (not arm-origin)
+            (roslisp:call-service +service-name-add-point-cloud+ 'suturo_interface_msgs-srv:AddPointCloud :scenecam scenecam)
+            (roslisp:call-service +service-name-add-point-cloud+ 'suturo_interface_msgs-srv:AddPointCloud :scenecam scenecam :arm_origin arm-origin)))))
+
+
 
 (def-action-handler focus-object (obj-designator)
   "Nothing ?")

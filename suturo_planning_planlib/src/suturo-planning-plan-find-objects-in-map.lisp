@@ -12,9 +12,9 @@
     ))
 
 (defun get-regions()
-  (if (not (roslisp:wait-for-service +service-name-get-obstacle-regions+ *timeout-service*))
+  (if (not (roslisp:wait-for-service +service-name-get-obstacle-regions+ +timeout-service+))
       (roslisp:ros-warn nil t (concatenate 'string "Following service timed out: " +service-name-get-obstacle-regions+))
-      (roslisp:call-service +service-name-get-obstacle-regions+ 'std_msgs-msg:Empty)
+      (roslisp:msg-slot-value (roslisp:call-service +service-name-get-obstacle-regions+ 'suturo_environment_msgs-srv:GetObstacleRegions) 'obstacle_regions)
       ))
 
 (defun compare-object-and-regions(yaml-objects regions)
@@ -38,7 +38,7 @@
         (region-color))
     (loop for region across regions do
       (setf region-color (get-region-color region))
-      (if (eql region-color obj-color) 
+      (if (string= region-color obj-color) 
           (vector-push-extend region regions-with-same-color)))
     regions-with-same-color
 ))

@@ -66,8 +66,9 @@ class Map:
             region_msg.is_closed = region.is_closed
             region_msg.cell_coords = Int32Array2D() #content: [[x0,y0],[x1,y1],...]
             region_msg.cell_coords.data = []
-            region_msg.color_hex = region.get_color_hex()
-            print(region.cell_coords)
+            region_msg.color_hex = str(region.get_color_hex())
+            if region_msg.color_hex is None:
+                region_msg.color_hex = ""
             for cell_coord in region.cell_coords:
                 cell_coord_msg = Int32Array()
                 cell_coord_msg.data = []

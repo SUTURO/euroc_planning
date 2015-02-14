@@ -11,18 +11,16 @@
            #:+service-name-get-base-origin+
            #:+service-name-euroc-object-to-odom-combined+ 
            #:+service-name-classify-objects+
+           #:+service-name-add-collision-objects+
+           #:+service-name-get-obstacle-regions+
+           #:+service-name-get-map+
 
            #:+topic-name-get-yaml+
-           
            #:+base-origin-topic+ 
+
            #:+timeout-service+
-           ; ^^^ Constants ^^^
-           ; vvv Failures vvv
            #:map-scanning-failed
            #:moving-mast-cam-failed
            #:moving-arm-failed
            #:objects-information-failed
            #:objects-in-place-failed))
-
-
-
