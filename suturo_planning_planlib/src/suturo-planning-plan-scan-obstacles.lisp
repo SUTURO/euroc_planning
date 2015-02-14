@@ -84,7 +84,7 @@
            (return-from poses-loop)
 )))))
 
-(def-carm-function state-scan-obstacles ()
+(def-cram-function state-scan-obstacles ()
   (loop while T do
     (cpl-impl:wait-for (fl-and (eql *current-state* :state-search-objects) (eql *current-transition* :transition-search-objects)))
     (print "Executing state scan obstacles")
