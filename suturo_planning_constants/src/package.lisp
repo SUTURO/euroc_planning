@@ -5,22 +5,32 @@
   (:use #:roslisp
         #:cl)
   (:export #:+suturo-planning-constants-services-defined+
-           #:+service-name-move-mastcam+
-           #:+service-name-add-point-cloud+
-           #:+service-name-move-robot+
-           #:+service-name-get-base-origin+
-           #:+service-name-euroc-object-to-odom-combined+ 
-           #:+service-name-classify-objects+
+	       #:+scan-obstacles-angle+
+	       #:+scan-obstacles-arm-max-distance+
+	       #:+scan-obstacles-distance-parameter-factor+
+	       #:+scan-obstacles-distance-parameter-offset+
+	       #:+scan-obstacles-number-of-poses+
            #:+service-name-add-collision-objects+
-           #:+service-name-get-obstacle-regions+
+           #:+service-name-add-point-cloud+
+           #:+service-name-classify-objects+
+           #:+service-name-create-poses-for-object-scanning+
+           #:+service-name-euroc-object-to-odom-combined+ 
+           #:+service-name-get-base-origin+
            #:+service-name-get-map+
-
+           #:+service-name-get-obstacle-regions+
+           #:+service-name-move-mastcam+
+           #:+service-name-move-robot+
+	   
            #:+topic-name-get-yaml+
-           #:+base-origin-topic+ 
 
-           #:+timeout-service+
+           #:+base-origin-topic+ 
            #:map-scanning-failed
            #:moving-mast-cam-failed
            #:moving-arm-failed
            #:objects-information-failed
-           #:objects-in-place-failed))
+           #:objects-in-place-failed
+           #:+timeout-service+))
+
+
+
+

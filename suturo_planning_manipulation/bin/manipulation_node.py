@@ -16,6 +16,7 @@ from suturo_planning_manipulation.manipulation_constants import MOVE_SERVICE, MO
 from suturo_planning_manipulation.manipulation_constants import PLAN_SERVICE
 from suturo_planning_manipulation.calc_grasp_position import make_scan_pose
 from suturo_planning_interface import utils
+from suturo_planning_visualization.visualization import visualize_poses
 
 __author__ = 'hansa'
 
@@ -51,6 +52,7 @@ class ManipulationNode(object):
         poses = make_scan_pose(__region_centroid, __distance, __angle, __quantity)
         poses = self.__manipulation.filter_close_poses(poses)
         poses = utils.map.filter_invalid_scan_poses2(__region_centroid.x, __region_centroid.y, poses)
+        visualize_poses(poses)
         return CreatePosesForScanningResponse(poses)
 
     def __handle_blow_down_objects(self, msg):

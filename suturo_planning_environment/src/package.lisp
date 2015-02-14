@@ -6,9 +6,14 @@
         #:roslisp
         #:roslisp-utilities
         #:desig)
-  (:export #:get-model-pose)
+  (:export #:get-model-pose
+           #:get-target-zones
+           #:find-matching-target-zone)
   (:desig-properties
     #:at
+    #:type
+    #:expected-object
+    #:max-distance
     #:obj
     #:obj-pos
     #:pose

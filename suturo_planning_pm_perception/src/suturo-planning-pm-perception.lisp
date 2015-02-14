@@ -74,7 +74,7 @@
 ;; (desig-prop-value mydesig 'color)
 ;; (defparameter mydesig (make-designator 'object `((color (1 2 3 4))) ))
 (def-action-handler perceive (obj-designator)
-  (print "ASDFFF"))
+  (list obj-designator))
 
 ;---------------scan map -------------------------------------
 (def-action-handler perceive-scene-with (scenecam)

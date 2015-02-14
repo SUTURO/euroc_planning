@@ -81,7 +81,7 @@
 
 (def-action-handler grasp (object-designator)
   "Grasps the object specified by the obj-designator"
-  (with-desig-props (collision-object) obj-designator
+  (with-desig-props (collision-object) object-designator
     (let ((request (roslisp:make-request 'suturo_planning_manipulation-srv:CloseGripper collision-object nil)))
       (let ((response (call-ros-service +service-name-close-gripper+ request)))
         (with-fields (result joint_state) response

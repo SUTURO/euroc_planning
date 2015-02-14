@@ -86,6 +86,10 @@
     ; TODO: Implement me
     (cram-reasoning:lisp-pred no))
 
+  (cram-reasoning:<- (object-placed-at ?object ?location)
+    ; TODO: Implement me
+    (cram-reasoning:lisp-pred no))
+
   (cram-reasoning:<- (objects-in-place ?objects)
     ; TODO: Implement me
     (cram-reasoning:lisp-pred no))
