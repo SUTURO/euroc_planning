@@ -14,8 +14,7 @@
 (defun get-regions()
   (if (not (roslisp:wait-for-service +service-name-get-obstacle-regions+ +timeout-service+))
       (roslisp:ros-warn nil t (concatenate 'string "Following service timed out: " +service-name-get-obstacle-regions+))
-      (roslisp:msg-slot-value (roslisp:call-service +service-name-get-obstacle-regions+ 'suturo_environment_msgs-srv:GetObstacleRegions) 'obstacle_regions)
-      ))
+      (roslisp:msg-slot-value (roslisp:call-service +service-name-get-obstacle-regions+ 'suturo_environment_msgs-srv:GetObstacleRegions) 'obstacle_regions)))
 
 (defun compare-object-and-regions(yaml-objects regions)
   (let ((regions-with-same-color)
@@ -38,10 +37,26 @@
         (region-color))
     (loop for region across regions do
       (setf region-color (get-region-color region))
+      (print "color-object")
+      (print obj-color)
+      (print "region-color")
+      (print region-color)
       (if (string= region-color obj-color) 
-          (vector-push-extend region regions-with-same-color)))
-    regions-with-same-color
-))
+          (progn
+            (print "TRUE")
+            (vector-push-extend region regions-with-same-color))))
+    regions-with-same-color))
+
+(defun handle-multiple-regions-in-array(regions-with-same-color object)
+(let ((dimensions (make-array 0 :fill-pointer 0 :adjustable t))
+      (h)
+      (region-with-same-high))
+  (loop for primitive across (roslisp:msg-slot-value object 'primitives) do
+    (if (or (= (length (roslisp:msg-slot-value object 'primitives)) 1)
+            (= (roslisp:msg-slot-value primitive 'type) 1) ;;1 = SolidPrimitive.BOX
+            (vector-push-extend (roslisp:msg-slot-value primitive 'dimensions))))  )))
+
+()
 
 (defun add-region-to-classified-regions(region)
   (vector-push-extend region *classified-regions*)

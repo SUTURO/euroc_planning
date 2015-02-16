@@ -24,6 +24,7 @@ from suturo_planning_manipulation.transformer import Transformer
 # import pcl
 import suturo_environment_msgs.msg
 from suturo_environment_msgs.srv import GetObstacleRegions,GetObstacleRegionsRequest,GetObstacleRegionsResponse
+from suturo_environment_msgs.srv import GetMap, GetMapRequest, GetMapResponse
 from suturo_msgs.msg import Task, Int32Array2D,Int32Array
 
 __author__ = 'ichumuh'
@@ -42,8 +43,14 @@ class Map:
         self.unknown_regions = []
         self.__get_point_array = rospy.ServiceProxy('/suturo/GetPointArray', GetPointArray)
         rospy.Service(self.NAME_SERIVE_GET_OBSTACLE_REGIONS, GetObstacleRegions, self._handle_get_obstacle_regions)
+        rospy.Service(self.NAME_SERVICE_GET_MAP,GetMap, self._handle_get_map)
 
-    def _handle_get_obstacle_regions(self,req):
+    def _handle_get_map(self, req):
+        resp = GetMapResponse();
+        resp.map = self.to_msg()
+        return resp
+
+    def _handle_get_obstacle_regions(self ,req):
         resp = GetObstacleRegionsResponse()
         regions = self.get_obstacle_regions()
         print(regions)
