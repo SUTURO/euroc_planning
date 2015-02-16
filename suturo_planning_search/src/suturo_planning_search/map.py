@@ -32,6 +32,8 @@ __author__ = 'ichumuh'
 
 class Map:
     NAME_SERIVE_GET_OBSTACLE_REGIONS = "/suturo/environment/get_obstacle_regions"
+    NAME_SERVICE_GET_MAP = "/suturo/environment/get_map"
+
     num_of_cells = 50
 
     def __init__(self, size):

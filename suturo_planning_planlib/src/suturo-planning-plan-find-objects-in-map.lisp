@@ -47,16 +47,16 @@
             (vector-push-extend region regions-with-same-color))))
     regions-with-same-color))
 
-(defun handle-multiple-regions-in-array(regions-with-same-color object)
-(let ((dimensions (make-array 0 :fill-pointer 0 :adjustable t))
-      (h)
-      (region-with-same-high))
-  (loop for primitive across (roslisp:msg-slot-value object 'primitives) do
-    (if (or (= (length (roslisp:msg-slot-value object 'primitives)) 1)
-            (= (roslisp:msg-slot-value primitive 'type) 1) ;;1 = SolidPrimitive.BOX
-            (vector-push-extend (roslisp:msg-slot-value primitive 'dimensions))))  )))
+;;(defun handle-multiple-regions-in-array(regions-with-same-color object)
+;;(let ((dimensions (make-array 0 :fill-pointer 0 :adjustable t))
+;;      (h)
+;;      (region-with-same-high))
+;;  (loop for primitive across (roslisp:msg-slot-value object 'primitives) do
+;;    (if (or (= (length (roslisp:msg-slot-value object 'primitives)) 1)
+;;            (= (roslisp:msg-slot-value primitive 'type) 1) ;;1 = SolidPrimitive.BOX
+;;            (vector-push-extend (roslisp:msg-slot-value primitive 'dimensions))))  
+;;        (print "test"))))
 
-()
 
 (defun add-region-to-classified-regions(region)
   (vector-push-extend region *classified-regions*)
