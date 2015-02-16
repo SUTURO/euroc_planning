@@ -8,6 +8,5 @@
 ))
 
 (defun centroid-to-vector(centroid)
-  (let ((3d-vector (make-3d-vector (roslisp:msg-slot-value centroid 'x) (roslisp:msg-slot-value centroid 'y) (roslisp:msg-slot-value centroid 'z))))
-    
+  (make-3d-vector (roslisp:msg-slot-value centroid 'x) (roslisp:msg-slot-value centroid 'y) (roslisp:msg-slot-value centroid 'z)
 ))
