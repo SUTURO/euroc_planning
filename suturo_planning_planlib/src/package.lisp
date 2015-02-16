@@ -27,6 +27,7 @@
    #:pose-estimate-object
    #:id
    #:pan
+   #:find-objects-in-map
    #:tilt
    #:at
    #:scenecam
@@ -40,6 +41,7 @@
    #:expected-object
    #:pose
    #:type
+   #:objects
    #:max-distance
    #:obj
    #:gripper
