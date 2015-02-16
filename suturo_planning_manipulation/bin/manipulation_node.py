@@ -48,8 +48,7 @@ class ManipulationNode(object):
         __angle = msg.angle
         __distance = msg.distance
         __quantity = msg.quantity
-
-        poses = make_scan_pose(__region_centroid, __distance, __angle, __quantity)
+        poses = make_scan_pose(__region_centroid, __distance, __angle, n=__quantity)
         poses = self.__manipulation.filter_close_poses(poses)
         poses = utils.map.filter_invalid_scan_poses2(__region_centroid.x, __region_centroid.y, poses)
         visualize_poses(poses)
