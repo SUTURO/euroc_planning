@@ -14,6 +14,9 @@
                      (desig-prop ?designator (to find-objects-in-map))
                      (desig-prop ?designator (objects ?objects)))
 
+  (cram-reasoning:<- (action-desig ?designator (get-gripper-perception))
+                     (desig-prop ?designator (to get-gripper-perception)))
+
   (cram-reasoning:<- (action-desig ?designator (perceive-scene-with-origin ?scenecam ?base-origin))
                      (desig-prop ?designator (to perceive-scene-with))
                      (desig-prop ?designator (scenecam ?scenecam))
@@ -41,6 +44,7 @@
                      (or (desig-prop ?designator (to perceive))
                          (desig-prop ?designator (to perceive-scene-with))
                          (desig-prop ?designator (to classify-object))
+                         (desig-prop ?designator (to get-gripper-perception))
                          (desig-prop ?designator (to focus-object))
                          (desig-prop ?designator (to find-objects-in-map))
                          (desig-prop ?designator (to pose-estimate-object))))

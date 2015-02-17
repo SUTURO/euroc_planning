@@ -6,7 +6,7 @@
   (scan-obstacle (aref *classified-regions* *next-cluster*))
 )
 
-(defun scan-obstacle(region)
+(defun look-at-obstacle(region)
   (print "Scan-obstacle: Begin")
   (let ((region-centroid)
         (poses))
@@ -14,7 +14,9 @@
     (if (is-region-out-of-reach region-centroid)
         NIL)
     (setf poses (create-poses (calculate-distance region) region-centroid))
+
     (plan-and-move poses)
+
 ))
 
 (defun get-region-centroid(region)
@@ -97,11 +99,10 @@
   (let ((not-blow-up-list (make-array 2 :fill-pointer 0)))
         (vector-push-extend "map" not-blow-up-list)
   (loop named poses-loop for pose across poses do
-    (if (not (roslisp:wait-for-service +service-name-move-robot+ *timeout-service*))
-        (roslisp:ros-warn nil t (concatenate 'string "Following service timed out: " +service-name-move-robot+))
-        (if(roslisp:call-service +service-name-move-robot+ 'suturo_planning_manipulation-srv:Move :type (roslisp:symbol-code 'suturo_planning_manipulation-srv:Move-Request :ACTION_MOVE_ARM_TO) :goal_pose pose :do_not_blow_up_list not-blow-up-list)
-           (return-from poses-loop)
-)))))
+    (if(perform (make-designator 'action `((to move-mast-cam) ;TODO Es wird immer nur der erste ausgeführt, da immer ein response ausgegeben wird !!!!!!!!! 
+                                      (pose ,pose)
+                                      (do-now-blow-up-list ,not-blow-up-list)))))
+    (return-from poses-loop))))
 
 (def-cram-function state-scan-obstacles ()
   (loop while T do

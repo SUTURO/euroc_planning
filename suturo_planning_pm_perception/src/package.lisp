@@ -10,17 +10,17 @@
   (:export #:suturo-planning-pm-perception
            #:get-gripper-perception)
   (:desig-properties
-    #:to
+    #:base-origin
+    #:classify-object
     #:color
+    #:find-objects-in-map
+    #:focus-object
+    #:get-gripper-perception
+    #:id  
+    #:obj
+    #:objects
     #:perceive
     #:perceive-scene-with
-    #:classify-object
-    #:focus-object
     #:pose-estimate-object
     #:scenecam
-    #:base-origin
-    #:objects
-    #:pose-estimate-object
-    #:find-objects-in-map
-    #:id
-    #:obj))
+    #:to))

@@ -16,6 +16,7 @@
            #:scan-map-action)
   (:desig-properties
     #:to
+    #:pose
     #:type
     #:navigation
     #:goal
@@ -29,6 +30,7 @@
     #:pose
     #:obj
     #:pan
+    #:do-now-blow-up-list
     #:tilt
     #:move-arm-cam
     #:pose-name

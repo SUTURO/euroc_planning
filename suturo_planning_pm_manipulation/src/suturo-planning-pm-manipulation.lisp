@@ -38,27 +38,28 @@
 
 (defun call-ros-service (service-name service-type &rest args)
     (roslisp:call-service service-name args))
-)
+
 
 ; To see how these action handlers are implemented for the pr2, see
 ; https://github.com/cram-code/cram_pr2/blob/master/pr2_manipulation_process_module/src/action-handlers.lisp
 
-(def-action-handler navigation (goal)
+(def-action-handler navigation (goal &optional do-not-blow-up-list)
   "Moves the robot to the goal position"
-  (if (not (roslisp:wait-for-service service-name +timeout-service+))
-    (let ((timed-out-text (concatenate 'string "Times out waiting for service" service-name)))
-      (roslisp:ros-warn nil t timed-out-text))
-    (progn
-      (let ((response (call-ros-service 'suturo_planning_manipulation-srv:Move
-                                        :type (roslisp-msg-protocol:symbol-code 'suturo_planning_manipulation-srv:Move-Request :ACTION_MOVE_ARM_TO)
-                                        :goal_pose goal)))
-        (if (not (msg-slot-value response 'result))
-          (fail 'manipulation-failure)
-        )
-      )
-    )
-  )
-)
+  (if (not (roslisp:wait-for-service +service-name-move-mastcam+ +timeout-service+))
+      (let ((timed-out-text (concatenate 'string "Times out waiting for service" +service-name-move-mastcam+)))
+        (roslisp:ros-warn nil t timed-out-text))
+      (progn
+        (let ((response nil))
+          (if do-not-blow-up-list
+              (setf response (call-ros-service +service-name-move-mastcam+ 'suturo_planning_manipulation-srv:Move
+                                               :type (roslisp-msg-protocol:symbol-code 'suturo_planning_manipulation-srv:Move-Request :ACTION_MOVE_ARM_TO)
+                                               :goal_pose goal
+                                               :do_not_blow_up_list do-not-blow-up-list))
+              (setf response (call-ros-service +service-name-move-mastcam+ 'suturo_planning_manipulation-srv:Move
+                                               :type (roslisp-msg-protocol:symbol-code 'suturo_planning_manipulation-srv:Move-Request :ACTION_MOVE_ARM_TO)
+                                               :goal_pose goal)))
+          (if (not (msg-slot-value response 'result))
+              (fail 'manipulation-failure))))))
 
 (def-action-handler follow (pose)
   "Follow head with pose."
