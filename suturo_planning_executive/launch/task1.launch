@@ -1,13 +1,5 @@
 <launch>
-  <node name="fixed_frame_publisher" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 /map /base_footprint 100" />
-
-  <arg name="variation" default="1" />
-
-  <!-- The YAML files provided by euroc can't be loaded into the parameter server due to some invalid value;
-       The files below are copys of those files without the internal section -->
-  <rosparam command="load" file="$(find suturo_planning_executive)/launch/task1_v1.yml" ns="/task1_1" />
-  <rosparam command="load" file="$(find suturo_planning_executive)/launch/task1_v2.yml" ns="/task1_2" />
-  <rosparam command="load" file="$(find suturo_planning_executive)/launch/task1_v3.yml" ns="/task1_3" />
+  <include file="$(find suturo_planning_executive)/launch/task1_without_planning.launch" />
   
   <node name="planning" pkg="suturo_planning_executive" type="task" required="true" output="screen">
     <param name="task" type="string" value="task1" />
