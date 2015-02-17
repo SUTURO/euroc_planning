@@ -50,7 +50,11 @@ class ManipulationNode(object):
         __quantity = msg.quantity
         poses = make_scan_pose(__region_centroid, __distance, __angle, n=__quantity)
         poses = self.__manipulation.filter_close_poses(poses)
-        poses = utils.map.filter_invalid_scan_poses2(__region_centroid.x, __region_centroid.y, poses)
+        rospy.loginfo("utils.map id ="+ str(hex(id(utils.map))))
+        if utils.map is not None:
+            poses = utils.map.filter_invalid_scan_poses2(__region_centroid.x, __region_centroid.y, poses)
+        else:
+            print "__handle_create_poses_for_scanning: utils.map is None :-O"
         visualize_poses(poses)
         return CreatePosesForScanningResponse(poses)
 

@@ -7,12 +7,14 @@
 )
 
 (defun scan-obstacle(region)
+  (print "Scan-obstacle: Begin")
   (let ((region-centroid)
         (poses))
     (setf region-centroid (get-region-centroid region))
     (if (is-region-out-of-reach region-centroid)
         NIL)
     (setf poses (create-poses (calculate-distance region) region-centroid))
+    (plan-and-move poses)
 ))
 
 (defun get-region-centroid(region)
@@ -53,10 +55,7 @@
         (map (get-map))
         (cell-size)
         (map-size))
-    (print "let")
     (setf cell-size (roslisp:msg-slot-value map 'cell_size))
-    (print "cell-size")
-    (print cell-size)
     (setf map-size (roslisp:msg-slot-value (value map) 'size))
     (setf x (+(-(* x-index cell-size) (/ map-size 2)) (/ cell-size 2)))
     (setf y (+(-(* y-index cell-size) (/ map-size 2)) (/ cell-size 2)))
@@ -70,11 +69,8 @@
       ))
 
 (defun is-region-out-of-reach(region-centroid)
-  (print "region-centroid")
   (print region-centroid)
-  (print "asd")
   (centroid-to-vector region-centroid)
-  (print "asdasdasd")
   (let ((distance-to-region))
     (setf distance-to-region (v-dist (make-3d-vector 0 0 0)(centroid-to-vector region-centroid)))
     (> distance-to-region +scan-obstacles-arm-max-distance+) 
@@ -88,11 +84,14 @@
     (length cells)
 ))
 
-(defun create-poses(distance region_centroid)
+(defun create-poses(distance region-centroid)
+  (roslisp:msg-slot-value (create-poses-service-call distance region-centroid) 'poses)
+)
+
+(defun create-poses-service-call(distance region-centroid)
   (if (not (roslisp:wait-for-service +service-name-create-poses-for-object-scanning+ *timeout-service*))
       (roslisp:ros-warn nil t (concatenate 'string "Following service timed out: " +service-name-create-poses-for-object-scanning+))
-      (roslisp:call-service +service-name-create-poses-for-object-scanning+ 'suturo_manipulation_msgs-srv:CreatePosesForScanning :centroid region_centroid :angle +scan-obstacles-angle+ :distance distance :quantity +scan-obstacles-number-of-poses+)
-      ))
+      (roslisp:call-service +service-name-create-poses-for-object-scanning+ 'suturo_manipulation_msgs-srv:CreatePosesForScanning :centroid region-centroid :angle +scan-obstacles-angle+ :distance distance :quantity +scan-obstacles-number-of-poses+)))
 
 (defun plan-and-move(poses)
   (let ((not-blow-up-list (make-array 2 :fill-pointer 0)))
@@ -100,7 +99,7 @@
   (loop named poses-loop for pose across poses do
     (if (not (roslisp:wait-for-service +service-name-move-robot+ *timeout-service*))
         (roslisp:ros-warn nil t (concatenate 'string "Following service timed out: " +service-name-move-robot+))
-        (if(roslisp:call-service +service-name-move-robot+ 'suturo_planning_manipulation-srv:Move :type (roslisp:symbol-code 'suturo_planning_manipulation-srv:Move :ACTION_MOVE_ARM_TO) :goal_pose pose :do_not_blow_up_list not-blow-up-list)
+        (if(roslisp:call-service +service-name-move-robot+ 'suturo_planning_manipulation-srv:Move :type (roslisp:symbol-code 'suturo_planning_manipulation-srv:Move-Request :ACTION_MOVE_ARM_TO) :goal_pose pose :do_not_blow_up_list not-blow-up-list)
            (return-from poses-loop)
 )))))
 

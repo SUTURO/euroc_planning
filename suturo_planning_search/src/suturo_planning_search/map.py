@@ -58,7 +58,7 @@ class Map:
         print(regions)
         resp.obstacle_regions = []
         for region in regions:
-            print("handle_get_obstacle regifishon")
+            print("handle_get_obstacle region")
             region_msg = suturo_environment_msgs.msg.Region()
             avg = region.get_avg()
             region_msg.avg_x = avg[0]

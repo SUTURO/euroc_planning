@@ -6,6 +6,7 @@
 ;; *found-objects* sollte muss schon gefüllt sein
 
 (defun find-objects-in-map()
+  (print "Find Objects in Map: Begin")
   (let ((regions (get-regions))
         (yaml-objects (cl-utilities:copy-array(roslisp:msg-slot-value (roslisp:msg-slot-value (value *taskdata*) 'yaml) 'objects))))
     (compare-object-and-regions yaml-objects regions)
@@ -37,13 +38,10 @@
         (region-color))
     (loop for region across regions do
       (setf region-color (get-region-color region))
-      (print "color-object")
       (print obj-color)
-      (print "region-color")
       (print region-color)
       (if (string= region-color obj-color) 
           (progn
-            (print "TRUE")
             (vector-push-extend region regions-with-same-color))))
     regions-with-same-color))
 
@@ -59,6 +57,7 @@
 
 
 (defun add-region-to-classified-regions(region)
+  (print "add Region to classified Regions")
   (vector-push-extend region *classified-regions*)
 )
 
