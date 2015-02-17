@@ -42,3 +42,8 @@
     )
   )
 )
+
+(defun get-pre-place-position (pose)
+  (with-fields (position) pose
+    (with-fields (z) position
+      (modify-message-copy pose (z position) (+ z +pre-place-length+)))))

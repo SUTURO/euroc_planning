@@ -36,6 +36,7 @@
     `(defmethod call-action ((,action-sym (eql ',name)) &rest ,params)
       (destructuring-bind ,args ,params ,@body))))
 
+
 ; To see how these action handlers are implemented for the pr2, see
 ; https://github.com/cram-code/cram_pr2/blob/master/pr2_manipulation_process_module/src/action-handlers.lisp
 
@@ -102,6 +103,7 @@
 
 (def-action-handler put-down (obj-designator location)
   "Puts the object specified by the obj-designator down at a location"
+
 )
 
 ;;----------service calls ----------------------------
