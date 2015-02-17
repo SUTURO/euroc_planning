@@ -1,5 +1,7 @@
 (in-package :environment)
 
+(defvar *yaml* nil "The YAML file")
+
 (defun object-location-generator (location-designator)
   "Find the position of an object in an object-designator"
   (let* ((obj (desig-prop-value location-designator 'of))

@@ -14,7 +14,7 @@
            (ros-warn (objects-informed) "Retrying.")
            (retry))
          (fail 'objects-information-failed)))
-      (let ((regions (achieve `(objects-located ,(cl-utilities:copy-array(roslisp:msg-slot-value exec:*yaml* 'objects))))))
+      (let ((regions (achieve `(objects-located ,(cl-utilities:copy-array(roslisp:msg-slot-value environment:*yaml* 'objects))))))
         (loop for region across regions do
                   ;;TODO achieve objects-located in Fehlerbehandlung einbauen
                   (let ((objects-in-scene (achieve `(unknown-scanned ,region))))

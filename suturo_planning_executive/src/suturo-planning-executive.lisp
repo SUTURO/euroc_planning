@@ -1,7 +1,5 @@
 (in-package :exec)
 
-(defvar *yaml* nil "The YAML file")
-
 (defmacro with-process-modules (&body body)
   `(cpm:with-process-modules-running
      (suturo-planning-pm-manipulation
@@ -83,4 +81,4 @@
         )))))
 
 (defun yaml-cb (msg)
-  (setf *yaml* msg))
+  (setf environment:*yaml* msg))

@@ -8,7 +8,8 @@
         #:desig)
   (:export #:get-model-pose
            #:get-target-zones
-           #:find-matching-target-zone)
+           #:find-matching-target-zone
+           #:*yaml*)
   (:desig-properties
     #:at
     #:type
