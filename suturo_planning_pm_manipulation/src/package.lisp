@@ -27,7 +27,6 @@
     #:lift
     #:carry
     #:park
-    #:pose
     #:obj
     #:pan
     #:do-now-blow-up-list

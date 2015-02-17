@@ -8,10 +8,9 @@
     (if (is-region-out-of-reach region-centroid)
         NIL)
     (setf poses (create-poses (calculate-distance region) region-centroid))
-
-    (plan-and-move poses)
-
-))
+    (print "nmb poses")
+    (print (length poses))
+    (plan-and-move poses)))
 
 (defun get-region-centroid(region)
     (multiple-value-bind (avg-x avg-y) (get-avg region)
@@ -93,9 +92,9 @@
   (let ((not-blow-up-list (make-array 2 :fill-pointer 0)))
         (vector-push-extend "map" not-blow-up-list)
   (loop named poses-loop for pose across poses do
-    (if (perform (make-designator 'action `((to move-mast-cam) ;TODO Es wird immer nur der erste ausgeführt, da immer ein response ausgegeben wird !!!!!!!!! 
-                                      (pose ,pose)
-                                      (do-now-blow-up-list ,not-blow-up-list))))
+    (if (perform (make-designator 'action `((to move-arm-cam) ;TODO Es wird immer nur der erste ausgeführt, da immer ein response ausgegeben wird !!!!!!!!! 
+                                            (pose ,pose)
+                                            (do-not-blow-up-list ,not-blow-up-list))))
     (return-from poses-loop)))))
 
 (def-cram-function state-scan-obstacles ()
