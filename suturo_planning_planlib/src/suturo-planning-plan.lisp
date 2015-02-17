@@ -131,7 +131,7 @@
       (progn 
         (print "Timed out")
         (setf (value *current-transition*) :transition-timed-out)) 
-      (roslisp:call-service +service-name-add-collision-objects+ 'suturo_planning_manipulation-srv:AddCollisionObjects :objects objects)))
+      (roslisp:call-service +service-name-add-collision-objects+ 'suturo_manipulation_msgs-srv:AddCollisionObjects :objects objects)))
 
 (defun string-transition-to-keyword(str)
   (cond
