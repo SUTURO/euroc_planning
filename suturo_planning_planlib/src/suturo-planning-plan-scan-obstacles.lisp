@@ -1,11 +1,5 @@
 (in-package :planlib)
 
-(defparameter *next-cluster* 0)
-
-(defun scan-obstacles()
-  (scan-obstacle (aref *classified-regions* *next-cluster*))
-)
-
 (defun look-at-obstacle(region)
   (print "Scan-obstacle: Begin")
   (let ((region-centroid)
@@ -99,10 +93,10 @@
   (let ((not-blow-up-list (make-array 2 :fill-pointer 0)))
         (vector-push-extend "map" not-blow-up-list)
   (loop named poses-loop for pose across poses do
-    (if(perform (make-designator 'action `((to move-mast-cam) ;TODO Es wird immer nur der erste ausgeführt, da immer ein response ausgegeben wird !!!!!!!!! 
+    (if (perform (make-designator 'action `((to move-mast-cam) ;TODO Es wird immer nur der erste ausgeführt, da immer ein response ausgegeben wird !!!!!!!!! 
                                       (pose ,pose)
-                                      (do-now-blow-up-list ,not-blow-up-list)))))
-    (return-from poses-loop))))
+                                      (do-now-blow-up-list ,not-blow-up-list))))
+    (return-from poses-loop)))))
 
 (def-cram-function state-scan-obstacles ()
   (loop while T do
