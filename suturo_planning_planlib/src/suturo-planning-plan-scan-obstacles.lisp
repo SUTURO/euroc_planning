@@ -90,19 +90,11 @@
 
 (defun plan-and-move(poses)
   (let ((not-blow-up-list (make-array 2 :fill-pointer 0)))
-        (vector-push-extend "map" not-blow-up-list)
-  (loop named poses-loop for pose across poses do
-    (if (perform (make-designator 'action `((to move-arm-cam) ;TODO Es wird immer nur der erste ausgeführt, da immer ein response ausgegeben wird !!!!!!!!! 
-                                            (pose ,pose)
-                                            (do-not-blow-up-list ,not-blow-up-list))))
-    (return-from poses-loop)))))
-
-(def-cram-function state-scan-obstacles ()
-  (loop while T do
-    (cpl-impl:wait-for (fl-and (eql *current-state* :state-search-objects) (eql *current-transition* :transition-search-objects)))
-    (print "Executing state scan obstacles")
-    (setf (value *current-state*) :state-scan-obstacles)
-    (scan-obstacles)
-    (setf (value *current-transition*) :transition-map-scanned)
-    (setf (value *current-transition*) :transition-new-image)
-        ))
+    (vector-push-extend "map" not-blow-up-list)
+    (loop named poses-loop for pose across poses do
+      (let ((move-success (roslisp:msg-slot-value (perform (make-designator 'action `((to move-arm-cam) 
+                                                                                      (pose ,pose)
+                                                                                      (do-not-blow-up-list ,not-blow-up-list))))
+                                                  'result)))
+        (if move-success
+            (return-from plan-and-move))))))

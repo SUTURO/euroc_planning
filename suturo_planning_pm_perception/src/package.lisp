@@ -16,7 +16,7 @@
     #:find-objects-in-map
     #:focus-object
     #:get-gripper-perception
-    #:id  
+    #:ids 
     #:obj
     #:objects
     #:perceive

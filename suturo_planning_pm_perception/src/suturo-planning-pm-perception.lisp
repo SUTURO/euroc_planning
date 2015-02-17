@@ -84,9 +84,9 @@
   (call-service-add-point-cloud scenecam arm-origin))
 
 ;----------------pose estimation------------------------------
-(def-action-handler pose-estimate-object (id)
-  (if (typep id 'integer) 
-      (let ((pose-estimated-object (elt (roslisp:msg-slot-value (perception:get-gripper-perception nil T id) 'objects) 0))) ;;ID as vector/array ? 
+(def-action-handler pose-estimate-object (ids)
+      (let ((pose-estimated-object (elt (roslisp:msg-slot-value (call-gripper-service (create-capability-string nil T ids)) 'objects) 0)))
+      ;(let ((pose-estimated-object (elt (roslisp:msg-slot-value (get-gripper-perception nil T id) 'objects) 0))) ;;ID as vector/array ? 
         (if (not pose-estimated-object)
             (print "Pose estimation failed, no object returned")
             (progn
@@ -95,7 +95,7 @@
                   (print "Pose estimation failed, couldn't pose estimate object")
                   (progn
                     ;;(call-add-collision-objects (vector (roslisp:msg-slot-value pose-estimated-object 'mpe_object))) TODO 
-                    )))))))
+                    ))))))
       
 
 ;;-------------------classify--------------------------------

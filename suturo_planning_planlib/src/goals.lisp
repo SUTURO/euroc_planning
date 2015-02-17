@@ -29,7 +29,7 @@
                                                     (ros-warn (objects-informed) "Retrying.")
                                                     (retry))
                                                   (fail 'objects-information-failed)))
-                          (let ((classified-object (achieve `(object-classified object))))
+                          (let ((classified-object (achieve `(object-classified ,object))))
                             (with-failure-handling
                                 ((simple-plan-failure (e)
                                                       (declare (ignore e))
@@ -38,7 +38,7 @@
                                                         (ros-warn (objects-informed) "Retrying.")
                                                         (retry))
                                                       (fail 'objects-information-failed)))
-                              (achieve `(pose-estimated classified-object)))))))))))))
+                              (achieve `(pose-estimated ,classified-object)))))))))))))
 
 (def-goal (achieve (objects-located ?objects))
   (perform (make-designator 'action `((to find-objects-in-map) 
@@ -54,11 +54,17 @@
                                         (obj ,?object)))))
 
 (def-goal (achieve (pose-estimated ?object))
-  (pose-estimate-object ?object)
-  (perform (make-designator 'action `((to focus-object)
-                                      (obj ,?object))))
-  (perform (make-designator 'action `((to pose-estimate-object)
-                                      (obj ,?object)))))
+  (let ((ids (get-yaml-object-nrs (roslisp:msg-slot-value environment:*yaml* 'objects) (roslisp:msg-slot-value (roslisp:msg-slot-value ?object 'object) 'id))))
+    (perform (make-designator 'action `((to pose-estimate-object) (ids ,ids))))))
+
+(defun get-yaml-object-nrs(yaml-objects  object-id)
+  (let ((nrs (list))
+        (i 0))
+    (loop for object across yaml-objects do
+          (if (string= (roslisp:msg-slot-value object 'name) object-id)
+              (setq nrs (append nrs (list i))) )
+          (incf i))
+    nrs))
 
 (def-goal (achieve (objects-in-place ?objects))
   (let ((target-zones (get-target-zones)))

@@ -33,7 +33,7 @@
    #:focus-object
    #:get-gripper-perception
    #:gripper
-   #:id
+   #:ids
    #:max-distance
    #:move-arm-cam
    #:move-mast-cam

@@ -55,7 +55,8 @@
                                                :type (roslisp-msg-protocol:symbol-code 'suturo_manipulation_msgs-srv:Move-Request :ACTION_MOVE_ARM_TO)
                                                :goal_pose goal)))
           (if (not (msg-slot-value response 'result))
-              (fail 'manipulation-failure))))))
+              (fail 'manipulation-failure))
+          response))))
 
 (def-action-handler follow (pose)
   "Follow head with pose."
@@ -83,8 +84,7 @@
                                               :goal_pose position
                                               :do_not_blow_up_list object-name)))
           (if (not (msg-slot-value response 'result))
-              (fail 'manipulation-failure))))))
-) 
+              (fail 'manipulation-failure))))))) 
 
 
 (def-action-handler grasp (object-designator)

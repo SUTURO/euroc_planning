@@ -6,9 +6,9 @@
                      (desig-prop ?designator (to perceive))
                      (desig-prop ?designator (obj ?obj)))
 
-  (cram-reasoning:<- (action-desig ?designator (pose-estimate-object ?id))
+  (cram-reasoning:<- (action-desig ?designator (pose-estimate-object ?ids))
                      (desig-prop ?designator (to pose-estimate-object))
-                     (desig-prop ?designator (id ?obj)))
+                     (desig-prop ?designator (ids ?ids)))
 
   (cram-reasoning:<- (action-desig ?designator (find-objects-in-map ?objects))
                      (desig-prop ?designator (to find-objects-in-map))
