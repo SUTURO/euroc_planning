@@ -99,7 +99,7 @@
   (loop named poses-loop for pose across poses do
     (if (not (roslisp:wait-for-service +service-name-move-robot+ *timeout-service*))
         (roslisp:ros-warn nil t (concatenate 'string "Following service timed out: " +service-name-move-robot+))
-        (if(roslisp:call-service +service-name-move-robot+ 'suturo_planning_manipulation-srv:Move :type (roslisp:symbol-code 'suturo_planning_manipulation-srv:Move-Request :ACTION_MOVE_ARM_TO) :goal_pose pose :do_not_blow_up_list not-blow-up-list)
+        (if(roslisp:call-service +service-name-move-robot+ 'suturo_manipulation_msgs-srv:Move :type (roslisp:symbol-code 'suturo_manipulation_msgs-srv:Move-Request :ACTION_MOVE_ARM_TO) :goal_pose pose :do_not_blow_up_list not-blow-up-list)
            (return-from poses-loop)
 )))))
 

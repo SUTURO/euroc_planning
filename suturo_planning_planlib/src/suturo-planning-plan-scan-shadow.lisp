@@ -13,7 +13,7 @@
     (if (not (roslisp:wait-for-service +service-name-move-robot+ *timeout-service*))
         (roslisp:ros-warn nil t (concatenate 'string "Following service timed out: " +service-name-move-robot+))
         (progn
-          (roslisp:call-service +service-name-move-robot+ 'suturo_planning_manipulation-srv:Move :type +move-group-arm+ :goal_pose_name pose)
+          (roslisp:call-service +service-name-move-robot+ 'suturo_manipulation_msgs-srv:Move :type +move-group-arm+ :goal_pose_name pose)
           (sleep +waiting-time-before-scan+)
           ;Get the base origin 
           (if (not (roslisp:wait-for-service +service-name-get-base-origin+ *timeout-service*)) 
