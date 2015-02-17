@@ -101,9 +101,54 @@
   ; Will not be implemented as we have nothing to do within this action
 )
 
-(def-action-handler put-down (obj-designator location)
+(def-action-handler put-down (obj-designator location collision-object-name)
   "Puts the object specified by the obj-designator down at a location"
-
+  (if (not (roslisp:wait-for-service +service-name-move-robot+ +timeout-service+))
+    (let ((timed-out-text (concatenate 'string "Timed out waiting for service" +service-name-move-robot+)))
+      (roslisp:ros-warn nil t timed-out-text))
+    (progn
+      ; Move to the pre place position
+      (let ((response (roslisp:call-service +service-name-move-robot+ 'suturo_manipulation_msgs-srv:Move
+                                            :type (roslisp-msg-protocol:symbol-code 'suturo_manipulation_msgs-srv:Move-Request :ACTION_MOVE_ARM_TO)
+                                            :goal_pose (get-pre-place-position location)
+                                            :do_not_blow_up_list=#(collision-object-name))))
+        (with-fields (result) response
+          (if (not result)
+            (fail 'manipulation-failure)))))
+      ; Place the object
+      (let ((response (roslisp:call-service +service-name-move-robot+ 'suturo_manipulation_msgs-srv:Move
+                                            :type (roslisp-msg-procotol:symbol-code 'suturo_pmanipulation_msgs-srv:Move-Request :ACTION_MOVE_ARM_TO)
+                                            :goal_pose location
+                                            :do_not_blow_up_list=#(collision-object-name "map")))
+        (with-fields (result) response
+          (if (not result)
+            (fail 'manipulation-failure)))))
+      ; Open the gripper
+      (if (not (roslisp:wait-for-service +service-name-open-gripper+ +timeout-service+))
+        (let ((timed-out-text (concatenate 'string "Timed out waiting for service" +service-name-open-gripper+))
+          (roslisp:ros-warn nil t timed-out-text))
+        (let ((response (roslisp:call-service +service-name-open-gripper+ 'suturo_manipulation_msgs-srv:OpenGripper)))
+          (with-fields (result) response
+            (if (not result)
+              (fail 'manipulation-failure))))))
+      ; Move to pre grasp
+      (let ((response (roslisp:call-service +service-name-move-robot+ 'suturo_maniuplation_msgs-srv:Move
+                                            :type (roslisp-msg-procotol:symbol-code 'suturo_pm_manipulation_msgs-srv:Move-Request :ACTION_MOVE_ARM_TO)
+                                            :goal_pose (get-pre-grasp location)
+                                            :do_not_blow_up_list=#(collision-object-name "map"))))
+      (with-fields (result) response
+        (if (not result)
+          (fail 'manipulation-failure))))
+      ; Move to pre place
+      (let ((response (roslisp:call-service +service-name-move-robot+ 'suturo_manipulation_msgs-srv:Move
+                                            :type (roslisp-msg-protocol:symbol-code 'suturo_manipulation_msgs-srv:Move-Request :ACTION_MOVE_ARM_TO)
+                                            :goal_pose (get-pre-place-position location)
+                                            :do_not_blow_up_list=#(collision-object-name "map"))))
+        (with-fields (result) response
+          (if (not result)
+            (fail 'manipulation-failure))))
+    )
+  )
 )
 
 ;;----------service calls ----------------------------

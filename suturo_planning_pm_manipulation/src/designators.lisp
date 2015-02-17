@@ -32,10 +32,11 @@
                      (desig-prop ?designator (type navigation))
                      (desig-prop ?designator (goal ?goal)))
 
-  (cram-reasoning:<- (action-desig ?designator (put-down ?obj ?loc))
+  (cram-reasoning:<- (action-desig ?designator (put-down ?obj ?loc ?collision-object-name))
                      (desig-prop ?designator (to put-down))
                      (desig-prop ?designator (obj ?obj))
-                     (desig-prop ?designator (at ?loc)))
+                     (desig-prop ?designator (at ?loc))
+                     (desig-prop ?designator (collision-object-name ?collision-object-name)))
 
   (cram-reasoning:<- (action-desig ?designator (park ?obj))
                      (desig-prop ?designator (to park))
