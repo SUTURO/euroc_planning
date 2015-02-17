@@ -36,21 +36,26 @@
     `(defmethod call-action ((,action-sym (eql ',name)) &rest ,params)
       (destructuring-bind ,args ,params ,@body))))
 
-
 ; To see how these action handlers are implemented for the pr2, see
 ; https://github.com/cram-code/cram_pr2/blob/master/pr2_manipulation_process_module/src/action-handlers.lisp
 
-(def-action-handler navigation (goal)
+(def-action-handler navigation (goal &optional do-not-blow-up-list)
   "Moves the robot to the goal position"
-  (if (not (roslisp:wait-for-service  +service-name-move-robot+ +timeout-service+))
-    (let ((timed-out-text (concatenate 'string "Times out waiting for service" +service-name-move-robot+)))
-      (roslisp:ros-warn nil t timed-out-text))
-    (progn
-      (let ((response (roslisp:call-service +service-name-move-robot+ 'suturo_planning_manipulation-srv:Move
-                                        :type (roslisp-msg-protocol:symbol-code 'suturo_planning_manipulation-srv:Move-Request :ACTION_MOVE_ARM_TO)
-                                        :goal_pose goal)))
-        (if (not (msg-slot-value response 'result))
-          (fail 'manipulation-failure))))))
+  (if (not (roslisp:wait-for-service +service-name-move-mastcam+ +timeout-service+))
+      (let ((timed-out-text (concatenate 'string "Times out waiting for service" +service-name-move-mastcam+)))
+        (roslisp:ros-warn nil t timed-out-text))
+      (progn
+        (let ((response nil))
+          (if do-not-blow-up-list
+              (setf response (call-ros-service +service-name-move-mastcam+ 'suturo_manipulation_msgs-srv:Move
+                                               :type (roslisp-msg-protocol:symbol-code 'suturo_manipulation_msgs-srv:Move-Request :ACTION_MOVE_ARM_TO)
+                                               :goal_pose goal
+                                               :do_not_blow_up_list do-not-blow-up-list))
+              (setf response (call-ros-service +service-name-move-mastcam+ 'suturo_manipulation_msgs-srv:Move
+                                               :type (roslisp-msg-protocol:symbol-code 'suturo_manipulation_msgs-srv:Move-Request :ACTION_MOVE_ARM_TO)
+                                               :goal_pose goal)))
+          (if (not (msg-slot-value response 'result))
+              (fail 'manipulation-failure))))))
 
 (def-action-handler follow (pose)
   "Follow head with pose."
@@ -88,7 +93,7 @@
       (roslisp:ros-warn nil t timed-out-text))
     (progn
       (with-desig-props (collision-object) obj-designator
-        (let ((response (roslisp:call-service +service-name-close-gripper+ 'suturo_planning_manipulation-srv:CloseGripper collision-object)))
+        (let ((response (roslisp:call-service +service-name-close-gripper+ 'suturo_manipulation_msgs-srv:CloseGripper collision-object)))
           (with-fields (result joint_state) response
             (if (not result)
               (fail 'manipulation-failure)
@@ -114,7 +119,7 @@
                                             :do_not_blow_up_list=#(collision-object-name))))
         (with-fields (result) response
           (if (not result)
-            (fail 'manipulation-failure)))))
+            (fail 'manipulation-failure))))
       ; Place the object
       (let ((response (roslisp:call-service +service-name-move-robot+ 'suturo_manipulation_msgs-srv:Move
                                             :type (roslisp-msg-procotol:symbol-code 'suturo_pmanipulation_msgs-srv:Move-Request :ACTION_MOVE_ARM_TO)
@@ -156,7 +161,7 @@
   (print "Calling add collision objects")
   (if (not (roslisp:wait-for-service +service-name-add-collision-objects+ +timeout-service+))
         (print "Timed out")
-        (roslisp:call-service +service-name-add-collision-objects+ 'suturo_planning_manipulation-srv:AddCollisionObjects :objects objects)))
+        (roslisp:call-service +service-name-add-collision-objects+ 'suturo_manipulation_msgs-srv:AddCollisionObjects :objects objects)))
 
 (cpm:def-process-module suturo-planning-pm-manipulation (desig)
   (apply #'call-action (reference desig)))

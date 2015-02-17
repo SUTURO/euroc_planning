@@ -3,7 +3,7 @@
 
 ;-------------------- Low level perception ------------------------------
 
-(defun get-gripper-perception (&optional (cuboid 1) (pose-estimation nil) (object-ids nil))
+(def-action-handler get-gripper-perception (&optional (cuboid 1) (pose-estimation nil) (object-ids nil))
   "get the objects recognized by the gripper camera"
   (let (options)
   (setf options (create-capability-string cuboid pose-estimation object-ids))
@@ -101,6 +101,7 @@
 ;;-------------------classify--------------------------------
 
 (def-action-handler classify-object (perceived-object)
+  ;cuboid = TRUE, pose-estimation = false, objects-ids = []
   (analyze-perceived-object perceived-object))
 
 (defun analyze-perceived-object(object)

@@ -14,6 +14,15 @@
                      (desig-prop ?designator (pan ?pan))
                      (desig-prop ?designator (tilt ?tilt)))
 
+  (cram-reasoning:<- (action-desig ?designator (navigation ?pose))
+                     (desig-prop ?designator (to move-arm-cam))
+                     (desig-prop ?designator (pose ?pose)))
+
+  (cram-reasoning:<- (action-desig ?designator (navigation ?pose ?do-not-blow-up-list))
+                     (desig-prop ?designator (to move-arm-cam))
+                     (desig-prop ?designator (pose ?pose))
+                     (desig-prop ?designator (do-not-blow-up-list ?do-not-blow-up-list)))
+ 
   (cram-reasoning:<- (action-desig ?designator (move-arm-cam-pose-name ?pose-name))
                      (desig-prop ?designator (to move-arm-cam))
                      (desig-prop ?designator (pose-name ?pose-name)))

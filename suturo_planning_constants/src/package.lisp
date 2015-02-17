@@ -22,7 +22,7 @@
            #:+service-name-move-robot+
 	   
            #:+topic-name-get-yaml+
-
+           #:+base-origin-topic+
            ; ^^^ Constants ^^^
            ; vvv Failures vvv
            #:map-scanning-failed

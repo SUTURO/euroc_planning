@@ -17,44 +17,42 @@
       (let ((regions (achieve `(objects-located))))
         (mapcar (lambda (region)
                   ;;TODO achieve objects-located in Fehlerbehandlung einbauen
-                  (let ((object (achieve `(unknown-scanned region))))
-                    (with-retry-counters ((object-classified-retry-count 2)
-                                          (pose-estimated-retry-count 2))
-                      (with-failure-handling
-                          ((simple-plan-failure (e)
-                             (declare (ignore e))
-                             (ros-warn (objects-informed) "Failed to classify object.")
-                             (do-retry object-classified-retry-count
-                               (ros-warn (objects-informed) "Retrying.")
-                               (retry))
-                             (fail 'objects-information-failed)))
-                        (let ((classified-object (achieve `(object-classified object))))
-                          (with-failure-handling
-                              ((simple-plan-failure (e)
-                                 (declare (ignore e))
-                                 (ros-warn (objects-informed) "Failed to estimate pose for object.")
-                                 (do-retry pose-estimated-retry-count
-                                   (ros-warn (objects-informed) "Retrying.")
-                                   (retry))
-                                 (fail 'objects-information-failed)))
-                            (achieve `(pose-estimated classified-object))))))))
+                  (let ((objects-in-scene (achieve `(unknown-scanned region))))
+                    (loop for object across objects-in-scene do
+                      (with-retry-counters ((object-classified-retry-count 2)
+                                            (pose-estimated-retry-count 2))
+                        (with-failure-handling
+                            ((simple-plan-failure (e)
+                                                  (declare (ignore e))
+                                                  (ros-warn (objects-informed) "Failed to classify object.")
+                                                  (do-retry object-classified-retry-count
+                                                    (ros-warn (objects-informed) "Retrying.")
+                                                    (retry))
+                                                  (fail 'objects-information-failed)))
+                          (let ((classified-object (achieve `(object-classified object))))
+                            (with-failure-handling
+                                ((simple-plan-failure (e)
+                                                      (declare (ignore e))
+                                                      (ros-warn (objects-informed) "Failed to estimate pose for object.")
+                                                      (do-retry pose-estimated-retry-count
+                                                        (ros-warn (objects-informed) "Retrying.")
+                                                        (retry))
+                                                      (fail 'objects-information-failed)))
+                              (achieve `(pose-estimated classified-object)))))))))
                   regions)))))
 
 (def-goal (achieve (objects-located ?objects))
-  (perform (make-designator 'action `((to find-objects-in-map) 
+  (perform (make-designator 'action `((to get-gripper-perception) 
                                       (objects ,?objects)))))
 
 (def-goal (achieve (unknown-scanned ?region))
-  ; TODO: Implement me correcty
-  (perform (make-designator 'action '((to move-arm-cam)
-                                      (pose-name nil))))
-  (perform (make-designator 'action '((to perceive-scene-with)
-                                      (scenecam nil)))))
+    (look-at-obstacle ?region)
+  (roslisp:msg-slot-value (perform (make-designator 'action `((to get-gripper-perception)))) 'objects))
 
 (def-goal (achieve (object-classified ?object))
   ; TODO: Implement me correcty
-  (perform (make-designator 'action `((to classify-object)
-                                      (obj ,?object)))))
+    (perform (make-designator 'action `((to classify-object)
+                                        (obj ,?object)))))
 
 (def-goal (achieve (pose-estimated ?object))
     (pose-estimate-object ?object)

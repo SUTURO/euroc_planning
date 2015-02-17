@@ -23,27 +23,28 @@
            #:pose-estimated
            #:objects-in-place)
   (:desig-properties
-   #:to 
-   #:pose-estimate-object
-   #:id
-   #:pan
-   #:find-objects-in-map
-   #:tilt
-   #:at
-   #:scenecam
-   #:base-origin
-   #:perceive-scene-with
-   #:classify-object
-   #:focus-object
-   #:pose-estimate-object
-   #:move-mast-cam
-   #:pose-name
-   #:expected-object
-   #:pose
-   #:type
-   #:objects
-   #:max-distance
-   #:obj
-   #:gripper
    #:arm
-   #:move-arm-cam))
+   #:at
+   #:base-origin
+   #:classify-object
+   #:do-not-blow-up-list
+   #:expected-object
+   #:find-objects-in-map
+   #:focus-object
+   #:get-gripper-perception
+   #:gripper
+   #:id
+   #:max-distance
+   #:move-arm-cam
+   #:move-mast-cam
+   #:obj
+   #:objects
+   #:pan
+   #:perceive-scene-with
+   #:pose-estimate-object
+   #:pose
+   #:pose-name
+   #:scenecam
+   #:to 
+   #:tilt
+   #:type))
