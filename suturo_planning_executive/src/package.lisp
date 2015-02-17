@@ -13,7 +13,7 @@
         #:manipulation
         #:constants
         #:suturo-planning-planlib)
-  (:export #:task-selector #:task1)
+  (:export #:task-selector #:task1 #:*yaml*)
   (:desig-properties
     #:type
     #:max-distance
@@ -40,5 +40,7 @@
     #:pose-name
     #:classify-object
     #:focus-object
+    #:objects
+    #:find-objects-in-map
     #:pose-estimate-object
     #:scan-map))

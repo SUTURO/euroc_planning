@@ -28,9 +28,13 @@
              (:file "suturo-planning-plan-scan-map-mast-cam" :depends-on ("package"))
              (:file "suturo-planning-plan-search-objects" :depends-on("package" "suturo-planning-plan"))
              (:file "suturo-planning-plan-init" :depends-on("package" "suturo-planning-plan"))
+<<<<<<< HEAD
+             (:file "suturo-planning-plan-classify-objects" :depends-on("package" "suturo-planning-plan"))
+=======
              (:file "suturo-planning-plan-find-objects-in-map" :depends-on("package" "suturo-planning-plan"))
              (:file "suturo-planning-plan-scan-obstacles" :depends-on("package" "suturo-planning-plan"))
              (:file "suturo-planning-plan-classify-objects" :depends-on("package" "suturo-planning-plan" "suturo-planning-plan-find-objects-in-map"))
+>>>>>>> a85aaf3cc4d2e25859d65f15c0b4864857730a58
              (:file "suturo-planning-plan-pose-estimate-object" :depends-on("package" "suturo-planning-plan"))
              (:file "suturo-planning-plan-focus-objects" :depends-on("package" "suturo-planning-plan"))
              (:file "suturo-planning-plan-clean-up-plan" :depends-on("package" "suturo-planning-plan"))

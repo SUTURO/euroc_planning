@@ -19,6 +19,8 @@
     #:pose-estimate-object
     #:scenecam
     #:base-origin
+    #:objects
     #:pose-estimate-object
+    #:find-objects-in-map
     #:id
     #:obj))

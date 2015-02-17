@@ -7,8 +7,10 @@
                suturo_interface_msgs-srv
                process-modules
                designators
+               cl-utilities
                alexandria
                cl-transforms
+               suturo_environment_msgs-srv
                suturo-planning-constants)
   :components
   ((:module "src"
@@ -16,4 +18,5 @@
             ((:file "package")
              (:file "designators" :depends-on ("package"))
              (:file "recognized-object" :depends-on ("package"))
+             (:file "suturo-planning-pm-perception-find-objects-in-map" :depends-on("package" "designators"))
              (:file "suturo-planning-pm-perception" :depends-on ("package" "designators"))))))
