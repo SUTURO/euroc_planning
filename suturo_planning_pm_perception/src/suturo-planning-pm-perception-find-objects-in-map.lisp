@@ -32,10 +32,6 @@
         (region-color))
     (loop for region across regions do
       (setf region-color (get-region-color region))
-      (print "color-object")
-      (print obj-color)
-      (print "region-color")
-      (print region-color)
       (if (string= region-color obj-color) 
           (progn
             (print "TRUE")

@@ -14,10 +14,10 @@
            (ros-warn (objects-informed) "Retrying.")
            (retry))
          (fail 'objects-information-failed)))
-      (let ((regions (achieve `(objects-located))))
-        (mapcar (lambda (region)
+      (let ((regions (achieve `(objects-located ,(cl-utilities:copy-array(roslisp:msg-slot-value exec:*yaml* 'objects))))))
+        (loop for region across regions do
                   ;;TODO achieve objects-located in Fehlerbehandlung einbauen
-                  (let ((objects-in-scene (achieve `(unknown-scanned region))))
+                  (let ((objects-in-scene (achieve `(unknown-scanned ,region))))
                     (loop for object across objects-in-scene do
                       (with-retry-counters ((object-classified-retry-count 2)
                                             (pose-estimated-retry-count 2))
@@ -38,15 +38,14 @@
                                                         (ros-warn (objects-informed) "Retrying.")
                                                         (retry))
                                                       (fail 'objects-information-failed)))
-                              (achieve `(pose-estimated classified-object)))))))))
-                  regions)))))
+                              (achieve `(pose-estimated classified-object)))))))))))))
 
 (def-goal (achieve (objects-located ?objects))
-  (perform (make-designator 'action `((to get-gripper-perception) 
+  (perform (make-designator 'action `((to find-objects-in-map) 
                                       (objects ,?objects)))))
 
 (def-goal (achieve (unknown-scanned ?region))
-    (look-at-obstacle ?region)
+  (look-at-obstacle ?region)
   (roslisp:msg-slot-value (perform (make-designator 'action `((to get-gripper-perception)))) 'objects))
 
 (def-goal (achieve (object-classified ?object))
@@ -55,7 +54,7 @@
                                         (obj ,?object)))))
 
 (def-goal (achieve (pose-estimated ?object))
-    (pose-estimate-object ?object)
+  (pose-estimate-object ?object)
   (perform (make-designator 'action `((to focus-object)
                                       (obj ,?object))))
   (perform (make-designator 'action `((to pose-estimate-object)
