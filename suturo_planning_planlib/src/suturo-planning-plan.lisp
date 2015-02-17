@@ -58,10 +58,7 @@
 (defvar *timeout-service* 10 "The time to wait for a service")
 (defvar *state* (make-fluent :name :state) "The current state")
 
-(defconstant +service-name-classify-objects+ "suturo/Classifier" "The name of the service to classify objects")
-(defconstant +service-name-euroc-object-to-odom-combined+ "/suturo/euroc_object_to_odom_combined" "The name of the service to convert an EurocObject the a odom combined one")
 (defconstant +service-name-get-collision-object+ "/suturo/manipulation/get_collision_object" "The name of the service to get a collision object of the planning scene")
-(defconstant +service-name-add-collision-objects+ "/suturo/manipulation/add_collision_objects" "The name of the service to add collision objects to the current scene")
 (defconstant +service-name-mark-region-as-object-under-point+ "/suturo/mark_region_as_object_under_point" "The name of the service to mark a region as object")
 (defconstant +service-name-current-map-to-collision-object+ "/suturo/current_map_to_collision_object")
 
@@ -81,13 +78,12 @@
         (state-classify-objects)
         (state-pose-estimate-object)
         (state-focus-objects)
+        (state-clean-up-plan)
+        (state-choose-object)
         (loop while (not (or (eql (value *current-state*) :state-end) (eql (value *current-state*) :state-fail))) do
           (cond  
             ((and (eql (value *current-state*) :state-search-objects) (eql (value *current-transition*) :transition-missing-objects)) (call-service-state "scan_obstacles"))
-            ((and (eql (value *current-state*) :state-search-objects) (eql (value *current-transition*) :transition-no-objects-left)) (call-service-state "clean_up_plan"))
             ((and (eql (value *current-state*) :state-scan-obstacles) (eql (value *current-transition*) :transition-map-scanned)) (call-service-state "scan_obstacles")) 
-            ((and (eql (value *current-state*) :state-scan-obstacles) (eql (value *current-transition*) :transition-no-region-left)) (call-service-state "clean_up_plan")) 
-            ((and (eql (value *current-state*) :state-clean-up-plan) (eql (value *current-transition*) :transition-success)) (call-service-state "choose_object"))
             ((and (eql (value *current-state*) :state-clean-up-plan) (eql (value *current-transition*) :transition-fail)) (failed))
             ((and (eql (value *current-state*) :state-choose-object) (eql (value *current-transition*) :transition-object-chosen)) (call-service-state "grasp_object"))
             ((and (eql (value *current-state*) :state-choose-object) (eql (value *current-transition*) :transition-success)) (done))
@@ -100,8 +96,7 @@
             ((and (eql (value *current-state*) :state-place-object) (eql (value *current-transition*) :transition-success)) (call-service-state "check_placement"))
             ((and (eql (value *current-state*) :state-place-object) (eql (value *current-transition*) :transition-fail)) (failed))
             ((and (eql (value *current-state*) :state-place-object) (eql (value *current-transition*) :transition-no-object-attached)) (call-service-state "grasp_object"))
-            ((and (eql (value *current-state*) :state-place-object) (eql (value *current-transition*) :transition-no-place-position)) (call-service-state "place_object"))
-            ((eql (value *current-state*) :state-check-placement) (call-service-state "choose_object"))))))
+            ((and (eql (value *current-state*) :state-place-object) (eql (value *current-transition*) :transition-no-place-position)) (call-service-state "place_object"))))))
 
 (defun call-create-taskdata ()
   (print "Calling create taskdata ")

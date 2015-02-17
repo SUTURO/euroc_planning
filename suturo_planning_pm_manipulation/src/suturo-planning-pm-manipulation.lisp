@@ -81,7 +81,7 @@
 
 (def-action-handler grasp (object-designator)
   "Grasps the object specified by the obj-designator"
-  (with-desig-props (collision-object) obj-designator
+  (with-desig-props (collision-object) object-designator
     (let ((request (roslisp:make-request 'suturo_planning_manipulation-srv:CloseGripper collision-object nil)))
       (let ((response (call-ros-service +service-name-close-gripper+ request)))
         (with-fields (result joint_state) response
@@ -105,6 +105,13 @@
   "Puts the object specified by the obj-designator down at a location"
   ; TODO: Implement me
   )
+
+;;----------service calls ----------------------------
+(defun call-add-collision-objects(objects)
+  (print "Calling add collision objects")
+  (if (not (roslisp:wait-for-service +service-name-add-collision-objects+ +timeout-service+))
+        (print "Timed out")
+        (roslisp:call-service +service-name-add-collision-objects+ 'suturo_planning_manipulation-srv:AddCollisionObjects :objects objects)))
 
 (cpm:def-process-module suturo-planning-pm-manipulation (desig)
   (apply #'call-action (reference desig)))

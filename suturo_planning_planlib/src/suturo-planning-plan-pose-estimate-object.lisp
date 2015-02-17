@@ -71,11 +71,6 @@
         nil)))
       
     
-(defun convert-euroc-objects-to-odom-combined (objects)
-  (let ((converted-objects (make-array 0 :fill-pointer 0 :adjustable t)))
-    (loop for object across objects do
-      (vector-push-extend (roslisp:msg-slot-value (call-euroc-object-to-odom-combined object) 'converted) converted-objects))
-    converted-objects))
 
 (def-cram-function state-pose-estimate-object ()
     (loop while T do

@@ -1,5 +1,7 @@
 (in-package :exec)
 
+(defvar *yaml* nil "The YAML file")
+
 (defmacro with-process-modules (&body body)
   `(cpm:with-process-modules-running
      (suturo-planning-pm-manipulation
@@ -21,24 +23,6 @@
   (with-ros-node
     (let ((task (roslisp:get-param "/planning/task" tsk)))
       (funcall (symbol-function (read-from-string (format nil "exec:~a" task)))))))
-
-(defun repeat (elem n)
-  (when (> n 0)
-    (cons (cram-designators:copy-designator elem) (repeat elem (- n 1)))))
-
-(defun parse-target-zone (zone)
-  (let* ((zone-descr (cdr zone))
-         (expected-object (roslisp::get-xml-rpc-struct-member zone-descr ':|expected_object|))
-         (max-distance (roslisp::get-xml-rpc-struct-member zone-descr ':|max_distance|))
-         (target-position (roslisp::get-xml-rpc-struct-member zone-descr ':|target_position|)))
-    (make-designator 'location `((expected-object ,expected-object)
-                                 (max-distance ,max-distance)
-                                 (pose ,(cl-tf:make-pose-stamped "/map"
-                                                                 (ros-time)
-                                                                 (cl-transforms:make-3d-vector (car target-position)
-                                                                                               (cadr target-position)
-                                                                                               (caddr target-position))
-                                                                 (cl-transforms:make-identity-rotation)))))))
 
 (def-top-level-cram-function task1 ()
   "Top level plan for task 1 of the euroc challenge"
@@ -74,7 +58,8 @@
                  (retry))))
             (let ((objects (achieve '(objects-informed))))
               (with-failure-handling
-                ((objects-in-place-failed (e)
+                (((or objects-in-place-failed
+                      manipulation-failure) (e)
                    (declare (ignore e))
                    (ros-warn (toplevel task1) "Failed to put objects in place.")
                    (do-retry objects-in-place-retry-count
@@ -90,4 +75,11 @@
       (progn
         (print "Waiting")
         (cpl-impl:wait-for (fl-and (eql *current-state* :state-init) (eql *current-transition* :transition-successful)))
-        (achieve `(suturo-planning-planlib::map-scanned)))))))
+        (roslisp:subscribe constants:+topic-name-get-yaml+ 'suturo_msgs-msg:Task #'yaml-cb)
+        (achieve `(suturo-planning-planlib::map-scanned))
+        ()
+        (setf (value *current-state*) :state-scan-shadow)
+        (setf (value *current-transition*) :transition-success))))))
+
+(defun yaml-cb (msg)
+  (setf *yaml* msg))

@@ -64,18 +64,11 @@
     (setf-msg obj-centroid (z) 0)
     (loop named distance-loop for target-zone across *target-zones* do
       (setf target-zone-centroid (roslisp:msg-slot-value (value target-zone) 'target_position))
-      (setf dist (get-euclidean-distance obj-centroid target-zone-centroid))
+      (setf dist (get-euclidean-distance-from-centroids obj-centroid target-zone-centroid))
       (setf max-distance (roslisp:msg-slot-value (value target-zone) 'max_distance))
         (if (< dist max-distance)
             (return-from distance-loop target-zone)
             NIL))))
-
-(defun get-euclidean-distance(centroid1 centroid2)
-  (let ((dist 0))
-    (setf dist (sqrt (+ (expt (- (roslisp:msg-slot-value centroid1 'x) (roslisp:msg-slot-value centroid2 'x)) 2) 
-                        (expt (- (roslisp:msg-slot-value centroid1 'y) (roslisp:msg-slot-value centroid2 'y)) 2)
-                        (expt (- (roslisp:msg-slot-value centroid1 'z) (roslisp:msg-slot-value centroid2 'z)) 2))))))
-
 
 (defun create-plan()
   (let ((plan-element (make-array 2 :fill-pointer 0)))
