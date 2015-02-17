@@ -1,0 +1,5 @@
+#!/bin/sh
+
+TASK="task1_v1"
+
+rosservice call /euroc_c2_task_selector/start_simulator "suturo" "$TASK"

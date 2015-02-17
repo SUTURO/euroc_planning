@@ -1,5 +1,11 @@
 (in-package :exec)
 
+(defun parse-yaml ()
+  ; TODO: Publish the yaml description to the yaml pars0r input
+  (roslisp:subscribe constants:+topic-name-get-yaml+ 'suturo_msgs-msg:Task #'yaml-cb))
+
+(roslisp-utilities:register-ros-init-function parse-yaml)
+
 (defmacro with-process-modules (&body body)
   `(cpm:with-process-modules-running
      (suturo-planning-pm-manipulation

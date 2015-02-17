@@ -1,26 +1,45 @@
 <launch>
-  <!-- <node name="task_selector" pkg="euroc_launch" type="TaskSelector" />
-
-  <node name="task_starter" pkg="suturo_planning_startup" type="start_task.py" args="task1_v1" /> -->
-
-  <node name="fixed_frame_publisher" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 /map /base_footprint 100" />
 
   <!-- Run only task variation 1 by default -->
   <arg name="v1" default="1" />
   <arg name="v2" default="0" />
   <arg name="v3" default="0" />
 
+  <!-- Start manipulation -->
+  <include file="$(find euroc_launch)/launch/manipulation.launch" />
+
+  <!-- Start perception -->
+  <include file="$(find euroc_launch)/launch/perception_task1.launch" />
+
+  <!-- Start Interface service provider -->
+  <node name="scan_map_services" pkg="suturo_planning_interface" type="start_services.py" />
+
+  <!-- Start YAML-Par0r -->
+  <node name="yaml_pars0r" pkg="suturo_planning_yaml_pars0r" type="yaml_pars0r_node.py" />
+
+  <!-- Start Task selector -->
+  <node name="task_selector" pkg="euroc_launch" type="TaskSelector" />
+
+  <!-- Start classifier -->
+  <node name="classifier" pkg="suturo_perception_classifier" type="classifier.py" />
+
+  <!-- Fixed frame publisher -->
+  <node name="fixed_frame_publisher" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 /map /base_footprint 100" />
+
   <!-- The YAML files provided by euroc can't be loaded into the parameter server due to some invalid value;
        The files below are copys of those files without the internal section -->
   <group if="$(arg v1)">
     <rosparam command="load" file="$(find suturo_planning_executive)/launch/task1_v1.yml" ns="/task1_1" />
+    <node name="simulator" pkg="suturo_planning_executive" type="start_simulator" args="task1_v1" />
   </group>
 
   <group if="$(arg v2)">
-  <rosparam command="load" file="$(find suturo_planning_executive)/launch/task1_v2.yml" ns="/task1_2" />
+    <rosparam command="load" file="$(find suturo_planning_executive)/launch/task1_v2.yml" ns="/task1_2" />
+    <node name="simulator" pkg="suturo_planning_executive" type="start_simulator" args="task1_v2" />
   </group>
 
   <group if="$(arg v3)">
-  <rosparam command="load" file="$(find suturo_planning_executive)/launch/task1_v3.yml" ns="/task1_3" />
+    <rosparam command="load" file="$(find suturo_planning_executive)/launch/task1_v3.yml" ns="/task1_3" />
+    <node name="simulator" pkg="suturo_planning_executive" type="start_simulator" args="task1_v3" />
   </group>
 </launch>
