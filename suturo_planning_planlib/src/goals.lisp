@@ -41,7 +41,7 @@
                                 (ros-warn (objects-informed) "Retrying.")
                                 (retry))
                               (fail 'objects-information-failed)))
-                           (let ((classified-object (achieve `(object-classified object))))
+                           (let ((classified-object (achieve `(object-classified ,object))))
                              (with-failure-handling
                                ((simple-plan-failure (e)
                                   (declare (ignore e))
@@ -54,11 +54,11 @@
 
 (def-goal (achieve (objects-located ?objects))
   (perform (make-designator 'action `((to find-objects-in-map) 
-                                      (objs ,?objects)))))
+                                      (objects ,?objects)))))
 
 (def-goal (achieve (unknown-scanned ?region))
   (look-at-obstacle ?region)
-  (roslisp:msg-slot-value (perform (make-designator 'action `((to get-gripper-perception)))) 'objs))
+  (roslisp:msg-slot-value (perform (make-designator 'action `((to get-gripper-perception)))) 'objects))
 
 (def-goal (achieve (object-classified ?object))
   ; TODO: Implement me correcty

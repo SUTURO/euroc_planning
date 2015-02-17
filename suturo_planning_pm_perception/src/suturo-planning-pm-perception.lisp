@@ -90,7 +90,7 @@
         (if (not pose-estimated-object)
             (print "Pose estimation failed, no object returned")
             (progn
-              (setf pose-estimated-object (call-euroc-object-to-odom-combined pose-estimated-object))
+              (setf pose-estimated-object (roslisp:msg-slot-value (call-euroc-object-to-odom-combined pose-estimated-object) 'converted))
               (if (or (not pose-estimated-object) (not (roslisp:msg-slot-value pose-estimated-object 'mpe_success)))
                   (print "Pose estimation failed, couldn't pose estimate object")
                   (progn
