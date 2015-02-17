@@ -2,7 +2,7 @@ import rospy
 import threading
 from euroc_c2_msgs.srv import *
 from suturo_planning_yaml_pars0r.yaml_pars0r import YamlPars0r
-from suturo_planning_plans import utils
+from suturo_planning_interface import utils
 
 task_stopped = False
 task_saved = False
