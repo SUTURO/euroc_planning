@@ -50,12 +50,12 @@
       (progn
         (let ((response nil))
           (if do-not-blow-up-list
-              (setf response (call-ros-service +service-name-move-mastcam+ 'suturo_planning_manipulation-srv:Move
-                                               :type (roslisp-msg-protocol:symbol-code 'suturo_planning_manipulation-srv:Move-Request :ACTION_MOVE_ARM_TO)
+              (setf response (call-ros-service +service-name-move-mastcam+ 'suturo_manipulation_msgs-srv:Move
+                                               :type (roslisp-msg-protocol:symbol-code 'suturo_manipulation_msgs-srv:Move-Request :ACTION_MOVE_ARM_TO)
                                                :goal_pose goal
                                                :do_not_blow_up_list do-not-blow-up-list))
-              (setf response (call-ros-service +service-name-move-mastcam+ 'suturo_planning_manipulation-srv:Move
-                                               :type (roslisp-msg-protocol:symbol-code 'suturo_planning_manipulation-srv:Move-Request :ACTION_MOVE_ARM_TO)
+              (setf response (call-ros-service +service-name-move-mastcam+ 'suturo_manipulation_msgs-srv:Move
+                                               :type (roslisp-msg-protocol:symbol-code 'suturo_manipulation_msgs-srv:Move-Request :ACTION_MOVE_ARM_TO)
                                                :goal_pose goal)))
           (if (not (msg-slot-value response 'result))
               (fail 'manipulation-failure))))))
@@ -96,7 +96,7 @@
       (roslisp:ros-warn nil t timed-out-text))
     (progn
       (with-desig-props (collision-object) obj-designator
-        (let ((response (roslisp:call-service +service-name-close-gripper+ 'suturo_planning_manipulation-srv:CloseGripper collision-object)))
+        (let ((response (roslisp:call-service +service-name-close-gripper+ 'suturo_manipulation_msgs-srv:CloseGripper collision-object)))
           (with-fields (result joint_state) response
             (if (not result)
               (fail 'manipulation-failure)
@@ -118,7 +118,7 @@
   (print "Calling add collision objects")
   (if (not (roslisp:wait-for-service +service-name-add-collision-objects+ +timeout-service+))
         (print "Timed out")
-        (roslisp:call-service +service-name-add-collision-objects+ 'suturo_planning_manipulation-srv:AddCollisionObjects :objects objects)))
+        (roslisp:call-service +service-name-add-collision-objects+ 'suturo_manipulation_msgs-srv:AddCollisionObjects :objects objects)))
 
 (cpm:def-process-module suturo-planning-pm-manipulation (desig)
   (apply #'call-action (reference desig)))
