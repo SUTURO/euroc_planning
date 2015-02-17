@@ -51,7 +51,7 @@
         (cell-size)
         (map-size))
     (setf cell-size (roslisp:msg-slot-value map 'cell_size))
-    (setf map-size (roslisp:msg-slot-value (value map) 'size))
+    (setf map-size (roslisp:msg-slot-value map 'size))
     (setf x (+(-(* x-index cell-size) (/ map-size 2)) (/ cell-size 2)))
     (setf y (+(-(* y-index cell-size) (/ map-size 2)) (/ cell-size 2)))
     (values x y)
