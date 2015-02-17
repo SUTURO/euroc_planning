@@ -13,6 +13,8 @@
       (defconstant +service-name-euroc-object-to-odom-combined+ "/suturo/euroc_object_to_odom_combined" "The name of the service to convert an EurocObject the a odom combined one")
       (defconstant +service-name-classify-objects+ "suturo/Classifier" "The name of the service to classify objects")
       (defconstant +service-name-add-collision-objects+ "/suturo/manipulation/add_collision_objects" "The name of the service to add collision objects to the current scene")
+      (defconstant +service-name-close-gripper+ "/suturo/manipulation/close_gripper" "The name of the service to close the gripper")
+      (defconstant +service-name-open-gripper+  "/suturo/manipulation/open_gripper"  "The name of the service to open the gripper")
 
       (defconstant +topic-name-get-yaml+ "suturo/yaml_pars0r" "The name of the topic to receive the yaml file")
 

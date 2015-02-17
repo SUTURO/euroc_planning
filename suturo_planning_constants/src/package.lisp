@@ -13,6 +13,7 @@
            #:+service-name-add-collision-objects+
            #:+service-name-add-point-cloud+
            #:+service-name-classify-objects+
+           #:+service-name-close-gripper+
            #:+service-name-create-poses-for-object-scanning+
            #:+service-name-euroc-object-to-odom-combined+ 
            #:+service-name-get-base-origin+
@@ -20,7 +21,8 @@
            #:+service-name-get-obstacle-regions+
            #:+service-name-move-mastcam+
            #:+service-name-move-robot+
-	   
+	       #:+service-name-open-gripper+
+
            #:+topic-name-get-yaml+
            #:+base-origin-topic+
            ; ^^^ Constants ^^^

@@ -17,7 +17,7 @@
   ((:module "src"
             :components
             ((:file "package")
-             (:file "constants")
+             (:file "constants" :depends-on("package"))
              (:file "designators" :depends-on("package"))
              (:file "manipulation-utils" :depends-on("package" "constants"))
              (:file "suturo-planning-pm-manipulation" :depends-on ("package" "designators" "manipulation-utils"))
