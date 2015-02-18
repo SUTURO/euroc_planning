@@ -5,9 +5,10 @@
                      (desig-prop ?designator (to follow))
                      (desig-prop ?designator (pose ?pose)))
 
-  (cram-reasoning:<- (action-desig ?designator (grasp ?obj))
+  (cram-reasoning:<- (action-desig ?designator (grasp ?obj ?cobj))
                      (desig-prop ?designator (to grasp))
-                     (desig-prop ?designator (obj ?obj)))
+                     (desig-prop ?designator (obj ?obj))
+                     (desig-prop ?obj        (collision-object ?cobj)))
 
   (cram-reasoning:<- (action-desig ?designator (move-mast-cam ?pan ?tilt))
                      (desig-prop ?designator (to move-mast-cam))
@@ -27,9 +28,10 @@
                      (desig-prop ?designator (to move-arm-cam))
                      (desig-prop ?designator (pose-name ?pose-name)))
 
-  (cram-reasoning:<- (action-desig ?designator (lift ?obj ?grasp-point))
+  (cram-reasoning:<- (action-desig ?designator (lift ?cobj ?grasp-point))
                      (desig-prop ?designator (to lift))
                      (desig-prop ?designator (obj ?obj))
+                     (desig-prop ?obj (collision-object ?cobj))
                      (desig-prop ?obj (grasp-point ?grasp-point)))
 
   (cram-reasoning:<- (action-desig ?designator (carry ?obj))
@@ -40,9 +42,10 @@
                      (desig-prop ?designator (type navigation))
                      (desig-prop ?designator (goal ?goal)))
 
-  (cram-reasoning:<- (action-desig ?designator (put-down ?obj ?loc))
+  (cram-reasoning:<- (action-desig ?designator (put-down ?cobj ?loc))
                      (desig-prop ?designator (to put-down))
                      (desig-prop ?designator (obj ?obj))
+                     (desig-prop ?obj (collision-object ?cobj))
                      (desig-prop ?designator (at ?loc)))
 
   (cram-reasoning:<- (action-desig ?designator (park ?obj))

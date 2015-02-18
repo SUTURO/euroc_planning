@@ -95,7 +95,8 @@
                   (print "Pose estimation failed, couldn't pose estimate object")
                   (progn
                     ;;(call-add-collision-objects (vector (roslisp:msg-slot-value pose-estimated-object 'mpe_object))) TODO 
-                    ))))))
+                    ))))
+      pose-estimated-object))
       
 
 ;;-------------------classify--------------------------------

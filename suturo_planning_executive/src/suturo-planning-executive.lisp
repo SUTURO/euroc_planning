@@ -71,6 +71,7 @@
                      (retry))))
                 (achieve `(objects-in-place ,objects))))))))))
 
+
 (def-top-level-cram-function task1-tmp ()
   (roslisp:with-ros-node "testExecution"
   (with-process-modules
@@ -81,7 +82,8 @@
         (cpl-impl:wait-for (fl-and (eql *current-state* :state-init) (eql *current-transition* :transition-successful)))
         (roslisp:subscribe constants:+topic-name-get-yaml+ 'suturo_msgs-msg:Task #'yaml-cb)
         (achieve `(suturo-planning-planlib::map-scanned))
-        (achieve '(objects-informed))
+        (let ((objects (achieve `(objects-informed))))
+          (achieve `(objects-in-place ,objects)))     
         ;(setf (value *current-state*) :state-scan-shadow)
         ;(setf (value *current-transition*) :transition-success)
         )))))

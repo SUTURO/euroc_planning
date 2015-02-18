@@ -68,7 +68,7 @@
   ; Will not be implemented as we don't have a parking position
 )
 
-(def-action-handler lift (object-designator grasp-point)
+(def-action-handler lift (collision-object grasp-point)
   "Lifts an arm by a distance"
   (if (not (roslisp:wait-for-service +service-name-move-robot+ +timeout-service+))
     (let ((timed-out-text (concatenate 'string "Times out waiting for service" +service-name-move-robot+)))
@@ -78,28 +78,26 @@
                                                   :x (first grasp-point)
                                                   :y (second grasp-point)
                                                   :z (third grasp-point)))))
-      (with-desig-props (object-name) object-designator
+      (with-fields (id) collision-object
         (let ((response (roslisp:call-service +service-name-move-robot+ 'suturo_planning_manipulation-srv:Move
                                               :type (roslisp-msg-protocol:symbol-code 'suturo_planning_manipulation-srv:Move-Request :ACTION_MOVE_ARM_TO)
                                               :goal_pose position
-                                              :do_not_blow_up_list object-name)))
+                                              :do_not_blow_up_list '(id))))
           (if (not (msg-slot-value response 'result))
               (fail 'manipulation-failure))))))) 
 
 
-(def-action-handler grasp (object-designator)
+(def-action-handler grasp (object-designator collision-object)
   "Grasps the object specified by the obj-designator"
   (if (not (roslisp:wait-for-service +service-name-close-gripper+ +timeout-service+))
     (let ((timed-out-text (concatenate 'string "Times out waiting for service" +service-name-close-gripper+)))
       (roslisp:ros-warn nil t timed-out-text))
     (progn
-      (with-desig-props (collision-object) object-designator
         (with-fields (result joint_state) (roslisp:call-service +service-name-close-gripper+ 'suturo_manipulation_msgs-srv:CloseGripper collision-object)
           (if (not result)
               (fail 'manipulation-failure)
               (with-fields (position) joint_state
                 (make-designator 'action (update-designator-properties `((grasp-point position)) (description object-designator)))))))))
-)
 
 
 (def-action-handler carry (obj-designator)
@@ -107,13 +105,12 @@
   ; Will not be implemented as we have nothing to do within this action
 )
 
-(def-action-handler put-down (object-designator location)
+(def-action-handler put-down (collision-object location)
   "Puts the object specified by the obj-designator down at a location"
   (if (not (roslisp:wait-for-service +service-name-move-robot+ +timeout-service+))
     (let ((timed-out-text (concatenate 'string "Timed out waiting for service" +service-name-move-robot+)))
       (roslisp:ros-warn nil t timed-out-text))
     (progn
-      (with-desig-props (collision-object) object-designator
         (with-fields (id) collision-object
           ; Move to the pre place position
           (let ((response (roslisp:call-service +service-name-move-robot+ 'suturo_manipulation_msgs-srv:Move
@@ -154,12 +151,7 @@
                                                 :do_not_blow_up_list #(id "map"))))
             (with-fields (result) response
               (if (not result)
-                  (fail 'manipulation-failure))))
-        )
-      )
-    )
-  )
-)
+                  (fail 'manipulation-failure))))))))
 
 ;;----------service calls ----------------------------
 (defun call-add-collision-objects(objects)
