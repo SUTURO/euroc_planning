@@ -1,5 +1,5 @@
 from math import isinf
-from geometry_msgs.msg import Vector3
+from geometry_msgs.msg import Vector3, PoseStamped
 import rospy
 from suturo_planning_interface import utils
 from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_position, get_pre_grasp
@@ -13,6 +13,7 @@ class GraspObject(object):
     SERVICE_NAME = 'suturo/manipulation/grasp_object'
 
     def __init__(self):
+        self.grasp_position = PoseStamped()
         self._create_service()
 
     def _create_service(self):
@@ -20,7 +21,7 @@ class GraspObject(object):
 
     def __handle_request(self, req):
         result = self.__grasp(req.object, req.density)
-        return suturo_interface_msgs.srv.GraspObjectResponse(result)
+        return suturo_interface_msgs.srv.GraspObjectResponse(result=result, grasp_position=self.grasp_position)
 
     def __grasp(self, collision_object, density):
         rospy.loginfo('Executing state GraspObject')
@@ -31,6 +32,7 @@ class GraspObject(object):
         if collision_object is None:
             rospy.logwarn("Collision Object is not in planningscene.")
 
+
         rospy.logdebug("Grasping: " + str(collision_object))
 
         grasp_positions = calculate_grasp_position(collision_object, utils.manipulation.transform_to) #PoseStamped[]
@@ -38,6 +40,7 @@ class GraspObject(object):
         #filter out some invalid grasps
         grasp_positions = utils.manipulation.filter_low_poses(grasp_positions)
 
+        ## Only do this when the base cannot move
         grasp_positions = utils.manipulation.filter_close_poses(grasp_positions)
 
         if len(grasp_positions) == 0:
@@ -51,6 +54,7 @@ class GraspObject(object):
         grasp_positions = [utils.manipulation.transform_to(grasp) for grasp in grasp_positions]
         utils.manipulation.blow_up_objects(do_not_blow_up_list=collision_object.id)
         for grasp in grasp_positions:
+            self.grasp_position = grasp
             plan_pre_grasp = plan_to_func(get_pre_grasp(grasp))
             if plan_pre_grasp is None:
                 continue
@@ -111,5 +115,4 @@ class GraspObject(object):
         rospy.logwarn("Grapsing failed.")
         utils.manipulation.blow_down_objects()
         return False
-
 
