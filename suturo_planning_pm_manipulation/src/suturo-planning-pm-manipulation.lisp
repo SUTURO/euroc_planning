@@ -79,8 +79,8 @@
                                                   :y (second grasp-point)
                                                   :z (third grasp-point)))))
       (with-fields (id) collision-object
-        (let ((response (roslisp:call-service +service-name-move-robot+ 'suturo_planning_manipulation-srv:Move
-                                              :type (roslisp-msg-protocol:symbol-code 'suturo_planning_manipulation-srv:Move-Request :ACTION_MOVE_ARM_TO)
+        (let ((response (roslisp:call-service +service-name-move-robot+ 'suturo_manipulation_msgs-srv:Move
+                                              :type (roslisp-msg-protocol:symbol-code 'suturo_manipulation_msgs-srv:Move-Request :ACTION_MOVE_ARM_TO)
                                               :goal_pose position
                                               :do_not_blow_up_list '(id))))
           (if (not (msg-slot-value response 'result))
