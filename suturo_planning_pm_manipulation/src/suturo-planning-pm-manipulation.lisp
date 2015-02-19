@@ -39,24 +39,32 @@
 ; To see how these action handlers are implemented for the pr2, see
 ; https://github.com/cram-code/cram_pr2/blob/master/pr2_manipulation_process_module/src/action-handlers.lisp
 
-(def-action-handler navigation (goal &optional do-not-blow-up-list)
+(def-action-handler no-navigation (goal)
+  "Do nothing"
+  nil)
+
+(def-action-handler navigation (goal &optional (do-not-blow-up-list #()))
   "Moves the robot to the goal position"
-  (if (not (roslisp:wait-for-service +service-name-move-mastcam+ +timeout-service+))
-      (let ((timed-out-text (concatenate 'string "Times out waiting for service" +service-name-move-mastcam+)))
-        (roslisp:ros-warn nil t timed-out-text))
-      (progn
-        (let ((response nil))
-          (if do-not-blow-up-list
-              (setf response (roslisp:call-service +service-name-move-robot+ 'suturo_manipulation_msgs-srv:Move
-                                               :type (roslisp-msg-protocol:symbol-code 'suturo_manipulation_msgs-srv:Move-Request :ACTION_MOVE_ARM_TO)
-                                               :goal_pose goal
-                                               :do_not_blow_up_list do-not-blow-up-list))
-              (setf response (roslisp:call-service +service-name-move-robot+ 'suturo_manipulation_msgs-srv:Move
-                                               :type (roslisp-msg-protocol:symbol-code 'suturo_manipulation_msgs-srv:Move-Request :ACTION_MOVE_ARM_TO)
-                                               :goal_pose goal)))
-          (if (not (msg-slot-value response 'result))
-              (fail 'manipulation-failure))
-          response))))
+  (print "goal in navigation")
+  (format t "~a" goal)
+  (let ((goal1 (if (typep goal 'location-designator) (cl-tf:pose-stamped->msg (reference goal)) goal)))
+    (format t "~a" goal1)
+    (if (not (roslisp:wait-for-service +service-name-move-mastcam+ +timeout-service+))
+        (let ((timed-out-text (concatenate 'string "Times out waiting for service" +service-name-move-mastcam+)))
+          (roslisp:ros-warn nil t timed-out-text))
+        (progn
+          (let ((response nil))
+            (if do-not-blow-up-list
+                (setf response (roslisp:call-service +service-name-move-robot+ 'suturo_manipulation_msgs-srv:Move
+                                                     :type (roslisp-msg-protocol:symbol-code 'suturo_manipulation_msgs-srv:Move-Request :ACTION_MOVE_ARM_TO)
+                                                     :goal_pose goal1
+                                                     :do_not_blow_up_list do-not-blow-up-list))
+                (setf response (roslisp:call-service +service-name-move-robot+ 'suturo_manipulation_msgs-srv:Move
+                                                     :type (roslisp-msg-protocol:symbol-code 'suturo_manipulation_msgs-srv:Move-Request :ACTION_MOVE_ARM_TO)
+                                                     :goal_pose goal1)))
+            (if (not (msg-slot-value response 'result))
+                (fail 'manipulation-failure))
+            response)))))
 
 (def-action-handler follow (pose)
   "Follow head with pose."
@@ -87,17 +95,41 @@
               (fail 'manipulation-failure))))))) 
 
 
-(def-action-handler grasp (object-designator collision-object)
+;(def-action-handler grasp (object-designator)
+;  "Grasps the object specified by the obj-designator"
+;  (let ((collision-object (desig-prop-value object-designator 'collision-object)))
+;  (if (not (roslisp:wait-for-service +service-name-close-gripper+ +timeout-service+))
+;    (let ((timed-out-text (concatenate 'string "Times out waiting for service" +service-name-close-gripper+)))
+;      (roslisp:ros-warn nil t timed-out-text))
+;    (progn
+;        (with-fields (result joint_state) (roslisp:call-service +service-name-close-gripper+ 'suturo_manipulation_msgs-srv:CloseGripper
+;                                                                :object collision-object)
+;          (if (not result)
+;              (fail 'manipulation-failure)
+;              (with-fields (position) joint_state
+;                (make-designator 'action (update-designator-properties `((grasp-point position)) (description object-designator))))))))))
+
+(def-action-handler grasp (object-designator)
   "Grasps the object specified by the obj-designator"
-  (if (not (roslisp:wait-for-service +service-name-close-gripper+ +timeout-service+))
-    (let ((timed-out-text (concatenate 'string "Times out waiting for service" +service-name-close-gripper+)))
+  (let ((collision-object (desig-prop-value object-designator 'collision-object)))
+  (if (not (roslisp:wait-for-service +service-name-grasp-object+ +timeout-service+))
+    (let ((timed-out-text (concatenate 'string "Times out waiting for service" +service-name-grasp-object+)))
       (roslisp:ros-warn nil t timed-out-text))
     (progn
-        (with-fields (result joint_state) (roslisp:call-service +service-name-close-gripper+ 'suturo_manipulation_msgs-srv:CloseGripper collision-object)
+        (with-fields (result) (roslisp:call-service +service-name-grasp-object+ 'suturo_interface_msgs-srv:GraspObject
+                                                                :object collision-object
+                                                                :density (get-object-density collision-object (roslisp:msg-slot-value environment:*yaml* 'objects)))
           (if (not result)
               (fail 'manipulation-failure)
               (with-fields (position) joint_state
-                (make-designator 'action (update-designator-properties `((grasp-point position)) (description object-designator)))))))))
+                (make-designator 'action (update-designator-properties `((grasp-point position)) (description object-designator))))))))))
+
+(defun get-object-density-from-yaml (collision-object objects)
+  (let ((result nil))
+    (loop for object across objects do
+      (if (string= (roslisp:msg-slot-value object 'name) (roslisp:msg-slot-value collision-object 'id))
+          (setf result (elt (roslisp:msg-slot-value object 'primitives_densities) 0))))
+    result))
 
 
 (def-action-handler carry (obj-designator)

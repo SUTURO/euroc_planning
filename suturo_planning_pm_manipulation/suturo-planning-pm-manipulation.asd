@@ -1,6 +1,7 @@
 (defsystem suturo-planning-pm-manipulation
   :depends-on (roslisp
                cram-plan-library
+               cram-plan-failures
                cram-language
                process-modules
                designators

@@ -5,6 +5,7 @@
   (:use #:desig
         #:constants
         #:cram-plan-library
+        #:cram-plan-failures
         #:roslisp
         #:cl-transforms
         #:cl)
