@@ -127,9 +127,10 @@ class Toplevel(object):
         self.scan_shadow_state = ScanShadow()
         self.choose_object_state = ChooseObject()
         self.clean_up_plan_state = CleanUpPlan()
-        self.grasp_object_state = GraspObject()
         self.place_object_state = PlaceObject()
         self.check_placement_state = CheckPlacement()
+
+        self.grasp_object_handler = GraspObject()
 
         self.start_simulation_state = StartSimulation()
         self.start_perception_state = StartPerception()

@@ -1,3 +1,4 @@
+import smach
 import rospy
 import time
 from suturo_planning_plans import utils

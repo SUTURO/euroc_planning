@@ -25,6 +25,7 @@ from suturo_planning_manipulation.transformer import Transformer
 import suturo_environment_msgs.msg
 from suturo_environment_msgs.srv import GetObstacleRegions,GetObstacleRegionsRequest,GetObstacleRegionsResponse
 from suturo_environment_msgs.srv import GetMap, GetMapRequest, GetMapResponse
+from suturo_manipulation_msgs.srv import FilterPoses, FilterPosesRequest, FilterPosesResponse
 from suturo_msgs.msg import Task, Int32Array2D,Int32Array
 
 __author__ = 'ichumuh'
@@ -33,6 +34,8 @@ __author__ = 'ichumuh'
 class Map:
     NAME_SERIVE_GET_OBSTACLE_REGIONS = "/suturo/environment/get_obstacle_regions"
     NAME_SERVICE_GET_MAP = "/suturo/environment/get_map"
+    NAME_SERVICE_FILTER_INVALID_SCAN_POSES = "/suturo/environment/filter_invalid_scan_poses"
+    NAME_SERVICE_FILTER_INVALID_SCAN_POSES2 = "/suturo/environment/filter_invalid_scan_poses2"
 
     num_of_cells = 50
 
@@ -46,13 +49,25 @@ class Map:
         self.__get_point_array = rospy.ServiceProxy('/suturo/GetPointArray', GetPointArray)
         rospy.Service(self.NAME_SERIVE_GET_OBSTACLE_REGIONS, GetObstacleRegions, self._handle_get_obstacle_regions)
         rospy.Service(self.NAME_SERVICE_GET_MAP,GetMap, self._handle_get_map)
+        rospy.Service(self.NAME_SERVICE_FILTER_INVALID_SCAN_POSES,FilterPoses, self._handle_filter_invalid_scan_poses)
+        rospy.Service(self.NAME_SERVICE_FILTER_INVALID_SCAN_POSES2,FilterPoses, self._handle_filter_invalid_scan_poses2)
 
     def _handle_get_map(self, req):
-        resp = GetMapResponse();
+        resp = GetMapResponse()
         resp.map = self.to_msg()
         return resp
 
-    def _handle_get_obstacle_regions(self ,req):
+    def _handle_filter_invalid_scan_poses(self, req):
+        poses = self.filter_invalid_scan_poses(req.cell_x, req.cell_y, req.poses)
+        return FilterPosesResponse(poses=poses)
+
+    def _handle_filter_invalid_scan_poses2(self, req):
+        print "Handle Create Poses For Scanning: invalid scan poses2"
+        rospy.loginfo("Handle Create Poses For Scanning: invalid scan poses2")
+        poses = self.filter_invalid_scan_poses2(req.cell_x, req.cell_y, req.poses)
+        return FilterPosesResponse(poses=poses)
+
+    def _handle_get_obstacle_regions(self, req):
         resp = GetObstacleRegionsResponse()
         regions = self.get_obstacle_regions()
         print(regions)
