@@ -34,6 +34,7 @@
     #:pose
     #:cube
     #:scenecam
+    #:collision-object
     #:perceive-scene-with
     #:move-mast-cam
     #:move-arm-cam

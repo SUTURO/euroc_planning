@@ -17,6 +17,6 @@
       (defconstant +service-name-open-gripper+  "/suturo/manipulation/open_gripper"  "The name of the service to open the gripper")
       (defconstant +service-name-grasp-object+ "/suturo/manipulation/grasp_object" "The name of the service to grasp the object")
       (defconstant +topic-name-get-yaml+ "suturo/yaml_pars0r" "The name of the topic to receive the yaml file")
-
+      (defconstant +service-name-place-object+ "/suturo/manipulation/place_object" "The name of the service to place the object")
       (defconstant +timeout-service+ 10 "The time to wait for a service")
       (defconstant +base-origin-topic+ "/suturo/manipulation/get_base_origin")))

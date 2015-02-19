@@ -11,6 +11,7 @@
                alexandria
                cl-transforms
                suturo_environment_msgs-srv
+               suturo-planning-pm-manipulation
                suturo-planning-constants)
   :components
   ((:module "src"

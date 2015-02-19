@@ -12,6 +12,7 @@
                suturo_manipulation_msgs-srv
                suturo_perception_msgs-srv
                suturo-planning-constants
+               suturo-planning-environment
                moveit_msgs-msg)
   :components
   ((:module "src"

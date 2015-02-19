@@ -7,7 +7,7 @@
          (target-position (roslisp::get-xml-rpc-struct-member zone-descr ':|target_position|)))
     (make-designator 'location `((expected-object ,expected-object)
                                  (max-distance ,max-distance)
-                                 (pose ,(cl-tf:make-pose-stamped "/map"
+                                 (pose ,(cl-tf:make-pose-stamped "/odom_combined"
                                                                  (ros-time)
                                                                  (cl-transforms:make-3d-vector (car target-position)
                                                                                                (cadr target-position)

@@ -27,7 +27,7 @@ class PlaceObject(object):
         result = self.place_object(req.place_position, req.grasp_position)
         return suturo_interface_msgs.srv.PlaceObjectResponse(result)
 
-    def execute(self, destination, grasp_position):
+    def place_object(self, destination, grasp_position):
         rospy.loginfo('Executing PlaceObject')
 
         move_to_func = utils.manipulation.move_to
@@ -36,7 +36,9 @@ class PlaceObject(object):
         co = co.object
         rospy.logdebug("Placing: " + str(co))
 
+	print(destination)
         destination = utils.manipulation.transform_to(destination)
+	print(destination)
         rospy.logdebug("at::: " + str(destination))
         dist_to_obj = self.calculate_distance(grasp_position)
         place_poses = get_place_position(co, destination, utils.manipulation.transform_to, dist_to_obj,

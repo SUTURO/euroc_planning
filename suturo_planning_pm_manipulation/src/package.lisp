@@ -35,5 +35,6 @@
     #:move-arm-cam
     #:pose-name
     #:move-mast-cam
+    #:grasp-position
     #:grasp-point
     #:collision-object))

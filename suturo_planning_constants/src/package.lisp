@@ -22,7 +22,8 @@
            #:+service-name-get-obstacle-regions+
            #:+service-name-move-mastcam+
            #:+service-name-move-robot+
-	       #:+service-name-open-gripper+
+	         #:+service-name-open-gripper+
+           #:+service-name-place-object+
 
            #:+topic-name-get-yaml+
            #:+base-origin-topic+
