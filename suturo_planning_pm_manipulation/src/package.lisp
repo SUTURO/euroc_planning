@@ -12,6 +12,7 @@
   (:export #:suturo-planning-pm-manipulation
            #:scan-map
            #:*base-origin*
+					 #:*object-designator*
            #:init 
            #:call-add-collision-objects
            #:scan-map-action)
