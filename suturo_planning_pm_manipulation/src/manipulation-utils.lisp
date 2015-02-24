@@ -1,10 +1,10 @@
 (in-package :manipulation)
 
 (defun transform-to (pose to-frame)
-  (if (= (roslisp:msg-slot-value (roslisp:msg-slot-value pose 'header) 'frame-id) to-frame) pose)
+  (if (string= (roslisp:msg-slot-value (roslisp:msg-slot-value pose 'header) 'frame_id) to-frame) pose)
   (let ((odom-pose nil)
         (i 0)
-        (*transform-listener* (make-instance 'cl-tf:transform-listener)))
+        (transform-listener (make-instance 'cl-tf:transform-listener)))
     (loop 
       (if (typep pose 'moveit_msgs-msg:collisionobject)
         (progn
@@ -24,13 +24,13 @@
                 (setf i (+ i 1)))
             (return (roslisp:modify-message-copy new-co :frame-id to-frame)))))
       (if (typep pose 'geometry_msgs-msg:posestamped)
-          (setf odom-pose (cl-tf:transform-pose *transform-listener* :pose pose :target-frame to-frame)))
+          (setf odom-pose (cl-tf:transform-pose transform-listener :pose (cl-tf:msg->pose-stamped pose) :target-frame to-frame)))
       (if (typep pose 'geometry_msgs-msg:pointstamped)
-          (setf odom-pose (cl-tf:transform-point *transform-listener* :point pose :target-frame to-frame)))
+          (setf odom-pose (cl-tf:transform-point transform-listener :point (cl-tf:msg->pose-stamped pose) :target-frame to-frame)))
       (if (not (eql odom-pose nil))
         (return odom-pose))                  
     (when (or (not (eql odom-pose nil)) (>= i 10)) (return)))
-    odom-pose))
+    (cl-tf:pose-stamped->msg odom-pose)))
 
 (defun msg->quaternion (msg)
   (roslisp:with-fields (x y z w) msg

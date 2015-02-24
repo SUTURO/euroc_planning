@@ -110,7 +110,7 @@
             (if (not result)
                 (fail 'manipulation-failure))
             (let ((new-desig (copy-designator object-designator :new-description `((grasp-position ,grasp-position))))) 
-              (equate object-designator new-desig))))))) 
+              (equate object-designator new-desig)))))))
 
 (defun get-object-density (collision-object objects)
   (let ((result nil))
@@ -125,19 +125,12 @@
   ; Will not be implemented as we have nothing to do within this action
 )
 
+(defvar *put-down-designator* nil)
+(defvar *put-down-location* nil)
 
-(defvar *object-designator* nil)
-
-(defmacro for ((var varlist) &body body)
-  (let ((block-name (gensym "BLOCK")))
-    `(loop for ,var in ,varlist do
-      (block ,block-name
-        (flet ((continue ()
-                 (return-from ,block-name)))
-          ,@body)))))
-
-(def-action-handler put-down (object-desig collision-object location dist-to-obj grasp)
-	(setf *object-designator* object-desig)
+(def-action-handler put-down (object-desig collision-object location grasp)
+	(setf *put-down-designator* object-desig)
+  (setf *put-down-location* location)
   "Puts the object specified by the obj-designator down at a location"
   (if (not (roslisp:wait-for-service +service-name-move-robot+ +timeout-service+))
     (let ((timed-out-text (concatenate 'string "Timed out waiting for service" +service-name-move-robot+)))
@@ -147,9 +140,13 @@
 				(with-fields (id) collision-object
           (let ((result nil)
                 (place-block (gensym "BLOCK"))
-                (try-block (gensym "BLOCK")))
+                (try-block (gensym "BLOCK"))
+                (dist-to-obj (vector->msg (magnitude (cl-transforms:v- (msg-slot-value (msg-slot-value grasp 'pose) 'position) (msg-slot-value (get-fingertip grasp) 'point))))))
+            (ros-info (achieve put-down) "Distance to object: ~a" dist-to-obj)
             (block place-block
-              (loop for place-pose in (get-place-positions collision-object location-msg dist-to-obj grasp) do
+              (let ((place-poses (get-place-positions collision-object location-msg dist-to-obj grasp)))
+                (ros-info (achieve put-down) "Trying positions: ~a" place-poses)
+              (loop for place-pose in place-poses do
                 (block try-BLOCK
                   ; Move to the pre place position
                   (let ((response (roslisp:call-service +service-name-move-robot+ 'suturo_manipulation_msgs-srv:Move
@@ -186,7 +183,7 @@
                                                         :goal_pose (get-pre-place-position place-pose)
                                                         :do_not_blow_up_list `(,id "map"))
                   (setf result T)
-                  (return-from place-BLOCK))))
+                  (return-from place-BLOCK)))))
             (if (not result)
               (cram-language-implementation:fail 'cram-plan-failures:manipulation-failure))))))))
 
