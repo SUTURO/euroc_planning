@@ -11,7 +11,8 @@
                suturo-planning-pm-manipulation
                suturo_msgs-msg
                suturo-planning-constants
-               suturo-planning-planlib)
+               suturo-planning-planlib
+               cram-beliefstate)
   :components
   ((:module "src"
             :components
