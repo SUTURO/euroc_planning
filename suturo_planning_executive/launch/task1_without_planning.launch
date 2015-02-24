@@ -1,12 +1,10 @@
 <launch>
 
   <!-- Run only task variation 1 by default -->
-  <arg name="v1" default="1" />
-  <arg name="v2" default="0" />
-  <arg name="v3" default="0" />
+  <arg name="task" default="task1_v1" />
 
-  <!-- Log specified topics -->
-  <arg name="logged_topics" default="/tf" />
+  <!-- Start logging -->
+  <include file="$(find suturo_planning_executive)/launch/logging.launch" />
 
   <!-- Start manipulation -->
   <include file="$(find euroc_launch)/launch/manipulation.launch" />
@@ -27,29 +25,12 @@
   <node name="classifier" pkg="suturo_perception_classifier" type="classifier.py" />
 
   <!-- Fixed frame publisher -->
-  <node name="map_base_publisher" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 /map /base_footprint 100" />
   <node name="map_odom_publisher" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 /map /odom_combined 100" />
-
-  <!-- CRAM Logging -->
-  <node name="cram_logging" pkg="semrec" type="semrec" />
-
-  <!-- Topic logging -->
-  <node name="topic_logging" pkg="mongodb_log" type="mongodb_log.py" args="$(arg logged_topics)" />
 
   <!-- The YAML files provided by euroc can't be loaded into the parameter server due to some invalid value;
        The files below are copys of those files without the internal section -->
-  <group if="$(arg v1)">
-    <rosparam command="load" file="$(find suturo_planning_executive)/launch/task1_v1.yml" ns="/task1_1" />
-    <node name="simulator" pkg="suturo_planning_executive" type="start_simulator" args="task1_v1" />
-  </group>
-
-  <group if="$(arg v2)">
-    <rosparam command="load" file="$(find suturo_planning_executive)/launch/task1_v2.yml" ns="/task1_2" />
-    <node name="simulator" pkg="suturo_planning_executive" type="start_simulator" args="task1_v2" />
-  </group>
-
-  <group if="$(arg v3)">
-    <rosparam command="load" file="$(find suturo_planning_executive)/launch/task1_v3.yml" ns="/task1_3" />
-    <node name="simulator" pkg="suturo_planning_executive" type="start_simulator" args="task1_v3" />
+  <group>
+    <rosparam command="load" file="$(find suturo_planning_executive)/launch/$(arg task).yml" ns="/task_description" />
+    <node name="simulator" pkg="suturo_planning_executive" type="start_simulator" args="$(arg task)" />
   </group>
 </launch>

@@ -19,13 +19,13 @@
        ,@body
      (roslisp-utilities:shutdown-ros)))
 
-(defun task-selector (&optional (tsk "task1"))
+(defun task-selector (&optional (tsk "task1_v1"))
   "Starts the plan for the task from the parameter server.
 
    If no task is set in the parameter server, the task given
    as argument will be started (default: task1)"
   (with-ros-node
-    (let ((task (roslisp:get-param "/planning/task" tsk)))
+    (let ((task (remove #\  (roslisp:get-param "/task_variation/task_name" tsk)))) ; whitespace sensitive!
       (funcall (symbol-function (read-from-string (format nil "exec:~a" task)))))))
 
 (def-top-level-cram-function task1 ()
