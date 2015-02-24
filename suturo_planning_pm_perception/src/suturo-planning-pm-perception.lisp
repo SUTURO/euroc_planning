@@ -1,6 +1,11 @@
 (in-package :perception)
 
 
+(defmacro def-action-handler (name args &body body)
+  (alexandria:with-gensyms (action-sym params)
+    `(defmethod call-action ((,action-sym (eql ',name)) &rest ,params)
+      (destructuring-bind ,args ,params ,@body))))
+
 ;-------------------- Low level perception ------------------------------
 
 (def-action-handler get-gripper-perception (&optional (cuboid 1) (pose-estimation nil) (object-ids nil))
@@ -64,11 +69,6 @@
     (roslisp:ros-info (suturo pm-perception)
                       "Done executing action `~a'."
                       action-sym params)))
-
-(defmacro def-action-handler (name args &body body)
-  (alexandria:with-gensyms (action-sym params)
-    `(defmethod call-action ((,action-sym (eql ',name)) &rest ,params)
-      (destructuring-bind ,args ,params ,@body))))
 
 ;;@INFO
 ;; (desig-prop-value mydesig 'color)

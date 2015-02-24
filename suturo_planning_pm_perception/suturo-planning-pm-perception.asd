@@ -19,5 +19,5 @@
             ((:file "package")
              (:file "designators" :depends-on ("package"))
              (:file "recognized-object" :depends-on ("package"))
-             (:file "suturo-planning-pm-perception-find-objects-in-map" :depends-on("package" "designators"))
+             (:file "suturo-planning-pm-perception-find-objects-in-map" :depends-on("package" "designators" "suturo-planning-pm-perception"))
              (:file "suturo-planning-pm-perception" :depends-on ("package" "designators"))))))
