@@ -39,12 +39,14 @@
                      (desig-prop ?designator (type navigation))
                      (desig-prop ?designator (goal ?goal)))
 
-  (cram-reasoning:<- (action-desig ?designator (put-down ?designator ?cobj ?pose))
+  (cram-reasoning:<- (action-desig ?designator (put-down ?designator ?cobj ?pose ?dist ?grasp))
                      (desig-prop ?designator (to put-down))
                      (desig-prop ?designator (obj ?obj))
                      (desig-prop ?obj (collision-object ?cobj))
                      (desig-prop ?designator (at ?loc))
-		     (desig-prop ?loc (pose ?pose)))
+                     (desig-prop ?loc (pose ?pose))
+                     (desig-prop ?designator (dist-to-obj ?dist))
+                     (desig-prop ?designator (grasp ?grasp)))
 
   (cram-reasoning:<- (action-desig ?designator (park ?obj))
                      (desig-prop ?designator (to park))
