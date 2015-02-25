@@ -58,7 +58,7 @@
 ))
 
 (defun get-map()
-    (if (not (roslisp:wait-for-service +service-name-get-map+ *timeout-service*))
+    (if (not (roslisp:wait-for-service +service-name-get-map+ +timeout-service+))
       (roslisp:ros-warn nil t (concatenate 'string "Following service timed out: " +service-name-get-map+))
       (roslisp:msg-slot-value (roslisp:call-service +service-name-get-map+ 'suturo_environment_msgs-srv:GetMap) 'map)
       ))
@@ -84,7 +84,7 @@
 )
 
 (defun create-poses-service-call(distance region-centroid)
-  (if (not (roslisp:wait-for-service +service-name-create-poses-for-object-scanning+ *timeout-service*))
+  (if (not (roslisp:wait-for-service +service-name-create-poses-for-object-scanning+ +timeout-service+))
       (roslisp:ros-warn nil t (concatenate 'string "Following service timed out: " +service-name-create-poses-for-object-scanning+))
       (roslisp:call-service +service-name-create-poses-for-object-scanning+ 'suturo_manipulation_msgs-srv:CreatePosesForScanning :centroid region-centroid :angle +scan-obstacles-angle+ :distance distance :quantity +scan-obstacles-number-of-poses+)))
 

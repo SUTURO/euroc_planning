@@ -1,10 +1,12 @@
 (in-package :planlib)
 
 (def-goal (achieve (map-scanned))
+    "Tries to scan the whole map."
   (scan-map-mast-cam)
   (scan-shadow))
 
 (def-goal (achieve (objects-informed))
+    "Document me"
   (let ((resp (list)))
     (with-retry-counters ((objects-located-retry-count 2))
       (with-failure-handling
@@ -55,23 +57,53 @@
   resp))
 
 (def-goal (achieve (objects-located ?objects))
+    "* Arguments
+- ?objects :: An array of suturo_perception_msgs-msg:EurocObjects which should be found in the map 
+* Return Value 
+Returns every found region as in the map where the objects are suspected. The return type is an array of suturo_environment_msgs-msg:Region. 
+* Description 
+Tries to find the given objects in the current map"
   (perform (make-designator 'action `((to find-objects-in-map) 
                                       (objects ,?objects)))))
 
 (def-goal (achieve (unknown-scanned ?region))
+    "* Arguments
+- ?region :: A suturo_environment_msgs-msg:Region which should be scanned
+*Return Value
+Returns the suturo_perception_msgs-msg:EurocObject recognized by the scene cam
+* Description
+Tries to scan and recognize an object in the region. Moves the arm-cam in the proper position to scan the region"
   (look-at-obstacle ?region)
   (roslisp:msg-slot-value (perform (make-designator 'action `((to get-gripper-perception)))) 'objects))
 
 (def-goal (achieve (object-classified ?object))
-  ; TODO: Implement me correcty
+"* Arguments
+- ?object :: A suturo_perception_msgs-msg:EurocObject which should be classified
+*Return Value
+TODO
+* Description
+Tries to classify the given object"
     (perform (make-designator 'action `((to classify-object)
                                         (obj ,?object)))))
 
 (def-goal (achieve (pose-estimated ?object))
+"* Arguments
+- ?object :: A suturo_perception_msgs-msg:EurocObject which pose should be estimated
+*Return Value
+TODO
+* Description
+Tries to estimate the pose of the given object"
   (let ((ids (get-yaml-object-nrs (roslisp:msg-slot-value environment:*yaml* 'objects) (roslisp:msg-slot-value (roslisp:msg-slot-value ?object 'object) 'id))))
     (perform (make-designator 'action `((to pose-estimate-object) (ids ,ids))))))
 
 (defun get-yaml-object-nrs(yaml-objects  object-id)
+"* Arguments
+- yaml-objects :: The array of suturo_perception_msgs-msg:EurocObjects to search through
+- object-id :: The object-id / name of an object as string
+*Return Value
+The positions of the suturo_perception_msgs-msg:EurocObjects in the array /yaml-objects/ with the id /object-id/
+* Description
+Searches through the /yaml-objects/ and returns a list of positions with the id /object-id/"
   (let ((nrs (list))
         (i 0))
     (loop for object across yaml-objects do
@@ -81,6 +113,7 @@
     nrs))
 
 (def-goal (achieve (objects-in-place ?objects))
+    "DOCUMENT ME"
   (let ((target-zones (get-target-zones)))
     (mapcar (lambda (euroc-object)
               (ros-info (objects-in-place) "Processing object ~a" euroc-object)

@@ -8,15 +8,15 @@
 
 (defmacro with-process-modules (&body body)
   `(cpm:with-process-modules-running
-     (suturo-planning-pm-manipulation
-      suturo-planning-pm-perception)
+       (suturo-planning-pm-manipulation
+        suturo-planning-pm-perception)
      ,@body))
 
 (defmacro with-ros-node (&body body)
   "Utility macro to start and stop a ROS node around a block"
   `(prog2
-     (roslisp-utilities:startup-ros)
-     ,@body
+       (roslisp-utilities:startup-ros)
+       ,@body
      (roslisp-utilities:shutdown-ros)))
 
 (defun task-selector (&optional (tsk "task1"))
@@ -36,57 +36,73 @@
                           (inform-objects-retry-count 2)
                           (objects-in-place-retry-count 3))
       (with-failure-handling
-        ((simple-plan-failure (e)
-           (declare (ignore e))
-           (ros-warn (toplevel task1) "Something failed.")
-           (do-retry all-retry-count
-             (ros-warn (toplevel task1) "Retrying all.")
-             (reset-counter scan-map-retry-count)
-             (reset-counter inform-objects-retry-count)
-             (reset-counter objects-in-place-retry-count)
-             (retry))))
-        (with-failure-handling
-          (((or map-scanning-failed moving-mast-cam-failed) (e)
+          ((simple-plan-failure (e)
              (declare (ignore e))
-             (ros-warn (toplevel task1) "Failed to scan map.")
-             (do-retry scan-map-retry-count
-               (ros-warn (toplevel task1) "Retrying.")
+             (ros-warn (toplevel task1) "Something failed.")
+             (do-retry all-retry-count
+               (ros-warn (toplevel task1) "Retrying all.")
+               (reset-counter scan-map-retry-count)
+             (reset-counter inform-objects-retry-count)
+               (reset-counter objects-in-place-retry-count)
                (retry))))
-          (achieve '(map-scanned))
-          (with-failure-handling
-            ((objects-information-failed (e)
+        (with-failure-handling
+            (((or map-scanning-failed moving-mast-cam-failed) (e)
                (declare (ignore e))
-               (ros-warn (toplevel task1) "Failed to inform objects.")
-               (do-retry inform-objects-retry-count
+               (ros-warn (toplevel task1) "Failed to scan map.")
+               (do-retry scan-map-retry-count
                  (ros-warn (toplevel task1) "Retrying.")
                  (retry))))
+          (achieve '(map-scanned))
+          (with-failure-handling
+              ((objects-information-failed (e)
+                 (declare (ignore e))
+                 (ros-warn (toplevel task1) "Failed to inform objects.")
+                 (do-retry inform-objects-retry-count
+                   (ros-warn (toplevel task1) "Retrying.")
+                   (retry))))
             (let ((objects (achieve '(objects-informed))))
               (with-failure-handling
-                (((or objects-in-place-failed
-                      manipulation-failure) (e)
-                   (declare (ignore e))
-                   (ros-warn (toplevel task1) "Failed to put objects in place.")
-                   (do-retry objects-in-place-retry-count
-                     (ros-warn (toplevel task1) "Retrying.")
-                     (retry))))
+                  (((or objects-in-place-failed
+                        manipulation-failure) (e)
+                     (declare (ignore e))
+                     (ros-warn (toplevel task1) "Failed to put objects in place.")
+                     (do-retry objects-in-place-retry-count
+                       (ros-warn (toplevel task1) "Retrying.")
+                       (retry))))
                 (achieve `(objects-in-place ,objects))))))))))
 
 
-(def-top-level-cram-function task1-tmp ()
+(def-top-level-cram-function task1-tmp (&optional start_sim)
   (roslisp:with-ros-node "testExecution"
   (with-process-modules
-    (cpl-impl:par
-      (planlib:do-planning "task1_v1")
-      (progn
-        (print "Waiting")
-        (cpl-impl:wait-for (fl-and (eql *current-state* :state-init) (eql *current-transition* :transition-successful)))
-        (roslisp:subscribe constants:+topic-name-get-yaml+ 'suturo_msgs-msg:Task #'yaml-cb)
-        (achieve `(suturo-planning-planlib::map-scanned))
-        (let ((objects (achieve `(objects-informed))))
-          (achieve `(objects-in-place ,objects)))     
-        ;(setf (value *current-state*) :state-scan-shadow)
-        ;(setf (value *current-transition*) :transition-success)
-        )))))
+    (if start_sim
+        (init-simulation "task1_v1"))
+    (roslisp:subscribe constants:+topic-name-get-yaml+ 'suturo_msgs-msg:Task #'yaml-cb)
+    (achieve `(suturo-planning-planlib::map-scanned))
+    (let ((objects (achieve `(objects-informed))))
+      (achieve `(objects-in-place ,objects))))))
 
 (defun yaml-cb (msg)
   (setf environment:*yaml* msg))
+
+(defun call-service-state (service-name taskdata)
+  (let
+      ((full-service-name (concatenate 'string "suturo/state/" service-name)))
+    (print (concatenate 'string "calling service: " service-name))
+    (if (not (roslisp:wait-for-service full-service-name +timeout-service+))
+        (progn
+          (let 
+              ((timed-out-text (concatenate 'string "Timed out waiting for service " service-name)))
+            (roslisp:ros-warn nil t timed-out-text))
+          nil)
+        (let ((value (roslisp:call-service full-service-name 'suturo_interface_msgs-srv:TaskDataService :taskdata taskdata)))
+          (roslisp:msg-slot-value value 'result)))))
+
+(def-cram-function init-simulation (task_name)
+  (let ((taskdata (roslisp:make-msg "suturo_interface_msgs/TaskData" (name) task_name)))
+    (call-service-state "start_simulation" taskdata)
+    (call-service-state "start_manipulation" taskdata)
+    (call-service-state "start_perception" taskdata)
+    (call-service-state "start_classifier" taskdata)
+    (call-service-state "init" taskdata)) 
+  (manipulation:init))
