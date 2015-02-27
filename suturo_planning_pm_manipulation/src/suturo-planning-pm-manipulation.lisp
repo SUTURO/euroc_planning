@@ -128,20 +128,26 @@
 (defvar *put-down-designator* nil)
 (defvar *put-down-location* nil)
 
+
 (def-action-handler put-down (object-desig collision-object location grasp)
 	(setf *put-down-designator* object-desig)
   (setf *put-down-location* location)
+  (if (not (put-down-fun collision-object location grasp))
+      (cram-language-implementation:fail 'cram-plan-failures:manipulation-failure)))
+
+
+(defun put-down-fun (collision-object location grasp)
   "Puts the object specified by the obj-designator down at a location"
   (if (not (roslisp:wait-for-service +service-name-move-robot+ +timeout-service+))
     (let ((timed-out-text (concatenate 'string "Timed out waiting for service" +service-name-move-robot+)))
       (roslisp:ros-warn nil t timed-out-text))
     (progn
-			(let ((location-msg (transform-to (cl-tf:pose-stamped->msg location) "/odom_combined")))
+			(let ((location-msg (msg-slot-value (msg-slot-value (cl-tf:pose-stamped->msg location) 'pose) 'position)))
 				(with-fields (id) collision-object
           (let ((result nil)
                 (place-block (gensym "BLOCK"))
                 (try-block (gensym "BLOCK"))
-                (dist-to-obj (vector->msg (magnitude (cl-transforms:v- (msg-slot-value (msg-slot-value grasp 'pose) 'position) (msg-slot-value (get-fingertip grasp) 'point))))))
+                (dist-to-obj (cl-transforms:v-norm (cl-transforms:v- (msg->vector (msg-slot-value (msg-slot-value grasp 'pose) 'position)) (msg->vector (msg-slot-value (get-fingertip grasp) 'point))))))
             (ros-info (achieve put-down) "Distance to object: ~a" dist-to-obj)
             (block place-block
               (let ((place-poses (get-place-positions collision-object location-msg dist-to-obj grasp)))
@@ -184,8 +190,7 @@
                                                         :do_not_blow_up_list `(,id "map"))
                   (setf result T)
                   (return-from place-BLOCK)))))
-            (if (not result)
-              (cram-language-implementation:fail 'cram-plan-failures:manipulation-failure))))))))
+            result))))))
 
 ;(def-action-handler put-down (collision-object location)
 ;  (format t "~a" collision-object)
