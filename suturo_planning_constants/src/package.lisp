@@ -16,12 +16,14 @@
            #:+service-name-close-gripper+
            #:+service-name-create-poses-for-object-scanning+
            #:+service-name-euroc-object-to-odom-combined+ 
+           #:+service-name-grasp-object+
            #:+service-name-get-base-origin+
            #:+service-name-get-map+
            #:+service-name-get-obstacle-regions+
            #:+service-name-move-mastcam+
            #:+service-name-move-robot+
-	       #:+service-name-open-gripper+
+	         #:+service-name-open-gripper+
+           #:+service-name-place-object+
 
            #:+topic-name-get-yaml+
            #:+base-origin-topic+

@@ -13,7 +13,7 @@
   :accept)
 
 (defun central-location-generator (location-designator)
-  (let ((pose (cl-tf:pose->pose-stamped "/map"
+  (let ((pose (cl-tf:pose->pose-stamped "/odom_combined"
                                         (ros-time)
                                         (cl-transforms:make-identity-pose))))
     (list (make-designator 'location `((pose ,pose))))))

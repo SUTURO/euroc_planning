@@ -5,12 +5,14 @@
   (:use #:desig
         #:constants
         #:cram-plan-library
+        #:cram-plan-failures
         #:roslisp
         #:cl-transforms
         #:cl)
   (:export #:suturo-planning-pm-manipulation
            #:scan-map
            #:*base-origin*
+					 #:*object-designator*
            #:init 
            #:call-add-collision-objects
            #:scan-map-action)
@@ -34,5 +36,6 @@
     #:move-arm-cam
     #:pose-name
     #:move-mast-cam
+    #:grasp-position
     #:grasp-point
     #:collision-object))

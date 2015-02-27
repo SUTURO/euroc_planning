@@ -94,7 +94,7 @@
               (if (or (not pose-estimated-object) (not (roslisp:msg-slot-value pose-estimated-object 'mpe_success)))
                   (print "Pose estimation failed, couldn't pose estimate object")
                   (progn
-                    ;;(call-add-collision-objects (vector (roslisp:msg-slot-value pose-estimated-object 'mpe_object))) TODO 
+                    (manipulation:call-add-collision-objects (vector (roslisp:msg-slot-value pose-estimated-object 'mpe_object)))
                     ))))
       pose-estimated-object))
       

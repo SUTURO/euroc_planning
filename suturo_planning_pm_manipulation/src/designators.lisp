@@ -5,10 +5,9 @@
                      (desig-prop ?designator (to follow))
                      (desig-prop ?designator (pose ?pose)))
 
-  (cram-reasoning:<- (action-desig ?designator (grasp ?obj ?cobj))
+  (cram-reasoning:<- (action-desig ?designator (grasp ?obj))
                      (desig-prop ?designator (to grasp))
-                     (desig-prop ?designator (obj ?obj))
-                     (desig-prop ?obj        (collision-object ?cobj)))
+                     (desig-prop ?designator (obj ?obj)))
 
   (cram-reasoning:<- (action-desig ?designator (move-mast-cam ?pan ?tilt))
                      (desig-prop ?designator (to move-mast-cam))
@@ -28,25 +27,24 @@
                      (desig-prop ?designator (to move-arm-cam))
                      (desig-prop ?designator (pose-name ?pose-name)))
 
-  (cram-reasoning:<- (action-desig ?designator (lift ?cobj ?grasp-point))
+  (cram-reasoning:<- (action-desig ?designator (lift nil nil))
                      (desig-prop ?designator (to lift))
-                     (desig-prop ?designator (obj ?obj))
-                     (desig-prop ?obj (collision-object ?cobj))
-                     (desig-prop ?obj (grasp-point ?grasp-point)))
+                     (desig-prop ?designator (obj ?obj)))
 
   (cram-reasoning:<- (action-desig ?designator (carry ?obj))
                      (desig-prop ?designator (to carry))
                      (desig-prop ?designator (obj ?obj)))
 
-  (cram-reasoning:<- (action-desig ?designator (navigation ?goal))
+  (cram-reasoning:<- (action-desig ?designator (no-navigation ?goal))
                      (desig-prop ?designator (type navigation))
                      (desig-prop ?designator (goal ?goal)))
 
-  (cram-reasoning:<- (action-desig ?designator (put-down ?cobj ?loc))
+  (cram-reasoning:<- (action-desig ?designator (put-down ?designator ?cobj ?pose))
                      (desig-prop ?designator (to put-down))
                      (desig-prop ?designator (obj ?obj))
                      (desig-prop ?obj (collision-object ?cobj))
-                     (desig-prop ?designator (at ?loc)))
+                     (desig-prop ?designator (at ?loc))
+		     (desig-prop ?loc (pose ?pose)))
 
   (cram-reasoning:<- (action-desig ?designator (park ?obj))
                      (desig-prop ?designator (to park))

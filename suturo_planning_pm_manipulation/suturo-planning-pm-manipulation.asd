@@ -1,6 +1,7 @@
 (defsystem suturo-planning-pm-manipulation
   :depends-on (roslisp
                cram-plan-library
+               cram-plan-failures
                cram-language
                process-modules
                designators
@@ -11,8 +12,8 @@
                suturo_manipulation_msgs-srv
                suturo_perception_msgs-srv
                suturo-planning-constants
-               moveit_msgs-msg
-               suturo_planning_manipulation-srv)
+               suturo-planning-environment
+               moveit_msgs-msg)
   :components
   ((:module "src"
             :components

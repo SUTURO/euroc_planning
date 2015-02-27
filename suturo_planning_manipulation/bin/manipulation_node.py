@@ -50,10 +50,17 @@ class ManipulationNode(object):
         poses = make_scan_pose(__region_centroid, __distance, __angle, n=__quantity)
         poses = self.__manipulation.filter_close_poses(poses)
         rospy.loginfo("utils.map id ="+ str(hex(id(utils.map))))
-        if utils.map is not None:
-            poses = utils.map.filter_invalid_scan_poses2(__region_centroid.x, __region_centroid.y, poses)
-        else:
-            print "__handle_create_poses_for_scanning: utils.map is None :-O"
+
+        rospy.wait_for_service('/suturo/environment/filter_invalid_scan_poses2')
+        try:
+            filter_invalid_scan_poses2 = rospy.ServiceProxy('/suturo/environment/filter_invalid_scan_poses2', FilterPoses)
+            print "Handle Create Poses For Scanning: try filter"
+            rospy.loginfo("Handle Create Poses For Scanning: try filter")
+            resp = filter_invalid_scan_poses2(__region_centroid.x, __region_centroid.y, poses)
+            poses = resp.poses
+        except rospy.ServiceException, e:
+            print "Service call failed: %s"%e
+            
         visualize_poses(poses)
         return CreatePosesForScanningResponse(poses)
 
@@ -65,6 +72,11 @@ class ManipulationNode(object):
     
     def __handle_move(self, msg):
         goal_pose = self.__get_goal_pose(msg)
+
+	print("########################################################################################################################################################################################")
+	print(msg)
+	print(goal_pose)
+	print("########################################################################################################################################################################################")
 
         if msg.type == MoveRequest.ACTION_MOVE_ARM_TO:
             result = self.__manipulation.move_to(goal_pose, msg.do_not_blow_up_list)

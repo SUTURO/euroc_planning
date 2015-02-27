@@ -43,7 +43,21 @@
   )
 )
 
-(defun get-pre-place-position (pose)
-  (with-fields (position) pose
-    (with-fields (z) position
-      (modify-message-copy pose (z position) (+ z +pre-place-length+)))))
+
+(defun get-place-positions (collision-object location distance grasp-pose)
+	(with-fields (primitives) collision-object
+		(if (length primitives 1)
+			(get-single-object-place-positions collision-object destination distance grasp-pose)
+			(get-handlebar-place-positions collision-object destination distance))))
+
+
+(defun get-single-object-place-positions (collision-object destination distance grasp-pose)
+	; TODO: Implementieren
+)
+
+
+(defun get-pre-place-position (pose-stamped)
+  (with-fields (pose) pose-stamped
+	  (with-fields (position) pose
+  	  (with-fields (z) position
+    	  (modify-message-copy pose-stamped (z position pose) (+ z +pre-place-length+))))))

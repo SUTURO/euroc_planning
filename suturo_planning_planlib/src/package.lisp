@@ -43,5 +43,7 @@
    #:pose-name
    #:scenecam
    #:to 
+   #:collision-object
+   #:grasp-postion
    #:tilt
    #:type))
