@@ -87,9 +87,10 @@ Tries to classify the given object"
                                         (obj ,?object)))))
 
 (def-goal (achieve (pose-estimated ?object))
+:documentation
 "* Arguments
 - ?object :: A suturo_perception_msgs-msg:EurocObject which pose should be estimated
-*Return Value
+* Return Value
 TODO
 * Description
 Tries to estimate the pose of the given object"
