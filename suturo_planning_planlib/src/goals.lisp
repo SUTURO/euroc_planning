@@ -66,6 +66,15 @@ Tries to find the given objects in the current map"
   (perform (make-designator 'action `((to find-objects-in-map) 
                                       (objects ,?objects)))))
 
+(def-goal (achieve (my-test-goal '(?param1)))
+    "* Arguments
+- ?objects :: An array of suturo_perception_msgs-msg:EurocObjects which should be found in the map 
+* Return Value 
+Returns every found region as in the map where the objects are suspected. The return type is an array of suturo_environment_msgs-msg:Region. 
+* Description 
+Tries to find the given objects in the current map"
+                                     nil )
+
 (def-goal (achieve (unknown-scanned ?region))
     "* Arguments
 - ?region :: A suturo_environment_msgs-msg:Region which should be scanned

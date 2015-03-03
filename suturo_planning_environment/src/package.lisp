@@ -18,4 +18,12 @@
     #:obj
     #:obj-pos
     #:pose
-    #:of))
+    #:of)
+  (:documentation
+   "* Description
+This package contains information about the environment e.g
+- Target zones
+- Map
+- ...
+"
+   ))

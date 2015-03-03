@@ -19,4 +19,4 @@
       (defconstant +topic-name-get-yaml+ "suturo/yaml_pars0r" "The name of the topic to receive the yaml file")
       (defconstant +service-name-place-object+ "/suturo/manipulation/place_object" "The name of the service to place the object")
       (defconstant +timeout-service+ 10 "The time to wait for a service")
-      (defconstant +base-origin-topic+ "/suturo/manipulation/get_base_origin")))
+      (defconstant +base-origin-topic+ "/suturo/manipulation/get_base_origin" "The name of the service to get the base origin")))

@@ -6,14 +6,15 @@
                process-modules
                designators
                alexandria
-               suturo_interface_msgs-srv
-               suturo_interface_msgs-msg
+               moveit_msgs-msg
                suturo_manipulation_msgs-msg
                suturo_manipulation_msgs-srv
+               suturo_perception_msgs-msg
                suturo_perception_msgs-srv
+               suturo_interface_msgs-msg
+               suturo_interface_msgs-srv
                suturo-planning-constants
-               suturo-planning-environment
-               moveit_msgs-msg)
+               suturo-planning-environment)
   :components
   ((:module "src"
             :components

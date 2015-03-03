@@ -6,14 +6,14 @@
                cram-language
                cl-utilities
                cram-reasoning
-               suturo-planning-environment
                geometry_msgs-msg
-               suturo_interface_msgs-srv
-               suturo_interface_msgs-msg
-               suturo_perception_msgs-srv
                suturo_perception_msgs-msg
-               suturo_manipulation_msgs-srv
+               suturo_perception_msgs-srv
                suturo_manipulation_msgs-msg
+               suturo_manipulation_msgs-srv
+               suturo_interface_msgs-msg
+               suturo_interface_msgs-srv
+               suturo-planning-environment
                suturo-planning-pm-manipulation
                suturo-planning-pm-perception
                suturo-planning-constants
