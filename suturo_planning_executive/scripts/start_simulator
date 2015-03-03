@@ -1,5 +1,5 @@
 #!/bin/sh
 
-TASK="$1"
-
+TASK="task1_v1"
+sleep 10 # replace with waiting for task_selector
 rosservice call /euroc_c2_task_selector/start_simulator "suturo" "$TASK"
