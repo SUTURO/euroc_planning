@@ -5,7 +5,6 @@
     (v* v (/ 1.0 (v-norm v)))
 )
 
-
 (defun set-vector-length (l p)
   "Set the Length of a geometry_msgs-msg:Point p to the length l"
   (with-fields (x y z) p
@@ -42,19 +41,6 @@
     )
   )
 )
-
-
-(defun get-place-positions (collision-object location distance grasp-pose)
-	(with-fields (primitives) collision-object
-		(if (length primitives 1)
-			(get-single-object-place-positions collision-object destination distance grasp-pose)
-			(get-handlebar-place-positions collision-object destination distance))))
-
-
-(defun get-single-object-place-positions (collision-object destination distance grasp-pose)
-	; TODO: Implementieren
-)
-
 
 (defun get-pre-place-position (pose-stamped)
   (with-fields (pose) pose-stamped
