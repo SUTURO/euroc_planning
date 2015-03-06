@@ -13,6 +13,7 @@ from std_msgs.msg import Header
 from math import pi
 from suturo_msgs.msg import Task
 from suturo_msgs.msg import TargetZone
+from suturo_planning_manipulation.manipulation import Manipulation
 
 
 # Holds the manipulation object
@@ -104,7 +105,10 @@ def hex_to_color_msg(hex_str):
 
 
 def publish_collision_objects(objects):
+    global manipulation
     # pub = rospy.Publisher('collision_object', CollisionObject, queue_size=10)
+    if manipulation is None:
+        manipulation = Manipulation()
     for obj in objects:
         manipulation.get_planning_scene().add_object(obj)
         # pub.publish(obj)
@@ -168,6 +172,9 @@ def get_nearest_object_idx(obj, objects, treshold):
 
 
 def euroc_object_to_odom_combined(euroc_object):
+    global manipulation
+    if manipulation is None:
+        manipulation = Manipulation()
     header = Header(0, rospy.Time(0), euroc_object.frame_id)
     # Convert the centroid
     camera_point = PointStamped()

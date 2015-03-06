@@ -1,10 +1,16 @@
 (in-package :exec)
 
+(defvar *yaml-pub*)
+
 (defun parse-yaml ()
   ; TODO: Publish the yaml description to the yaml pars0r input
   (roslisp:subscribe constants:+topic-name-get-yaml+ 'suturo_msgs-msg:Task #'yaml-cb))
 
+(defun yaml-publisher ()
+  (setf *yaml-pub* (advertise "/suturo/yaml_pars0r_input" "std_msgs/String")))
+
 (roslisp-utilities:register-ros-init-function parse-yaml)
+(roslisp-utilities:register-ros-init-function yaml-publisher)
 
 (defmacro with-process-modules (&body body)
   `(cpm:with-process-modules-running
@@ -14,19 +20,36 @@
 
 (defmacro with-ros-node (&body body)
   "Utility macro to start and stop a ROS node around a block"
-  `(prog2
-       (roslisp-utilities:startup-ros)
-       ,@body
-     (roslisp-utilities:shutdown-ros)))
+  `(unwind-protect
+    (progn
+      (roslisp-utilities:startup-ros)
+      ,@body)
+    (roslisp-utilities:shutdown-ros)))
 
 (defun task-selector (&optional (tsk "task1_v1"))
   "Starts the plan for the task from the parameter server.
 
    If no task is set in the parameter server, the task given
-   as argument will be started (default: task1)"
+   as argument will be started (default: task1_v1)"
   (with-ros-node
-    (let ((task (remove #\  (roslisp:get-param "/task_variation/task_name" tsk)))) ; whitespace sensitive!
-      (funcall (symbol-function (read-from-string (format nil "exec:~a" task)))))))
+    (unless (wait-for-service +service-name-start-simulator+ +timeout-service+)
+      (ros-error (task-selector) "Service ~a timed out." +service-name-start-simulator+)
+      (fail))
+    (ros-info (task-selector) "Starting simulator...")
+    (let* ((ret (call-service +service-name-start-simulator+
+                                          'euroc_c2_msgs-srv:StartSimulator
+                                          :user_id "suturo"
+                                          :scene_name tsk))
+           (_ (ros-info (task-selector) "Task starter return: ~a" ret))
+           (task-description (slot-value ret 'euroc_c2_msgs-srv:description_yaml)))
+      (publish-msg *yaml-pub* :data task-description)
+      (let ((task (remove #\  (get-param "/task_description/public_description/task_name" tsk)))) ; whitespace sensitive!
+        (ros-info (task-selector) "Starting plan ~a..." task)
+        (unwind-protect
+          (funcall (symbol-function (read-from-string (format nil "exec:~a" task))))
+          (when cram-beliefstate::*logging-enabled*
+            (ros-info (task-selector) "Saving log files...")
+            (cram-beliefstate:extract-files)))))))
 
 (defun task1 ()
   (roslisp:with-ros-node "testExecution"
