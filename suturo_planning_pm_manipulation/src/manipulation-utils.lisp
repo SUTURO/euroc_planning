@@ -64,8 +64,9 @@
   (cl-transforms:v-norm (msg->vector v)))
 
 (defun rotate-quaternion (q roll pitch yaw)
-  (let ((angle (cl-transforms:euler->quaternion :ax roll :ay pitch :az yaw)))
-    (with-slots (x y z w) (cl-transforms:q* q angle)
+  (let ((clq (msg->quaternion q))
+        (angle (cl-transforms:euler->quaternion :ax roll :ay pitch :az yaw)))
+    (with-slots (x y z w) (cl-transforms:q* clq angle)
       (roslisp:make-msg "geometry_msgs/Quaternion" :x x :y y :z z :w w))))
 
 (defun add-point (v1 v2)
@@ -93,8 +94,9 @@
 (defun three-points-to-quaternion (origin to &optional roll)
   (let ((roll-not-given nil))
     (if (eql roll nil)
-        (setf roll (roslisp:make-msg "geometry_msgs/Point" :z (+ (roslisp:msg-slot-value origin 'z) 1.000001)))
-        (setf roll-not-given T))
+        (progn
+          (setf roll (roslisp:make-msg "geometry_msgs/Point" :z (+ (roslisp:msg-slot-value origin 'z) 1.000001)))
+          (setf roll-not-given T)))
     (let ((n1 (normalize-vector (cl-transforms:v- (msg->vector to) (msg->vector origin))))
           (n (normalize-vector (cl-transforms:v- (msg->vector roll) (msg->vector origin)))))
       (let ((n2 (normalize-vector (cl-transforms:v- n (cl-transforms:v* n1 (cl-transforms:dot-product n n1))))))
@@ -125,6 +127,12 @@
   (with-fields (x y z) p
     (v* (normalize-vector (make-3d-vector x y z)) l)))
 
+(defun mag (msg)
+  (magnitude (roslisp:msg-slot-value (roslisp:msg-slot-value msg 'pose) 'position)))
+
+(defvar *look-point* nil)
+(defvar *roll-point* nil)
+
 (defun make-scan-poses (point distance angle frame n)
   (let ((look-positions (list))
         (alpha (- (/ pi 2) angle)))
@@ -138,13 +146,15 @@
               (let ((b (- a (/ pi 2))))
                 (let ((look-point (vector->msg (cl-transforms:v+ (set-vector-length r (cl-transforms:make-3d-vector (cos a) (sin a) 0)) muh)))
                       (roll-point (vector->msg (cl-transforms:v+ (cl-transforms:make-3d-vector (cos b) (sin b) 0) (msg->vector point)))))
-                  (append look-positions (list (roslisp:make-msg "geometry_msgs/PoseStamped"
+                  (setf *look-point* look-point)
+                  (setf *roll-point* roll-point)
+                  (setf look-positions (append look-positions (list (roslisp:make-msg "geometry_msgs/PoseStamped"
                                                                  (frame_id header) frame
                                                                  (orientation pose) (three-points-to-quaternion look-point point roll-point)
-                                                                 (position pose) look-point)))))
+                                                                 (position pose) look-point)))))))
               (setf i (+ i 1))
-              (when (>= i n) (return)))))))
-    (sort look-positions (lambda (x) (magnitude (roslisp:msg-slot-value (roslisp:msg-slot-value x 'pose) 'position))))))
+              (when (>= i n) (return))))))
+    (sort look-positions (lambda (x y) (> (mag x) (mag y))))))
 
 (defun get-fingertip (hand-pose)
   (with-fields (pose) hand-pose
@@ -154,8 +164,7 @@
           (with-fields (x y z w) orientation
             (let ((ori (normalize (make-quaternion x y z w))))
               (with-slots (x y z) (v+ (rotate ori (make-3d-vector (+ +hand-length+ +finger-length+) 0 0)) pos)
-                (make-msg "geometry_msgs/PointStamped" (point) (make-msg "geometry_msgs/Point" :x x :y y :z z)))))))))
-)
+                (make-msg "geometry_msgs/PointStamped" (point) (make-msg "geometry_msgs/Point" :x x :y y :z z))))))))))
 
 (defun get-pre-grasp (grasp)
   (with-fields (pose) grasp
@@ -167,7 +176,7 @@
               (pos (make-3d-vector (msg-slot-value position 'x)
                                    (msg-slot-value position 'y)
                                    (msg-slot-value position 'z))))
-          (let ((new-p (v+ pos (set-vector-length +pre-grasp-length+ (v- pos p)))))
+          (let ((new-p (vector->msg (v+ pos (set-vector-length +pre-grasp-length+ (v- pos p))))))
             (modify-message-copy grasp :pose (modify-message-copy pose :position new-p))
           )
         )
@@ -180,9 +189,16 @@
 (defun get-place-positions (collision-object destination distance grasp)
 	(with-fields (primitives) collision-object
 		(if (eql (length primitives) 1)
-			(get-single-object-place-positions collision-object destination distance grasp)
-			(get-handlebar-place-positions collision-object destination distance))))
+      (progn
+        (print "Single object")
+        (get-single-object-place-positions collision-object destination distance grasp))
+      (progn
+        (print "Handlebar")
+        (get-handlebar-place-positions collision-object destination distance)))))
 
+(defvar *distance* nil)
+(defvar *place-pose* nil)
+(defvar *angle* nil)
 
 (defun get-single-object-place-positions (collision-object destination distance grasp)
   (with-fields (pose) grasp
@@ -192,6 +208,9 @@
           (let ((place-pose (modify-message-copy destination :z (+ z +safe-place+)))
                 (diff (abs (- (/ pi 2) angle))))
             (let ((place-poses nil))
+              (setf *distance* distance)
+              (setf *place-pose* place-pose)
+              (setf *angle* angle)
               (if (and (<= 0 diff) (<= diff 0.1))
                   (setf place-poses (make-scan-poses place-pose distance angle "/odom_combined" 2))
                   (setf place-poses (make-scan-poses place-pose distance angle "/odom_combined" 8)))
@@ -201,14 +220,26 @@
                       (dolist (p place-poses)
                         (with-fields (pose) p
                           (with-fields (orientation) pose
-                            (append result (list (modify-message-copy p (orientation pose) (rotate-quaternion orientation pi 0 0))))))))
+                            (setf result (append result (list (modify-message-copy p (orientation pose) (rotate-quaternion orientation pi 0 0)))))))))
             result)))))))))
 
 
 (defun get-handlebar-place-positions (collision-object destination distance)
-  ; TODO implementieren
-)
-
+  (let ((angle 0)
+        (p2 (transform-to (make-msg "geometry_msgs/PointStamped" (frame_id header) (msg-slot-value collision-object 'id)) "/tcp")))
+    (let ((z1 (/ (aref (msg-slot-value (aref (msg-slot-value collision-object 'primitives) (symbol-code 'shape_msgs-msg:solidprimitive :CYLINDER_HEIGHT)) 'dimensions) 0) 2))
+          (z2 (aref (msg-slot-value (aref (msg-slot-value collision-object 'primitives) (symbol-code 'shape_msgs-msg:solidprimitive :BOX_X)) 'dimensions) 1)))
+      (let ((place-pose (modify-message-copy destination :z (+ (+ z1 (+ z2 +safe-place+) (abs (msg-slot-value (msg-slot-value p2 'point) 'y)))))))
+        (let ((place-poses (make-scan-poses place-pose distance angle "/odom_combined" 8)))
+          (if (< (msg-slot-value (msg-slot-value p2 'point) 'y) 0)
+              (progn
+                (let ((result (list)))
+                  (loop for place-pose in place-poses do
+                    (with-fields (pose) place-pose
+                      (with-fields (orientation) pose
+                        (setf result (append result (modify-message-copy place-pose :pose (modify-message-copy pose :orientation (rotate-quaternion orientation pi 0 0))))))))
+                  (setf place-poses result))))
+          place-poses)))))
 
 (defun get-pre-place-position (pose-stamped)
   (with-fields (pose) pose-stamped

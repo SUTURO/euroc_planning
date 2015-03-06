@@ -241,7 +241,10 @@ def make_scan_pose(point, distance, angle, frame="/odom_combined", n=8):
 
         roll_point = Point(cos(b), sin(b), 0)
         roll_point = add_point(roll_point, point)
-        look_pose = PoseStamped()
+        print("loook_point: %s" % look_point)
+	print("roll_point: %s" % roll_point)
+
+	look_pose = PoseStamped()
         look_pose.header.frame_id = frame
         look_pose.pose.orientation = three_points_to_quaternion(look_point, point, roll_point)
 
