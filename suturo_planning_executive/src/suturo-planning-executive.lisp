@@ -28,7 +28,11 @@
     (let ((task (remove #\  (roslisp:get-param "/task_variation/task_name" tsk)))) ; whitespace sensitive!
       (funcall (symbol-function (read-from-string (format nil "exec:~a" task)))))))
 
-(def-top-level-cram-function task1 ()
+(defun task1 ()
+  (roslisp:with-ros-node "testExecution"
+    (cram-task1)))
+
+(def-top-level-cram-function cram-task1 ()
   "Top level plan for task 1 of the euroc challenge"
   (with-process-modules
     (with-retry-counters ((all-retry-count 2)
@@ -71,8 +75,13 @@
                        (retry))))
                 (achieve `(objects-in-place ,objects))))))))))
 
+(defun task1-tmp (&optional start_sim)
+  (roslisp:with-ros-node "testExecution"
+    (if start_sim
+        (cram-task1-tmp t)
+        (cram-task1-tmp))))
 
-(def-top-level-cram-function task1-tmp (&optional start_sim)
+(def-top-level-cram-function cram-task1-tmp (&optional start_sim)
   "
 * Arguments
 - start_sim :: T if the simulation should be started
@@ -80,14 +89,14 @@
 Temporary top-level plan to start the task 1. The argument *start_sim* should be T if the function is called the first time. Set the argument to nil
 if the plan should try to continue from the last state.
 "
-  (roslisp:with-ros-node "testExecution"
+
   (with-process-modules
     (if start_sim
         (init-simulation "task1_v1"))
     (roslisp:subscribe constants:+topic-name-get-yaml+ 'suturo_msgs-msg:Task #'yaml-cb)
     (achieve `(suturo-planning-planlib::map-scanned))
     (let ((objects (achieve `(objects-informed))))
-      (achieve `(objects-in-place ,objects))))))
+      (achieve `(objects-in-place ,objects)))))
 
 (defun yaml-cb (msg)
   "
