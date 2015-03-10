@@ -132,8 +132,6 @@
 (defun mag (msg)
   (magnitude (roslisp:msg-slot-value (roslisp:msg-slot-value msg 'pose) 'position)))
 
-(defvar *look-point* nil)
-(defvar *roll-point* nil)
 
 (defun make-scan-poses (point distance angle frame n)
   (let ((look-positions (list))
@@ -148,8 +146,6 @@
               (let ((b (- a (/ pi 2))))
                 (let ((look-point (vector->msg (cl-transforms:v+ (set-vector-length r (cl-transforms:make-3d-vector (cos a) (sin a) 0)) muh)))
                       (roll-point (vector->msg (cl-transforms:v+ (cl-transforms:make-3d-vector (cos b) (sin b) 0) (msg->vector point)))))
-                  (setf *look-point* look-point)
-                  (setf *roll-point* roll-point)
                   (setf look-positions (append look-positions (list (roslisp:make-msg "geometry_msgs/PoseStamped"
                                                                  (frame_id header) frame
                                                                  (orientation pose) (three-points-to-quaternion look-point point roll-point)
@@ -192,10 +188,8 @@
 	(with-fields (primitives) collision-object
 		(if (eql (length primitives) 1)
       (progn
-        (print "Single object")
         (get-single-object-place-positions collision-object destination distance grasp))
       (progn
-        (print "Handlebar")
         (get-handlebar-place-positions collision-object destination distance)))))
 
 
@@ -210,7 +204,6 @@
               (if (and (<= 0 diff) (<= diff 0.1))
                   (setf place-poses (make-scan-poses place-pose distance angle "/odom_combined" 2))
                   (setf place-poses (make-scan-poses place-pose distance angle "/odom_combined" 8)))
-              (print (format nil "Place-Poses: ~a" place-poses))
               (let ((p2 (transform-to (make-msg "geometry_msgs/PointStamped" (frame_id header) (msg-slot-value collision-object :id)) "/tcp")))
                 (let ((result (list)))
                   (if (< (msg-slot-value (msg-slot-value p2 'point) 'y) 0)
@@ -219,7 +212,6 @@
                           (with-fields (pose) p
                             (with-fields (orientation) pose
                               (setf result (append result (list (modify-message-copy p (orientation pose) (rotate-quaternion orientation pi 0 0))))))))
-                        (print (format nil "Result: ~a" nil))
                         (setf place-poses result)))))
               place-poses)))))))
 
@@ -235,7 +227,6 @@
               (progn
                 (let ((result (list)))
                   (loop for place-pose in place-poses do
-                    (print (format nil "Place-Pose: ~a" place-pose))
                     (with-fields (pose) place-pose
                       (with-fields (orientation) pose
                         (setf result (append result (list (modify-message-copy place-pose :pose (modify-message-copy pose :orientation (rotate-quaternion orientation pi 0 0)))))))))
