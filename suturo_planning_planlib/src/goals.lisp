@@ -92,8 +92,13 @@ Tries to scan and recognize an object in the region. Moves the arm-cam in the pr
 TODO
 * Description
 Tries to classify the given object"
-    (perform (make-designator 'action `((to classify-object)
-                                        (obj ,?object)))))
+  (let ((obj (perform (make-designator 'action `((to classify-object)
+                                                 (obj ,?object))))))
+    (if obj
+        obj
+        (progn
+          (ros-warn (achieve object-classified) "Failed to classify object ~a" ?object)
+          (fail)))))
 
 (def-goal (achieve (pose-estimated ?object))
 "* Arguments

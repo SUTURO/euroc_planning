@@ -1,8 +1,8 @@
 <launch>
   <include file="$(find suturo_planning_executive)/launch/task1_without_planning.launch" />
   
-  <node name="planning" pkg="suturo_planning_executive" type="task" required="true" output="screen">
-    <param name="task" type="string" value="task1" />
-    <param name="task_variation" type="string" value="$(arg variation)" />
-  </node>
+  <!-- Start logging -->
+  <include file="$(find suturo_planning_executive)/launch/logging.launch" />
+  
+  <node name="planning" pkg="suturo_planning_executive" type="task" required="true" output="screen" />
 </launch>

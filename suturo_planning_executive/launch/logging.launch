@@ -3,7 +3,7 @@
   <arg name="logged_topics" default="/tf" />
 
   <!-- CRAM Logging -->
-  <node name="cram_logging" pkg="semrec" type="semrec" />
+  <node name="semrec_ros" pkg="semrec" type="semrec" output="screen" />
 
   <!-- Topic logging -->
   <node name="topic_logging" pkg="mongodb_log" type="mongodb_log.py" args="$(arg logged_topics)" />
