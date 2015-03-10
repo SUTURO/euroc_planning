@@ -1,5 +1,6 @@
 (defsystem suturo-planning-constants
   :depends-on (roslisp
+               cram-plan-failures
                cram-language)
   :components
   ((:module "src"

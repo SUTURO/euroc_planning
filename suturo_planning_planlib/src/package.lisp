@@ -12,10 +12,7 @@
         #:cram-designators
         #:cl-transforms
         #:cram-language-designator-support)
-  (:export #:do-planning
-           #:*current-state*
-           #:*current-transition*
-           #:*taskdata*
+  (:export            
            #:map-scanned
            #:objects-informed
            #:unknown-scanned

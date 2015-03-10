@@ -3,7 +3,8 @@
 (defpackage suturo-planning-constants
   (:nicknames :constants)
   (:use #:roslisp
-        #:cl)
+        #:cl
+        #:cram-plan-failures)
   (:export #:+suturo-planning-constants-services-defined+
 	       #:+scan-obstacles-angle+
 	       #:+scan-obstacles-arm-max-distance+
@@ -24,6 +25,7 @@
            #:+service-name-move-robot+
 	         #:+service-name-open-gripper+
            #:+service-name-place-object+
+           #:+service-name-start-simulator+
 
            #:+topic-name-get-yaml+
            #:+base-origin-topic+
@@ -34,4 +36,12 @@
            #:moving-arm-failed
            #:objects-information-failed
            #:objects-in-place-failed
-           #:+timeout-service+))
+           #:+timeout-service+)
+  (:documentation
+   "* Description
+This package contains constants for global use. Every defined constant needs an entry in the export section of the package.lisp file. Try to group the constants in logical chunks to keep a high coherention. Every file should have the following structure:
+;;; (if (not (boundp '+suturo-planning-constants-my-unique-ending+))
+;;;     (progn
+;;;       (defconstant +suturo-planning-constants-my-unique-ending+ \"\" \"If this variable is not void, every constant in this file is already defined\")
+;;;       (defconstant +my-constant+))
+"))

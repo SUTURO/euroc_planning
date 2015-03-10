@@ -7,8 +7,7 @@
         #:cl-transforms
         #:cpl-impl
         #:constants)
-  (:export #:suturo-planning-pm-perception
-           #:get-gripper-perception)
+  (:export #:suturo-planning-pm-perception)
   (:desig-properties
     #:base-origin
     #:classify-object

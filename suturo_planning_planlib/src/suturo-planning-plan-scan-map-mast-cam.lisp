@@ -59,7 +59,3 @@
                          (retry))))
                     (perform perceive-action))))))
           +scan-poses+))
-
-(defun blub ()
-  (let ((regions-with-same-color (make-array 0 :fill-pointer 0 :adjustable t)))
-    ))

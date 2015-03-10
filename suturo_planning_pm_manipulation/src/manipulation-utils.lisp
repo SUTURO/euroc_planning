@@ -91,6 +91,7 @@
         (v1 (msg->quaternion v)))
     (quaternion->Quaternion (cl-transforms:q* q1 v1))))
 
+
 (defun three-points-to-quaternion (origin to &optional roll)
   (let ((roll-not-given nil))
     (if (eql roll nil)
@@ -121,6 +122,7 @@
       (if (and (<= 0 (magnitude v)) (<= (magnitude v) 0.001))
           (setf v (make-msg "geometry_msgs/Point" :x 1 :y 0 :z 0)))
     (get-angle v direct))))
+
 
 (defun set-vector-length (l p)
   "Set the Length of a geometry_msgs-msg:Point p to the length l"
@@ -239,6 +241,7 @@
                         (setf result (append result (list (modify-message-copy place-pose :pose (modify-message-copy pose :orientation (rotate-quaternion orientation pi 0 0)))))))))
                   (setf place-poses result))))
           place-poses)))))
+
 
 (defun get-pre-place-position (pose-stamped)
   (with-fields (pose) pose-stamped

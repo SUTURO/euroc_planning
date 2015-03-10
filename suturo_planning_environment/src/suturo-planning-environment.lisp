@@ -1,6 +1,6 @@
 (in-package :environment)
 
-(defvar *yaml* nil "The YAML file")
+(defvar *yaml* nil "The YAML file for the current task")
 
 (defun object-location-generator (location-designator)
   "Find the position of an object in an object-designator"
