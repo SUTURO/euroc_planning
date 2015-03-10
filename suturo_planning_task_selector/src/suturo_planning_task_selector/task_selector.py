@@ -17,6 +17,7 @@ def start_task(scene):
     try:
         start_simulator = rospy.ServiceProxy('euroc_c2_task_selector/start_simulator', StartSimulator)
         yaml_description = start_simulator('C2T03#8112895', scene).description_yaml
+	print "YAML: %s" % yaml_description
         rospy.loginfo('Starting YAML pars0r.')
         yaml_parser = YamlPars0r()
         rospy.loginfo('Started YAML pars0r.')
