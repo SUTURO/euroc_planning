@@ -184,17 +184,18 @@
                           (if (not result)
                             (cram-language-implementation:fail 'cram-plan-failures:manipulation-failure)))))
                   ; Move to pre grasp
-                  (ros-info (achieve put-down) "Move to pre grasp at ~a" (get-pre-grasp place-pose))
-                  (roslisp:call-service +service-name-move-robot+ 'suturo_manipulation_msgs-srv:Move
+                  (ros-info (achieve put-down) "Move to pre grasp")
+                  (if (not (msg-slot-value (roslisp:call-service +service-name-move-robot+ 'suturo_manipulation_msgs-srv:Move
                                                         :type (roslisp-msg-protocol:symbol-code 'suturo_manipulation_msgs-srv:Move-Request :ACTION_MOVE_ARM_TO)
                                                         :goal_pose (get-pre-grasp place-pose)
-                                                        :do_not_blow_up_list `(,id "map"))
-                  ; Move to pre place
-                  (ros-info (achieve put-down) "Move to pre place")
-                  (roslisp:call-service +service-name-move-robot+ 'suturo_manipulation_msgs-srv:Move
-                                                        :type (roslisp-msg-protocol:symbol-code 'suturo_manipulation_msgs-srv:Move-Request :ACTION_MOVE_ARM_TO)
-                                                        :goal_pose (get-pre-place-position place-pose)
-                                                        :do_not_blow_up_list `(,id "map"))
+                                                        :do_not_blow_up_list `(,id "map")) 'result))
+                      (progn
+                        ; Move to pre place
+                        (ros-info (achieve put-down) "Move to pre place")
+                        (roslisp:call-service +service-name-move-robot+ 'suturo_manipulation_msgs-srv:Move
+                                              :type (roslisp-msg-protocol:symbol-code 'suturo_manipulation_msgs-srv:Move-Request :ACTION_MOVE_ARM_TO)
+                                              :goal_pose (get-pre-place-position place-pose)
+                                              :do_not_blow_up_list `(,id "map"))))
                   (setf result T)
                   (return-from place-BLOCK)))))
             result))))))
