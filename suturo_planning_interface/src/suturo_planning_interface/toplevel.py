@@ -21,7 +21,7 @@ from suturo_interface_msgs.srv import StartPlanning, StartPlanningResponse
 import start_nodes
 import tasks
 #from search_objects import SearchObjects
-from scan_map import MapScanner
+#from scan_map import MapScanner
 #from scan_obstacles import ScanObstacles
 #from classify_objects import ClassifyObjects
 #from focus_objects import FocusObjects
@@ -116,7 +116,7 @@ class Toplevel(object):
     def start_state_nodes(self):
         #self.search_object_state = SearchObjects()
         self.determine_task_type_state = TaskTypeDeterminer()
-        self.map_scanner_state = MapScanner()
+        #self.map_scanner_state = MapScanner()
         #self.scan_obstacles_state = ScanObstacles()
         #self.classify_objects_state = ClassifyObjects()
         #self.focus_objects_state = FocusObjects()
