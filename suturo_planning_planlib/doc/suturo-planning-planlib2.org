@@ -1,0 +1,1054 @@
+#+TITLE: The SUTURO-PLANNING-PLANLIB package
+#+AUTHOR: CLOD
+#+EMAIL: your@email.here
+#+LINK: hs http://www.lispworks.com/reference/HyperSpec//%s
+#+STARTUP: showall
+#+OPTIONS: toc:4 H:10 @:t tags:nil
+
+# link target 2: <<suturo-planning-planlib>>
+# link target: <<package suturo-planning-planlib>>
+
+
+* Internal Package: =suturo-planning-planlib=                            :package:
+
+- Uses:
+    [[package roslisp][roslisp]], [[package suturo-planning-environment][suturo
+    planning-environment]], [[package cram-plan-library][cram-plan-library]],
+    [[package cram-plan-failures][cram-plan-failures]], [[package cram
+    language][cram-language]], [[package suturo-planning-constants][suturo-planning
+    constants]], [[package cram-designators][cram-designators]], [[package cl
+    transforms][cl-transforms]], [[package cram-language-designator-support][cram
+    language-designator-support]]
+- Used by:
+    [[package suturo-planning-executive][suturo-planning-executive]]
+
+
+** Description
+
+Not documented.
+
+
+** External Symbols
+
+
+
+
+*** External Functions
+
+-----
+
+# link target 2: <<map-scanned>>
+# link target: <<function map-scanned>>
+
+
+**** Function: =map-scanned=                                               :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(map-scanned)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<object-classified>>
+# link target: <<function object-classified>>
+
+
+**** Function: =object-classified=                                         :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(object-classified ?object)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<objects-in-place>>
+# link target: <<function objects-in-place>>
+
+
+**** Function: =objects-in-place=                                          :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(objects-in-place ?objects)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<objects-informed>>
+# link target: <<function objects-informed>>
+
+
+**** Function: =objects-informed=                                          :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(objects-informed)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<pose-estimated>>
+# link target: <<function pose-estimated>>
+
+
+**** Function: =pose-estimated=                                            :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(pose-estimated ?object)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<unknown-scanned>>
+# link target: <<function unknown-scanned>>
+
+
+**** Function: =unknown-scanned=                                           :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(unknown-scanned ?region)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+
+
+*** External Goals
+
+-----
+
+# link target 2: <<map-scanned>>
+# link target: <<goal map-scanned>>
+
+
+**** Goal: =map-scanned=                                                       :goal:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(map-scanned)
+#+END_SRC
+
+
+***** Description
+
+Tries to scan the whole map.
+
+
+
+-----
+
+# link target 2: <<object-classified>>
+# link target: <<goal object-classified>>
+
+
+**** Goal: =object-classified=                                                 :goal:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(object-classified ?object)
+#+END_SRC
+
+***** Arguments
+
+- ?object :: A suturo_perception_msgs-msg:EurocObject which should be classified
+***** Return Value
+
+TODO
+***** Description
+
+Tries to classify the given object
+
+
+-----
+
+# link target 2: <<objects-in-place>>
+# link target: <<goal objects-in-place>>
+
+
+**** Goal: =objects-in-place=                                                  :goal:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(objects-in-place ?objects)
+#+END_SRC
+
+
+***** Description
+
+DOCUMENT ME
+
+
+
+-----
+
+# link target 2: <<objects-informed>>
+# link target: <<goal objects-informed>>
+
+
+**** Goal: =objects-informed=                                                  :goal:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(objects-informed)
+#+END_SRC
+
+
+***** Description
+
+Document me
+
+
+
+-----
+
+# link target 2: <<pose-estimated>>
+# link target: <<goal pose-estimated>>
+
+
+**** Goal: =pose-estimated=                                                    :goal:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(pose-estimated ?object)
+#+END_SRC
+
+***** Arguments
+
+- ?object :: A suturo_perception_msgs-msg:EurocObject which pose should be estimated
+***** Return Value
+
+TODO
+***** Description
+
+Tries to estimate the pose of the given object
+
+
+-----
+
+# link target 2: <<unknown-scanned>>
+# link target: <<goal unknown-scanned>>
+
+
+**** Goal: =unknown-scanned=                                                   :goal:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(unknown-scanned ?region)
+#+END_SRC
+
+***** Arguments
+
+- ?region :: A suturo_environment_msgs-msg:Region which should be scanned
+***** Return Value
+
+Returns the suturo_perception_msgs-msg:EurocObject recognized by the scene cam
+***** Description
+
+Tries to scan and recognize an object in the region. Moves the arm-cam in the proper position to scan the region
+
+
+
+
+
+** Internal Symbols
+
+
+
+
+*** Internal Constants
+
+-----
+
+# link target 2: <<..2b..scan-poses..2b..>>
+# link target: <<constant ..2b..scan-poses..2b..>>
+
+
+**** Constant: =+scan-poses+=                                              :constant:
+
+
+***** Value
+
+: ("shadow_pose1" "shadow_pose2")
+
+Type: =cons=
+
+
+***** Description
+
+Poses that can't be scanned by the mast cam
+
+
+
+
+
+*** Internal Functions
+
+-----
+
+# link target 2: <<calculate-distance>>
+# link target: <<function calculate-distance>>
+
+
+**** Function: =calculate-distance=                                        :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(calculate-distance region)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<centroid-to-vector>>
+# link target: <<function centroid-to-vector>>
+
+
+**** Function: =centroid-to-vector=                                        :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(centroid-to-vector centroid)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<create-poses>>
+# link target: <<function create-poses>>
+
+
+**** Function: =create-poses=                                              :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(create-poses distance region-centroid)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<create-poses-service-call>>
+# link target: <<function create-poses-service-call>>
+
+
+**** Function: =create-poses-service-call=                                 :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(create-poses-service-call distance region-centroid)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<get-avg>>
+# link target: <<function get-avg>>
+
+
+**** Function: =get-avg=                                                   :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(get-avg region)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<get-euclidean-distance-from-centroids>>
+# link target: <<function get-euclidean-distance-from-centroids>>
+
+
+**** Function: =get-euclidean-distance-from-centroids=                     :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(get-euclidean-distance-from-centroids centroid1 centroid2)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<get-map>>
+# link target: <<function get-map>>
+
+
+**** Function: =get-map=                                                   :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(get-map)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<get-number-of-cells-from-current-region>>
+# link target: <<function get-number-of-cells-from-current-region>>
+
+
+**** Function: =get-number-of-cells-from-current-region=                   :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(get-number-of-cells-from-current-region region)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<get-region-cell-coordinates>>
+# link target: <<function get-region-cell-coordinates>>
+
+
+**** Function: =get-region-cell-coordinates=                               :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(get-region-cell-coordinates region)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<get-region-centroid>>
+# link target: <<function get-region-centroid>>
+
+
+**** Function: =get-region-centroid=                                       :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(get-region-centroid region)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<get-yaml-object-nrs>>
+# link target: <<function get-yaml-object-nrs>>
+
+
+**** Function: =get-yaml-object-nrs=                                       :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(get-yaml-object-nrs yaml-objects object-id)
+#+END_SRC
+
+***** Arguments
+
+- yaml-objects :: The array of suturo_perception_msgs-msg:EurocObjects to search through
+- object-id :: The object-id / name of an object as string
+***** Return Value
+
+The positions of the suturo_perception_msgs-msg:EurocObjects in the array /yaml-objects/ with the id /object-id/
+***** Description
+
+Searches through the /yaml-objects/ and returns a list of positions with the id /object-id/
+
+
+-----
+
+# link target 2: <<index-to-coordinates>>
+# link target: <<function index-to-coordinates>>
+
+
+**** Function: =index-to-coordinates=                                      :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(index-to-coordinates x-index y-index)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<is-region-out-of-reach>>
+# link target: <<function is-region-out-of-reach>>
+
+
+**** Function: =is-region-out-of-reach=                                    :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(is-region-out-of-reach region-centroid)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<look-at-obstacle>>
+# link target: <<function look-at-obstacle>>
+
+
+**** Function: =look-at-obstacle=                                          :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(look-at-obstacle region)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<my-test-goal>>
+# link target: <<function my-test-goal>>
+
+
+**** Function: =my-test-goal=                                              :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(my-test-goal '(?param1))
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<objects-located>>
+# link target: <<function objects-located>>
+
+
+**** Function: =objects-located=                                           :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(objects-located ?objects)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<plan-and-move>>
+# link target: <<function plan-and-move>>
+
+
+**** Function: =plan-and-move=                                             :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(plan-and-move poses)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<scan-map-mast-cam>>
+# link target: <<function scan-map-mast-cam>>
+
+
+**** Function: =scan-map-mast-cam=                                         :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(scan-map-mast-cam &rest call-args0)
+#+END_SRC
+
+
+***** Description
+
+Scans the map
+
+
+
+-----
+
+# link target 2: <<scan-shadow>>
+# link target: <<function scan-shadow>>
+
+
+**** Function: =scan-shadow=                                               :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(scan-shadow &rest call-args473)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+
+
+*** Internal Goals
+
+-----
+
+# link target 2: <<my-test-goal>>
+# link target: <<goal my-test-goal>>
+
+
+**** Goal: =my-test-goal=                                                      :goal:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(my-test-goal '(?param1))
+#+END_SRC
+
+***** Arguments
+
+- ?objects :: An array of suturo_perception_msgs-msg:EurocObjects which should be found in the map 
+***** Return Value 
+
+Returns every found region as in the map where the objects are suspected. The return type is an array of suturo_environment_msgs-msg:Region. 
+***** Description 
+
+Tries to find the given objects in the current map
+
+
+-----
+
+# link target 2: <<objects-located>>
+# link target: <<goal objects-located>>
+
+
+**** Goal: =objects-located=                                                   :goal:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(objects-located ?objects)
+#+END_SRC
+
+***** Arguments
+
+- ?objects :: An array of suturo_perception_msgs-msg:EurocObjects which should be found in the map 
+***** Return Value 
+
+Returns every found region as in the map where the objects are suspected. The return type is an array of suturo_environment_msgs-msg:Region. 
+***** Description 
+
+Tries to find the given objects in the current map
+
+
+
+
+
+** Ambiguous Symbols
+
+
+*** Objects-Located
+
+# target: <<objects-located>>
+Disambiguation.
+
+- Function: [[function objects-located][=suturo-planning-planlib::objects
+  located=]]
+- Goal: [[goal objects-located][=suturo-planning-planlib::objects-located=]]
+
+
+
+*** My-Test-Goal
+
+# target: <<my-test-goal>>
+Disambiguation.
+
+- Function: [[function my-test-goal][=suturo-planning-planlib::my-test-goal=]]
+- Goal: [[goal my-test-goal][=suturo-planning-planlib::my-test-goal=]]
+
+
+
+*** Map-Scanned
+
+# target: <<map-scanned>>
+Disambiguation.
+
+- Function: [[function map-scanned][=suturo-planning-planlib:map-scanned=]]
+- Goal: [[goal map-scanned][=suturo-planning-planlib:map-scanned=]]
+
+
+
+*** Objects-In-Place
+
+# target: <<objects-in-place>>
+Disambiguation.
+
+- Function: [[function objects-in-place][=suturo-planning-planlib:objects-in
+  place=]]
+- Goal: [[goal objects-in-place][=suturo-planning-planlib:objects-in-place=]]
+
+
+
+*** Object-Classified
+
+# target: <<object-classified>>
+Disambiguation.
+
+- Function: [[function object-classified][=suturo-planning-planlib:object
+  classified=]]
+- Goal: [[goal object-classified][=suturo-planning-planlib:object-classified=]]
+
+
+
+*** Objects-Informed
+
+# target: <<objects-informed>>
+Disambiguation.
+
+- Function: [[function objects-informed][=suturo-planning-planlib:objects
+  informed=]]
+- Goal: [[goal objects-informed][=suturo-planning-planlib:objects-informed=]]
+
+
+
+*** Pose-Estimated
+
+# target: <<pose-estimated>>
+Disambiguation.
+
+- Function: [[function pose-estimated][=suturo-planning-planlib:pose
+  estimated=]]
+- Goal: [[goal pose-estimated][=suturo-planning-planlib:pose-estimated=]]
+
+
+
+*** Unknown-Scanned
+
+# target: <<unknown-scanned>>
+Disambiguation.
+
+- Function: [[function unknown-scanned][=suturo-planning-planlib:unknown
+  scanned=]]
+- Goal: [[goal unknown-scanned][=suturo-planning-planlib:unknown-scanned=]]
+
+
+
+
+** Index
+
+ [[index C][C]]  [[index G][G]]  [[index I][I]]  [[index L][L]]  [[index M][M]]
+ [[index O][O]]  [[index P][P]]  [[index S][S]]  [[index U][U]]  [[index
+NONALPHABETIC][NONALPHABETIC]]  
+
+
+*** Nonalphabetic
+
+
+# link target: <<index NONALPHABETIC>>
+- [[constant ..2b..scan-poses..2b..][=suturo-planning-planlib::+scan-poses+=]],
+  Constant
+
+
+
+*** C
+
+
+# link target: <<index C>>
+- [[function calculate-distance][=suturo-planning-planlib::calculate
+  distance=]], Function
+- [[function centroid-to-vector][=suturo-planning-planlib::centroid-to
+  vector=]], Function
+- [[function create-poses][=suturo-planning-planlib::create-poses=]], Function
+- [[function create-poses-service-call][=suturo-planning-planlib::create-poses
+  service-call=]], Function
+
+
+
+*** G
+
+
+# link target: <<index G>>
+- [[function get-avg][=suturo-planning-planlib::get-avg=]], Function
+- [[function get-euclidean-distance-from-centroids][=suturo-planning
+  planlib::get-euclidean-distance-from-centroids=]], Function
+- [[function get-map][=suturo-planning-planlib::get-map=]], Function
+- [[function get-number-of-cells-from-current-region][=suturo-planning
+  planlib::get-number-of-cells-from-current-region=]], Function
+- [[function get-region-cell-coordinates][=suturo-planning-planlib::get-region
+  cell-coordinates=]], Function
+- [[function get-region-centroid][=suturo-planning-planlib::get-region
+  centroid=]], Function
+- [[function get-yaml-object-nrs][=suturo-planning-planlib::get-yaml-object
+  nrs=]], Function
+
+
+
+*** I
+
+
+# link target: <<index I>>
+- [[function index-to-coordinates][=suturo-planning-planlib::index-to
+  coordinates=]], Function
+- [[function is-region-out-of-reach][=suturo-planning-planlib::is-region-out-of
+  reach=]], Function
+
+
+
+*** L
+
+
+# link target: <<index L>>
+- [[function look-at-obstacle][=suturo-planning-planlib::look-at-obstacle=]],
+  Function
+
+
+
+*** M
+
+
+# link target: <<index M>>
+- [[function map-scanned][=suturo-planning-planlib:map-scanned=]], Function
+- [[function my-test-goal][=suturo-planning-planlib::my-test-goal=]], Function
+
+
+
+*** O
+
+
+# link target: <<index O>>
+- [[function object-classified][=suturo-planning-planlib:object-classified=]],
+  Function
+- [[function objects-in-place][=suturo-planning-planlib:objects-in-place=]],
+  Function
+- [[function objects-informed][=suturo-planning-planlib:objects-informed=]],
+  Function
+- [[function objects-located][=suturo-planning-planlib::objects-located=]],
+  Function
+
+
+
+*** P
+
+
+# link target: <<index P>>
+- [[function plan-and-move][=suturo-planning-planlib::plan-and-move=]],
+  Function
+- [[function pose-estimated][=suturo-planning-planlib:pose-estimated=]],
+  Function
+
+
+
+*** S
+
+
+# link target: <<index S>>
+- [[function scan-map-mast-cam][=suturo-planning-planlib::scan-map-mast-cam=]],
+  Function
+- [[function scan-shadow][=suturo-planning-planlib::scan-shadow=]], Function
+
+
+
+*** U
+
+
+# link target: <<index U>>
+- [[function unknown-scanned][=suturo-planning-planlib:unknown-scanned=]],
+  Function
+
+
+
+
+
+* Colophon
+
+This documentation was generated from Common Lisp source code using CLOD, version 1.0.
+The latest version of CLOD is available [[http://bitbucket.org/eeeickythump/clod/][here]].

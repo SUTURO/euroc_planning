@@ -1,0 +1,6464 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+               "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+lang="en" xml:lang="en">
+<head>
+<title>CLOD</title>
+<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1"/>
+<meta name="generator" content="Org-mode"/>
+<meta name="generated" content="2010-03-19 17:12:24 NZDT"/>
+<meta name="author" content="Paul Sexton"/>
+<meta name="description" content=""/>
+<meta name="keywords" content=""/>
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  html { font-family: Times, serif; font-size: 12pt; }
+  .title  { text-align: center; }
+  .todo   { color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #add8e6; font-weight:normal }
+  .target { }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  p.verse { margin-left: 3% }
+  pre {
+	border: 1pt solid #AEBDCC;
+	background-color: #F3F5F7;
+	padding: 5pt;
+	font-family: courier, monospace;
+        font-size: 90%;
+        overflow:auto;
+  }
+  table { border-collapse: collapse; }
+  td, th { vertical-align: top; }
+  dt { font-weight: bold; }
+  div.figure { padding: 0.5em; }
+  div.figure p { text-align: center; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size:smaller }
+  .code-highlighted {background-color:#ffff00;}
+  .org-info-js_info-navigation { border-style:none; }
+  #org-info-js_console-label { font-size:10px; font-weight:bold;
+                               white-space:nowrap; }
+  .org-info-js_search-highlight {background-color:#ffff00; color:#000000;
+                                 font-weight:bold; }
+  /*]]>*/-->
+</style>
+<script type="text/javascript">
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+
+<h1 class="title">CLOD</h1>
+
+<p><a name="clod" id="clod"></a>
+<a name="package==clod" id="package==clod"></a>
+</p>
+
+
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1 Internal Package: <code>clod</code></a>
+<ul>
+<li><a href="#sec-1.1">1.1 Description</a></li>
+<li><a href="#sec-1.2">1.2 Why use CLOD?</a></li>
+<li><a href="#sec-1.3">1.3 Dependencies</a></li>
+<li><a href="#sec-1.4">1.4 How to use</a></li>
+<li><a href="#sec-1.5">1.5 Writing the documentation</a></li>
+<li><a href="#sec-1.6">1.6 Combining org mode and common lisp mode in a single Emacs buffer</a></li>
+<li><a href="#sec-1.7">1.7 Example docstring</a></li>
+<li><a href="#sec-1.8">1.8 External Symbols</a>
+<ul>
+<li><a href="#sec-1.8.1">1.8.1 External Functions</a>
+<ul>
+<li><a href="#sec-1.8.1.1">1.8.1.1 External Function: <code>document-package</code></a></li>
+<li><a href="#sec-1.8.1.2">1.8.1.2 External Function: <code>document-packages</code></a></li>
+</ul></li>
+</ul>
+</li>
+<li><a href="#sec-1.9">1.9 Internal Symbols</a>
+<ul>
+<li><a href="#sec-1.9.1">1.9.1 Internal Classes</a>
+<ul>
+<li><a href="#sec-1.9.1.1">1.9.1.1 Internal Class: <code>animal</code></a></li>
+<li><a href="#sec-1.9.1.2">1.9.1.2 Internal Class: <code>bird</code></a></li>
+<li><a href="#sec-1.9.1.3">1.9.1.3 Internal Class: <code>cat</code></a></li>
+<li><a href="#sec-1.9.1.4">1.9.1.4 Internal Class: <code>dog</code></a></li>
+<li><a href="#sec-1.9.1.5">1.9.1.5 Internal Class: <code>hawk</code></a></li>
+<li><a href="#sec-1.9.1.6">1.9.1.6 Internal Class: <code>mammal</code></a></li>
+</ul>
+</li>
+<li><a href="#sec-1.9.2">1.9.2 Internal Types</a>
+<ul>
+<li><a href="#sec-1.9.2.1">1.9.2.1 Internal Type: ==entity==</a></li>
+</ul>
+</li>
+<li><a href="#sec-1.9.3">1.9.3 Internal Global Variables</a>
+<ul>
+<li><a href="#sec-1.9.3.1">1.9.3.1 Internal Variable: <code>*accessibilities*</code></a></li>
+<li><a href="#sec-1.9.3.2">1.9.3.2 Internal Variable: <code>*alphabet*</code></a></li>
+<li><a href="#sec-1.9.3.3">1.9.3.3 Internal Variable: <code>*ambiguities*</code></a></li>
+<li><a href="#sec-1.9.3.4">1.9.3.4 Internal Variable: <code>*auto-links*</code></a></li>
+<li><a href="#sec-1.9.3.5">1.9.3.5 Internal Variable: <code>*brief-methods*</code></a></li>
+<li><a href="#sec-1.9.3.6">1.9.3.6 Internal Variable: <code>*class-diagram*</code></a></li>
+<li><a href="#sec-1.9.3.7">1.9.3.7 Internal Variable: <code>*clod-version-string*</code></a></li>
+<li><a href="#sec-1.9.3.8">1.9.3.8 Internal Variable: <code>*document-author*</code></a></li>
+<li><a href="#sec-1.9.3.9">1.9.3.9 Internal Variable: <code>*document-email*</code></a></li>
+<li><a href="#sec-1.9.3.10">1.9.3.10 Internal Variable: <code>*document-style-sheet*</code></a></li>
+<li><a href="#sec-1.9.3.11">1.9.3.11 Internal Variable: <code>*document-title*</code></a></li>
+<li><a href="#sec-1.9.3.12">1.9.3.12 Internal Variable: <code>*heading-char*</code></a></li>
+<li><a href="#sec-1.9.3.13">1.9.3.13 Internal Variable: <code>*heading-level*</code></a></li>
+<li><a href="#sec-1.9.3.14">1.9.3.14 Internal Variable: <code>*hyperspec-root*</code></a></li>
+<li><a href="#sec-1.9.3.15">1.9.3.15 Internal Variable: <code>*left-margin*</code></a></li>
+<li><a href="#sec-1.9.3.16">1.9.3.16 Internal Variable: <code>*line-width*</code></a></li>
+<li><a href="#sec-1.9.3.17">1.9.3.17 Internal Variable: <code>*lines-between-sections*</code></a></li>
+<li><a href="#sec-1.9.3.18">1.9.3.18 Internal Variable: <code>*out*</code></a></li>
+<li><a href="#sec-1.9.3.19">1.9.3.19 Internal Variable: <code>*unsafe-html-chars*</code></a></li>
+</ul>
+</li>
+<li><a href="#sec-1.9.4">1.9.4 Internal Macros</a>
+<ul>
+<li><a href="#sec-1.9.4.1">1.9.4.1 Internal Macro: <code>do-own-symbols</code></a></li>
+<li><a href="#sec-1.9.4.2">1.9.4.2 Internal Macro: <code>write-indented</code></a></li>
+<li><a href="#sec-1.9.4.3">1.9.4.3 Internal Macro: <code>writing-bulleted-list</code></a></li>
+<li><a href="#sec-1.9.4.4">1.9.4.4 Internal Macro: <code>writing-section</code></a></li>
+<li><a href="#sec-1.9.4.5">1.9.4.5 Internal Macro: <code>writing-section-for-symbol</code></a></li>
+</ul>
+</li>
+<li><a href="#sec-1.9.5">1.9.5 Internal Functions</a>
+<ul>
+<li><a href="#sec-1.9.5.1">1.9.5.1 Internal Function: <code>accessible-symbols</code></a></li>
+<li><a href="#sec-1.9.5.2">1.9.5.2 Internal Function: <code>ampersand-symbol?</code></a></li>
+<li><a href="#sec-1.9.5.3">1.9.5.3 Internal Function: <code>declared-special-p</code></a></li>
+<li><a href="#sec-1.9.5.4">1.9.5.4 Internal Function: <code>docpkg</code></a></li>
+<li><a href="#sec-1.9.5.5">1.9.5.5 Internal Function: <code>document</code></a></li>
+<li><a href="#sec-1.9.5.6">1.9.5.6 Internal Function: <code>document-package-contents</code></a></li>
+<li><a href="#sec-1.9.5.7">1.9.5.7 Internal Function: <code>entity-&gt;string</code></a></li>
+<li><a href="#sec-1.9.5.8">1.9.5.8 Internal Function: <code>entity-&gt;tag</code></a></li>
+<li><a href="#sec-1.9.5.9">1.9.5.9 Internal Function: <code>find-pkg</code></a></li>
+<li><a href="#sec-1.9.5.10">1.9.5.10 Internal Function: <code>find-sym</code></a></li>
+<li><a href="#sec-1.9.5.11">1.9.5.11 Internal Function: <code>function-lambda-list</code></a></li>
+<li><a href="#sec-1.9.5.12">1.9.5.12 Internal Function: <code>function-name</code></a></li>
+<li><a href="#sec-1.9.5.13">1.9.5.13 Internal Function: <code>html-safe-string</code></a></li>
+<li><a href="#sec-1.9.5.14">1.9.5.14 Internal Function: <code>list-&gt;string-with-commas</code></a></li>
+<li><a href="#sec-1.9.5.15">1.9.5.15 Internal Function: <code>list-all-direct-slots</code></a></li>
+<li><a href="#sec-1.9.5.16">1.9.5.16 Internal Function: <code>list-all-indirect-slots</code></a></li>
+<li><a href="#sec-1.9.5.17">1.9.5.17 Internal Function: <code>list-all-slot-accessors</code></a></li>
+<li><a href="#sec-1.9.5.18">1.9.5.18 Internal Function: <code>make-class-link</code></a></li>
+<li><a href="#sec-1.9.5.19">1.9.5.19 Internal Function: <code>make-link</code></a></li>
+<li><a href="#sec-1.9.5.20">1.9.5.20 Internal Function: <code>make-package-link</code></a></li>
+<li><a href="#sec-1.9.5.21">1.9.5.21 Internal Function: <code>make-specialised-lambda-list</code></a></li>
+<li><a href="#sec-1.9.5.22">1.9.5.22 Internal Function: <code>make-target</code></a></li>
+<li><a href="#sec-1.9.5.23">1.9.5.23 Internal Function: <code>map-list</code></a></li>
+<li><a href="#sec-1.9.5.24">1.9.5.24 Internal Function: <code>org-safe-symbol</code></a></li>
+<li><a href="#sec-1.9.5.25">1.9.5.25 Internal Function: <code>replace-strings-with-symbols</code></a></li>
+<li><a href="#sec-1.9.5.26">1.9.5.26 Internal Function: <code>simple-type?</code></a></li>
+<li><a href="#sec-1.9.5.27">1.9.5.27 Internal Function: <code>str+</code></a></li>
+<li><a href="#sec-1.9.5.28">1.9.5.28 Internal Function: <code>string-starts-with?</code></a></li>
+<li><a href="#sec-1.9.5.29">1.9.5.29 Internal Function: <code>symbol-accessibility</code></a></li>
+<li><a href="#sec-1.9.5.30">1.9.5.30 Internal Function: <code>type-&gt;string</code></a></li>
+<li><a href="#sec-1.9.5.31">1.9.5.31 Internal Function: <code>uses-for-symbol</code></a></li>
+<li><a href="#sec-1.9.5.32">1.9.5.32 Internal Function: <code>word-wrap</code></a></li>
+<li><a href="#sec-1.9.5.33">1.9.5.33 Internal Function: <code>wrap-and-write</code></a></li>
+<li><a href="#sec-1.9.5.34">1.9.5.34 Internal Function: <code>wrap-and-write-code</code></a></li>
+<li><a href="#sec-1.9.5.35">1.9.5.35 Internal Function: <code>write-bullet-point</code></a></li>
+<li><a href="#sec-1.9.5.36">1.9.5.36 Internal Function: <code>write-chapter</code></a></li>
+<li><a href="#sec-1.9.5.37">1.9.5.37 Internal Function: <code>write-class-hierarchy</code></a></li>
+<li><a href="#sec-1.9.5.38">1.9.5.38 Internal Function: <code>write-colophon</code></a></li>
+<li><a href="#sec-1.9.5.39">1.9.5.39 Internal Function: <code>write-disambiguation</code></a></li>
+<li><a href="#sec-1.9.5.40">1.9.5.40 Internal Function: <code>write-docstring</code></a></li>
+<li><a href="#sec-1.9.5.41">1.9.5.41 Internal Function: <code>write-docstring-section</code></a></li>
+<li><a href="#sec-1.9.5.42">1.9.5.42 Internal Function: <code>write-heading</code></a></li>
+<li><a href="#sec-1.9.5.43">1.9.5.43 Internal Function: <code>write-index</code></a></li>
+<li><a href="#sec-1.9.5.44">1.9.5.44 Internal Function: <code>write-lambda-list-section</code></a></li>
+<li><a href="#sec-1.9.5.45">1.9.5.45 Internal Function: <code>write-lines</code></a></li>
+<li><a href="#sec-1.9.5.46">1.9.5.46 Internal Function: <code>write-list-as-paragraph</code></a></li>
+<li><a href="#sec-1.9.5.47">1.9.5.47 Internal Function: <code>write-out</code></a></li>
+<li><a href="#sec-1.9.5.48">1.9.5.48 Internal Function: <code>write-preamble</code></a></li>
+</ul></li>
+</ul>
+</li>
+<li><a href="#sec-1.10">1.10 Index</a>
+<ul>
+<li><a href="#sec-1.10.1">1.10.1 Nonalphabetic</a></li>
+<li><a href="#sec-1.10.2">1.10.2 A</a></li>
+<li><a href="#sec-1.10.3">1.10.3 B</a></li>
+<li><a href="#sec-1.10.4">1.10.4 C</a></li>
+<li><a href="#sec-1.10.5">1.10.5 D</a></li>
+<li><a href="#sec-1.10.6">1.10.6 E</a></li>
+<li><a href="#sec-1.10.7">1.10.7 F</a></li>
+<li><a href="#sec-1.10.8">1.10.8 H</a></li>
+<li><a href="#sec-1.10.9">1.10.9 L</a></li>
+<li><a href="#sec-1.10.10">1.10.10 M</a></li>
+<li><a href="#sec-1.10.11">1.10.11 O</a></li>
+<li><a href="#sec-1.10.12">1.10.12 R</a></li>
+<li><a href="#sec-1.10.13">1.10.13 S</a></li>
+<li><a href="#sec-1.10.14">1.10.14 T</a></li>
+<li><a href="#sec-1.10.15">1.10.15 U</a></li>
+<li><a href="#sec-1.10.16">1.10.16 W</a></li>
+</ul></li>
+</ul>
+</li>
+<li><a href="#sec-2">2 Colophon</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> Internal Package: <code>clod</code></h2>
+<div class="outline-text-2" id="text-1">
+
+
+<ul>
+<li>
+Uses:
+<a href="#package==common-lisp">common-lisp</a>, <a href="#package==iterate">iterate</a>, <a href="#package==closer-mop">closer-mop</a>, <a href="#package==cl-ppcre">cl-ppcre</a>
+</li>
+<li>
+Used by:
+None.
+</li>
+</ul>
+
+</div>
+
+<div id="outline-container-1.1" class="outline-3">
+<h3 id="sec-1.1"><span class="section-number-3">1.1</span> Description</h3>
+<div class="outline-text-3" id="text-1.1">
+
+
+
+<p>
+CLOD is a tool for creating documentation for Common Lisp programs.
+CLOD examines a loaded package and writes information about all the
+symbols defined within that package, to a file.
+</p>
+<p>
+The output file is in <i>Org</i> format. Org is a simple but powerful 'wiki-like'
+markup language that is understood by <b>Org-mode</b>, a powerful outliner, personal
+wiki and organiser that runs as a major mode within Emacs. Org-mode can export
+org-format files to numerous other formats, including HTML, LaTeX, PDF,
+DocBook, and plain text.
+</p>
+<p>
+More information:
+</p><dl>
+<dt>Emacs</dt><dd>
+<a href="http://www.gnu.org/software/emacs">http://www.gnu.org/software/emacs</a> (if you program CL, you don't
+need to be told what Emacs is)
+</dd>
+<dt>Org mode</dt><dd>
+<a href="http://orgmode.org/">http://orgmode.org/</a>
+
+</dd>
+</dl>
+</div>
+
+</div>
+
+<div id="outline-container-1.2" class="outline-3">
+<h3 id="sec-1.2"><span class="section-number-3">1.2</span> Why use CLOD?</h3>
+<div class="outline-text-3" id="text-1.2">
+
+
+
+<ul>
+<li>
+You can use org markup within docstrings (easy for humans to read) to
+create subsections, bulleted lists, hyperlinks within the document or
+to external URLs, etc.
+</li>
+<li>
+Easy export to multiple file formats: text, HTML, LaTeX -&gt; PDF&hellip;
+</li>
+<li>
+You can edit the output within Emacs, which is already the IDE of most
+Commn Lisp programmers.
+</li>
+<li>
+If GraphViz is installed, automatically create a diagram illustrating the
+package's class hierarchy &ndash; see <a href="http://www.graphviz.org/">http://www.graphviz.org/</a>
+</li>
+<li>
+Org markup has many cool tricks. Some examples of useful things you can
+put in docstrings:
+<ul>
+<li>
+Include an entire file and format as plain text:
+<pre class="example">
+#+INCLUDE: "filename" quote
+</pre>
+
+</li>
+<li>
+Include an entire file with common lisp syntax highlighting
+<pre class="example">
+#+INCLUDE: "filename.lisp" src lisp
+</pre>
+
+</li>
+<li>
+Timestamps and datestamps:
+<pre class="example">
+{{{ modification-time(%r) }}}
+</pre>
+
+<p>05:11:36 PM
+</p><pre class="example">
+{{{ date(%Y-%m-%d) }}}
+</pre>
+
+<p>2010-03-19
+</p></li>
+<li>
+Define text macros, use with <code>{{{macro(arg1,arg2)}}}</code>
+<pre class="example">
+#+MACRO: foo Replacement text $1 $2
+</pre>
+
+</li>
+<li>
+Embed any LaTeX code directly (no special markup needed)
+</li>
+<li>
+Embed any HTML code (special markup needed)
+</li>
+<li>
+Automatic syntax highlighting of source code examples in exported
+documents, eg:
+
+</li>
+</ul>
+</li>
+</ul>
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span><span style="color: #8b4789; font-weight: bold;">defun</span> <span style="color: #1e90ff; font-weight: bold;">hello</span> <span style="color: #696969;">(</span>a <span style="color: #d2691e; font-weight: bold;">&amp;key</span> b<span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #1e90ff; font-weight: bold;">print</span> <span style="color: #008b00;">"Hello, world!"</span><span style="color: #696969;">))</span>
+</pre>
+
+
+<ul>
+<li>
+Because CLOD works by introspection rather than parsing files,
+it copes effortlessly with unusual toplevel forms. Documentation
+generators that parse files usually won't be able to tell that your
+toplevel macro `=(defclass-easy &hellip;)=' (or whatever) actually
+expands to a class definition.
+</li>
+<li>
+For the same reason, CLOD avoids the problems with dependencies that
+can trouble other documentation generators (i.e. difficulties
+generating correct documentation unless you manually move things
+around in the source so that the doc generator finds things in
+the `right' order).
+</li>
+<li>
+Easily change the global appearance of the document by specifying a
+cascading style sheet (<i>note: only affects HTML export from Org mode</i>)
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-1.3" class="outline-3">
+<h3 id="sec-1.3"><span class="section-number-3">1.3</span> Dependencies</h3>
+<div class="outline-text-3" id="text-1.3">
+
+
+
+<ul>
+<li>
+ASDF
+</li>
+<li>
+Closer-MOP: <a href="http://common-lisp.net/project/closer/">http://common-lisp.net/project/closer/</a>
+</li>
+<li>
+Iterate: <a href="http://common-lisp.net/project/iterate/">http://common-lisp.net/project/iterate/</a>
+</li>
+<li>
+CL-PPCRE: <a href="http://weitz.de/cl-ppcre/">http://weitz.de/cl-ppcre/</a>
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-1.4" class="outline-3">
+<h3 id="sec-1.4"><span class="section-number-3">1.4</span> How to use</h3>
+<div class="outline-text-3" id="text-1.4">
+
+
+
+<ol>
+<li>
+Install CLOD somewhere ASDF can find it.
+</li>
+<li>
+Load CLOD with <code>(asdf:oos 'asdf:load-op :clod)</code>
+</li>
+<li>
+Load the package or packages for which you wish to produce documentation,
+eg: <code>(asdf:oos 'asdf:load-op :mypkg)</code>
+</li>
+<li>
+Run <code>(clod:document-package :mypkg nil)</code> and you will see the documentation
+as a string, returned by <a href="#document-package">document-package</a>.
+</li>
+<li>
+Run <code>(clod:document-package :mypkg "filename.org")</code> and the same
+documentation will be written to 'filename.org'.
+</li>
+<li>
+Load filename.org into Emacs. Export to HTML with <code>M-x org-export</code>, or press
+C-c C-e to be presented with a menu of export options.
+
+</li>
+</ol>
+</div>
+
+</div>
+
+<div id="outline-container-1.5" class="outline-3">
+<h3 id="sec-1.5"><span class="section-number-3">1.5</span> Writing the documentation</h3>
+<div class="outline-text-3" id="text-1.5">
+
+
+
+<p>
+All documentation produced by CLOD is obtained by <i>introspection</i>, i.e. by the
+running CL process examining itself. If a symbol has an associated docstring,
+it will be used by CLOD to produce the documentation for that symbol.
+</p>
+<p>
+Within documentation strings, you can use org mode markup. This is a simple,
+human-readable markup language similar to the type of markup used for wiki
+editing and forum posting. See the Org
+<a href="http://orgmode.org/manual/Markup.html">manual</a> for more information. Also see
+the docstrings in the CLOD source code, which use org markup.
+</p>
+<p>
+Some special points to note:
+</p><ul>
+<li>
+Outline headings are used to structure org documents. These headings
+begin with one or more asterisks at the start of the line. Thus, if you
+want a large docstring to be divided into subsections, the heading for
+each subsection should be a line that starts with one or more asterisks (*),
+then a space, then the title of the heading.
+</li>
+<li>
+These headings will automatically be correctly 'indented' for their location
+in the structure of the final document. The whole document is one outline,
+and any given docstring will usually be appearing 2 or 3 levels deep within
+that outline. However, CLOD finds all heading lines within docstrings and
+increases the number of asterisks appropriately.
+</li>
+<li>
+An extra blank line is also automatically inserted after headings within
+docstrings, allowing you to save screen space in the docstring itself.
+</li>
+<li>
+By default, many docstrings are inserted within a subsection titled
+'Description'. However, if you don't want this to happen, but rather want
+the docstring to define its own heading names, make sure that the very first
+thing in the docstring is a heading (straight after the opening quote).
+(Note for mmm-mode users (see below): if the docstring starts with '###'
+to signal that it is in fact a docstring, CLOD will skip the hashes before
+looking to see if the string starts with a heading.)
+So ="###* Arguments &hellip;"= will work in that case.
+</li>
+<li>
+Some symbol names used by common lisp can conflict with the markup used
+by org mode. For example, <code>*global-variable*</code>: asterisks are interpreted
+by org mode as signifying bold text. CLOD catches these in headings and
+auto-generated documentation, but not within doc strings, where you will
+need to surround the offending symbol with <code>equals signs</code>.
+</li>
+<li>
+<b>Hyperlinks</b> are created using
+<pre class="example">
+[[double square brackets]]
+</pre>
+
+<p>Any text surrounded by these brackets will link to the same text (case
+insensitive) surrounded by <code>&lt;&lt;double angle brackets&gt;&gt;</code>. CLOD uses this to
+define hyperlinks for all symbols in the package. Every symbol MYSYMBOL has:
+</p><ol>
+<li>
+A hyperlink <code>&lt;&lt;function MYSYMBOL&gt;&gt;</code> if MYSYMBOL is a function,
+<code>&lt;&lt;variable MYSYMBOL&gt;&gt;</code> if it is a global variable, etc.
+</li>
+<li>
+A hyperlink <code>&lt;&lt;MYSYMBOL&gt;&gt;</code> which will either link to MYSYMBOL's
+documentation, or to a 'disambiguation section' if the same symbol has
+multiple meanings (eg there is both a function and a variable called
+MYSYMBOL).
+</li>
+</ol>
+</li>
+<li>
+Org mode has the ability to use Emacs' font-lock mode to produce source code
+snippets that are correctly syntax highlighted for any major mode.  To use
+this normally requires surrounding the code with <code>#+BEGIN_SRC ... #+END_SRC</code>.
+CLOD provides a shortcut: Any lines within docstrings that begin with three
+semicolons <code>;;;</code> are assumed to be example lisp source code. The first 3
+semicolons are removed and the rest of the line is syntax highlighted.
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-1.6" class="outline-3">
+<h3 id="sec-1.6"><span class="section-number-3">1.6</span> Combining org mode and common lisp mode in a single Emacs buffer</h3>
+<div class="outline-text-3" id="text-1.6">
+
+
+
+<p>
+You can use org mode markup within docstrings, but you can't see the effects of
+the markup until you export the documentation to org using CLOD. You also don't
+get access to org's support for automatic formatting of bulleted lists as you
+write, or the fantastic support for writing tables, or hyperlinks that you can
+click with the mouse, or &hellip;.
+</p>
+<p>
+What if you could use all the goodness of Org, while editing docstrings in your
+lisp source code? You can. This section explains how.
+</p>
+<ol>
+<li>
+Download and install nXhtml, an emacs package that contains code allowing
+multiple major modes to be active in a single buffer.
+<a href="http://ourcomments.org/cgi-bin/emacsw32-dl-latest.pl">http://ourcomments.org/cgi-bin/emacsw32-dl-latest.pl</a>
+</li>
+<li>
+Add the code in `mmm-clod.el' to your .emacs file. Make sure you change
+the mmm-mode directory to the directory where you installed mmm-mode.
+</li>
+<li>
+Restart emacs. Load a lisp source file. All documentation strings should
+appear with a coloured background, and when you move the cursor inside them,
+you will see 'Lisp[Org]' on the modeline. 
+</li>
+<li>
+If not everything is highlighting correctly, or if you write a new docstring
+and org does not activate within it, press control-` to 'refresh' mmm-mode.
+
+</li>
+</ol>
+
+<p>Not everything works: expanding and collapsing headings fails, and
+clicking the mouse elsewhere within the doc string often causes problems. But
+overall the two modes work together surprisingly well.
+</p>
+<p>
+MMM-mode recognises the following things as doc strings:
+</p><ol>
+<li>
+Any string that emacs fontifies using 'font-lock-doc-face'. (in other words,
+font-lock mode must be active.)
+</li>
+<li>
+Any string inside the form '<code>(:documentation STRING)</code>'.
+</li>
+<li>
+Finally, any string whose first three characters are '###'. Since lines 
+beginning with a hash are interpreted as comments by org mode, these
+characters will disappear when you export your document to HTML or other
+formats.
+
+</li>
+</ol>
+</div>
+
+</div>
+
+<div id="outline-container-1.7" class="outline-3">
+<h3 id="sec-1.7"><span class="section-number-3">1.7</span> Example docstring</h3>
+<div class="outline-text-3" id="text-1.7">
+
+
+
+<p>
+Here is the docstring for <a href="#document-package">document-package</a>. It illustrates the use of
+headings, bulleted lists, definition lists, <code>code</code>, <b>bold</b> and <i>italic</i>
+markup, hyperlinks to other definitions, and syntax highlighting of lisp source
+code examples.
+</p>
+<pre class="example">
+* Arguments
+- PKG :: A package name or package object.
+- FILE/STREAM :: A string (filename), stream object, or =NIL=.
+- AUTO-LINKS :: Boolean.
+- LINES-BETWEEN-SECTIONS :: Boolean.
+- BRIEF-METHODS :: Boolean.
+- STYLE-SHEET :: A string.
+- TITLE :: A string.
+- AUTHOR :: A string.
+- EMAIL :: A string.
+* Returns
+A string, or nil.
+* Description
+Produce documentation for the package =PKG=.
+
+The documentation's destination depends on the value of =FILE/STREAM=:
+- =STRING=: documentation is written to the file named by the string.
+- =STREAM=: documentation is written to the already existing stream.
+- =NIL=: documentation is written to a string, which is then returned by
+  this function.
+
+Explanation of optional arguments:
+- =TITLE=, =AUTHOR= and =EMAIL= specify the document title, the name of
+  the author, and the email address of the author.
+- If =AUTO-LINKS= is non-nil, *all* occurrences of symbol names within the
+  text of docstrings will be interpreted as hyperlinks, regardless of
+  whether they are marked up as hyperlinks.
+- If LINES-BETWEEN-SECTIONS is nil, do not output a horizontal line before
+  each new section of documentation.
+- If BRIEF-METHODS is nil, document individual methods with their own
+  sections, just like functions and generic functions. Most people put
+  'method' documentation in the docstrings of their generic functions, but
+  if you set docstrings for individual methods then set this to nil.
+- =STYLE-SHEET= specifies the name of a /Cascading Style Sheet/ (.CSS) file
+  which will be used as the style for the document if you export it
+  to HTML from org mode.
+
+* Example
+;;; (clod:document-package :mypkg "mypkg-doc.org"
+;;;      :style-sheet "swiss.css" :title "My Package"
+;;;      :author "F. B. Quux" :email "quux@gmail.com")
+
+* See also
+- [[document-packages]]
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.8" class="outline-3">
+<h3 id="sec-1.8"><span class="section-number-3">1.8</span> External Symbols</h3>
+<div class="outline-text-3" id="text-1.8">
+
+
+
+
+
+
+</div>
+
+<div id="outline-container-1.8.1" class="outline-4">
+<h4 id="sec-1.8.1"><span class="section-number-4">1.8.1</span> External Functions</h4>
+<div class="outline-text-4" id="text-1.8.1">
+
+
+
+<hr/>
+
+<p>
+<a name="document-package" id="document-package"></a>
+<a name="function==document-package" id="function==document-package"></a>
+</p>
+
+
+</div>
+
+<div id="outline-container-1.8.1.1" class="outline-5">
+<h5 id="sec-1.8.1.1"><span class="section-number-5">1.8.1.1</span> External Function: <code>document-package</code></h5>
+<div class="outline-text-5" id="text-1.8.1.1">
+
+
+
+
+</div>
+
+<div id="outline-container-1.8.1.1.1" class="outline-6">
+<h6 id="sec-1.8.1.1.1"><span class="section-number-6">1.8.1.1.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.8.1.1.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>document-package pkg file/stream <span style="color: #d2691e; font-weight: bold;">&amp;key</span> <span style="color: #696969;">(</span>auto-links <span style="color: #698b22; font-weight: bold;">nil</span><span style="color: #696969;">)</span>
+                  <span style="color: #696969;">(</span>lines-between-sections <span style="color: #698b22; font-weight: bold;">t</span><span style="color: #696969;">)</span> <span style="color: #696969;">(</span>brief-methods <span style="color: #698b22; font-weight: bold;">t</span><span style="color: #696969;">)</span>
+                  <span style="color: #696969;">(</span>internal-symbols? <span style="color: #698b22; font-weight: bold;">t</span><span style="color: #696969;">)</span> <span style="color: #696969;">(</span>class-diagram <span style="color: #698b22; font-weight: bold;">nil</span><span style="color: #696969;">)</span> <span style="color: #696969;">(</span>style-sheet <span style="color: #698b22; font-weight: bold;">nil</span><span style="color: #696969;">)</span>
+                  <span style="color: #696969;">(</span>title <span style="color: #698b22; font-weight: bold;">nil</span><span style="color: #696969;">)</span> <span style="color: #696969;">(</span>author <span style="color: #00c5cd;">*document-author*</span><span style="color: #696969;">)</span>
+                  <span style="color: #696969;">(</span>email <span style="color: #00c5cd;">*document-email*</span><span style="color: #696969;">))</span>
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.8.1.1.2" class="outline-6">
+<h6 id="sec-1.8.1.1.2"><span class="section-number-6">1.8.1.1.2</span> Arguments</h6>
+<div class="outline-text-6" id="text-1.8.1.1.2">
+
+
+<dl>
+<dt>PKG</dt><dd>
+A package name or package object.
+</dd>
+<dt>FILE/STREAM</dt><dd>
+A string (filename), stream object, or <code>NIL</code>.
+</dd>
+<dt>AUTO-LINKS</dt><dd>
+Boolean.
+</dd>
+<dt>LINES-BETWEEN-SECTIONS</dt><dd>
+Boolean.
+</dd>
+<dt>BRIEF-METHODS</dt><dd>
+Boolean.
+</dd>
+<dt>INTERNAL-SYMBOLS</dt><dd>
+Boolean.
+</dd>
+<dt>CLASS-DIAGRAM</dt><dd>
+Boolean.
+</dd>
+<dt>STYLE-SHEET</dt><dd>
+A string.
+</dd>
+<dt>TITLE</dt><dd>
+A string.
+</dd>
+<dt>AUTHOR</dt><dd>
+A string.
+</dd>
+<dt>EMAIL</dt><dd>
+A string.
+</dd>
+</dl>
+</div>
+
+</div>
+
+<div id="outline-container-1.8.1.1.3" class="outline-6">
+<h6 id="sec-1.8.1.1.3"><span class="section-number-6">1.8.1.1.3</span> Returns</h6>
+<div class="outline-text-6" id="text-1.8.1.1.3">
+
+
+<p>
+A string, or nil.
+</p></div>
+
+</div>
+
+<div id="outline-container-1.8.1.1.4" class="outline-6">
+<h6 id="sec-1.8.1.1.4"><span class="section-number-6">1.8.1.1.4</span> Description</h6>
+<div class="outline-text-6" id="text-1.8.1.1.4">
+
+
+<p>
+Produce documentation for the package <code>PKG</code>.
+</p>
+<p>
+The documentation's destination depends on the value of <code>FILE/STREAM</code>:
+</p><ul>
+<li>
+<code>STRING</code>: documentation is written to the file named by the string.
+</li>
+<li>
+<code>STREAM</code>: documentation is written to the already existing stream.
+</li>
+<li>
+<code>NIL</code>: documentation is written to a string, which is then returned by
+this function.
+
+</li>
+</ul>
+
+<p>Explanation of optional arguments:
+</p><ul>
+<li>
+<code>TITLE</code>, <code>AUTHOR</code> and <code>EMAIL</code> specify the document title, the name of
+the author, and the email address of the author.
+</li>
+<li>
+<code>STYLE-SHEET</code> specifies the name of a Cascading Style Sheet (.CSS) file
+which will be used as the style for the document if you export it
+to HTML from org mode.
+</li>
+<li>
+If <code>AUTO-LINKS</code> is non-nil, <b>all</b> occurrences of symbol names within the
+text of docstrings will be interpreted as hyperlinks, regardless of
+whether they are marked up as hyperlinks.
+</li>
+<li>
+If <code>LINES-BETWEEN-SECTIONS</code> is nil, do not output a horizontal line before
+each new section of documentation.
+</li>
+<li>
+If <code>BRIEF-METHODS</code> is nil, document individual methods with their own
+sections, just like functions and generic functions. Most people put
+'method' documentation in the docstrings of their generic functions, but
+if you set docstrings for individual methods then set this to nil.
+</li>
+<li>
+If <code>INTERNAL-SYMBOLS?</code> is non-nil, document both internal and external
+(exported) symbols. If nil, only document external symbols.
+</li>
+<li>
+If <code>CLASS-DIAGRAM</code> is non-nil, create a section after the toplevel package
+description, containing a description of the package hierarchy
+in the form of a GraphViz 'dot' diagram (see <a href="http://www.graphviz.org/">http://www.graphviz.org/</a>).
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-1.8.1.1.5" class="outline-6">
+<h6 id="sec-1.8.1.1.5"><span class="section-number-6">1.8.1.1.5</span> Example</h6>
+<div class="outline-text-6" id="text-1.8.1.1.5">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>clod:document-package <span style="color: #4169e1;">:mypkg</span> <span style="color: #008b00;">"mypkg-doc.org"</span>
+     <span style="color: #4169e1;">:style-sheet</span> <span style="color: #008b00;">"swiss.css"</span> <span style="color: #4169e1;">:title</span> <span style="color: #008b00;">"My Package"</span>
+     <span style="color: #4169e1;">:author</span> <span style="color: #008b00;">"F. B. Quux"</span> <span style="color: #4169e1;">:email</span> <span style="color: #008b00;">"quux@gmail.com"</span><span style="color: #696969;">)</span>
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.8.1.1.6" class="outline-6">
+<h6 id="sec-1.8.1.1.6"><span class="section-number-6">1.8.1.1.6</span> See also</h6>
+<div class="outline-text-6" id="text-1.8.1.1.6">
+
+
+<ul>
+<li>
+<a href="#document-packages">document-packages</a>
+
+
+</li>
+</ul>
+
+
+<hr/>
+
+<p>
+<a name="document-packages" id="document-packages"></a>
+<a name="function==document-packages" id="function==document-packages"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.8.1.2" class="outline-5">
+<h5 id="sec-1.8.1.2"><span class="section-number-5">1.8.1.2</span> External Function: <code>document-packages</code></h5>
+<div class="outline-text-5" id="text-1.8.1.2">
+
+
+
+
+</div>
+
+<div id="outline-container-1.8.1.2.1" class="outline-6">
+<h6 id="sec-1.8.1.2.1"><span class="section-number-6">1.8.1.2.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.8.1.2.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>document-packages packages file/stream <span style="color: #d2691e; font-weight: bold;">&amp;key</span> <span style="color: #696969;">(</span>auto-links <span style="color: #698b22; font-weight: bold;">nil</span><span style="color: #696969;">)</span>
+                   <span style="color: #696969;">(</span>lines-between-sections <span style="color: #698b22; font-weight: bold;">t</span><span style="color: #696969;">)</span> <span style="color: #696969;">(</span>brief-methods <span style="color: #698b22; font-weight: bold;">t</span><span style="color: #696969;">)</span>
+                   <span style="color: #696969;">(</span>internal-symbols? <span style="color: #698b22; font-weight: bold;">t</span><span style="color: #696969;">)</span> <span style="color: #696969;">(</span>class-diagram <span style="color: #698b22; font-weight: bold;">nil</span><span style="color: #696969;">)</span> <span style="color: #696969;">(</span>style-sheet <span style="color: #698b22; font-weight: bold;">nil</span><span style="color: #696969;">)</span>
+                   <span style="color: #696969;">(</span>title <span style="color: #00c5cd;">*document-title*</span><span style="color: #696969;">)</span> <span style="color: #696969;">(</span>author <span style="color: #00c5cd;">*document-author*</span><span style="color: #696969;">)</span>
+                   <span style="color: #696969;">(</span>email <span style="color: #00c5cd;">*document-email*</span><span style="color: #696969;">))</span>
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.8.1.2.2" class="outline-6">
+<h6 id="sec-1.8.1.2.2"><span class="section-number-6">1.8.1.2.2</span> Arguments</h6>
+<div class="outline-text-6" id="text-1.8.1.2.2">
+
+
+<dl>
+<dt>PACKAGES</dt><dd>
+A list of package objects, or symbols naming packages.
+</dd>
+<dt>FILE/STREAM</dt><dd>
+A string (filename), stream object, or <code>NIL</code>.
+</dd>
+</dl>
+
+<p>Other arguments are the same as for <a href="#document-package">document-package</a>.
+</p></div>
+
+</div>
+
+<div id="outline-container-1.8.1.2.3" class="outline-6">
+<h6 id="sec-1.8.1.2.3"><span class="section-number-6">1.8.1.2.3</span> Returns</h6>
+<div class="outline-text-6" id="text-1.8.1.2.3">
+
+
+<p>
+A string, or nil.
+</p></div>
+
+</div>
+
+<div id="outline-container-1.8.1.2.4" class="outline-6">
+<h6 id="sec-1.8.1.2.4"><span class="section-number-6">1.8.1.2.4</span> Description</h6>
+<div class="outline-text-6" id="text-1.8.1.2.4">
+
+
+<p>
+Produces documentation for all the packages in <code>PACKAGES</code>, within a
+single file.
+</p>
+<p>
+See <a href="#document-package">document-package</a> for more details.
+</p>
+
+
+
+
+</div>
+</div>
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9" class="outline-3">
+<h3 id="sec-1.9"><span class="section-number-3">1.9</span> Internal Symbols</h3>
+<div class="outline-text-3" id="text-1.9">
+
+
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.1" class="outline-4">
+<h4 id="sec-1.9.1"><span class="section-number-4">1.9.1</span> Internal Classes</h4>
+<div class="outline-text-4" id="text-1.9.1">
+
+
+
+<hr/>
+
+<p>
+<a name="animal" id="animal"></a>
+<a name="class==animal" id="class==animal"></a>
+</p>
+
+
+</div>
+
+<div id="outline-container-1.9.1.1" class="outline-5">
+<h5 id="sec-1.9.1.1"><span class="section-number-5">1.9.1.1</span> Internal Class: <code>animal</code></h5>
+<div class="outline-text-5" id="text-1.9.1.1">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.1.1.1" class="outline-6">
+<h6 id="sec-1.9.1.1.1"><span class="section-number-6">1.9.1.1.1</span> Inheritance</h6>
+<div class="outline-text-6" id="text-1.9.1.1.1">
+
+
+<ul>
+<li>
+Parent classes:
+<a href="#class==standard-object">standard-object</a>
+</li>
+<li>
+Precedence list:
+<a href="#class==animal">animal</a>, <a href="#class==standard-object">standard-object</a>, <a href="#class==slot-object">slot-object</a>, <a href="#sec-1.9.5.26.4">t</a>
+</li>
+<li>
+Direct subclasses:
+<a href="#class==mammal">mammal</a>, <a href="#class==bird">bird</a>
+
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.1.1.2" class="outline-6">
+<h6 id="sec-1.9.1.1.2"><span class="section-number-6">1.9.1.1.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.1.1.2">
+
+
+<p>
+dummy class, created to illustrate CLOD's ability
+to produce class diagrams using GraphViz.
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.1.1.3" class="outline-6">
+<h6 id="sec-1.9.1.1.3"><span class="section-number-6">1.9.1.1.3</span> Direct Slots</h6>
+<div class="outline-text-6" id="text-1.9.1.1.3">
+
+
+
+
+
+
+<hr/>
+
+<p>
+<a name="bird" id="bird"></a>
+<a name="class==bird" id="class==bird"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.1.2" class="outline-5">
+<h5 id="sec-1.9.1.2"><span class="section-number-5">1.9.1.2</span> Internal Class: <code>bird</code></h5>
+<div class="outline-text-5" id="text-1.9.1.2">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.1.2.1" class="outline-6">
+<h6 id="sec-1.9.1.2.1"><span class="section-number-6">1.9.1.2.1</span> Inheritance</h6>
+<div class="outline-text-6" id="text-1.9.1.2.1">
+
+
+<ul>
+<li>
+Parent classes:
+<a href="#class==animal">animal</a>
+</li>
+<li>
+Precedence list:
+<a href="#class==bird">bird</a>, <a href="#class==animal">animal</a>, <a href="#class==standard==object">standard-object</a>, <a href="#class==slot-object">slot-object</a>, <a href="#sec-1.9.5.26.4">t</a>
+</li>
+<li>
+Direct subclasses:
+<a href="#class==hawk">hawk</a>
+
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.1.2.2" class="outline-6">
+<h6 id="sec-1.9.1.2.2"><span class="section-number-6">1.9.1.2.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.1.2.2">
+
+
+<p>
+dummy class, created to illustrate CLOD's ability
+to produce class diagrams using GraphViz.
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.1.2.3" class="outline-6">
+<h6 id="sec-1.9.1.2.3"><span class="section-number-6">1.9.1.2.3</span> Direct Slots</h6>
+<div class="outline-text-6" id="text-1.9.1.2.3">
+
+
+
+
+
+
+<hr/>
+
+<p>
+<a name="cat" id="cat"></a>
+<a name="class==cat" id="class==cat"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.1.3" class="outline-5">
+<h5 id="sec-1.9.1.3"><span class="section-number-5">1.9.1.3</span> Internal Class: <code>cat</code></h5>
+<div class="outline-text-5" id="text-1.9.1.3">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.1.3.1" class="outline-6">
+<h6 id="sec-1.9.1.3.1"><span class="section-number-6">1.9.1.3.1</span> Inheritance</h6>
+<div class="outline-text-6" id="text-1.9.1.3.1">
+
+
+<ul>
+<li>
+Parent classes:
+<a href="#class==mammal">mammal</a>
+</li>
+<li>
+Precedence list:
+<a href="#class==cat">cat</a>, <a href="#class==mammal">mammal</a>, <a href="#class==animal">animal</a>, <a href="#class==standard-object">standard-object</a>, <a href="#class==slot-object">slot-object</a>, <a href="#sec-1.9.5.26.4">t</a>
+</li>
+<li>
+Direct subclasses:
+None.
+
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.1.3.2" class="outline-6">
+<h6 id="sec-1.9.1.3.2"><span class="section-number-6">1.9.1.3.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.1.3.2">
+
+
+<p>
+dummy class, created to illustrate CLOD's ability
+to produce class diagrams using GraphViz.
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.1.3.3" class="outline-6">
+<h6 id="sec-1.9.1.3.3"><span class="section-number-6">1.9.1.3.3</span> Direct Slots</h6>
+<div class="outline-text-6" id="text-1.9.1.3.3">
+
+
+
+
+
+
+<hr/>
+
+<p>
+<a name="dog" id="dog"></a>
+<a name="class==dog" id="class==dog"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.1.4" class="outline-5">
+<h5 id="sec-1.9.1.4"><span class="section-number-5">1.9.1.4</span> Internal Class: <code>dog</code></h5>
+<div class="outline-text-5" id="text-1.9.1.4">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.1.4.1" class="outline-6">
+<h6 id="sec-1.9.1.4.1"><span class="section-number-6">1.9.1.4.1</span> Inheritance</h6>
+<div class="outline-text-6" id="text-1.9.1.4.1">
+
+
+<ul>
+<li>
+Parent classes:
+<a href="#class==mammal">mammal</a>
+</li>
+<li>
+Precedence list:
+<a href="#class==dog">dog</a>, <a href="#class==mammal">mammal</a>, <a href="#class==animal">animal</a>, <a href="#class==standard-object">standard-object</a>, <a href="#class==slot-object">slot-object</a>, <a href="#sec-1.9.5.26.4">t</a>
+</li>
+<li>
+Direct subclasses:
+None.
+
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.1.4.2" class="outline-6">
+<h6 id="sec-1.9.1.4.2"><span class="section-number-6">1.9.1.4.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.1.4.2">
+
+
+<p>
+dummy class, created to illustrate CLOD's ability
+to produce class diagrams using GraphViz.
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.1.4.3" class="outline-6">
+<h6 id="sec-1.9.1.4.3"><span class="section-number-6">1.9.1.4.3</span> Direct Slots</h6>
+<div class="outline-text-6" id="text-1.9.1.4.3">
+
+
+
+
+
+
+<hr/>
+
+<p>
+<a name="hawk" id="hawk"></a>
+<a name="class==hawk" id="class==hawk"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.1.5" class="outline-5">
+<h5 id="sec-1.9.1.5"><span class="section-number-5">1.9.1.5</span> Internal Class: <code>hawk</code></h5>
+<div class="outline-text-5" id="text-1.9.1.5">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.1.5.1" class="outline-6">
+<h6 id="sec-1.9.1.5.1"><span class="section-number-6">1.9.1.5.1</span> Inheritance</h6>
+<div class="outline-text-6" id="text-1.9.1.5.1">
+
+
+<ul>
+<li>
+Parent classes:
+<a href="#class==bird">bird</a>
+</li>
+<li>
+Precedence list:
+<a href="#class==hawk">hawk</a>, <a href="#class==bird">bird</a>, <a href="#class==animal">animal</a>, <a href="#class==standard-object">standard-object</a>, <a href="#class==slot-object">slot-object</a>, <a href="#sec-1.9.5.26.4">t</a>
+</li>
+<li>
+Direct subclasses:
+None.
+
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.1.5.2" class="outline-6">
+<h6 id="sec-1.9.1.5.2"><span class="section-number-6">1.9.1.5.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.1.5.2">
+
+
+<p>
+dummy class, created to illustrate CLOD's ability
+to produce class diagrams using GraphViz.
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.1.5.3" class="outline-6">
+<h6 id="sec-1.9.1.5.3"><span class="section-number-6">1.9.1.5.3</span> Direct Slots</h6>
+<div class="outline-text-6" id="text-1.9.1.5.3">
+
+
+
+
+
+
+<hr/>
+
+<p>
+<a name="mammal" id="mammal"></a>
+<a name="class==mammal" id="class==mammal"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.1.6" class="outline-5">
+<h5 id="sec-1.9.1.6"><span class="section-number-5">1.9.1.6</span> Internal Class: <code>mammal</code></h5>
+<div class="outline-text-5" id="text-1.9.1.6">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.1.6.1" class="outline-6">
+<h6 id="sec-1.9.1.6.1"><span class="section-number-6">1.9.1.6.1</span> Inheritance</h6>
+<div class="outline-text-6" id="text-1.9.1.6.1">
+
+
+<ul>
+<li>
+Parent classes:
+<a href="#class==animal">animal</a>
+</li>
+<li>
+Precedence list:
+<a href="#class==mammal">mammal</a>, <a href="#class==animal">animal</a>, <a href="#class==standard==object">standard-object</a>, <a href="#class==slot-object">slot-object</a>, <a href="#sec-1.9.5.26.4">t</a>
+</li>
+<li>
+Direct subclasses:
+<a href="#class==dog">dog</a>, <a href="#class==cat">cat</a>
+
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.1.6.2" class="outline-6">
+<h6 id="sec-1.9.1.6.2"><span class="section-number-6">1.9.1.6.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.1.6.2">
+
+
+<p>
+dummy class, created to illustrate CLOD's ability
+to produce class diagrams using GraphViz.
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.1.6.3" class="outline-6">
+<h6 id="sec-1.9.1.6.3"><span class="section-number-6">1.9.1.6.3</span> Direct Slots</h6>
+<div class="outline-text-6" id="text-1.9.1.6.3">
+
+
+
+
+
+
+
+</div>
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.2" class="outline-4">
+<h4 id="sec-1.9.2"><span class="section-number-4">1.9.2</span> Internal Types</h4>
+<div class="outline-text-4" id="text-1.9.2">
+
+
+
+<hr/>
+
+<p>
+<a name="..3d..entity..3d.." id="..3d..entity..3d.."></a>
+<a name="type==..3d..entity..3d.." id="type==..3d..entity..3d.."></a>
+</p>
+
+
+</div>
+
+<div id="outline-container-1.9.2.1" class="outline-5">
+<h5 id="sec-1.9.2.1"><span class="section-number-5">1.9.2.1</span> Internal Type: ==entity==</h5>
+<div class="outline-text-5" id="text-1.9.2.1">
+
+
+<p>
+The type 'entity' can have any of several different symbols as its value.
+Each value is a different kind of 'meaning' which a symbol can have within
+a package. For example, <code>:function</code> is a function, <code>:class</code> is a class,
+and so on.
+</p>
+
+
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3" class="outline-4">
+<h4 id="sec-1.9.3"><span class="section-number-4">1.9.3</span> Internal Global Variables</h4>
+<div class="outline-text-4" id="text-1.9.3">
+
+
+
+<hr/>
+
+<p>
+<a name="<b>accessibilities</b>" id="<b>accessibilities</b>"></a>
+<a name="variable==*accessibilities*" id="variable==*accessibilities*"></a>
+</p>
+
+
+</div>
+
+<div id="outline-container-1.9.3.1" class="outline-5">
+<h5 id="sec-1.9.3.1"><span class="section-number-5">1.9.3.1</span> Internal Variable: <code>*accessibilities*</code></h5>
+<div class="outline-text-5" id="text-1.9.3.1">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.3.1.1" class="outline-6">
+<h6 id="sec-1.9.3.1.1"><span class="section-number-6">1.9.3.1.1</span> Value</h6>
+<div class="outline-text-6" id="text-1.9.3.1.1">
+
+
+<pre class="example">
+(:EXTERNAL :INTERNAL)
+</pre>
+
+
+<p>
+Type: <code>cons</code>
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.1.2" class="outline-6">
+<h6 id="sec-1.9.3.1.2"><span class="section-number-6">1.9.3.1.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.3.1.2">
+
+
+<p>
+List of one or both of the keywords <code>:EXTERNAL</code> and <code>:INTERNAL</code>.
+Only symbols whose accessibility matches one of the keywords in the list
+will be documented.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="<b>alphabet</b>" id="<b>alphabet</b>"></a>
+<a name="variable==*alphabet*" id="variable==*alphabet*"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.2" class="outline-5">
+<h5 id="sec-1.9.3.2"><span class="section-number-5">1.9.3.2</span> Internal Variable: <code>*alphabet*</code></h5>
+<div class="outline-text-5" id="text-1.9.3.2">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.3.2.1" class="outline-6">
+<h6 id="sec-1.9.3.2.1"><span class="section-number-6">1.9.3.2.1</span> Value</h6>
+<div class="outline-text-6" id="text-1.9.3.2.1">
+
+
+<pre class="example">
+(#\A #\B #\C #\D #\E #\F #\G #\H #\I #\J #\K #\L #\M #\N #\O #\P #\Q #\R #\S 
+#\T #\U #\V #\W #\X #\Y #\Z)
+</pre>
+
+
+<p>
+Type: <code>cons</code>
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.2.2" class="outline-6">
+<h6 id="sec-1.9.3.2.2"><span class="section-number-6">1.9.3.2.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.3.2.2">
+
+
+<p>
+List of uppercase letters (characters) from A to Z.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="<b>ambiguities</b>" id="<b>ambiguities</b>"></a>
+<a name="variable==*ambiguities*" id="variable==*ambiguities*"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.3" class="outline-5">
+<h5 id="sec-1.9.3.3"><span class="section-number-5">1.9.3.3</span> Internal Variable: <code>*ambiguities*</code></h5>
+<div class="outline-text-5" id="text-1.9.3.3">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.3.3.1" class="outline-6">
+<h6 id="sec-1.9.3.3.1"><span class="section-number-6">1.9.3.3.1</span> Value</h6>
+<div class="outline-text-6" id="text-1.9.3.3.1">
+
+
+<pre class="example">
+#&lt;HASH-TABLE :TEST EQL :COUNT 0 {103534C1}&gt;
+</pre>
+
+
+<p>
+Type: <code>hash-table</code>
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.3.2" class="outline-6">
+<h6 id="sec-1.9.3.3.2"><span class="section-number-6">1.9.3.3.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.3.3.2">
+
+
+<p>
+Hash table created during package documentation. Stores all
+symbols which have multiple 'meanings' within the package.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="<b>auto-links</b>" id="<b>auto-links</b>"></a>
+<a name="variable==*auto-links*" id="variable==*auto-links*"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.4" class="outline-5">
+<h5 id="sec-1.9.3.4"><span class="section-number-5">1.9.3.4</span> Internal Variable: <code>*auto-links*</code></h5>
+<div class="outline-text-5" id="text-1.9.3.4">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.3.4.1" class="outline-6">
+<h6 id="sec-1.9.3.4.1"><span class="section-number-6">1.9.3.4.1</span> Value</h6>
+<div class="outline-text-6" id="text-1.9.3.4.1">
+
+
+<pre class="example">
+NIL
+</pre>
+
+
+<p>
+Type: <code>null</code>
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.4.2" class="outline-6">
+<h6 id="sec-1.9.3.4.2"><span class="section-number-6">1.9.3.4.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.3.4.2">
+
+
+<p>
+If true, all occurrences of package symbols anywhere in the documentation
+will be turned into hyperlinks, even if they are not marked up as such.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="<b>brief-methods</b>" id="<b>brief-methods</b>"></a>
+<a name="variable==*brief-methods*" id="variable==*brief-methods*"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.5" class="outline-5">
+<h5 id="sec-1.9.3.5"><span class="section-number-5">1.9.3.5</span> Internal Variable: <code>*brief-methods*</code></h5>
+<div class="outline-text-5" id="text-1.9.3.5">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.3.5.1" class="outline-6">
+<h6 id="sec-1.9.3.5.1"><span class="section-number-6">1.9.3.5.1</span> Value</h6>
+<div class="outline-text-6" id="text-1.9.3.5.1">
+
+
+<pre class="example">
+T
+</pre>
+
+
+<p>
+Type: <code>boolean</code>
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.5.2" class="outline-6">
+<h6 id="sec-1.9.3.5.2"><span class="section-number-6">1.9.3.5.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.3.5.2">
+
+
+<p>
+If true, most documentation for methods is assumed to be found in the
+docstring for their generic function. A generic function's methods are
+therefore described in a very brief format (bulleted list).
+</p>
+<p>
+If false, each method receives its own section, just like other functions.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="<b>class-diagram</b>" id="<b>class-diagram</b>"></a>
+<a name="variable==*class-diagram*" id="variable==*class-diagram*"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.6" class="outline-5">
+<h5 id="sec-1.9.3.6"><span class="section-number-5">1.9.3.6</span> Internal Variable: <code>*class-diagram*</code></h5>
+<div class="outline-text-5" id="text-1.9.3.6">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.3.6.1" class="outline-6">
+<h6 id="sec-1.9.3.6.1"><span class="section-number-6">1.9.3.6.1</span> Value</h6>
+<div class="outline-text-6" id="text-1.9.3.6.1">
+
+
+<pre class="example">
+NIL
+</pre>
+
+
+<p>
+Type: <code>null</code>
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.6.2" class="outline-6">
+<h6 id="sec-1.9.3.6.2"><span class="section-number-6">1.9.3.6.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.3.6.2">
+
+
+<p>
+If true, creates a section describing the package class hierarchy as a
+'dot' diagram, which can be fed to the GraphViz program (if installed) to
+create a visual representation of the hierarchy.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="<b>clod-version-string</b>" id="<b>clod-version-string</b>"></a>
+<a name="variable==*clod-version-string*" id="variable==*clod-version-string*"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.7" class="outline-5">
+<h5 id="sec-1.9.3.7"><span class="section-number-5">1.9.3.7</span> Internal Variable: <code>*clod-version-string*</code></h5>
+<div class="outline-text-5" id="text-1.9.3.7">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.3.7.1" class="outline-6">
+<h6 id="sec-1.9.3.7.1"><span class="section-number-6">1.9.3.7.1</span> Value</h6>
+<div class="outline-text-6" id="text-1.9.3.7.1">
+
+
+<pre class="example">
+"1.0"
+</pre>
+
+
+<p>
+Type: <code>simple-array</code>
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.7.2" class="outline-6">
+<h6 id="sec-1.9.3.7.2"><span class="section-number-6">1.9.3.7.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.3.7.2">
+
+
+<p>
+String containing CLOD's version number.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="<b>document-author</b>" id="<b>document-author</b>"></a>
+<a name="variable==*document-author*" id="variable==*document-author*"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.8" class="outline-5">
+<h5 id="sec-1.9.3.8"><span class="section-number-5">1.9.3.8</span> Internal Variable: <code>*document-author*</code></h5>
+<div class="outline-text-5" id="text-1.9.3.8">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.3.8.1" class="outline-6">
+<h6 id="sec-1.9.3.8.1"><span class="section-number-6">1.9.3.8.1</span> Value</h6>
+<div class="outline-text-6" id="text-1.9.3.8.1">
+
+
+<pre class="example">
+"Paul Sexton"
+</pre>
+
+
+<p>
+Type: <code>simple-array</code>
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.8.2" class="outline-6">
+<h6 id="sec-1.9.3.8.2"><span class="section-number-6">1.9.3.8.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.3.8.2">
+
+
+<p>
+The author of the document. A string.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="<b>document-email</b>" id="<b>document-email</b>"></a>
+<a name="variable==*document-email*" id="variable==*document-email*"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.9" class="outline-5">
+<h5 id="sec-1.9.3.9"><span class="section-number-5">1.9.3.9</span> Internal Variable: <code>*document-email*</code></h5>
+<div class="outline-text-5" id="text-1.9.3.9">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.3.9.1" class="outline-6">
+<h6 id="sec-1.9.3.9.1"><span class="section-number-6">1.9.3.9.1</span> Value</h6>
+<div class="outline-text-6" id="text-1.9.3.9.1">
+
+
+<pre class="example">
+"eeeickythump@gmail.com"
+</pre>
+
+
+<p>
+Type: <code>simple-array</code>
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.9.2" class="outline-6">
+<h6 id="sec-1.9.3.9.2"><span class="section-number-6">1.9.3.9.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.3.9.2">
+
+
+<p>
+The email address of the document's author. A string.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="<b>document-style-sheet</b>" id="<b>document-style-sheet</b>"></a>
+<a name="variable==*document-style-sheet*" id="variable==*document-style-sheet*"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.10" class="outline-5">
+<h5 id="sec-1.9.3.10"><span class="section-number-5">1.9.3.10</span> Internal Variable: <code>*document-style-sheet*</code></h5>
+<div class="outline-text-5" id="text-1.9.3.10">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.3.10.1" class="outline-6">
+<h6 id="sec-1.9.3.10.1"><span class="section-number-6">1.9.3.10.1</span> Value</h6>
+<div class="outline-text-6" id="text-1.9.3.10.1">
+
+
+<pre class="example">
+NIL
+</pre>
+
+
+<p>
+Type: <code>null</code>
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.10.2" class="outline-6">
+<h6 id="sec-1.9.3.10.2"><span class="section-number-6">1.9.3.10.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.3.10.2">
+
+
+<p>
+Filename of the Cascading Style Sheet (.css) file to use if the
+document produced by CLOD is exported to HTML.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="<b>document-title</b>" id="<b>document-title</b>"></a>
+<a name="variable==*document-title*" id="variable==*document-title*"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.11" class="outline-5">
+<h5 id="sec-1.9.3.11"><span class="section-number-5">1.9.3.11</span> Internal Variable: <code>*document-title*</code></h5>
+<div class="outline-text-5" id="text-1.9.3.11">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.3.11.1" class="outline-6">
+<h6 id="sec-1.9.3.11.1"><span class="section-number-6">1.9.3.11.1</span> Value</h6>
+<div class="outline-text-6" id="text-1.9.3.11.1">
+
+
+<pre class="example">
+"CLOD"
+</pre>
+
+
+<p>
+Type: <code>simple-array</code>
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.11.2" class="outline-6">
+<h6 id="sec-1.9.3.11.2"><span class="section-number-6">1.9.3.11.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.3.11.2">
+
+
+<p>
+The title of the document. A string.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="<b>heading-char</b>" id="<b>heading-char</b>"></a>
+<a name="variable==*heading-char*" id="variable==*heading-char*"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.12" class="outline-5">
+<h5 id="sec-1.9.3.12"><span class="section-number-5">1.9.3.12</span> Internal Variable: <code>*heading-char*</code></h5>
+<div class="outline-text-5" id="text-1.9.3.12">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.3.12.1" class="outline-6">
+<h6 id="sec-1.9.3.12.1"><span class="section-number-6">1.9.3.12.1</span> Value</h6>
+<div class="outline-text-6" id="text-1.9.3.12.1">
+
+
+<pre class="example">
+#\*
+</pre>
+
+
+<p>
+Type: <code>standard-char</code>
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.12.2" class="outline-6">
+<h6 id="sec-1.9.3.12.2"><span class="section-number-6">1.9.3.12.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.3.12.2">
+
+
+<p>
+Character used at the beginning of lines to signify headings and
+subheadings. Should not be changed.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="<b>heading-level</b>" id="<b>heading-level</b>"></a>
+<a name="variable==*heading-level*" id="variable==*heading-level*"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.13" class="outline-5">
+<h5 id="sec-1.9.3.13"><span class="section-number-5">1.9.3.13</span> Internal Variable: <code>*heading-level*</code></h5>
+<div class="outline-text-5" id="text-1.9.3.13">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.3.13.1" class="outline-6">
+<h6 id="sec-1.9.3.13.1"><span class="section-number-6">1.9.3.13.1</span> Value</h6>
+<div class="outline-text-6" id="text-1.9.3.13.1">
+
+
+<pre class="example">
+5
+</pre>
+
+
+<p>
+Type: <code>integer</code>
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.13.2" class="outline-6">
+<h6 id="sec-1.9.3.13.2"><span class="section-number-6">1.9.3.13.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.3.13.2">
+
+
+<p>
+Number of levels 'deep' within the outline. Used when creating
+headings for sections and subsections.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="<b>hyperspec-root</b>" id="<b>hyperspec-root</b>"></a>
+<a name="variable==*hyperspec-root*" id="variable==*hyperspec-root*"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.14" class="outline-5">
+<h5 id="sec-1.9.3.14"><span class="section-number-5">1.9.3.14</span> Internal Variable: <code>*hyperspec-root*</code></h5>
+<div class="outline-text-5" id="text-1.9.3.14">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.3.14.1" class="outline-6">
+<h6 id="sec-1.9.3.14.1"><span class="section-number-6">1.9.3.14.1</span> Value</h6>
+<div class="outline-text-6" id="text-1.9.3.14.1">
+
+
+<pre class="example">
+"http://www.lispworks.com/reference/HyperSpec/"
+</pre>
+
+
+<p>
+Type: <code>simple-array</code>
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.14.2" class="outline-6">
+<h6 id="sec-1.9.3.14.2"><span class="section-number-6">1.9.3.14.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.3.14.2">
+
+
+<p>
+URL or directory where the Hyperspec is found. Not currently
+implemented.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="<b>left-margin</b>" id="<b>left-margin</b>"></a>
+<a name="variable==*left-margin*" id="variable==*left-margin*"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.15" class="outline-5">
+<h5 id="sec-1.9.3.15"><span class="section-number-5">1.9.3.15</span> Internal Variable: <code>*left-margin*</code></h5>
+<div class="outline-text-5" id="text-1.9.3.15">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.3.15.1" class="outline-6">
+<h6 id="sec-1.9.3.15.1"><span class="section-number-6">1.9.3.15.1</span> Value</h6>
+<div class="outline-text-6" id="text-1.9.3.15.1">
+
+
+<pre class="example">
+0
+</pre>
+
+
+<p>
+Type: <code>bit</code>
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.15.2" class="outline-6">
+<h6 id="sec-1.9.3.15.2"><span class="section-number-6">1.9.3.15.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.3.15.2">
+
+
+<p>
+Width of the current 'left margin', in spaces.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="<b>line-width</b>" id="<b>line-width</b>"></a>
+<a name="variable==*line-width*" id="variable==*line-width*"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.16" class="outline-5">
+<h5 id="sec-1.9.3.16"><span class="section-number-5">1.9.3.16</span> Internal Variable: <code>*line-width*</code></h5>
+<div class="outline-text-5" id="text-1.9.3.16">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.3.16.1" class="outline-6">
+<h6 id="sec-1.9.3.16.1"><span class="section-number-6">1.9.3.16.1</span> Value</h6>
+<div class="outline-text-6" id="text-1.9.3.16.1">
+
+
+<pre class="example">
+80
+</pre>
+
+
+<p>
+Type: <code>integer</code>
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.16.2" class="outline-6">
+<h6 id="sec-1.9.3.16.2"><span class="section-number-6">1.9.3.16.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.3.16.2">
+
+
+<p>
+Width to which paragraphs are wrapped, in characters.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="<b>lines-between-sections</b>" id="<b>lines-between-sections</b>"></a>
+<a name="variable==*lines-between-sections*" id="variable==*lines-between-sections*"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.17" class="outline-5">
+<h5 id="sec-1.9.3.17"><span class="section-number-5">1.9.3.17</span> Internal Variable: <code>*lines-between-sections*</code></h5>
+<div class="outline-text-5" id="text-1.9.3.17">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.3.17.1" class="outline-6">
+<h6 id="sec-1.9.3.17.1"><span class="section-number-6">1.9.3.17.1</span> Value</h6>
+<div class="outline-text-6" id="text-1.9.3.17.1">
+
+
+<pre class="example">
+T
+</pre>
+
+
+<p>
+Type: <code>boolean</code>
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.17.2" class="outline-6">
+<h6 id="sec-1.9.3.17.2"><span class="section-number-6">1.9.3.17.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.3.17.2">
+
+
+<p>
+If true, sections of the document will be separated by horizontal lines.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="<b>out</b>" id="<b>out</b>"></a>
+<a name="variable==*out*" id="variable==*out*"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.18" class="outline-5">
+<h5 id="sec-1.9.3.18"><span class="section-number-5">1.9.3.18</span> Internal Variable: <code>*out*</code></h5>
+<div class="outline-text-5" id="text-1.9.3.18">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.3.18.1" class="outline-6">
+<h6 id="sec-1.9.3.18.1"><span class="section-number-6">1.9.3.18.1</span> Value</h6>
+<div class="outline-text-6" id="text-1.9.3.18.1">
+
+
+<pre class="example">
+#&lt;SB-SYS:FD-STREAM for "file /home/paul/Dropbox/lisp/clod/doc/clod-doc.org"
+{FCB6D11}&gt;
+</pre>
+
+
+<p>
+Type: <code>fd-stream</code>
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.18.2" class="outline-6">
+<h6 id="sec-1.9.3.18.2"><span class="section-number-6">1.9.3.18.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.3.18.2">
+
+
+<p>
+Global variable that is bound to the output stream used by CLOD
+while writing documentation.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="<b>unsafe-html-chars</b>" id="<b>unsafe-html-chars</b>"></a>
+<a name="variable==*unsafe-html-chars*" id="variable==*unsafe-html-chars*"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.19" class="outline-5">
+<h5 id="sec-1.9.3.19"><span class="section-number-5">1.9.3.19</span> Internal Variable: <code>*unsafe-html-chars*</code></h5>
+<div class="outline-text-5" id="text-1.9.3.19">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.3.19.1" class="outline-6">
+<h6 id="sec-1.9.3.19.1"><span class="section-number-6">1.9.3.19.1</span> Value</h6>
+<div class="outline-text-6" id="text-1.9.3.19.1">
+
+
+<pre class="example">
+(#\&lt; #\&gt; #\= #\% #\? #\+ #\$ #\/ #\&amp; #\@ #\, #\{ #\} #\^ #\~)
+</pre>
+
+
+<p>
+Type: <code>cons</code>
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.3.19.2" class="outline-6">
+<h6 id="sec-1.9.3.19.2"><span class="section-number-6">1.9.3.19.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.3.19.2">
+
+
+<p>
+List of characters which are unsafe within HTML links and anchors, and
+which need to be converted to a safe representation.
+</p>
+<p>
+See also: <a href="#html-safe-string">html-safe-string</a>.
+</p>
+
+
+
+
+</div>
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.4" class="outline-4">
+<h4 id="sec-1.9.4"><span class="section-number-4">1.9.4</span> Internal Macros</h4>
+<div class="outline-text-4" id="text-1.9.4">
+
+
+
+<hr/>
+
+<p>
+<a name="do-own-symbols" id="do-own-symbols"></a>
+<a name="macro==do-own-symbols" id="macro==do-own-symbols"></a>
+</p>
+
+
+</div>
+
+<div id="outline-container-1.9.4.1" class="outline-5">
+<h5 id="sec-1.9.4.1"><span class="section-number-5">1.9.4.1</span> Internal Macro: <code>do-own-symbols</code></h5>
+<div class="outline-text-5" id="text-1.9.4.1">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.4.1.1" class="outline-6">
+<h6 id="sec-1.9.4.1.1"><span class="section-number-6">1.9.4.1.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.4.1.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>do-own-symbols <span style="color: #696969;">(</span>var pkg<span style="color: #696969;">)</span>
+  <span style="color: #d2691e; font-weight: bold;">&amp;body</span>
+  body<span style="color: #696969;">)</span>
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.4.1.2" class="outline-6">
+<h6 id="sec-1.9.4.1.2"><span class="section-number-6">1.9.4.1.2</span> Arguments</h6>
+<div class="outline-text-6" id="text-1.9.4.1.2">
+
+
+<dl>
+<dt>VAR</dt><dd>
+symbol naming a variable that will be bound to each symbol in turn.
+</dd>
+<dt>PKG</dt><dd>
+a package.
+</dd>
+</dl>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.4.1.3" class="outline-6">
+<h6 id="sec-1.9.4.1.3"><span class="section-number-6">1.9.4.1.3</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.4.1.3">
+
+
+<p>
+Iterate through all the non-imported symbols in the package <code>PKG</code>.
+<code>BODY</code> is executed once for each such symbol, with <code>VAR</code> bound to each
+symbol in turn.
+</p>
+
+
+<hr/>
+
+<p>
+<a name="write-indented" id="write-indented"></a>
+<a name="macro==write-indented" id="macro==write-indented"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.4.2" class="outline-5">
+<h5 id="sec-1.9.4.2"><span class="section-number-5">1.9.4.2</span> Internal Macro: <code>write-indented</code></h5>
+<div class="outline-text-5" id="text-1.9.4.2">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.4.2.1" class="outline-6">
+<h6 id="sec-1.9.4.2.1"><span class="section-number-6">1.9.4.2.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.4.2.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>write-indented <span style="color: #696969;">(</span>indent<span style="color: #696969;">)</span>
+  <span style="color: #d2691e; font-weight: bold;">&amp;body</span>
+  body<span style="color: #696969;">)</span>
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.4.2.2" class="outline-6">
+<h6 id="sec-1.9.4.2.2"><span class="section-number-6">1.9.4.2.2</span> Arguments</h6>
+<div class="outline-text-6" id="text-1.9.4.2.2">
+
+
+<dl>
+<dt>INDENT</dt><dd>
+An integer.
+</dd>
+</dl>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.4.2.3" class="outline-6">
+<h6 id="sec-1.9.4.2.3"><span class="section-number-6">1.9.4.2.3</span> Return Value</h6>
+<div class="outline-text-6" id="text-1.9.4.2.3">
+
+
+<p>
+Ignored.
+</p></div>
+
+</div>
+
+<div id="outline-container-1.9.4.2.4" class="outline-6">
+<h6 id="sec-1.9.4.2.4"><span class="section-number-6">1.9.4.2.4</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.4.2.4">
+
+
+<p>
+All text that is written within the body of the form will be indented
+a further <code>INDENT</code> spaces from the left margin.
+</p>
+
+
+<hr/>
+
+<p>
+<a name="writing-bulleted-list" id="writing-bulleted-list"></a>
+<a name="macro==writing-bulleted-list" id="macro==writing-bulleted-list"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.4.3" class="outline-5">
+<h5 id="sec-1.9.4.3"><span class="section-number-5">1.9.4.3</span> Internal Macro: <code>writing-bulleted-list</code></h5>
+<div class="outline-text-5" id="text-1.9.4.3">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.4.3.1" class="outline-6">
+<h6 id="sec-1.9.4.3.1"><span class="section-number-6">1.9.4.3.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.4.3.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>writing-bulleted-list
+  <span style="color: #d2691e; font-weight: bold;">&amp;body</span>
+  body<span style="color: #696969;">)</span>
+</pre>
+
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.4.3.2" class="outline-6">
+<h6 id="sec-1.9.4.3.2"><span class="section-number-6">1.9.4.3.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.4.3.2">
+
+
+<p>
+All output within the body of a form is assumed to be within a
+bulleted list.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="writing-section" id="writing-section"></a>
+<a name="macro==writing-section" id="macro==writing-section"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.4.4" class="outline-5">
+<h5 id="sec-1.9.4.4"><span class="section-number-5">1.9.4.4</span> Internal Macro: <code>writing-section</code></h5>
+<div class="outline-text-5" id="text-1.9.4.4">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.4.4.1" class="outline-6">
+<h6 id="sec-1.9.4.4.1"><span class="section-number-6">1.9.4.4.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.4.4.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>writing-section <span style="color: #696969;">(</span>title<span style="color: #696969;">)</span>
+  <span style="color: #d2691e; font-weight: bold;">&amp;body</span>
+  body<span style="color: #696969;">)</span>
+</pre>
+
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.4.4.2" class="outline-6">
+<h6 id="sec-1.9.4.4.2"><span class="section-number-6">1.9.4.4.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.4.4.2">
+
+
+<p>
+Wraps all output within the body of the form in its own section.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="writing-section-for-symbol" id="writing-section-for-symbol"></a>
+<a name="macro==writing-section-for-symbol" id="macro==writing-section-for-symbol"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.4.5" class="outline-5">
+<h5 id="sec-1.9.4.5"><span class="section-number-5">1.9.4.5</span> Internal Macro: <code>writing-section-for-symbol</code></h5>
+<div class="outline-text-5" id="text-1.9.4.5">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.4.5.1" class="outline-6">
+<h6 id="sec-1.9.4.5.1"><span class="section-number-6">1.9.4.5.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.4.5.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>writing-section-for-symbol <span style="color: #696969;">(</span>entity sym<span style="color: #696969;">)</span>
+  <span style="color: #d2691e; font-weight: bold;">&amp;body</span>
+  body<span style="color: #696969;">)</span>
+</pre>
+
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.4.5.2" class="outline-6">
+<h6 id="sec-1.9.4.5.2"><span class="section-number-6">1.9.4.5.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.4.5.2">
+
+
+<p>
+Wraps all output within the body of the form in its own section. The
+title of the section describes the entity of type <code>ENTITY</code> that is
+bound to the symbol <code>SYM</code>.
+</p>
+
+
+
+
+</div>
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5" class="outline-4">
+<h4 id="sec-1.9.5"><span class="section-number-4">1.9.5</span> Internal Functions</h4>
+<div class="outline-text-4" id="text-1.9.5">
+
+
+
+<hr/>
+
+<p>
+<a name="accessible-symbols" id="accessible-symbols"></a>
+<a name="function==accessible-symbols" id="function==accessible-symbols"></a>
+</p>
+
+
+</div>
+
+<div id="outline-container-1.9.5.1" class="outline-5">
+<h5 id="sec-1.9.5.1"><span class="section-number-5">1.9.5.1</span> Internal Function: <code>accessible-symbols</code></h5>
+<div class="outline-text-5" id="text-1.9.5.1">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.1.1" class="outline-6">
+<h6 id="sec-1.9.5.1.1"><span class="section-number-6">1.9.5.1.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.1.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>accessible-symbols syms access pkg<span style="color: #696969;">)</span>
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.1.2" class="outline-6">
+<h6 id="sec-1.9.5.1.2"><span class="section-number-6">1.9.5.1.2</span> Arguments</h6>
+<div class="outline-text-6" id="text-1.9.5.1.2">
+
+
+<dl>
+<dt>SYMS</dt><dd>
+A list of symbols.
+</dd>
+<dt>ACCESS</dt><dd>
+One of the keywords <code>:INTERNAL</code> or <code>:EXTERNAL</code>.
+</dd>
+<dt>PKG</dt><dd>
+A package object.
+</dd>
+</dl>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.1.3" class="outline-6">
+<h6 id="sec-1.9.5.1.3"><span class="section-number-6">1.9.5.1.3</span> Returns</h6>
+<div class="outline-text-6" id="text-1.9.5.1.3">
+
+
+<p>
+A list of symbols.
+</p></div>
+
+</div>
+
+<div id="outline-container-1.9.5.1.4" class="outline-6">
+<h6 id="sec-1.9.5.1.4"><span class="section-number-6">1.9.5.1.4</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.1.4">
+
+
+<p>
+Given a list of symbols, SYMS, returns the subset of SYMS whose
+accessibility in PKG matches ACCESS.
+</p>
+
+
+<hr/>
+
+<p>
+<a name="ampersand-symbol..3f.." id="ampersand-symbol..3f.."></a>
+<a name="function==ampersand-symbol..3f.." id="function==ampersand-symbol..3f.."></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.2" class="outline-5">
+<h5 id="sec-1.9.5.2"><span class="section-number-5">1.9.5.2</span> Internal Function: <code>ampersand-symbol?</code></h5>
+<div class="outline-text-5" id="text-1.9.5.2">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.2.1" class="outline-6">
+<h6 id="sec-1.9.5.2.1"><span class="section-number-6">1.9.5.2.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.2.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>ampersand-symbol? sym<span style="color: #696969;">)</span>
+</pre>
+
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.2.2" class="outline-6">
+<h6 id="sec-1.9.5.2.2"><span class="section-number-6">1.9.5.2.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.2.2">
+
+
+<p>
+Does the symbol SYM begin with an ampersand, such as &amp;ANY, &amp;REST and
+so on?
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="declared-special-p" id="declared-special-p"></a>
+<a name="function==declared-special-p" id="function==declared-special-p"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.3" class="outline-5">
+<h5 id="sec-1.9.5.3"><span class="section-number-5">1.9.5.3</span> Internal Function: <code>declared-special-p</code></h5>
+<div class="outline-text-5" id="text-1.9.5.3">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.3.1" class="outline-6">
+<h6 id="sec-1.9.5.3.1"><span class="section-number-6">1.9.5.3.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.3.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>declared-special-p <span style="color: #1e90ff; font-weight: bold;">symbol</span><span style="color: #696969;">)</span>
+</pre>
+
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.3.2" class="outline-6">
+<h6 id="sec-1.9.5.3.2"><span class="section-number-6">1.9.5.3.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.3.2">
+
+
+<p>
+Returns true if SYMBOL is declared special.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="docpkg" id="docpkg"></a>
+<a name="function==docpkg" id="function==docpkg"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.4" class="outline-5">
+<h5 id="sec-1.9.5.4"><span class="section-number-5">1.9.5.4</span> Internal Function: <code>docpkg</code></h5>
+<div class="outline-text-5" id="text-1.9.5.4">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.4.1" class="outline-6">
+<h6 id="sec-1.9.5.4.1"><span class="section-number-6">1.9.5.4.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.4.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>docpkg <span style="color: #d2691e; font-weight: bold;">&amp;rest</span> packages<span style="color: #696969;">)</span>
+</pre>
+
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.4.2" class="outline-6">
+<h6 id="sec-1.9.5.4.2"><span class="section-number-6">1.9.5.4.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.4.2">
+
+
+<p>
+Not documented.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="document" id="document"></a>
+<a name="function==document" id="function==document"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.5" class="outline-5">
+<h5 id="sec-1.9.5.5"><span class="section-number-5">1.9.5.5</span> Internal Function: <code>document</code></h5>
+<div class="outline-text-5" id="text-1.9.5.5">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.5.1" class="outline-6">
+<h6 id="sec-1.9.5.5.1"><span class="section-number-6">1.9.5.5.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.5.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>document sym doctype<span style="color: #696969;">)</span>
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.5.2" class="outline-6">
+<h6 id="sec-1.9.5.5.2"><span class="section-number-6">1.9.5.5.2</span> Arguments</h6>
+<div class="outline-text-6" id="text-1.9.5.5.2">
+
+
+<dl>
+<dt>SYM</dt><dd>
+a symbol.
+</dd>
+<dt>DOCTYPE</dt><dd>
+an <a href="#..3d..entity..3d.."><code>entity</code></a>.
+</dd>
+</dl>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.5.3" class="outline-6">
+<h6 id="sec-1.9.5.5.3"><span class="section-number-6">1.9.5.5.3</span> Returns:</h6>
+<div class="outline-text-6" id="text-1.9.5.5.3">
+
+
+<p>
+Ignored.
+</p></div>
+
+</div>
+
+<div id="outline-container-1.9.5.5.4" class="outline-6">
+<h6 id="sec-1.9.5.5.4"><span class="section-number-6">1.9.5.5.4</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.5.4">
+
+
+<p>
+Writes a section documenting the <a href="#..3d..entity..3d.."><code>entity</code></a> named <code>SYM</code> which is of entity type
+<code>DOCTYPE</code>.
+</p>
+
+
+<hr/>
+
+<p>
+<a name="document-package-contents" id="document-package-contents"></a>
+<a name="function==document-package-contents" id="function==document-package-contents"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.6" class="outline-5">
+<h5 id="sec-1.9.5.6"><span class="section-number-5">1.9.5.6</span> Internal Function: <code>document-package-contents</code></h5>
+<div class="outline-text-5" id="text-1.9.5.6">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.6.1" class="outline-6">
+<h6 id="sec-1.9.5.6.1"><span class="section-number-6">1.9.5.6.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.6.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>document-package-contents pkg <span style="color: #d2691e; font-weight: bold;">&amp;optional</span> <span style="color: #696969;">(</span>accessibilities <span style="color: #00c5cd;">*accessibilities*</span><span style="color: #696969;">))</span>
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.6.2" class="outline-6">
+<h6 id="sec-1.9.5.6.2"><span class="section-number-6">1.9.5.6.2</span> Arguments</h6>
+<div class="outline-text-6" id="text-1.9.5.6.2">
+
+
+<dl>
+<dt>PKG</dt><dd>
+A package name or package object.
+</dd>
+<dt>ACCESSIBILITIES</dt><dd>
+A list containing zero or more of the symbols
+<code>:external</code> or <code>:internal</code>.
+</dd>
+</dl>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.6.3" class="outline-6">
+<h6 id="sec-1.9.5.6.3"><span class="section-number-6">1.9.5.6.3</span> Return Value</h6>
+<div class="outline-text-6" id="text-1.9.5.6.3">
+
+
+<p>
+Ignored.
+</p></div>
+
+</div>
+
+<div id="outline-container-1.9.5.6.4" class="outline-6">
+<h6 id="sec-1.9.5.6.4"><span class="section-number-6">1.9.5.6.4</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.6.4">
+
+
+<p>
+Writes documentation for all symbols contained within the package <code>PKG</code>.
+Does not write documentation for the actual package object.
+</p>
+
+
+<hr/>
+
+<p>
+<a name="entity-..3e..string" id="entity-..3e..string"></a>
+<a name="function==entity-..3e..string" id="function==entity-..3e..string"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.7" class="outline-5">
+<h5 id="sec-1.9.5.7"><span class="section-number-5">1.9.5.7</span> Internal Function: <code>entity-&gt;string</code></h5>
+<div class="outline-text-5" id="text-1.9.5.7">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.7.1" class="outline-6">
+<h6 id="sec-1.9.5.7.1"><span class="section-number-6">1.9.5.7.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.7.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>entity-&gt;string entity<span style="color: #696969;">)</span>
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.7.2" class="outline-6">
+<h6 id="sec-1.9.5.7.2"><span class="section-number-6">1.9.5.7.2</span> Arguments</h6>
+<div class="outline-text-6" id="text-1.9.5.7.2">
+
+
+<dl>
+<dt>ENTITY</dt><dd>
+An <a href="#..3d..entity..3d.."><code>entity</code></a>.
+</dd>
+</dl>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.7.3" class="outline-6">
+<h6 id="sec-1.9.5.7.3"><span class="section-number-6">1.9.5.7.3</span> Returns</h6>
+<div class="outline-text-6" id="text-1.9.5.7.3">
+
+
+<p>
+A string.
+</p></div>
+
+</div>
+
+<div id="outline-container-1.9.5.7.4" class="outline-6">
+<h6 id="sec-1.9.5.7.4"><span class="section-number-6">1.9.5.7.4</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.7.4">
+
+
+<p>
+Given an entity, returns a string that can be used to describe that
+entity type in human-readable form, in headings, etc.
+</p>
+
+
+<hr/>
+
+<p>
+<a name="entity-..3e..tag" id="entity-..3e..tag"></a>
+<a name="function==entity-..3e..tag" id="function==entity-..3e..tag"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.8" class="outline-5">
+<h5 id="sec-1.9.5.8"><span class="section-number-5">1.9.5.8</span> Internal Function: <code>entity-&gt;tag</code></h5>
+<div class="outline-text-5" id="text-1.9.5.8">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.8.1" class="outline-6">
+<h6 id="sec-1.9.5.8.1"><span class="section-number-6">1.9.5.8.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.8.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>entity-&gt;tag entity<span style="color: #696969;">)</span>
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.8.2" class="outline-6">
+<h6 id="sec-1.9.5.8.2"><span class="section-number-6">1.9.5.8.2</span> Arguments</h6>
+<div class="outline-text-6" id="text-1.9.5.8.2">
+
+
+<dl>
+<dt>ENTITY</dt><dd>
+An <a href="#..3d..entity..3d.."><code>entity</code></a>.
+</dd>
+</dl>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.8.3" class="outline-6">
+<h6 id="sec-1.9.5.8.3"><span class="section-number-6">1.9.5.8.3</span> Returns</h6>
+<div class="outline-text-6" id="text-1.9.5.8.3">
+
+
+<p>
+A string.
+</p></div>
+
+</div>
+
+<div id="outline-container-1.9.5.8.4" class="outline-6">
+<h6 id="sec-1.9.5.8.4"><span class="section-number-6">1.9.5.8.4</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.8.4">
+
+
+<p>
+Given an entity, returns a string that can be used as a <b>tag</b> denoting that
+entity type in org mode. See <a href="http://orgmode.org/manual/Tags.html">http://orgmode.org/manual/Tags.html</a> for
+information on tags.
+</p>
+
+
+<hr/>
+
+<p>
+<a name="find-pkg" id="find-pkg"></a>
+<a name="function==find-pkg" id="function==find-pkg"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.9" class="outline-5">
+<h5 id="sec-1.9.5.9"><span class="section-number-5">1.9.5.9</span> Internal Function: <code>find-pkg</code></h5>
+<div class="outline-text-5" id="text-1.9.5.9">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.9.1" class="outline-6">
+<h6 id="sec-1.9.5.9.1"><span class="section-number-6">1.9.5.9.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.9.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>find-pkg pkg<span style="color: #696969;">)</span>
+</pre>
+
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.9.2" class="outline-6">
+<h6 id="sec-1.9.5.9.2"><span class="section-number-6">1.9.5.9.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.9.2">
+
+
+<p>
+Not documented.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="find-sym" id="find-sym"></a>
+<a name="function==find-sym" id="function==find-sym"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.10" class="outline-5">
+<h5 id="sec-1.9.5.10"><span class="section-number-5">1.9.5.10</span> Internal Function: <code>find-sym</code></h5>
+<div class="outline-text-5" id="text-1.9.5.10">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.10.1" class="outline-6">
+<h6 id="sec-1.9.5.10.1"><span class="section-number-6">1.9.5.10.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.10.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>find-sym sym <span style="color: #d2691e; font-weight: bold;">&amp;optional</span> <span style="color: #696969;">(</span>pkg <span style="color: #696969;">(</span><span style="color: #1e90ff; font-weight: bold;">package-name</span> <span style="color: #00868b; font-weight: bold;">*package*</span><span style="color: #696969;">)))</span>
+</pre>
+
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.10.2" class="outline-6">
+<h6 id="sec-1.9.5.10.2"><span class="section-number-6">1.9.5.10.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.10.2">
+
+
+<p>
+Not documented.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="function-lambda-list" id="function-lambda-list"></a>
+<a name="function==function-lambda-list" id="function==function-lambda-list"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.11" class="outline-5">
+<h5 id="sec-1.9.5.11"><span class="section-number-5">1.9.5.11</span> Internal Function: <code>function-lambda-list</code></h5>
+<div class="outline-text-5" id="text-1.9.5.11">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.11.1" class="outline-6">
+<h6 id="sec-1.9.5.11.1"><span class="section-number-6">1.9.5.11.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.11.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>function-lambda-list func<span style="color: #696969;">)</span>
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.11.2" class="outline-6">
+<h6 id="sec-1.9.5.11.2"><span class="section-number-6">1.9.5.11.2</span> Arguments</h6>
+<div class="outline-text-6" id="text-1.9.5.11.2">
+
+
+<dl>
+<dt>FUNC</dt><dd>
+A function object, macro object, generic function object,
+or a symbol bound to a function or macro.
+</dd>
+</dl>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.11.3" class="outline-6">
+<h6 id="sec-1.9.5.11.3"><span class="section-number-6">1.9.5.11.3</span> Returns</h6>
+<div class="outline-text-6" id="text-1.9.5.11.3">
+
+
+<p>
+Two values:
+</p><ul>
+<li>
+The lambda list of the function name or function object, FUNC; or nil if
+the function takes no arguments or the lambda list cannot be retrieved.
+</li>
+<li>
+A boolean value &ndash; T if a lambda list (even an empty one) was found,
+NIL otherwise.
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.11.4" class="outline-6">
+<h6 id="sec-1.9.5.11.4"><span class="section-number-6">1.9.5.11.4</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.11.4">
+
+
+<p>
+Returns the lambda list associated with the definition of the function or
+macro <code>FUNC</code>. For example, the lambda list for the common lisp function
+<code>FIND</code> is the list:
+</p><pre class="example">
+(ITEM SEQUENCE &amp;KEY :FROM-END :TEST :TEST-NOT :START :END :KEY)
+</pre>
+
+
+
+
+<hr/>
+
+<p>
+<a name="function-name" id="function-name"></a>
+<a name="function==function-name" id="function==function-name"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.12" class="outline-5">
+<h5 id="sec-1.9.5.12"><span class="section-number-5">1.9.5.12</span> Internal Function: <code>function-name</code></h5>
+<div class="outline-text-5" id="text-1.9.5.12">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.12.1" class="outline-6">
+<h6 id="sec-1.9.5.12.1"><span class="section-number-6">1.9.5.12.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.12.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>function-name fn<span style="color: #696969;">)</span>
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.12.2" class="outline-6">
+<h6 id="sec-1.9.5.12.2"><span class="section-number-6">1.9.5.12.2</span> Arguments</h6>
+<div class="outline-text-6" id="text-1.9.5.12.2">
+
+
+<dl>
+<dt>FN</dt><dd>
+A function, generic function or macro object.
+</dd>
+</dl>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.12.3" class="outline-6">
+<h6 id="sec-1.9.5.12.3"><span class="section-number-6">1.9.5.12.3</span> Returns</h6>
+<div class="outline-text-6" id="text-1.9.5.12.3">
+
+
+<p>
+The name of a function or macro, or nil.
+</p></div>
+
+</div>
+
+<div id="outline-container-1.9.5.12.4" class="outline-6">
+<h6 id="sec-1.9.5.12.4"><span class="section-number-6">1.9.5.12.4</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.12.4">
+
+
+<p>
+Returns the official 'name' bound to the function, macro,
+or generic function object FN. Returns <code>NIL</code> if no name can
+be found or if the function is anonymous (<code>lambda</code>).
+</p>
+
+
+<hr/>
+
+<p>
+<a name="html-safe-string" id="html-safe-string"></a>
+<a name="function==html-safe-string" id="function==html-safe-string"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.13" class="outline-5">
+<h5 id="sec-1.9.5.13"><span class="section-number-5">1.9.5.13</span> Internal Function: <code>html-safe-string</code></h5>
+<div class="outline-text-5" id="text-1.9.5.13">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.13.1" class="outline-6">
+<h6 id="sec-1.9.5.13.1"><span class="section-number-6">1.9.5.13.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.13.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>html-safe-string str<span style="color: #696969;">)</span>
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.13.2" class="outline-6">
+<h6 id="sec-1.9.5.13.2"><span class="section-number-6">1.9.5.13.2</span> Arguments</h6>
+<div class="outline-text-6" id="text-1.9.5.13.2">
+
+
+<dl>
+<dt>STR</dt><dd>
+A string.
+</dd>
+</dl>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.13.3" class="outline-6">
+<h6 id="sec-1.9.5.13.3"><span class="section-number-6">1.9.5.13.3</span> Returns</h6>
+<div class="outline-text-6" id="text-1.9.5.13.3">
+
+
+<p>
+A string.
+</p></div>
+
+</div>
+
+<div id="outline-container-1.9.5.13.4" class="outline-6">
+<h6 id="sec-1.9.5.13.4"><span class="section-number-6">1.9.5.13.4</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.13.4">
+
+
+
+<p>
+Given a string which is intended as a link target, return a copy in which we
+remove or alter any unsafe characters that will stop the link working properly
+when the document is exported to HTML.
+</p></div>
+
+</div>
+
+<div id="outline-container-1.9.5.13.5" class="outline-6">
+<h6 id="sec-1.9.5.13.5"><span class="section-number-6">1.9.5.13.5</span> See Also</h6>
+<div class="outline-text-6" id="text-1.9.5.13.5">
+
+
+<ul>
+<li>
+<a href="#*unsafe-html-chars*"><b>unsafe-html-chars</b></a>
+
+
+</li>
+</ul>
+
+
+<hr/>
+
+<p>
+<a name="list-..3e..string-with-commas" id="list-..3e..string-with-commas"></a>
+<a name="function==list-..3e..string-with-commas" id="function==list-..3e..string-with-commas"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.14" class="outline-5">
+<h5 id="sec-1.9.5.14"><span class="section-number-5">1.9.5.14</span> Internal Function: <code>list-&gt;string-with-commas</code></h5>
+<div class="outline-text-5" id="text-1.9.5.14">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.14.1" class="outline-6">
+<h6 id="sec-1.9.5.14.1"><span class="section-number-6">1.9.5.14.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.14.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>list-&gt;string-with-commas ls<span style="color: #696969;">)</span>
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.14.2" class="outline-6">
+<h6 id="sec-1.9.5.14.2"><span class="section-number-6">1.9.5.14.2</span> Arguments</h6>
+<div class="outline-text-6" id="text-1.9.5.14.2">
+
+
+<dl>
+<dt>LS</dt><dd>
+A list of values.
+</dd>
+</dl>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.14.3" class="outline-6">
+<h6 id="sec-1.9.5.14.3"><span class="section-number-6">1.9.5.14.3</span> Returns</h6>
+<div class="outline-text-6" id="text-1.9.5.14.3">
+
+
+<p>
+A string.
+</p></div>
+
+</div>
+
+<div id="outline-container-1.9.5.14.4" class="outline-6">
+<h6 id="sec-1.9.5.14.4"><span class="section-number-6">1.9.5.14.4</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.14.4">
+
+
+<p>
+Given a list of arbitrary values, returns a string consisting of the
+printed representations of those values, separated by commas and spaces.
+</p></div>
+
+</div>
+
+<div id="outline-container-1.9.5.14.5" class="outline-6">
+<h6 id="sec-1.9.5.14.5"><span class="section-number-6">1.9.5.14.5</span> Example</h6>
+<div class="outline-text-6" id="text-1.9.5.14.5">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>list-&gt;string-with-commas '<span style="color: #696969;">(</span>a b <span style="color: #2e8b57;">123</span><span style="color: #696969;">))</span>
+
+=&gt; <span style="color: #008b00;">"A, B, 123"</span>
+</pre>
+
+
+
+
+
+<hr/>
+
+<p>
+<a name="list-all-direct-slots" id="list-all-direct-slots"></a>
+<a name="function==list-all-direct-slots" id="function==list-all-direct-slots"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.15" class="outline-5">
+<h5 id="sec-1.9.5.15"><span class="section-number-5">1.9.5.15</span> Internal Function: <code>list-all-direct-slots</code></h5>
+<div class="outline-text-5" id="text-1.9.5.15">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.15.1" class="outline-6">
+<h6 id="sec-1.9.5.15.1"><span class="section-number-6">1.9.5.15.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.15.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>list-all-direct-slots classes<span style="color: #696969;">)</span>
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.15.2" class="outline-6">
+<h6 id="sec-1.9.5.15.2"><span class="section-number-6">1.9.5.15.2</span> Arguments</h6>
+<div class="outline-text-6" id="text-1.9.5.15.2">
+
+
+<dl>
+<dt>CLASSES</dt><dd>
+A list of class objects.
+</dd>
+</dl>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.15.3" class="outline-6">
+<h6 id="sec-1.9.5.15.3"><span class="section-number-6">1.9.5.15.3</span> Return Value</h6>
+<div class="outline-text-6" id="text-1.9.5.15.3">
+
+
+<p>
+A list of SLOT-DEFINITION instances.
+</p></div>
+
+</div>
+
+<div id="outline-container-1.9.5.15.4" class="outline-6">
+<h6 id="sec-1.9.5.15.4"><span class="section-number-6">1.9.5.15.4</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.15.4">
+
+
+<p>
+Return a list of all the direct SLOT-DEFINITION instances defined
+for all the classes in CLASSES.
+</p>
+
+
+<hr/>
+
+<p>
+<a name="list-all-indirect-slots" id="list-all-indirect-slots"></a>
+<a name="function==list-all-indirect-slots" id="function==list-all-indirect-slots"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.16" class="outline-5">
+<h5 id="sec-1.9.5.16"><span class="section-number-5">1.9.5.16</span> Internal Function: <code>list-all-indirect-slots</code></h5>
+<div class="outline-text-5" id="text-1.9.5.16">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.16.1" class="outline-6">
+<h6 id="sec-1.9.5.16.1"><span class="section-number-6">1.9.5.16.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.16.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>list-all-indirect-slots classes<span style="color: #696969;">)</span>
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.16.2" class="outline-6">
+<h6 id="sec-1.9.5.16.2"><span class="section-number-6">1.9.5.16.2</span> Arguments</h6>
+<div class="outline-text-6" id="text-1.9.5.16.2">
+
+
+<dl>
+<dt>CLASSES</dt><dd>
+A list of class objects.
+</dd>
+</dl>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.16.3" class="outline-6">
+<h6 id="sec-1.9.5.16.3"><span class="section-number-6">1.9.5.16.3</span> Return Value</h6>
+<div class="outline-text-6" id="text-1.9.5.16.3">
+
+
+<p>
+A list of SLOT-DEFINITION instances.
+</p></div>
+
+</div>
+
+<div id="outline-container-1.9.5.16.4" class="outline-6">
+<h6 id="sec-1.9.5.16.4"><span class="section-number-6">1.9.5.16.4</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.16.4">
+
+
+<p>
+Return a list of all the indirect SLOT-DEFINITION instances defined
+for all the classes in CLASSES.
+</p>
+
+
+<hr/>
+
+<p>
+<a name="list-all-slot-accessors" id="list-all-slot-accessors"></a>
+<a name="function==list-all-slot-accessors" id="function==list-all-slot-accessors"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.17" class="outline-5">
+<h5 id="sec-1.9.5.17"><span class="section-number-5">1.9.5.17</span> Internal Function: <code>list-all-slot-accessors</code></h5>
+<div class="outline-text-5" id="text-1.9.5.17">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.17.1" class="outline-6">
+<h6 id="sec-1.9.5.17.1"><span class="section-number-6">1.9.5.17.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.17.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>list-all-slot-accessors classes<span style="color: #696969;">)</span>
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.17.2" class="outline-6">
+<h6 id="sec-1.9.5.17.2"><span class="section-number-6">1.9.5.17.2</span> Arguments</h6>
+<div class="outline-text-6" id="text-1.9.5.17.2">
+
+
+<dl>
+<dt>CLASSES</dt><dd>
+A list of class objects.
+</dd>
+</dl>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.17.3" class="outline-6">
+<h6 id="sec-1.9.5.17.3"><span class="section-number-6">1.9.5.17.3</span> Return Value</h6>
+<div class="outline-text-6" id="text-1.9.5.17.3">
+
+
+<p>
+A list of generic functions.
+</p></div>
+
+</div>
+
+<div id="outline-container-1.9.5.17.4" class="outline-6">
+<h6 id="sec-1.9.5.17.4"><span class="section-number-6">1.9.5.17.4</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.17.4">
+
+
+<p>
+Return a list of all the reader and writer generic functions associated
+with all the slots of the classes in CLASSES.
+</p>
+
+
+<hr/>
+
+<p>
+<a name="make-class-link" id="make-class-link"></a>
+<a name="function==make-class-link" id="function==make-class-link"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.18" class="outline-5">
+<h5 id="sec-1.9.5.18"><span class="section-number-5">1.9.5.18</span> Internal Function: <code>make-class-link</code></h5>
+<div class="outline-text-5" id="text-1.9.5.18">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.18.1" class="outline-6">
+<h6 id="sec-1.9.5.18.1"><span class="section-number-6">1.9.5.18.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.18.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>make-class-link x <span style="color: #d2691e; font-weight: bold;">&amp;key</span> text<span style="color: #696969;">)</span>
+</pre>
+
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.18.2" class="outline-6">
+<h6 id="sec-1.9.5.18.2"><span class="section-number-6">1.9.5.18.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.18.2">
+
+
+<p>
+Synonym for (<a href="#make-link">make-link</a> <code>X :class</code>).
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="make-link" id="make-link"></a>
+<a name="function==make-link" id="function==make-link"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.19" class="outline-5">
+<h5 id="sec-1.9.5.19"><span class="section-number-5">1.9.5.19</span> Internal Function: <code>make-link</code></h5>
+<div class="outline-text-5" id="text-1.9.5.19">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.19.1" class="outline-6">
+<h6 id="sec-1.9.5.19.1"><span class="section-number-6">1.9.5.19.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.19.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>make-link target entity <span style="color: #d2691e; font-weight: bold;">&amp;key</span> text<span style="color: #696969;">)</span>
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.19.2" class="outline-6">
+<h6 id="sec-1.9.5.19.2"><span class="section-number-6">1.9.5.19.2</span> Arguments</h6>
+<div class="outline-text-6" id="text-1.9.5.19.2">
+
+
+<dl>
+<dt>TARGET</dt><dd>
+A symbol, string, or other value that constitutes the target of the
+link.
+</dd>
+<dt>ENTITY</dt><dd>
+An <a href="#..3d..entity..3d.."><code>entity</code></a>.
+</dd>
+<dt>TEXT</dt><dd>
+An optional string, used for the appearance of the link. The default
+is a direct textual representation of <code>TARGET</code>.
+</dd>
+</dl>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.19.3" class="outline-6">
+<h6 id="sec-1.9.5.19.3"><span class="section-number-6">1.9.5.19.3</span> Returns</h6>
+<div class="outline-text-6" id="text-1.9.5.19.3">
+
+
+<p>
+A string.
+</p></div>
+
+</div>
+
+<div id="outline-container-1.9.5.19.4" class="outline-6">
+<h6 id="sec-1.9.5.19.4"><span class="section-number-6">1.9.5.19.4</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.19.4">
+
+
+<p>
+Given a target and text, return a string that will be interpreted by org mode as
+a hyperlink leading to the documentation for <code>TARGET</code>.
+</p>
+
+
+<hr/>
+
+<p>
+<a name="make-package-link" id="make-package-link"></a>
+<a name="function==make-package-link" id="function==make-package-link"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.20" class="outline-5">
+<h5 id="sec-1.9.5.20"><span class="section-number-5">1.9.5.20</span> Internal Function: <code>make-package-link</code></h5>
+<div class="outline-text-5" id="text-1.9.5.20">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.20.1" class="outline-6">
+<h6 id="sec-1.9.5.20.1"><span class="section-number-6">1.9.5.20.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.20.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>make-package-link sym<span style="color: #696969;">)</span>
+</pre>
+
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.20.2" class="outline-6">
+<h6 id="sec-1.9.5.20.2"><span class="section-number-6">1.9.5.20.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.20.2">
+
+
+<p>
+Synonym for (<a href="#make-link">make-link</a> <code>X :package</code>).
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="make-specialised-lambda-list" id="make-specialised-lambda-list"></a>
+<a name="function==make-specialised-lambda-list" id="function==make-specialised-lambda-list"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.21" class="outline-5">
+<h5 id="sec-1.9.5.21"><span class="section-number-5">1.9.5.21</span> Internal Function: <code>make-specialised-lambda-list</code></h5>
+<div class="outline-text-5" id="text-1.9.5.21">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.21.1" class="outline-6">
+<h6 id="sec-1.9.5.21.1"><span class="section-number-6">1.9.5.21.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.21.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>make-specialised-lambda-list terms specs<span style="color: #696969;">)</span>
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.21.2" class="outline-6">
+<h6 id="sec-1.9.5.21.2"><span class="section-number-6">1.9.5.21.2</span> Arguments</h6>
+<div class="outline-text-6" id="text-1.9.5.21.2">
+
+
+<dl>
+<dt>TERMS</dt><dd>
+Unspecialised version of the lambda list (a list of symbols).
+</dd>
+<dt>SPECS</dt><dd>
+List of class names on which a particular method is
+specialised.
+</dd>
+</dl>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.21.3" class="outline-6">
+<h6 id="sec-1.9.5.21.3"><span class="section-number-6">1.9.5.21.3</span> Returns</h6>
+<div class="outline-text-6" id="text-1.9.5.21.3">
+
+
+<p>
+A list.
+</p></div>
+
+</div>
+
+<div id="outline-container-1.9.5.21.4" class="outline-6">
+<h6 id="sec-1.9.5.21.4"><span class="section-number-6">1.9.5.21.4</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.21.4">
+
+
+<p>
+Given an unspecialised lambda list and a list of specialisers, reconstruct
+the specialised lambda list and return it.
+</p>
+
+
+<hr/>
+
+<p>
+<a name="make-target" id="make-target"></a>
+<a name="function==make-target" id="function==make-target"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.22" class="outline-5">
+<h5 id="sec-1.9.5.22"><span class="section-number-5">1.9.5.22</span> Internal Function: <code>make-target</code></h5>
+<div class="outline-text-5" id="text-1.9.5.22">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.22.1" class="outline-6">
+<h6 id="sec-1.9.5.22.1"><span class="section-number-6">1.9.5.22.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.22.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>make-target sym <span style="color: #d2691e; font-weight: bold;">&amp;optional</span> entity<span style="color: #696969;">)</span>
+</pre>
+
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.22.2" class="outline-6">
+<h6 id="sec-1.9.5.22.2"><span class="section-number-6">1.9.5.22.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.22.2">
+
+
+<p>
+Returns a string that will be interpreted by org as a destination for
+hyperlinks to <code>SYM</code>.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="map-list" id="map-list"></a>
+<a name="function==map-list" id="function==map-list"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.23" class="outline-5">
+<h5 id="sec-1.9.5.23"><span class="section-number-5">1.9.5.23</span> Internal Function: <code>map-list</code></h5>
+<div class="outline-text-5" id="text-1.9.5.23">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.23.1" class="outline-6">
+<h6 id="sec-1.9.5.23.1"><span class="section-number-6">1.9.5.23.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.23.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>map-list <span style="color: #1e90ff; font-weight: bold;">function</span> <span style="color: #1e90ff; font-weight: bold;">list</span><span style="color: #696969;">)</span>
+</pre>
+
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.23.2" class="outline-6">
+<h6 id="sec-1.9.5.23.2"><span class="section-number-6">1.9.5.23.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.23.2">
+
+
+<p>
+Map over proper and not proper lists.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="org-safe-symbol" id="org-safe-symbol"></a>
+<a name="function==org-safe-symbol" id="function==org-safe-symbol"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.24" class="outline-5">
+<h5 id="sec-1.9.5.24"><span class="section-number-5">1.9.5.24</span> Internal Function: <code>org-safe-symbol</code></h5>
+<div class="outline-text-5" id="text-1.9.5.24">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.24.1" class="outline-6">
+<h6 id="sec-1.9.5.24.1"><span class="section-number-6">1.9.5.24.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.24.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>org-safe-symbol sym<span style="color: #696969;">)</span>
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.24.2" class="outline-6">
+<h6 id="sec-1.9.5.24.2"><span class="section-number-6">1.9.5.24.2</span> Arguments</h6>
+<div class="outline-text-6" id="text-1.9.5.24.2">
+
+
+<dl>
+<dt>SYM</dt><dd>
+A symbol.
+</dd>
+</dl>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.24.3" class="outline-6">
+<h6 id="sec-1.9.5.24.3"><span class="section-number-6">1.9.5.24.3</span> Return Value</h6>
+<div class="outline-text-6" id="text-1.9.5.24.3">
+
+
+<p>
+A string.
+</p></div>
+
+</div>
+
+<div id="outline-container-1.9.5.24.4" class="outline-6">
+<h6 id="sec-1.9.5.24.4"><span class="section-number-6">1.9.5.24.4</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.24.4">
+
+
+<p>
+Given the symbol SYM, return a string that represents SYM in a form that is
+human-readable and where org will not be confused by any characters that
+might represent markup instructions.
+</p>
+
+
+<hr/>
+
+<p>
+<a name="replace-strings-with-symbols" id="replace-strings-with-symbols"></a>
+<a name="function==replace-strings-with-symbols" id="function==replace-strings-with-symbols"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.25" class="outline-5">
+<h5 id="sec-1.9.5.25"><span class="section-number-5">1.9.5.25</span> Internal Function: <code>replace-strings-with-symbols</code></h5>
+<div class="outline-text-5" id="text-1.9.5.25">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.25.1" class="outline-6">
+<h6 id="sec-1.9.5.25.1"><span class="section-number-6">1.9.5.25.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.25.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>replace-strings-with-symbols tree<span style="color: #696969;">)</span>
+</pre>
+
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.25.2" class="outline-6">
+<h6 id="sec-1.9.5.25.2"><span class="section-number-6">1.9.5.25.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.25.2">
+
+
+<p>
+Not documented.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="simple-type..3f.." id="simple-type..3f.."></a>
+<a name="function==simple-type..3f.." id="function==simple-type..3f.."></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.26" class="outline-5">
+<h5 id="sec-1.9.5.26"><span class="section-number-5">1.9.5.26</span> Internal Function: <code>simple-type?</code></h5>
+<div class="outline-text-5" id="text-1.9.5.26">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.26.1" class="outline-6">
+<h6 id="sec-1.9.5.26.1"><span class="section-number-6">1.9.5.26.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.26.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>simple-type? sym<span style="color: #696969;">)</span>
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.26.2" class="outline-6">
+<h6 id="sec-1.9.5.26.2"><span class="section-number-6">1.9.5.26.2</span> Arguments</h6>
+<div class="outline-text-6" id="text-1.9.5.26.2">
+
+
+<dl>
+<dt>SYM</dt><dd>
+A symbol.
+</dd>
+</dl>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.26.3" class="outline-6">
+<h6 id="sec-1.9.5.26.3"><span class="section-number-6">1.9.5.26.3</span> Return Value</h6>
+<div class="outline-text-6" id="text-1.9.5.26.3">
+
+
+<p>
+Boolean.
+</p></div>
+
+</div>
+
+<div id="outline-container-1.9.5.26.4" class="outline-6">
+<h6 id="sec-1.9.5.26.4"><span class="section-number-6">1.9.5.26.4</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.26.4">
+
+
+<p>
+Returns <code>T</code> if <code>SYM</code> names a non-class type, such as can be
+defined by <a href="#sec-1.9.5.26.4">deftype</a>.
+</p>
+
+
+<hr/>
+
+<p>
+<a name="str..2b.." id="str..2b.."></a>
+<a name="function==str..2b.." id="function==str..2b.."></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.27" class="outline-5">
+<h5 id="sec-1.9.5.27"><span class="section-number-5">1.9.5.27</span> Internal Function: <code>str+</code></h5>
+<div class="outline-text-5" id="text-1.9.5.27">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.27.1" class="outline-6">
+<h6 id="sec-1.9.5.27.1"><span class="section-number-6">1.9.5.27.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.27.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>str+ <span style="color: #d2691e; font-weight: bold;">&amp;rest</span> strings<span style="color: #696969;">)</span>
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.27.2" class="outline-6">
+<h6 id="sec-1.9.5.27.2"><span class="section-number-6">1.9.5.27.2</span> Arguments</h6>
+<div class="outline-text-6" id="text-1.9.5.27.2">
+
+
+<dl>
+<dt>STRINGS</dt><dd>
+One or more strings.
+</dd>
+</dl>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.27.3" class="outline-6">
+<h6 id="sec-1.9.5.27.3"><span class="section-number-6">1.9.5.27.3</span> Returns</h6>
+<div class="outline-text-6" id="text-1.9.5.27.3">
+
+
+<p>
+A string.
+</p></div>
+
+</div>
+
+<div id="outline-container-1.9.5.27.4" class="outline-6">
+<h6 id="sec-1.9.5.27.4"><span class="section-number-6">1.9.5.27.4</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.27.4">
+
+
+<p>
+Returns the concatenation of all supplied strings. Shorthand
+for <code>(concatenate 'string . STRINGS)</code>.
+</p>
+
+
+<hr/>
+
+<p>
+<a name="string-starts-with..3f.." id="string-starts-with..3f.."></a>
+<a name="function==string-starts-with..3f.." id="function==string-starts-with..3f.."></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.28" class="outline-5">
+<h5 id="sec-1.9.5.28"><span class="section-number-5">1.9.5.28</span> Internal Function: <code>string-starts-with?</code></h5>
+<div class="outline-text-5" id="text-1.9.5.28">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.28.1" class="outline-6">
+<h6 id="sec-1.9.5.28.1"><span class="section-number-6">1.9.5.28.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.28.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>string-starts-with? str start<span style="color: #696969;">)</span>
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.28.2" class="outline-6">
+<h6 id="sec-1.9.5.28.2"><span class="section-number-6">1.9.5.28.2</span> Arguments</h6>
+<div class="outline-text-6" id="text-1.9.5.28.2">
+
+
+<dl>
+<dt>STR</dt><dd>
+A string.
+</dd>
+<dt>START</dt><dd>
+A smaller string.
+</dd>
+</dl>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.28.3" class="outline-6">
+<h6 id="sec-1.9.5.28.3"><span class="section-number-6">1.9.5.28.3</span> Returns</h6>
+<div class="outline-text-6" id="text-1.9.5.28.3">
+
+
+<p>
+Boolean.
+</p></div>
+
+</div>
+
+<div id="outline-container-1.9.5.28.4" class="outline-6">
+<h6 id="sec-1.9.5.28.4"><span class="section-number-6">1.9.5.28.4</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.28.4">
+
+
+<p>
+Predicate. Does the string <code>STR</code> start with the string <code>START</code>?
+</p>
+
+
+<hr/>
+
+<p>
+<a name="symbol-accessibility" id="symbol-accessibility"></a>
+<a name="function==symbol-accessibility" id="function==symbol-accessibility"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.29" class="outline-5">
+<h5 id="sec-1.9.5.29"><span class="section-number-5">1.9.5.29</span> Internal Function: <code>symbol-accessibility</code></h5>
+<div class="outline-text-5" id="text-1.9.5.29">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.29.1" class="outline-6">
+<h6 id="sec-1.9.5.29.1"><span class="section-number-6">1.9.5.29.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.29.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>symbol-accessibility sym <span style="color: #d2691e; font-weight: bold;">&amp;optional</span> <span style="color: #696969;">(</span>pkg <span style="color: #00868b; font-weight: bold;">*package*</span><span style="color: #696969;">))</span>
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.29.2" class="outline-6">
+<h6 id="sec-1.9.5.29.2"><span class="section-number-6">1.9.5.29.2</span> Arguments</h6>
+<div class="outline-text-6" id="text-1.9.5.29.2">
+
+
+<dl>
+<dt>SYM</dt><dd>
+A symbol.
+</dd>
+<dt>PKG</dt><dd>
+A package.
+</dd>
+</dl>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.29.3" class="outline-6">
+<h6 id="sec-1.9.5.29.3"><span class="section-number-6">1.9.5.29.3</span> Returns</h6>
+<div class="outline-text-6" id="text-1.9.5.29.3">
+
+
+<p>
+One of <code>:inherited, :internal, :external</code> or <code>nil</code>.
+</p></div>
+
+</div>
+
+<div id="outline-container-1.9.5.29.4" class="outline-6">
+<h6 id="sec-1.9.5.29.4"><span class="section-number-6">1.9.5.29.4</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.29.4">
+
+
+<p>
+Returns a symbol describing how the symbol <code>SYM</code> is accessible within
+the package <code>PKG</code>. If <code>SYM</code> is exported by <code>PKG</code> then the function
+returns <code>:external</code>, and so on.
+</p>
+
+
+<hr/>
+
+<p>
+<a name="type-..3e..string" id="type-..3e..string"></a>
+<a name="function==type-..3e..string" id="function==type-..3e..string"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.30" class="outline-5">
+<h5 id="sec-1.9.5.30"><span class="section-number-5">1.9.5.30</span> Internal Function: <code>type-&gt;string</code></h5>
+<div class="outline-text-5" id="text-1.9.5.30">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.30.1" class="outline-6">
+<h6 id="sec-1.9.5.30.1"><span class="section-number-6">1.9.5.30.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.30.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>type-&gt;string typ<span style="color: #696969;">)</span>
+</pre>
+
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.30.2" class="outline-6">
+<h6 id="sec-1.9.5.30.2"><span class="section-number-6">1.9.5.30.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.30.2">
+
+
+<p>
+Returns a simple string representation of the type specifier <code>TYP</code>.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="uses-for-symbol" id="uses-for-symbol"></a>
+<a name="function==uses-for-symbol" id="function==uses-for-symbol"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.31" class="outline-5">
+<h5 id="sec-1.9.5.31"><span class="section-number-5">1.9.5.31</span> Internal Function: <code>uses-for-symbol</code></h5>
+<div class="outline-text-5" id="text-1.9.5.31">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.31.1" class="outline-6">
+<h6 id="sec-1.9.5.31.1"><span class="section-number-6">1.9.5.31.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.31.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>uses-for-symbol sym<span style="color: #696969;">)</span>
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.31.2" class="outline-6">
+<h6 id="sec-1.9.5.31.2"><span class="section-number-6">1.9.5.31.2</span> Arguments</h6>
+<div class="outline-text-6" id="text-1.9.5.31.2">
+
+
+<dl>
+<dt>SYM</dt><dd>
+A symbol.
+</dd>
+</dl>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.31.3" class="outline-6">
+<h6 id="sec-1.9.5.31.3"><span class="section-number-6">1.9.5.31.3</span> Return Value</h6>
+<div class="outline-text-6" id="text-1.9.5.31.3">
+
+
+<p>
+A list of <a href="#..3d..entity..3d.."><code>entity</code></a> values.
+</p></div>
+
+</div>
+
+<div id="outline-container-1.9.5.31.4" class="outline-6">
+<h6 id="sec-1.9.5.31.4"><span class="section-number-6">1.9.5.31.4</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.31.4">
+
+
+<p>
+Given a symbol <code>SYM</code>, return a list of entity values, describing the
+different meanings/bindings of <code>SYM</code> within its home package.
+</p>
+
+
+<hr/>
+
+<p>
+<a name="word-wrap" id="word-wrap"></a>
+<a name="function==word-wrap" id="function==word-wrap"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.32" class="outline-5">
+<h5 id="sec-1.9.5.32"><span class="section-number-5">1.9.5.32</span> Internal Function: <code>word-wrap</code></h5>
+<div class="outline-text-5" id="text-1.9.5.32">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.32.1" class="outline-6">
+<h6 id="sec-1.9.5.32.1"><span class="section-number-6">1.9.5.32.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.32.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>word-wrap text <span style="color: #d2691e; font-weight: bold;">&amp;key</span> <span style="color: #696969;">(</span>width <span style="color: #2e8b57;">80</span><span style="color: #696969;">)</span> respect-newlines respect-hyphens
+           exclude-start-char exclude-end-char<span style="color: #696969;">)</span>
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.32.2" class="outline-6">
+<h6 id="sec-1.9.5.32.2"><span class="section-number-6">1.9.5.32.2</span> Arguments</h6>
+<div class="outline-text-6" id="text-1.9.5.32.2">
+
+
+<dl>
+<dt>TEXT</dt><dd>
+A string.
+</dd>
+<dt>WIDTH</dt><dd>
+An integer. The maximum length of lines once TEXT is wrapped.
+Default is 80.
+</dd>
+<dt>RESPECT-NEWLINES</dt><dd>
+Boolean. Should newline characters within the string
+be treated as unbreakable? (<code>NIL</code>)
+</dd>
+<dt>RESPECT-HYPHENS</dt><dd>
+Boolean. Should we refrain from breaking hyphenated
+words? (<code>NIL</code>)
+</dd>
+<dt>EXCLUDE-START-CHAR</dt><dd>
+A character, or nil.
+</dd>
+<dt>EXCLUDE-END-CHAR</dt><dd>
+A character, or nil.
+
+</dd>
+</dl>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.32.3" class="outline-6">
+<h6 id="sec-1.9.5.32.3"><span class="section-number-6">1.9.5.32.3</span> Return Value</h6>
+<div class="outline-text-6" id="text-1.9.5.32.3">
+
+
+<p>
+A list of strings.
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.32.4" class="outline-6">
+<h6 id="sec-1.9.5.32.4"><span class="section-number-6">1.9.5.32.4</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.32.4">
+
+
+<p>
+Given a string <code>TEXT</code>, breaks the string into a series of
+smaller strings, none of which is longer than <code>WIDTH</code>. Returns the list of
+strings.
+</p>
+<p>
+If <code>EXCLUDE-START-CHAR</code> and <code>EXCLUDE-END-CHAR</code> are supplied, those characters
+will be treated as demarcating sections of the string whose length is to
+be ignored (treated as zero).
+</p>
+
+
+<hr/>
+
+<p>
+<a name="wrap-and-write" id="wrap-and-write"></a>
+<a name="function==wrap-and-write" id="function==wrap-and-write"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.33" class="outline-5">
+<h5 id="sec-1.9.5.33"><span class="section-number-5">1.9.5.33</span> Internal Function: <code>wrap-and-write</code></h5>
+<div class="outline-text-5" id="text-1.9.5.33">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.33.1" class="outline-6">
+<h6 id="sec-1.9.5.33.1"><span class="section-number-6">1.9.5.33.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.33.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>wrap-and-write fmt <span style="color: #d2691e; font-weight: bold;">&amp;rest</span> args<span style="color: #696969;">)</span>
+</pre>
+
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.33.2" class="outline-6">
+<h6 id="sec-1.9.5.33.2"><span class="section-number-6">1.9.5.33.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.33.2">
+
+
+<p>
+Wraps the result of <code>(FORMAT NIL FMT . ARGS)</code>, then writes the
+resulting paragraph to output.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="wrap-and-write-code" id="wrap-and-write-code"></a>
+<a name="function==wrap-and-write-code" id="function==wrap-and-write-code"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.34" class="outline-5">
+<h5 id="sec-1.9.5.34"><span class="section-number-5">1.9.5.34</span> Internal Function: <code>wrap-and-write-code</code></h5>
+<div class="outline-text-5" id="text-1.9.5.34">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.34.1" class="outline-6">
+<h6 id="sec-1.9.5.34.1"><span class="section-number-6">1.9.5.34.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.34.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>wrap-and-write-code fmt <span style="color: #d2691e; font-weight: bold;">&amp;rest</span> args<span style="color: #696969;">)</span>
+</pre>
+
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.34.2" class="outline-6">
+<h6 id="sec-1.9.5.34.2"><span class="section-number-6">1.9.5.34.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.34.2">
+
+
+<p>
+Wraps the result of <code>(FORMAT NIL FMT . ARGS)</code>, then writes the
+resulting paragraph with 'literal' or 'source code block' markup.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="write-bullet-point" id="write-bullet-point"></a>
+<a name="function==write-bullet-point" id="function==write-bullet-point"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.35" class="outline-5">
+<h5 id="sec-1.9.5.35"><span class="section-number-5">1.9.5.35</span> Internal Function: <code>write-bullet-point</code></h5>
+<div class="outline-text-5" id="text-1.9.5.35">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.35.1" class="outline-6">
+<h6 id="sec-1.9.5.35.1"><span class="section-number-6">1.9.5.35.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.35.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>write-bullet-point fmt <span style="color: #d2691e; font-weight: bold;">&amp;rest</span> args<span style="color: #696969;">)</span>
+</pre>
+
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.35.2" class="outline-6">
+<h6 id="sec-1.9.5.35.2"><span class="section-number-6">1.9.5.35.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.35.2">
+
+
+<p>
+Writes a the result of <code>(FORMAT NIL FMT . ARGS)</code> as a point within
+an active bulleted list.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="write-chapter" id="write-chapter"></a>
+<a name="function==write-chapter" id="function==write-chapter"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.36" class="outline-5">
+<h5 id="sec-1.9.5.36"><span class="section-number-5">1.9.5.36</span> Internal Function: <code>write-chapter</code></h5>
+<div class="outline-text-5" id="text-1.9.5.36">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.36.1" class="outline-6">
+<h6 id="sec-1.9.5.36.1"><span class="section-number-6">1.9.5.36.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.36.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>write-chapter symlist entity title<span style="color: #696969;">)</span>
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.36.2" class="outline-6">
+<h6 id="sec-1.9.5.36.2"><span class="section-number-6">1.9.5.36.2</span> Arguments</h6>
+<div class="outline-text-6" id="text-1.9.5.36.2">
+
+
+<dl>
+<dt>SYMLIST</dt><dd>
+A list of symbols.
+</dd>
+<dt>ENTITY</dt><dd>
+An <a href="#..3d..entity..3d.."><code>entity</code></a>.
+</dd>
+<dt>TITLE</dt><dd>
+A string.
+</dd>
+</dl>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.36.3" class="outline-6">
+<h6 id="sec-1.9.5.36.3"><span class="section-number-6">1.9.5.36.3</span> Return Value</h6>
+<div class="outline-text-6" id="text-1.9.5.36.3">
+
+
+<p>
+Ignored.
+</p></div>
+
+</div>
+
+<div id="outline-container-1.9.5.36.4" class="outline-6">
+<h6 id="sec-1.9.5.36.4"><span class="section-number-6">1.9.5.36.4</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.36.4">
+
+
+<p>
+Writes the section of the document which describes all entities of
+type <code>ENTITY</code>. <code>SYMLIST</code> should be a list of all the symbols that
+name such entities.
+</p>
+
+
+<hr/>
+
+<p>
+<a name="write-class-hierarchy" id="write-class-hierarchy"></a>
+<a name="function==write-class-hierarchy" id="function==write-class-hierarchy"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.37" class="outline-5">
+<h5 id="sec-1.9.5.37"><span class="section-number-5">1.9.5.37</span> Internal Function: <code>write-class-hierarchy</code></h5>
+<div class="outline-text-5" id="text-1.9.5.37">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.37.1" class="outline-6">
+<h6 id="sec-1.9.5.37.1"><span class="section-number-6">1.9.5.37.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.37.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>write-class-hierarchy classes<span style="color: #696969;">)</span>
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.37.2" class="outline-6">
+<h6 id="sec-1.9.5.37.2"><span class="section-number-6">1.9.5.37.2</span> Arguments</h6>
+<div class="outline-text-6" id="text-1.9.5.37.2">
+
+
+<dl>
+<dt>CLASSES</dt><dd>
+A list of CLASS objects.
+</dd>
+</dl>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.37.3" class="outline-6">
+<h6 id="sec-1.9.5.37.3"><span class="section-number-6">1.9.5.37.3</span> Returns</h6>
+<div class="outline-text-6" id="text-1.9.5.37.3">
+
+
+<p>
+Ignored.
+</p></div>
+
+</div>
+
+<div id="outline-container-1.9.5.37.4" class="outline-6">
+<h6 id="sec-1.9.5.37.4"><span class="section-number-6">1.9.5.37.4</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.37.4">
+
+
+<p>
+Writes the inheritance tree of CLASSES as a GraphViz diagram, using the
+DOT language. External parent classes are also included.
+</p>
+<p>
+See <a href="http://www.graphviz.org/">http://www.graphviz.org/</a> for details of the GraphViz language.
+</p>
+
+
+<hr/>
+
+<p>
+<a name="write-colophon" id="write-colophon"></a>
+<a name="function==write-colophon" id="function==write-colophon"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.38" class="outline-5">
+<h5 id="sec-1.9.5.38"><span class="section-number-5">1.9.5.38</span> Internal Function: <code>write-colophon</code></h5>
+<div class="outline-text-5" id="text-1.9.5.38">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.38.1" class="outline-6">
+<h6 id="sec-1.9.5.38.1"><span class="section-number-6">1.9.5.38.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.38.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>write-colophon<span style="color: #696969;">)</span>
+</pre>
+
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.38.2" class="outline-6">
+<h6 id="sec-1.9.5.38.2"><span class="section-number-6">1.9.5.38.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.38.2">
+
+
+<p>
+Not documented.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="write-disambiguation" id="write-disambiguation"></a>
+<a name="function==write-disambiguation" id="function==write-disambiguation"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.39" class="outline-5">
+<h5 id="sec-1.9.5.39"><span class="section-number-5">1.9.5.39</span> Internal Function: <code>write-disambiguation</code></h5>
+<div class="outline-text-5" id="text-1.9.5.39">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.39.1" class="outline-6">
+<h6 id="sec-1.9.5.39.1"><span class="section-number-6">1.9.5.39.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.39.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>write-disambiguation sym uses<span style="color: #696969;">)</span>
+</pre>
+
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.39.2" class="outline-6">
+<h6 id="sec-1.9.5.39.2"><span class="section-number-6">1.9.5.39.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.39.2">
+
+
+<p>
+Writes a section providing disambiguating links for the symbol
+SYM, which is bound in multiple namespaces.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="write-docstring" id="write-docstring"></a>
+<a name="function==write-docstring" id="function==write-docstring"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.40" class="outline-5">
+<h5 id="sec-1.9.5.40"><span class="section-number-5">1.9.5.40</span> Internal Function: <code>write-docstring</code></h5>
+<div class="outline-text-5" id="text-1.9.5.40">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.40.1" class="outline-6">
+<h6 id="sec-1.9.5.40.1"><span class="section-number-6">1.9.5.40.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.40.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>write-docstring str <span style="color: #d2691e; font-weight: bold;">&amp;key</span> <span style="color: #696969;">(</span>levels <span style="color: #00c5cd;">*heading-level*</span><span style="color: #696969;">)</span> <span style="color: #696969;">(</span>default <span style="color: #1e90ff; font-weight: bold;">not</span> documented.<span style="color: #696969;">))</span>
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.40.2" class="outline-6">
+<h6 id="sec-1.9.5.40.2"><span class="section-number-6">1.9.5.40.2</span> Arguments</h6>
+<div class="outline-text-6" id="text-1.9.5.40.2">
+
+
+<dl>
+<dt>STR</dt><dd>
+A docstring.
+</dd>
+<dt>LEVELS</dt><dd>
+How many levels deep in the outline is
+this docstring?
+</dd>
+<dt>DEFAULT</dt><dd>
+A string. Default text, used if <code>STR</code> is <code>NIL</code>.
+</dd>
+</dl>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.40.3" class="outline-6">
+<h6 id="sec-1.9.5.40.3"><span class="section-number-6">1.9.5.40.3</span> Return Value</h6>
+<div class="outline-text-6" id="text-1.9.5.40.3">
+
+
+<p>
+Ignored.
+</p></div>
+
+</div>
+
+<div id="outline-container-1.9.5.40.4" class="outline-6">
+<h6 id="sec-1.9.5.40.4"><span class="section-number-6">1.9.5.40.4</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.40.4">
+
+
+<p>
+Writes the docstring STR to the document. Before doing this, processes
+the docstring to:
+</p><ul>
+<li>
+Demote headings
+</li>
+<li>
+Make all hyperlinks safe for org mode and HTML export
+</li>
+<li>
+Convert lines beginning with ';;;' to syntax-highlighting markup.
+
+
+</li>
+</ul>
+
+
+<hr/>
+
+<p>
+<a name="write-docstring-section" id="write-docstring-section"></a>
+<a name="function==write-docstring-section" id="function==write-docstring-section"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.41" class="outline-5">
+<h5 id="sec-1.9.5.41"><span class="section-number-5">1.9.5.41</span> Internal Function: <code>write-docstring-section</code></h5>
+<div class="outline-text-5" id="text-1.9.5.41">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.41.1" class="outline-6">
+<h6 id="sec-1.9.5.41.1"><span class="section-number-6">1.9.5.41.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.41.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>write-docstring-section title docstr<span style="color: #696969;">)</span>
+</pre>
+
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.41.2" class="outline-6">
+<h6 id="sec-1.9.5.41.2"><span class="section-number-6">1.9.5.41.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.41.2">
+
+
+<p>
+Writes the documentation string DOCSTR within its own subsection.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="write-heading" id="write-heading"></a>
+<a name="function==write-heading" id="function==write-heading"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.42" class="outline-5">
+<h5 id="sec-1.9.5.42"><span class="section-number-5">1.9.5.42</span> Internal Function: <code>write-heading</code></h5>
+<div class="outline-text-5" id="text-1.9.5.42">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.42.1" class="outline-6">
+<h6 id="sec-1.9.5.42.1"><span class="section-number-6">1.9.5.42.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.42.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>write-heading title<span style="color: #696969;">)</span>
+</pre>
+
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.42.2" class="outline-6">
+<h6 id="sec-1.9.5.42.2"><span class="section-number-6">1.9.5.42.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.42.2">
+
+
+<p>
+Writes a section heading entitled <code>TITLE</code>.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="write-index" id="write-index"></a>
+<a name="function==write-index" id="function==write-index"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.43" class="outline-5">
+<h5 id="sec-1.9.5.43"><span class="section-number-5">1.9.5.43</span> Internal Function: <code>write-index</code></h5>
+<div class="outline-text-5" id="text-1.9.5.43">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.43.1" class="outline-6">
+<h6 id="sec-1.9.5.43.1"><span class="section-number-6">1.9.5.43.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.43.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>write-index pkg <span style="color: #d2691e; font-weight: bold;">&amp;optional</span> <span style="color: #696969;">(</span>accessibilities <span style="color: #696969;">(</span><span style="color: #1e90ff; font-weight: bold;">list</span> internal external<span style="color: #696969;">)))</span>
+</pre>
+
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.43.2" class="outline-6">
+<h6 id="sec-1.9.5.43.2"><span class="section-number-6">1.9.5.43.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.43.2">
+
+
+<p>
+Writes a section containing an alphabetical index of all the symbols
+in the package PKG.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="write-lambda-list-section" id="write-lambda-list-section"></a>
+<a name="function==write-lambda-list-section" id="function==write-lambda-list-section"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.44" class="outline-5">
+<h5 id="sec-1.9.5.44"><span class="section-number-5">1.9.5.44</span> Internal Function: <code>write-lambda-list-section</code></h5>
+<div class="outline-text-5" id="text-1.9.5.44">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.44.1" class="outline-6">
+<h6 id="sec-1.9.5.44.1"><span class="section-number-6">1.9.5.44.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.44.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>write-lambda-list-section sym<span style="color: #696969;">)</span>
+</pre>
+
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.44.2" class="outline-6">
+<h6 id="sec-1.9.5.44.2"><span class="section-number-6">1.9.5.44.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.44.2">
+
+
+<p>
+Writes a section describing the lambda list of the function or macro SYM.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="write-lines" id="write-lines"></a>
+<a name="function==write-lines" id="function==write-lines"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.45" class="outline-5">
+<h5 id="sec-1.9.5.45"><span class="section-number-5">1.9.5.45</span> Internal Function: <code>write-lines</code></h5>
+<div class="outline-text-5" id="text-1.9.5.45">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.45.1" class="outline-6">
+<h6 id="sec-1.9.5.45.1"><span class="section-number-6">1.9.5.45.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.45.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>write-lines <span style="color: #d2691e; font-weight: bold;">&amp;rest</span> lines<span style="color: #696969;">)</span>
+</pre>
+
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.45.2" class="outline-6">
+<h6 id="sec-1.9.5.45.2"><span class="section-number-6">1.9.5.45.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.45.2">
+
+
+<p>
+Not documented.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="write-list-as-paragraph" id="write-list-as-paragraph"></a>
+<a name="function==write-list-as-paragraph" id="function==write-list-as-paragraph"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.46" class="outline-5">
+<h5 id="sec-1.9.5.46"><span class="section-number-5">1.9.5.46</span> Internal Function: <code>write-list-as-paragraph</code></h5>
+<div class="outline-text-5" id="text-1.9.5.46">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.46.1" class="outline-6">
+<h6 id="sec-1.9.5.46.1"><span class="section-number-6">1.9.5.46.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.46.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>write-list-as-paragraph ls<span style="color: #696969;">)</span>
+</pre>
+
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.46.2" class="outline-6">
+<h6 id="sec-1.9.5.46.2"><span class="section-number-6">1.9.5.46.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.46.2">
+
+
+<p>
+LS is a list of items. Writes all the items in LS to output as a
+single wrapped paragraph. Individual items are separated by commas.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="write-out" id="write-out"></a>
+<a name="function==write-out" id="function==write-out"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.47" class="outline-5">
+<h5 id="sec-1.9.5.47"><span class="section-number-5">1.9.5.47</span> Internal Function: <code>write-out</code></h5>
+<div class="outline-text-5" id="text-1.9.5.47">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.47.1" class="outline-6">
+<h6 id="sec-1.9.5.47.1"><span class="section-number-6">1.9.5.47.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.47.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>write-out fmt <span style="color: #d2691e; font-weight: bold;">&amp;rest</span> args<span style="color: #696969;">)</span>
+</pre>
+
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.47.2" class="outline-6">
+<h6 id="sec-1.9.5.47.2"><span class="section-number-6">1.9.5.47.2</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.47.2">
+
+
+<p>
+Writes the result of <code>(FORMAT NIL FMT . ARGS)</code> to output.
+</p>
+
+
+
+<hr/>
+
+<p>
+<a name="write-preamble" id="write-preamble"></a>
+<a name="function==write-preamble" id="function==write-preamble"></a>
+</p>
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.48" class="outline-5">
+<h5 id="sec-1.9.5.48"><span class="section-number-5">1.9.5.48</span> Internal Function: <code>write-preamble</code></h5>
+<div class="outline-text-5" id="text-1.9.5.48">
+
+
+
+
+</div>
+
+<div id="outline-container-1.9.5.48.1" class="outline-6">
+<h6 id="sec-1.9.5.48.1"><span class="section-number-6">1.9.5.48.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1.9.5.48.1">
+
+
+
+
+
+<pre class="src src-lisp"><span style="color: #696969;">(</span>write-preamble<span style="color: #696969;">)</span>
+</pre>
+
+
+
+</div>
+
+</div>
+
+<div id="outline-container-1.9.5.48.2" class="outline-6">
+<h6 id="sec-1.9.5.48.2"><span class="section-number-6">1.9.5.48.2</span> Arguments</h6>
+<div class="outline-text-6" id="text-1.9.5.48.2">
+
+
+<p>
+None.
+</p></div>
+
+</div>
+
+<div id="outline-container-1.9.5.48.3" class="outline-6">
+<h6 id="sec-1.9.5.48.3"><span class="section-number-6">1.9.5.48.3</span> Return Value</h6>
+<div class="outline-text-6" id="text-1.9.5.48.3">
+
+
+<p>
+Ignored.
+</p></div>
+
+</div>
+
+<div id="outline-container-1.9.5.48.4" class="outline-6">
+<h6 id="sec-1.9.5.48.4"><span class="section-number-6">1.9.5.48.4</span> Description</h6>
+<div class="outline-text-6" id="text-1.9.5.48.4">
+
+
+<p>
+Writes some org instructions, intended to be placed at the start of the
+document. These specify the document's author, title, and set some
+export options.
+</p>
+
+
+
+
+</div>
+</div>
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-1.10" class="outline-3">
+<h3 id="sec-1.10"><span class="section-number-3">1.10</span> Index</h3>
+<div class="outline-text-3" id="text-1.10">
+
+
+<p>
+<a href="#index==A">A</a>  <a href="#index==B">B</a>  <a href="#index==C">C</a>  <a href="#index==D">D</a>  <a href="#index==E">E</a>
+<a href="#index==F">F</a>  <a href="#index==H">H</a>  <a href="#index==L">L</a>  <a href="#index==M">M</a>  <a href="#index==O">O</a>
+<a href="#index==R">R</a>  <a href="#index==S">S</a>  <a href="#index==T">T</a>  <a href="#index==U">U</a>  <a href="#index==W">W</a>
+<a href="#index==NONALPHABETIC">NONALPHABETIC</a>  
+</p>
+
+
+</div>
+
+<div id="outline-container-1.10.1" class="outline-4">
+<h4 id="sec-1.10.1"><span class="section-number-4">1.10.1</span> Nonalphabetic</h4>
+<div class="outline-text-4" id="text-1.10.1">
+
+
+
+<p>
+<a name="index==NONALPHABETIC" id="index==NONALPHABETIC"></a>
+</p><ul>
+<li>
+<a href="#variable==*accessibilities*"><code>*accessibilities*</code></a>, Variable
+</li>
+<li>
+<a href="#variable==*alphabet*"><code>*alphabet*</code></a>, Variable
+</li>
+<li>
+<a href="#variable==*ambiguities*"><code>*ambiguities*</code></a>, Variable
+</li>
+<li>
+<a href="#variable==*auto-links*"><code>*auto-links*</code></a>, Variable
+</li>
+<li>
+<a href="#variable==*brief-methods*"><code>*brief-methods*</code></a>, Variable
+</li>
+<li>
+<a href="#variable==*class-diagram*"><code>*class-diagram*</code></a>, Variable
+</li>
+<li>
+<a href="#variable==*clod-version-string*"><code>*clod-version-string*</code></a>, Variable
+</li>
+<li>
+<a href="#variable==*document-author*"><code>*document-author*</code></a>, Variable
+</li>
+<li>
+<a href="#variable==*document-email*"><code>*document-email*</code></a>, Variable
+</li>
+<li>
+<a href="#variable==*document-style-sheet*"><code>*document-style-sheet*</code></a>, Variable
+</li>
+<li>
+<a href="#variable==*document-title*"><code>*document-title*</code></a>, Variable
+</li>
+<li>
+<a href="#variable==*heading-char*"><code>*heading-char*</code></a>, Variable
+</li>
+<li>
+<a href="#variable==*heading-level*"><code>*heading-level*</code></a>, Variable
+</li>
+<li>
+<a href="#variable==*hyperspec-root*"><code>*hyperspec-root*</code></a>, Variable
+</li>
+<li>
+<a href="#variable==*left-margin*"><code>*left-margin*</code></a>, Variable
+</li>
+<li>
+<a href="#variable==*line-width*"><code>*line-width*</code></a>, Variable
+</li>
+<li>
+<a href="#variable==*lines-between-sections*"><code>*lines-between-sections*</code></a>, Variable
+</li>
+<li>
+<a href="#variable==*out*"><code>*out*</code></a>, Variable
+</li>
+<li>
+<a href="#variable==*unsafe-html-chars*"><code>*unsafe-html-chars*</code></a>, Variable
+</li>
+<li>
+<a href="#type==..3d..entity..3d..">==entity==</a>, Type
+
+
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-1.10.2" class="outline-4">
+<h4 id="sec-1.10.2"><span class="section-number-4">1.10.2</span> A</h4>
+<div class="outline-text-4" id="text-1.10.2">
+
+
+
+<p>
+<a name="index==A" id="index==A"></a>
+</p><ul>
+<li>
+<a href="#function==accessible-symbols"><code>accessible-symbols</code></a>, Function
+</li>
+<li>
+<a href="#function==ampersand-symbol..3f.."><code>ampersand-symbol?</code></a>, Function
+</li>
+<li>
+<a href="#class==animal"><code>animal</code></a>, Class
+
+
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-1.10.3" class="outline-4">
+<h4 id="sec-1.10.3"><span class="section-number-4">1.10.3</span> B</h4>
+<div class="outline-text-4" id="text-1.10.3">
+
+
+
+<p>
+<a name="index==B" id="index==B"></a>
+</p><ul>
+<li>
+<a href="#class==bird"><code>bird</code></a>, Class
+
+
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-1.10.4" class="outline-4">
+<h4 id="sec-1.10.4"><span class="section-number-4">1.10.4</span> C</h4>
+<div class="outline-text-4" id="text-1.10.4">
+
+
+
+<p>
+<a name="index==C" id="index==C"></a>
+</p><ul>
+<li>
+<a href="#class==cat"><code>cat</code></a>, Class
+</li>
+<li>
+<a href="#package==clod"><code>clod</code></a>, Package
+
+
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-1.10.5" class="outline-4">
+<h4 id="sec-1.10.5"><span class="section-number-4">1.10.5</span> D</h4>
+<div class="outline-text-4" id="text-1.10.5">
+
+
+
+<p>
+<a name="index==D" id="index==D"></a>
+</p><ul>
+<li>
+<a href="#function==declared-special-p"><code>declared-special-p</code></a>, Function
+</li>
+<li>
+<a href="#macro==do-own-symbols"><code>do-own-symbols</code></a>, Macro
+</li>
+<li>
+<a href="#function==docpkg"><code>docpkg</code></a>, Function
+</li>
+<li>
+<a href="#function==document"><code>document</code></a>, Function
+</li>
+<li>
+<a href="#function==document-package"><code>document-package</code></a>, Function
+</li>
+<li>
+<a href="#function==document-package-contents"><code>document-package-contents</code></a>, Function
+</li>
+<li>
+<a href="#function==document-packages"><code>document-packages</code></a>, Function
+</li>
+<li>
+<a href="#class==dog"><code>dog</code></a>, Class
+
+
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-1.10.6" class="outline-4">
+<h4 id="sec-1.10.6"><span class="section-number-4">1.10.6</span> E</h4>
+<div class="outline-text-4" id="text-1.10.6">
+
+
+
+<p>
+<a name="index==E" id="index==E"></a>
+</p><ul>
+<li>
+<a href="#function==entity-..3e..string"><code>entity-&gt;string</code></a>, Function
+</li>
+<li>
+<a href="#function==entity-..3e..tag"><code>entity-&gt;tag</code></a>, Function
+
+
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-1.10.7" class="outline-4">
+<h4 id="sec-1.10.7"><span class="section-number-4">1.10.7</span> F</h4>
+<div class="outline-text-4" id="text-1.10.7">
+
+
+
+<p>
+<a name="index==F" id="index==F"></a>
+</p><ul>
+<li>
+<a href="#function==find-pkg"><code>find-pkg</code></a>, Function
+</li>
+<li>
+<a href="#function==find-sym"><code>find-sym</code></a>, Function
+</li>
+<li>
+<a href="#function==function-lambda-list"><code>function-lambda-list</code></a>, Function
+</li>
+<li>
+<a href="#function==function-name"><code>function-name</code></a>, Function
+
+
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-1.10.8" class="outline-4">
+<h4 id="sec-1.10.8"><span class="section-number-4">1.10.8</span> H</h4>
+<div class="outline-text-4" id="text-1.10.8">
+
+
+
+<p>
+<a name="index==H" id="index==H"></a>
+</p><ul>
+<li>
+<a href="#class==hawk"><code>hawk</code></a>, Class
+</li>
+<li>
+<a href="#function==html-safe-string"><code>html-safe-string</code></a>, Function
+
+
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-1.10.9" class="outline-4">
+<h4 id="sec-1.10.9"><span class="section-number-4">1.10.9</span> L</h4>
+<div class="outline-text-4" id="text-1.10.9">
+
+
+
+<p>
+<a name="index==L" id="index==L"></a>
+</p><ul>
+<li>
+<a href="#function==list-..3e..string-with-commas"><code>list-&gt;string-with-commas</code></a>,
+Function
+</li>
+<li>
+<a href="#function==list-all-direct-slots"><code>list-all-direct-slots</code></a>, Function
+</li>
+<li>
+<a href="#function==list-all-indirect-slots"><code>list-all-indirect-slots</code></a>, Function
+</li>
+<li>
+<a href="#function==list-all-slot-accessors"><code>list-all-slot-accessors</code></a>, Function
+
+
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-1.10.10" class="outline-4">
+<h4 id="sec-1.10.10"><span class="section-number-4">1.10.10</span> M</h4>
+<div class="outline-text-4" id="text-1.10.10">
+
+
+
+<p>
+<a name="index==M" id="index==M"></a>
+</p><ul>
+<li>
+<a href="#function==make-class-link"><code>make-class-link</code></a>, Function
+</li>
+<li>
+<a href="#function==make-link"><code>make-link</code></a>, Function
+</li>
+<li>
+<a href="#function==make-package-link"><code>make-package-link</code></a>, Function
+</li>
+<li>
+<a href="#function==make-specialised-lambda-list"><code>make-specialised-lambda-list</code></a>,
+Function
+</li>
+<li>
+<a href="#function==make-target"><code>make-target</code></a>, Function
+</li>
+<li>
+<a href="#class==mammal"><code>mammal</code></a>, Class
+</li>
+<li>
+<a href="#function==map-list"><code>map-list</code></a>, Function
+
+
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-1.10.11" class="outline-4">
+<h4 id="sec-1.10.11"><span class="section-number-4">1.10.11</span> O</h4>
+<div class="outline-text-4" id="text-1.10.11">
+
+
+
+<p>
+<a name="index==O" id="index==O"></a>
+</p><ul>
+<li>
+<a href="#function==org-safe-symbol"><code>org-safe-symbol</code></a>, Function
+
+
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-1.10.12" class="outline-4">
+<h4 id="sec-1.10.12"><span class="section-number-4">1.10.12</span> R</h4>
+<div class="outline-text-4" id="text-1.10.12">
+
+
+
+<p>
+<a name="index==R" id="index==R"></a>
+</p><ul>
+<li>
+<a href="#function==replace-strings-with-symbols"><code>replace-strings-with-symbols</code></a>,
+Function
+
+
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-1.10.13" class="outline-4">
+<h4 id="sec-1.10.13"><span class="section-number-4">1.10.13</span> S</h4>
+<div class="outline-text-4" id="text-1.10.13">
+
+
+
+<p>
+<a name="index==S" id="index==S"></a>
+</p><ul>
+<li>
+<a href="#function==simple-type..3f.."><code>simple-type?</code></a>, Function
+</li>
+<li>
+<a href="#function==str..2b.."><code>str+</code></a>, Function
+</li>
+<li>
+<a href="#function==string-starts-with..3f.."><code>string-starts-with?</code></a>, Function
+</li>
+<li>
+<a href="#function==symbol-accessibility"><code>symbol-accessibility</code></a>, Function
+
+
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-1.10.14" class="outline-4">
+<h4 id="sec-1.10.14"><span class="section-number-4">1.10.14</span> T</h4>
+<div class="outline-text-4" id="text-1.10.14">
+
+
+
+<p>
+<a name="index==T" id="index==T"></a>
+</p><ul>
+<li>
+<a href="#function==type-..3e..string"><code>type-&gt;string</code></a>, Function
+
+
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-1.10.15" class="outline-4">
+<h4 id="sec-1.10.15"><span class="section-number-4">1.10.15</span> U</h4>
+<div class="outline-text-4" id="text-1.10.15">
+
+
+
+<p>
+<a name="index==U" id="index==U"></a>
+</p><ul>
+<li>
+<a href="#function==uses-for-symbol"><code>uses-for-symbol</code></a>, Function
+
+
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-1.10.16" class="outline-4">
+<h4 id="sec-1.10.16"><span class="section-number-4">1.10.16</span> W</h4>
+<div class="outline-text-4" id="text-1.10.16">
+
+
+
+<p>
+<a name="index==W" id="index==W"></a>
+</p><ul>
+<li>
+<a href="#function==word-wrap"><code>word-wrap</code></a>, Function
+</li>
+<li>
+<a href="#function==wrap-and-write"><code>wrap-and-write</code></a>, Function
+</li>
+<li>
+<a href="#function==wrap-and-write-code"><code>wrap-and-write-code</code></a>, Function
+</li>
+<li>
+<a href="#function==write-bullet-point"><code>write-bullet-point</code></a>, Function
+</li>
+<li>
+<a href="#function==write-chapter"><code>write-chapter</code></a>, Function
+</li>
+<li>
+<a href="#function==write-class-hierarchy"><code>write-class-hierarchy</code></a>, Function
+</li>
+<li>
+<a href="#function==write-colophon"><code>write-colophon</code></a>, Function
+</li>
+<li>
+<a href="#function==write-disambiguation"><code>write-disambiguation</code></a>, Function
+</li>
+<li>
+<a href="#function==write-docstring"><code>write-docstring</code></a>, Function
+</li>
+<li>
+<a href="#function==write-docstring-section"><code>write-docstring-section</code></a>, Function
+</li>
+<li>
+<a href="#function==write-heading"><code>write-heading</code></a>, Function
+</li>
+<li>
+<a href="#macro==write-indented"><code>write-indented</code></a>, Macro
+</li>
+<li>
+<a href="#function==write-index"><code>write-index</code></a>, Function
+</li>
+<li>
+<a href="#function==write-lambda-list-section"><code>write-lambda-list-section</code></a>, Function
+</li>
+<li>
+<a href="#function==write-lines"><code>write-lines</code></a>, Function
+</li>
+<li>
+<a href="#function==write-list-as-paragraph"><code>write-list-as-paragraph</code></a>, Function
+</li>
+<li>
+<a href="#function==write-out"><code>write-out</code></a>, Function
+</li>
+<li>
+<a href="#function==write-preamble"><code>write-preamble</code></a>, Function
+</li>
+<li>
+<a href="#macro==writing-bulleted-list"><code>writing-bulleted-list</code></a>, Macro
+</li>
+<li>
+<a href="#macro==writing-section"><code>writing-section</code></a>, Macro
+</li>
+<li>
+<a href="#macro==writing-section-for-symbol"><code>writing-section-for-symbol</code></a>, Macro
+
+
+
+
+
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> Colophon</h2>
+<div class="outline-text-2" id="text-2">
+
+
+<p>
+This documentation was generated from Common Lisp source code using CLOD, version 1.0.
+The latest version of CLOD is available <a href="http://bitbucket.org/eeeickythump/clod/">here</a>.
+</p></div>
+</div>
+<div id="postamble">
+<p class="author"> Author: Paul Sexton
+<a href="mailto:eeeickythump@gmail.com">&lt;eeeickythump@gmail.com&gt;</a>
+</p>
+<p class="date"> Date: 2010-03-19 17:12:24 NZDT</p>
+<p class="creator">HTML generated by org-mode 6.34trans in emacs 23</p>
+</div>
+</div>
+</body>
+</html>

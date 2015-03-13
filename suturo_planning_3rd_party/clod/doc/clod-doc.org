@@ -1,0 +1,2635 @@
+#+TITLE: CLOD
+#+AUTHOR: Paul Sexton
+#+EMAIL: eeeickythump@gmail.com
+#+LINK: hs http://www.lispworks.com/reference/HyperSpec//%s
+#+STARTUP: showall
+#+OPTIONS: toc:4 H:10 @:t tags:nil
+
+# link target 2: <<clod>>
+# link target: <<package clod>>
+
+
+* Internal Package: =clod=                                               :package:
+
+- Uses:
+    [[package common-lisp][common-lisp]], [[package iterate][iterate]], [[package
+    closer-mop][closer-mop]], [[package cl-ppcre][cl-ppcre]]
+- Used by:
+    None.
+** Description
+
+
+CLOD is a tool for creating documentation for Common Lisp programs.
+CLOD examines a loaded package and writes information about all the
+symbols defined within that package, to a file.
+
+The output file is in /Org/ format. Org is a simple but powerful 'wiki-like'
+markup language that is understood by *Org-mode*, a powerful outliner, personal
+wiki and organiser that runs as a major mode within Emacs. Org-mode can export
+org-format files to numerous other formats, including HTML, LaTeX, PDF,
+DocBook, and plain text.
+
+More information:
+- Emacs :: [[http://www.gnu.org/software/emacs]] (if you program CL, you don't
+  need to be told what Emacs is)
+- Org mode :: [[http://orgmode.org/]]
+
+** Why use CLOD?
+
+
+- You can use org markup within docstrings (easy for humans to read) to
+  create subsections, bulleted lists, hyperlinks within the document or
+  to external URLs, etc.
+- Easy export to multiple file formats: text, HTML, LaTeX -> PDF...
+- You can edit the output within Emacs, which is already the IDE of most
+  Commn Lisp programmers.
+- If GraphViz is installed, automatically create a diagram illustrating the
+  package's class hierarchy -- see http://www.graphviz.org/
+- Org markup has many cool tricks. Some examples of useful things you can
+  put in docstrings:
+  - Include an entire file and format as plain text:
+    : #+INCLUDE: "filename" quote
+  - Include an entire file with common lisp syntax highlighting
+    : #+INCLUDE: "filename.lisp" src lisp
+  - Timestamps and datestamps:
+    : {{{ modification-time(%r) }}}
+    {{{modification-time(%r)}}}
+    : {{{ date(%Y-%m-%d) }}}
+    {{{date(%Y-%m-%d)}}}
+  - Define text macros, use with ={{{macro(arg1,arg2)}}}=
+    : #+MACRO: foo Replacement text $1 $2
+  - Embed any LaTeX code directly (no special markup needed)
+  - Embed any HTML code (special markup needed)
+  - Automatic syntax highlighting of source code examples in exported
+    documents, eg:
+#+BEGIN_SRC lisp
+ (defun hello (a &key b)
+    (print "Hello, world!"))
+#+END_SRC
+  - Because CLOD works by introspection rather than parsing files,
+    it copes effortlessly with unusual toplevel forms. Documentation
+    generators that parse files usually won't be able to tell that your
+    toplevel macro `=(defclass-easy ...)=' (or whatever) actually
+    expands to a class definition.
+  - For the same reason, CLOD avoids the problems with dependencies that
+    can trouble other documentation generators (i.e. difficulties
+    generating correct documentation unless you manually move things
+    around in the source so that the doc generator finds things in
+    the `right' order).
+  - Easily change the global appearance of the document by specifying a
+    cascading style sheet (/note: only affects HTML export from Org mode/)
+
+** Dependencies
+
+
+- ASDF
+- Closer-MOP: http://common-lisp.net/project/closer/
+- Iterate: http://common-lisp.net/project/iterate/
+- CL-PPCRE: http://weitz.de/cl-ppcre/
+
+** How to use
+
+
+1. Install CLOD somewhere ASDF can find it.
+2. Load CLOD with =(asdf:oos 'asdf:load-op :clod)=
+3. Load the package or packages for which you wish to produce documentation,
+   eg: =(asdf:oos 'asdf:load-op :mypkg)=
+4. Run =(clod:document-package :mypkg nil)= and you will see the documentation
+   as a string, returned by [[document-package]].
+5. Run =(clod:document-package :mypkg "filename.org")= and the same
+   documentation will be written to 'filename.org'.
+6. Load filename.org into Emacs. Export to HTML with =M-x org-export=, or press
+   C-c C-e to be presented with a menu of export options.
+
+** Writing the documentation
+
+
+All documentation produced by CLOD is obtained by /introspection/, i.e. by the
+running CL process examining itself. If a symbol has an associated docstring,
+it will be used by CLOD to produce the documentation for that symbol.
+
+Within documentation strings, you can use org mode markup. This is a simple,
+human-readable markup language similar to the type of markup used for wiki
+editing and forum posting. See the Org
+[[http://orgmode.org/manual/Markup.html][manual]] for more information. Also see
+the docstrings in the CLOD source code, which use org markup.
+
+Some special points to note:
+- Outline headings are used to structure org documents. These headings
+  begin with one or more asterisks at the start of the line. Thus, if you
+  want a large docstring to be divided into subsections, the heading for
+  each subsection should be a line that starts with one or more asterisks (*),
+  then a space, then the title of the heading.
+- These headings will automatically be correctly 'indented' for their location
+  in the structure of the final document. The whole document is one outline,
+  and any given docstring will usually be appearing 2 or 3 levels deep within
+  that outline. However, CLOD finds all heading lines within docstrings and
+  increases the number of asterisks appropriately.
+- An extra blank line is also automatically inserted after headings within
+  docstrings, allowing you to save screen space in the docstring itself.
+- By default, many docstrings are inserted within a subsection titled
+  'Description'. However, if you don't want this to happen, but rather want
+  the docstring to define its own heading names, make sure that the very first
+  thing in the docstring is a heading (straight after the opening quote).
+  (Note for mmm-mode users (see below): if the docstring starts with '###'
+  to signal that it is in fact a docstring, CLOD will skip the hashes before
+  looking to see if the string starts with a heading.)
+  So ="###* Arguments ..."= will work in that case.
+- Some symbol names used by common lisp can conflict with the markup used
+  by org mode. For example, =*global-variable*=: asterisks are interpreted
+  by org mode as signifying bold text. CLOD catches these in headings and
+  auto-generated documentation, but not within doc strings, where you will
+  need to surround the offending symbol with =equals signs=.
+- *Hyperlinks* are created using
+  : [[double square brackets]]
+  Any text surrounded by these brackets will link to the same text (case
+  insensitive) surrounded by =<<double angle brackets>>=. CLOD uses this to
+  define hyperlinks for all symbols in the package. Every symbol MYSYMBOL has:
+  1. A hyperlink =<<function MYSYMBOL>>= if MYSYMBOL is a function,
+     =<<variable MYSYMBOL>>= if it is a global variable, etc.
+  2. A hyperlink =<<MYSYMBOL>>= which will either link to MYSYMBOL's
+     documentation, or to a 'disambiguation section' if the same symbol has
+     multiple meanings (eg there is both a function and a variable called
+     MYSYMBOL).
+- Org mode has the ability to use Emacs' font-lock mode to produce source code
+  snippets that are correctly syntax highlighted for any major mode.  To use
+  this normally requires surrounding the code with =#+BEGIN_SRC ... #+END_SRC=.
+  CLOD provides a shortcut: Any lines within docstrings that begin with three
+  semicolons =;;;= are assumed to be example lisp source code. The first 3
+  semicolons are removed and the rest of the line is syntax highlighted.
+
+** Combining org mode and common lisp mode in a single Emacs buffer
+
+  
+You can use org mode markup within docstrings, but you can't see the effects of
+the markup until you export the documentation to org using CLOD. You also don't
+get access to org's support for automatic formatting of bulleted lists as you
+write, or the fantastic support for writing tables, or hyperlinks that you can
+click with the mouse, or ....
+
+What if you could use all the goodness of Org, while editing docstrings in your
+lisp source code? You can. This section explains how.
+
+1. Download and install nXhtml, an emacs package that contains code allowing
+   multiple major modes to be active in a single buffer.
+   http://ourcomments.org/cgi-bin/emacsw32-dl-latest.pl
+2. Add the code in `mmm-clod.el' to your .emacs file. Make sure you change
+   the mmm-mode directory to the directory where you installed mmm-mode.
+3. Restart emacs. Load a lisp source file. All documentation strings should
+   appear with a coloured background, and when you move the cursor inside them,
+   you will see 'Lisp[Org]' on the modeline. 
+4. If not everything is highlighting correctly, or if you write a new docstring
+   and org does not activate within it, press control-` to 'refresh' mmm-mode.
+
+Not everything works: expanding and collapsing headings fails, and
+clicking the mouse elsewhere within the doc string often causes problems. But
+overall the two modes work together surprisingly well.
+
+MMM-mode recognises the following things as doc strings:
+1. Any string that emacs fontifies using 'font-lock-doc-face'. (in other words,
+   font-lock mode must be active.)
+2. Any string inside the form '=(:documentation STRING)='.
+3. Finally, any string whose first three characters are '###'. Since lines 
+   beginning with a hash are interpreted as comments by org mode, these
+   characters will disappear when you export your document to HTML or other
+   formats.
+
+** Example docstring
+
+
+Here is the docstring for [[document-package]]. It illustrates the use of
+headings, bulleted lists, definition lists, =code=, *bold* and /italic/
+markup, hyperlinks to other definitions, and syntax highlighting of lisp source
+code examples.
+
+: * Arguments
+: - PKG :: A package name or package object.
+: - FILE/STREAM :: A string (filename), stream object, or =NIL=.
+: - AUTO-LINKS :: Boolean.
+: - LINES-BETWEEN-SECTIONS :: Boolean.
+: - BRIEF-METHODS :: Boolean.
+: - STYLE-SHEET :: A string.
+: - TITLE :: A string.
+: - AUTHOR :: A string.
+: - EMAIL :: A string.
+: * Returns
+: A string, or nil.
+: * Description
+: Produce documentation for the package =PKG=.
+: 
+: The documentation's destination depends on the value of =FILE/STREAM=:
+: - =STRING=: documentation is written to the file named by the string.
+: - =STREAM=: documentation is written to the already existing stream.
+: - =NIL=: documentation is written to a string, which is then returned by
+:   this function.
+: 
+: Explanation of optional arguments:
+: - =TITLE=, =AUTHOR= and =EMAIL= specify the document title, the name of
+:   the author, and the email address of the author.
+: - If =AUTO-LINKS= is non-nil, *all* occurrences of symbol names within the
+:   text of docstrings will be interpreted as hyperlinks, regardless of
+:   whether they are marked up as hyperlinks.
+: - If LINES-BETWEEN-SECTIONS is nil, do not output a horizontal line before
+:   each new section of documentation.
+: - If BRIEF-METHODS is nil, document individual methods with their own
+:   sections, just like functions and generic functions. Most people put
+:   'method' documentation in the docstrings of their generic functions, but
+:   if you set docstrings for individual methods then set this to nil.
+: - =STYLE-SHEET= specifies the name of a /Cascading Style Sheet/ (.CSS) file
+:   which will be used as the style for the document if you export it
+:   to HTML from org mode.
+:
+: * Example
+: ;;; (clod:document-package :mypkg "mypkg-doc.org"
+: ;;;      :style-sheet "swiss.css" :title "My Package"
+: ;;;      :author "F. B. Quux" :email "quux@gmail.com")
+: 
+: * See also
+: - [[document-packages]]
+
+** External Symbols
+
+
+
+
+*** External Functions
+
+-----
+
+# link target 2: <<document-package>>
+# link target: <<function document-package>>
+
+
+**** External Function: =document-package=                                 :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(document-package pkg file/stream &key (auto-links nil)
+                  (lines-between-sections t) (brief-methods t)
+                  (internal-symbols? t) (class-diagram nil) (style-sheet nil)
+                  (title nil) (author *document-author*)
+                  (email *document-email*))
+#+END_SRC
+
+***** Arguments
+
+- PKG :: A package name or package object.
+- FILE/STREAM :: A string (filename), stream object, or =NIL=.
+- AUTO-LINKS :: Boolean.
+- LINES-BETWEEN-SECTIONS :: Boolean.
+- BRIEF-METHODS :: Boolean.
+- INTERNAL-SYMBOLS :: Boolean.
+- CLASS-DIAGRAM :: Boolean.
+- STYLE-SHEET :: A string.
+- TITLE :: A string.
+- AUTHOR :: A string.
+- EMAIL :: A string.
+***** Returns
+
+A string, or nil.
+***** Description
+
+Produce documentation for the package =PKG=.
+
+The documentation's destination depends on the value of =FILE/STREAM=:
+- =STRING=: documentation is written to the file named by the string.
+- =STREAM=: documentation is written to the already existing stream.
+- =NIL=: documentation is written to a string, which is then returned by
+  this function.
+
+Explanation of optional arguments:
+- =TITLE=, =AUTHOR= and =EMAIL= specify the document title, the name of
+  the author, and the email address of the author.
+- =STYLE-SHEET= specifies the name of a Cascading Style Sheet (.CSS) file
+  which will be used as the style for the document if you export it
+  to HTML from org mode.
+- If =AUTO-LINKS= is non-nil, *all* occurrences of symbol names within the
+  text of docstrings will be interpreted as hyperlinks, regardless of
+  whether they are marked up as hyperlinks.
+- If =LINES-BETWEEN-SECTIONS= is nil, do not output a horizontal line before
+  each new section of documentation.
+- If =BRIEF-METHODS= is nil, document individual methods with their own
+  sections, just like functions and generic functions. Most people put
+  'method' documentation in the docstrings of their generic functions, but
+  if you set docstrings for individual methods then set this to nil.
+- If =INTERNAL-SYMBOLS?= is non-nil, document both internal and external
+  (exported) symbols. If nil, only document external symbols.
+- If =CLASS-DIAGRAM= is non-nil, create a section after the toplevel package
+  description, containing a description of the package hierarchy
+  in the form of a GraphViz 'dot' diagram (see http://www.graphviz.org/).
+
+***** Example
+
+#+BEGIN_SRC lisp
+ (clod:document-package :mypkg "mypkg-doc.org"
+      :style-sheet "swiss.css" :title "My Package"
+      :author "F. B. Quux" :email "quux@gmail.com")
+#+END_SRC
+
+***** See also
+
+- [[document-packages]]
+
+
+-----
+
+# link target 2: <<document-packages>>
+# link target: <<function document-packages>>
+
+
+**** External Function: =document-packages=                                :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(document-packages packages file/stream &key (auto-links nil)
+                   (lines-between-sections t) (brief-methods t)
+                   (internal-symbols? t) (class-diagram nil) (style-sheet nil)
+                   (title *document-title*) (author *document-author*)
+                   (email *document-email*))
+#+END_SRC
+
+***** Arguments
+
+- PACKAGES :: A list of package objects, or symbols naming packages.
+- FILE/STREAM :: A string (filename), stream object, or =NIL=.
+Other arguments are the same as for [[document-package]].
+***** Returns
+
+A string, or nil.
+***** Description
+
+Produces documentation for all the packages in =PACKAGES=, within a
+single file.
+
+See [[document-package]] for more details.
+
+
+
+
+
+** Internal Symbols
+
+
+
+
+*** Internal Classes
+
+-----
+
+# link target 2: <<animal>>
+# link target: <<class animal>>
+
+
+**** Internal Class: =animal=                                                 :class:
+
+
+***** Inheritance
+
+- Parent classes:
+    [[class standard-object][standard-object]]
+- Precedence list:
+    [[class animal][animal]], [[class standard-object][standard-object]], [[class
+    slot-object][slot-object]], [[class t][t]]
+- Direct subclasses:
+    [[class mammal][mammal]], [[class bird][bird]]
+
+
+***** Description
+
+dummy class, created to illustrate CLOD's ability
+to produce class diagrams using GraphViz.
+
+
+***** Direct Slots
+
+
+
+
+-----
+
+# link target 2: <<bird>>
+# link target: <<class bird>>
+
+
+**** Internal Class: =bird=                                                   :class:
+
+
+***** Inheritance
+
+- Parent classes:
+    [[class animal][animal]]
+- Precedence list:
+    [[class bird][bird]], [[class animal][animal]], [[class standard
+    object][standard-object]], [[class slot-object][slot-object]], [[class t][t]]
+- Direct subclasses:
+    [[class hawk][hawk]]
+
+
+***** Description
+
+dummy class, created to illustrate CLOD's ability
+to produce class diagrams using GraphViz.
+
+
+***** Direct Slots
+
+
+
+
+-----
+
+# link target 2: <<cat>>
+# link target: <<class cat>>
+
+
+**** Internal Class: =cat=                                                    :class:
+
+
+***** Inheritance
+
+- Parent classes:
+    [[class mammal][mammal]]
+- Precedence list:
+    [[class cat][cat]], [[class mammal][mammal]], [[class animal][animal]], [[class
+    standard-object][standard-object]], [[class slot-object][slot-object]], [[class
+    t][t]]
+- Direct subclasses:
+    None.
+
+
+***** Description
+
+dummy class, created to illustrate CLOD's ability
+to produce class diagrams using GraphViz.
+
+
+***** Direct Slots
+
+
+
+
+-----
+
+# link target 2: <<dog>>
+# link target: <<class dog>>
+
+
+**** Internal Class: =dog=                                                    :class:
+
+
+***** Inheritance
+
+- Parent classes:
+    [[class mammal][mammal]]
+- Precedence list:
+    [[class dog][dog]], [[class mammal][mammal]], [[class animal][animal]], [[class
+    standard-object][standard-object]], [[class slot-object][slot-object]], [[class
+    t][t]]
+- Direct subclasses:
+    None.
+
+
+***** Description
+
+dummy class, created to illustrate CLOD's ability
+to produce class diagrams using GraphViz.
+
+
+***** Direct Slots
+
+
+
+
+-----
+
+# link target 2: <<hawk>>
+# link target: <<class hawk>>
+
+
+**** Internal Class: =hawk=                                                   :class:
+
+
+***** Inheritance
+
+- Parent classes:
+    [[class bird][bird]]
+- Precedence list:
+    [[class hawk][hawk]], [[class bird][bird]], [[class animal][animal]], [[class
+    standard-object][standard-object]], [[class slot-object][slot-object]], [[class
+    t][t]]
+- Direct subclasses:
+    None.
+
+
+***** Description
+
+dummy class, created to illustrate CLOD's ability
+to produce class diagrams using GraphViz.
+
+
+***** Direct Slots
+
+
+
+
+-----
+
+# link target 2: <<mammal>>
+# link target: <<class mammal>>
+
+
+**** Internal Class: =mammal=                                                 :class:
+
+
+***** Inheritance
+
+- Parent classes:
+    [[class animal][animal]]
+- Precedence list:
+    [[class mammal][mammal]], [[class animal][animal]], [[class standard
+    object][standard-object]], [[class slot-object][slot-object]], [[class t][t]]
+- Direct subclasses:
+    [[class dog][dog]], [[class cat][cat]]
+
+
+***** Description
+
+dummy class, created to illustrate CLOD's ability
+to produce class diagrams using GraphViz.
+
+
+***** Direct Slots
+
+
+
+
+
+
+*** Internal Types
+
+-----
+
+# link target 2: <<..3d..entity..3d..>>
+# link target: <<type ..3d..entity..3d..>>
+
+
+**** Internal Type: ==entity==                                                 :type:
+
+The type 'entity' can have any of several different symbols as its value.
+Each value is a different kind of 'meaning' which a symbol can have within
+a package. For example, =:function= is a function, =:class= is a class,
+and so on.
+
+
+
+
+*** Internal Global Variables
+
+-----
+
+# link target 2: <<*accessibilities*>>
+# link target: <<variable *accessibilities*>>
+
+
+**** Internal Variable: =*accessibilities*=                                :variable:
+
+
+***** Value
+
+: (:EXTERNAL :INTERNAL)
+
+Type: =cons=
+
+
+***** Description
+
+List of one or both of the keywords =:EXTERNAL= and =:INTERNAL=.
+Only symbols whose accessibility matches one of the keywords in the list
+will be documented.
+
+
+
+-----
+
+# link target 2: <<*alphabet*>>
+# link target: <<variable *alphabet*>>
+
+
+**** Internal Variable: =*alphabet*=                                       :variable:
+
+
+***** Value
+
+: (#\A #\B #\C #\D #\E #\F #\G #\H #\I #\J #\K #\L #\M #\N #\O #\P #\Q #\R #\S 
+: #\T #\U #\V #\W #\X #\Y #\Z)
+
+Type: =cons=
+
+
+***** Description
+
+List of uppercase letters (characters) from A to Z.
+
+
+
+-----
+
+# link target 2: <<*ambiguities*>>
+# link target: <<variable *ambiguities*>>
+
+
+**** Internal Variable: =*ambiguities*=                                    :variable:
+
+
+***** Value
+
+: #<HASH-TABLE :TEST EQL :COUNT 0 {103534C1}>
+
+Type: =hash-table=
+
+
+***** Description
+
+Hash table created during package documentation. Stores all
+symbols which have multiple 'meanings' within the package.
+
+
+
+-----
+
+# link target 2: <<*auto-links*>>
+# link target: <<variable *auto-links*>>
+
+
+**** Internal Variable: =*auto-links*=                                     :variable:
+
+
+***** Value
+
+: NIL
+
+Type: =null=
+
+
+***** Description
+
+If true, all occurrences of package symbols anywhere in the documentation
+will be turned into hyperlinks, even if they are not marked up as such.
+
+
+
+-----
+
+# link target 2: <<*brief-methods*>>
+# link target: <<variable *brief-methods*>>
+
+
+**** Internal Variable: =*brief-methods*=                                  :variable:
+
+
+***** Value
+
+: T
+
+Type: =boolean=
+
+
+***** Description
+
+If true, most documentation for methods is assumed to be found in the
+docstring for their generic function. A generic function's methods are
+therefore described in a very brief format (bulleted list).
+
+If false, each method receives its own section, just like other functions.
+
+
+
+-----
+
+# link target 2: <<*class-diagram*>>
+# link target: <<variable *class-diagram*>>
+
+
+**** Internal Variable: =*class-diagram*=                                  :variable:
+
+
+***** Value
+
+: NIL
+
+Type: =null=
+
+
+***** Description
+
+If true, creates a section describing the package class hierarchy as a
+'dot' diagram, which can be fed to the GraphViz program (if installed) to
+create a visual representation of the hierarchy.
+
+
+
+-----
+
+# link target 2: <<*clod-version-string*>>
+# link target: <<variable *clod-version-string*>>
+
+
+**** Internal Variable: =*clod-version-string*=                            :variable:
+
+
+***** Value
+
+: "1.0"
+
+Type: =simple-array=
+
+
+***** Description
+
+String containing CLOD's version number.
+
+
+
+-----
+
+# link target 2: <<*document-author*>>
+# link target: <<variable *document-author*>>
+
+
+**** Internal Variable: =*document-author*=                                :variable:
+
+
+***** Value
+
+: "Paul Sexton"
+
+Type: =simple-array=
+
+
+***** Description
+
+The author of the document. A string.
+
+
+
+-----
+
+# link target 2: <<*document-email*>>
+# link target: <<variable *document-email*>>
+
+
+**** Internal Variable: =*document-email*=                                 :variable:
+
+
+***** Value
+
+: "eeeickythump@gmail.com"
+
+Type: =simple-array=
+
+
+***** Description
+
+The email address of the document's author. A string.
+
+
+
+-----
+
+# link target 2: <<*document-style-sheet*>>
+# link target: <<variable *document-style-sheet*>>
+
+
+**** Internal Variable: =*document-style-sheet*=                           :variable:
+
+
+***** Value
+
+: NIL
+
+Type: =null=
+
+
+***** Description
+
+Filename of the Cascading Style Sheet (.css) file to use if the
+document produced by CLOD is exported to HTML.
+
+
+
+-----
+
+# link target 2: <<*document-title*>>
+# link target: <<variable *document-title*>>
+
+
+**** Internal Variable: =*document-title*=                                 :variable:
+
+
+***** Value
+
+: "CLOD"
+
+Type: =simple-array=
+
+
+***** Description
+
+The title of the document. A string.
+
+
+
+-----
+
+# link target 2: <<*heading-char*>>
+# link target: <<variable *heading-char*>>
+
+
+**** Internal Variable: =*heading-char*=                                   :variable:
+
+
+***** Value
+
+: #\*
+
+Type: =standard-char=
+
+
+***** Description
+
+Character used at the beginning of lines to signify headings and
+subheadings. Should not be changed.
+
+
+
+-----
+
+# link target 2: <<*heading-level*>>
+# link target: <<variable *heading-level*>>
+
+
+**** Internal Variable: =*heading-level*=                                  :variable:
+
+
+***** Value
+
+: 5
+
+Type: =integer=
+
+
+***** Description
+
+Number of levels 'deep' within the outline. Used when creating
+headings for sections and subsections.
+
+
+
+-----
+
+# link target 2: <<*hyperspec-root*>>
+# link target: <<variable *hyperspec-root*>>
+
+
+**** Internal Variable: =*hyperspec-root*=                                 :variable:
+
+
+***** Value
+
+: "http://www.lispworks.com/reference/HyperSpec/"
+
+Type: =simple-array=
+
+
+***** Description
+
+URL or directory where the Hyperspec is found. Not currently
+implemented.
+
+
+
+-----
+
+# link target 2: <<*left-margin*>>
+# link target: <<variable *left-margin*>>
+
+
+**** Internal Variable: =*left-margin*=                                    :variable:
+
+
+***** Value
+
+: 0
+
+Type: =bit=
+
+
+***** Description
+
+Width of the current 'left margin', in spaces.
+
+
+
+-----
+
+# link target 2: <<*line-width*>>
+# link target: <<variable *line-width*>>
+
+
+**** Internal Variable: =*line-width*=                                     :variable:
+
+
+***** Value
+
+: 80
+
+Type: =integer=
+
+
+***** Description
+
+Width to which paragraphs are wrapped, in characters.
+
+
+
+-----
+
+# link target 2: <<*lines-between-sections*>>
+# link target: <<variable *lines-between-sections*>>
+
+
+**** Internal Variable: =*lines-between-sections*=                         :variable:
+
+
+***** Value
+
+: T
+
+Type: =boolean=
+
+
+***** Description
+
+If true, sections of the document will be separated by horizontal lines.
+
+
+
+-----
+
+# link target 2: <<*out*>>
+# link target: <<variable *out*>>
+
+
+**** Internal Variable: =*out*=                                            :variable:
+
+
+***** Value
+
+: #<SB-SYS:FD-STREAM for "file /home/paul/Dropbox/lisp/clod/doc/clod-doc.org"
+: {FCB6D11}>
+
+Type: =fd-stream=
+
+
+***** Description
+
+Global variable that is bound to the output stream used by CLOD
+while writing documentation.
+
+
+
+-----
+
+# link target 2: <<*unsafe-html-chars*>>
+# link target: <<variable *unsafe-html-chars*>>
+
+
+**** Internal Variable: =*unsafe-html-chars*=                              :variable:
+
+
+***** Value
+
+: (#\< #\> #\= #\% #\? #\+ #\$ #\/ #\& #\@ #\, #\{ #\} #\^ #\~)
+
+Type: =cons=
+
+
+***** Description
+
+List of characters which are unsafe within HTML links and anchors, and
+which need to be converted to a safe representation.
+
+See also: [[html-safe-string]].
+
+
+
+
+
+*** Internal Macros
+
+-----
+
+# link target 2: <<do-own-symbols>>
+# link target: <<macro do-own-symbols>>
+
+
+**** Internal Macro: =do-own-symbols=                                         :macro:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(do-own-symbols (var pkg)
+  &body
+  body)
+#+END_SRC
+
+***** Arguments
+
+- VAR :: symbol naming a variable that will be bound to each symbol in turn.
+- PKG :: a package.
+***** Description
+
+Iterate through all the non-imported symbols in the package =PKG=.
+=BODY= is executed once for each such symbol, with =VAR= bound to each
+symbol in turn.
+
+
+-----
+
+# link target 2: <<write-indented>>
+# link target: <<macro write-indented>>
+
+
+**** Internal Macro: =write-indented=                                         :macro:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(write-indented (indent)
+  &body
+  body)
+#+END_SRC
+
+***** Arguments
+
+- INDENT :: An integer.
+***** Return Value
+
+Ignored.
+***** Description
+
+All text that is written within the body of the form will be indented
+a further =INDENT= spaces from the left margin.
+
+
+-----
+
+# link target 2: <<writing-bulleted-list>>
+# link target: <<macro writing-bulleted-list>>
+
+
+**** Internal Macro: =writing-bulleted-list=                                  :macro:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(writing-bulleted-list
+  &body
+  body)
+#+END_SRC
+
+
+***** Description
+
+All output within the body of a form is assumed to be within a
+bulleted list.
+
+
+
+-----
+
+# link target 2: <<writing-section>>
+# link target: <<macro writing-section>>
+
+
+**** Internal Macro: =writing-section=                                        :macro:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(writing-section (title)
+  &body
+  body)
+#+END_SRC
+
+
+***** Description
+
+Wraps all output within the body of the form in its own section.
+
+
+
+-----
+
+# link target 2: <<writing-section-for-symbol>>
+# link target: <<macro writing-section-for-symbol>>
+
+
+**** Internal Macro: =writing-section-for-symbol=                             :macro:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(writing-section-for-symbol (entity sym)
+  &body
+  body)
+#+END_SRC
+
+
+***** Description
+
+Wraps all output within the body of the form in its own section. The
+title of the section describes the entity of type =ENTITY= that is
+bound to the symbol =SYM=.
+
+
+
+
+
+*** Internal Functions
+
+-----
+
+# link target 2: <<accessible-symbols>>
+# link target: <<function accessible-symbols>>
+
+
+**** Internal Function: =accessible-symbols=                               :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(accessible-symbols syms access pkg)
+#+END_SRC
+
+***** Arguments
+
+- SYMS :: A list of symbols.
+- ACCESS :: One of the keywords =:INTERNAL= or =:EXTERNAL=.
+- PKG :: A package object.
+***** Returns
+
+A list of symbols.
+***** Description
+
+Given a list of symbols, SYMS, returns the subset of SYMS whose
+accessibility in PKG matches ACCESS.
+
+
+-----
+
+# link target 2: <<ampersand-symbol..3f..>>
+# link target: <<function ampersand-symbol..3f..>>
+
+
+**** Internal Function: =ampersand-symbol?=                                :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(ampersand-symbol? sym)
+#+END_SRC
+
+
+***** Description
+
+Does the symbol SYM begin with an ampersand, such as &ANY, &REST and
+so on?
+
+
+
+-----
+
+# link target 2: <<declared-special-p>>
+# link target: <<function declared-special-p>>
+
+
+**** Internal Function: =declared-special-p=                               :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(declared-special-p symbol)
+#+END_SRC
+
+
+***** Description
+
+Returns true if SYMBOL is declared special.
+
+
+
+-----
+
+# link target 2: <<docpkg>>
+# link target: <<function docpkg>>
+
+
+**** Internal Function: =docpkg=                                           :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(docpkg &rest packages)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<document>>
+# link target: <<function document>>
+
+
+**** Internal Function: =document=                                         :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(document sym doctype)
+#+END_SRC
+
+***** Arguments
+
+- SYM :: a symbol.
+- DOCTYPE :: an [[..3d..entity..3d..][=entity=]].
+***** Returns:
+
+Ignored.
+***** Description
+
+Writes a section documenting the [[..3d..entity..3d..][=entity=]] named =SYM= which is of entity type
+=DOCTYPE=.
+
+
+-----
+
+# link target 2: <<document-package-contents>>
+# link target: <<function document-package-contents>>
+
+
+**** Internal Function: =document-package-contents=                        :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(document-package-contents pkg &optional (accessibilities *accessibilities*))
+#+END_SRC
+
+***** Arguments
+
+- PKG :: A package name or package object.
+- ACCESSIBILITIES :: A list containing zero or more of the symbols
+  =:external= or =:internal=.
+***** Return Value
+
+Ignored.
+***** Description
+
+Writes documentation for all symbols contained within the package =PKG=.
+Does not write documentation for the actual package object.
+
+
+-----
+
+# link target 2: <<entity-..3e..string>>
+# link target: <<function entity-..3e..string>>
+
+
+**** Internal Function: =entity->string=                                   :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(entity->string entity)
+#+END_SRC
+
+***** Arguments
+
+- ENTITY :: An [[..3d..entity..3d..][=entity=]].
+***** Returns
+
+A string.
+***** Description
+
+Given an entity, returns a string that can be used to describe that
+entity type in human-readable form, in headings, etc.
+
+
+-----
+
+# link target 2: <<entity-..3e..tag>>
+# link target: <<function entity-..3e..tag>>
+
+
+**** Internal Function: =entity->tag=                                      :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(entity->tag entity)
+#+END_SRC
+
+***** Arguments
+
+- ENTITY :: An [[..3d..entity..3d..][=entity=]].
+***** Returns
+
+A string.
+***** Description
+
+Given an entity, returns a string that can be used as a *tag* denoting that
+entity type in org mode. See [[http://orgmode.org/manual/Tags.html]] for
+information on tags.
+
+
+-----
+
+# link target 2: <<find-pkg>>
+# link target: <<function find-pkg>>
+
+
+**** Internal Function: =find-pkg=                                         :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(find-pkg pkg)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<find-sym>>
+# link target: <<function find-sym>>
+
+
+**** Internal Function: =find-sym=                                         :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(find-sym sym &optional (pkg (package-name *package*)))
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<function-lambda-list>>
+# link target: <<function function-lambda-list>>
+
+
+**** Internal Function: =function-lambda-list=                             :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(function-lambda-list func)
+#+END_SRC
+
+***** Arguments
+
+- FUNC :: A function object, macro object, generic function object,
+  or a symbol bound to a function or macro.
+***** Returns
+
+Two values:
+- The lambda list of the function name or function object, FUNC; or nil if
+  the function takes no arguments or the lambda list cannot be retrieved.
+- A boolean value -- T if a lambda list (even an empty one) was found,
+  NIL otherwise.
+***** Description
+
+Returns the lambda list associated with the definition of the function or
+macro =FUNC=. For example, the lambda list for the common lisp function
+=FIND= is the list:
+: (ITEM SEQUENCE &KEY :FROM-END :TEST :TEST-NOT :START :END :KEY)
+
+
+-----
+
+# link target 2: <<function-name>>
+# link target: <<function function-name>>
+
+
+**** Internal Function: =function-name=                                    :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(function-name fn)
+#+END_SRC
+
+***** Arguments
+
+- FN :: A function, generic function or macro object.
+***** Returns
+
+The name of a function or macro, or nil.
+***** Description
+
+Returns the official 'name' bound to the function, macro,
+or generic function object FN. Returns =NIL= if no name can
+be found or if the function is anonymous (=lambda=).
+
+
+-----
+
+# link target 2: <<html-safe-string>>
+# link target: <<function html-safe-string>>
+
+
+**** Internal Function: =html-safe-string=                                 :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(html-safe-string str)
+#+END_SRC
+
+***** Arguments
+
+- STR :: A string.
+***** Returns
+
+A string.
+***** Description
+
+
+Given a string which is intended as a link target, return a copy in which we
+remove or alter any unsafe characters that will stop the link working properly
+when the document is exported to HTML.
+***** See Also
+
+- [[*unsafe-html-chars*]]
+
+
+-----
+
+# link target 2: <<list-..3e..string-with-commas>>
+# link target: <<function list-..3e..string-with-commas>>
+
+
+**** Internal Function: =list->string-with-commas=                         :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(list->string-with-commas ls)
+#+END_SRC
+
+***** Arguments
+
+- LS :: A list of values.
+***** Returns
+
+A string.
+***** Description
+
+Given a list of arbitrary values, returns a string consisting of the
+printed representations of those values, separated by commas and spaces.
+***** Example
+
+#+BEGIN_SRC lisp
+ (list->string-with-commas '(a b 123))
+
+ => "A, B, 123"
+#+END_SRC
+
+
+-----
+
+# link target 2: <<list-all-direct-slots>>
+# link target: <<function list-all-direct-slots>>
+
+
+**** Internal Function: =list-all-direct-slots=                            :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(list-all-direct-slots classes)
+#+END_SRC
+
+***** Arguments
+
+- CLASSES :: A list of class objects.
+***** Return Value
+
+A list of SLOT-DEFINITION instances.
+***** Description
+
+Return a list of all the direct SLOT-DEFINITION instances defined
+for all the classes in CLASSES.
+
+
+-----
+
+# link target 2: <<list-all-indirect-slots>>
+# link target: <<function list-all-indirect-slots>>
+
+
+**** Internal Function: =list-all-indirect-slots=                          :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(list-all-indirect-slots classes)
+#+END_SRC
+
+***** Arguments
+
+- CLASSES :: A list of class objects.
+***** Return Value
+
+A list of SLOT-DEFINITION instances.
+***** Description
+
+Return a list of all the indirect SLOT-DEFINITION instances defined
+for all the classes in CLASSES.
+
+
+-----
+
+# link target 2: <<list-all-slot-accessors>>
+# link target: <<function list-all-slot-accessors>>
+
+
+**** Internal Function: =list-all-slot-accessors=                          :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(list-all-slot-accessors classes)
+#+END_SRC
+
+***** Arguments
+
+- CLASSES :: A list of class objects.
+***** Return Value
+
+A list of generic functions.
+***** Description
+
+Return a list of all the reader and writer generic functions associated
+with all the slots of the classes in CLASSES.
+
+
+-----
+
+# link target 2: <<make-class-link>>
+# link target: <<function make-class-link>>
+
+
+**** Internal Function: =make-class-link=                                  :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(make-class-link x &key text)
+#+END_SRC
+
+
+***** Description
+
+Synonym for ([[make-link]] =X :class=).
+
+
+
+-----
+
+# link target 2: <<make-link>>
+# link target: <<function make-link>>
+
+
+**** Internal Function: =make-link=                                        :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(make-link target entity &key text)
+#+END_SRC
+
+***** Arguments
+
+- TARGET :: A symbol, string, or other value that constitutes the target of the
+  link.
+- ENTITY :: An [[..3d..entity..3d..][=entity=]].
+- TEXT :: An optional string, used for the appearance of the link. The default
+  is a direct textual representation of =TARGET=.
+***** Returns
+
+A string.
+***** Description
+
+Given a target and text, return a string that will be interpreted by org mode as
+a hyperlink leading to the documentation for =TARGET=.
+
+
+-----
+
+# link target 2: <<make-package-link>>
+# link target: <<function make-package-link>>
+
+
+**** Internal Function: =make-package-link=                                :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(make-package-link sym)
+#+END_SRC
+
+
+***** Description
+
+Synonym for ([[make-link]] =X :package=).
+
+
+
+-----
+
+# link target 2: <<make-specialised-lambda-list>>
+# link target: <<function make-specialised-lambda-list>>
+
+
+**** Internal Function: =make-specialised-lambda-list=                     :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(make-specialised-lambda-list terms specs)
+#+END_SRC
+
+***** Arguments
+
+- TERMS :: Unspecialised version of the lambda list (a list of symbols).
+- SPECS :: List of class names on which a particular method is
+  specialised.
+***** Returns
+
+A list.
+***** Description
+
+Given an unspecialised lambda list and a list of specialisers, reconstruct
+the specialised lambda list and return it.
+
+
+-----
+
+# link target 2: <<make-target>>
+# link target: <<function make-target>>
+
+
+**** Internal Function: =make-target=                                      :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(make-target sym &optional entity)
+#+END_SRC
+
+
+***** Description
+
+Returns a string that will be interpreted by org as a destination for
+hyperlinks to =SYM=.
+
+
+
+-----
+
+# link target 2: <<map-list>>
+# link target: <<function map-list>>
+
+
+**** Internal Function: =map-list=                                         :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(map-list function list)
+#+END_SRC
+
+
+***** Description
+
+Map over proper and not proper lists.
+
+
+
+-----
+
+# link target 2: <<org-safe-symbol>>
+# link target: <<function org-safe-symbol>>
+
+
+**** Internal Function: =org-safe-symbol=                                  :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(org-safe-symbol sym)
+#+END_SRC
+
+***** Arguments
+
+- SYM :: A symbol.
+***** Return Value
+
+A string.
+***** Description
+
+Given the symbol SYM, return a string that represents SYM in a form that is
+human-readable and where org will not be confused by any characters that
+might represent markup instructions.
+
+
+-----
+
+# link target 2: <<replace-strings-with-symbols>>
+# link target: <<function replace-strings-with-symbols>>
+
+
+**** Internal Function: =replace-strings-with-symbols=                     :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(replace-strings-with-symbols tree)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<simple-type..3f..>>
+# link target: <<function simple-type..3f..>>
+
+
+**** Internal Function: =simple-type?=                                     :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(simple-type? sym)
+#+END_SRC
+
+***** Arguments
+
+- SYM :: A symbol.
+***** Return Value
+
+Boolean.
+***** Description
+
+Returns =T= if =SYM= names a non-class type, such as can be
+defined by [[deftype]].
+
+
+-----
+
+# link target 2: <<str..2b..>>
+# link target: <<function str..2b..>>
+
+
+**** Internal Function: =str+=                                             :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(str+ &rest strings)
+#+END_SRC
+
+***** Arguments
+
+- STRINGS :: One or more strings.
+***** Returns
+
+A string.
+***** Description
+
+Returns the concatenation of all supplied strings. Shorthand
+for =(concatenate 'string . STRINGS)=.
+
+
+-----
+
+# link target 2: <<string-starts-with..3f..>>
+# link target: <<function string-starts-with..3f..>>
+
+
+**** Internal Function: =string-starts-with?=                              :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(string-starts-with? str start)
+#+END_SRC
+
+***** Arguments
+
+- STR :: A string.
+- START :: A smaller string.
+***** Returns
+
+Boolean.
+***** Description
+
+Predicate. Does the string =STR= start with the string =START=?
+
+
+-----
+
+# link target 2: <<symbol-accessibility>>
+# link target: <<function symbol-accessibility>>
+
+
+**** Internal Function: =symbol-accessibility=                             :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(symbol-accessibility sym &optional (pkg *package*))
+#+END_SRC
+
+***** Arguments
+
+- SYM :: A symbol.
+- PKG :: A package.
+***** Returns
+
+One of =:inherited, :internal, :external= or =nil=.
+***** Description
+
+Returns a symbol describing how the symbol =SYM= is accessible within
+the package =PKG=. If =SYM= is exported by =PKG= then the function
+returns =:external=, and so on.
+
+
+-----
+
+# link target 2: <<type-..3e..string>>
+# link target: <<function type-..3e..string>>
+
+
+**** Internal Function: =type->string=                                     :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(type->string typ)
+#+END_SRC
+
+
+***** Description
+
+Returns a simple string representation of the type specifier =TYP=.
+
+
+
+-----
+
+# link target 2: <<uses-for-symbol>>
+# link target: <<function uses-for-symbol>>
+
+
+**** Internal Function: =uses-for-symbol=                                  :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(uses-for-symbol sym)
+#+END_SRC
+
+***** Arguments
+
+- SYM :: A symbol.
+***** Return Value
+
+A list of [[..3d..entity..3d..][=entity=]] values.
+***** Description
+
+Given a symbol =SYM=, return a list of entity values, describing the
+different meanings/bindings of =SYM= within its home package.
+
+
+-----
+
+# link target 2: <<word-wrap>>
+# link target: <<function word-wrap>>
+
+
+**** Internal Function: =word-wrap=                                        :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(word-wrap text &key (width 80) respect-newlines respect-hyphens
+           exclude-start-char exclude-end-char)
+#+END_SRC
+
+***** Arguments
+
+- TEXT :: A string.
+- WIDTH :: An integer. The maximum length of lines once TEXT is wrapped.
+  Default is 80.
+- RESPECT-NEWLINES :: Boolean. Should newline characters within the string
+  be treated as unbreakable? (=NIL=)
+- RESPECT-HYPHENS :: Boolean. Should we refrain from breaking hyphenated
+  words? (=NIL=)
+- EXCLUDE-START-CHAR :: A character, or nil.
+- EXCLUDE-END-CHAR :: A character, or nil.
+
+***** Return Value
+
+A list of strings.
+
+***** Description
+
+Given a string =TEXT=, breaks the string into a series of
+smaller strings, none of which is longer than =WIDTH=. Returns the list of
+strings.
+
+If =EXCLUDE-START-CHAR= and =EXCLUDE-END-CHAR= are supplied, those characters
+will be treated as demarcating sections of the string whose length is to
+be ignored (treated as zero).
+
+
+-----
+
+# link target 2: <<wrap-and-write>>
+# link target: <<function wrap-and-write>>
+
+
+**** Internal Function: =wrap-and-write=                                   :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(wrap-and-write fmt &rest args)
+#+END_SRC
+
+
+***** Description
+
+Wraps the result of =(FORMAT NIL FMT . ARGS)=, then writes the
+resulting paragraph to output.
+
+
+
+-----
+
+# link target 2: <<wrap-and-write-code>>
+# link target: <<function wrap-and-write-code>>
+
+
+**** Internal Function: =wrap-and-write-code=                              :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(wrap-and-write-code fmt &rest args)
+#+END_SRC
+
+
+***** Description
+
+Wraps the result of =(FORMAT NIL FMT . ARGS)=, then writes the
+resulting paragraph with 'literal' or 'source code block' markup.
+
+
+
+-----
+
+# link target 2: <<write-bullet-point>>
+# link target: <<function write-bullet-point>>
+
+
+**** Internal Function: =write-bullet-point=                               :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(write-bullet-point fmt &rest args)
+#+END_SRC
+
+
+***** Description
+
+Writes a the result of =(FORMAT NIL FMT . ARGS)= as a point within
+an active bulleted list.
+
+
+
+-----
+
+# link target 2: <<write-chapter>>
+# link target: <<function write-chapter>>
+
+
+**** Internal Function: =write-chapter=                                    :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(write-chapter symlist entity title)
+#+END_SRC
+
+***** Arguments
+
+- SYMLIST :: A list of symbols.
+- ENTITY :: An [[..3d..entity..3d..][=entity=]].
+- TITLE :: A string.
+***** Return Value
+
+Ignored.
+***** Description
+
+Writes the section of the document which describes all entities of
+type =ENTITY=. =SYMLIST= should be a list of all the symbols that
+name such entities.
+
+
+-----
+
+# link target 2: <<write-class-hierarchy>>
+# link target: <<function write-class-hierarchy>>
+
+
+**** Internal Function: =write-class-hierarchy=                            :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(write-class-hierarchy classes)
+#+END_SRC
+
+***** Arguments
+
+- CLASSES :: A list of CLASS objects.
+***** Returns
+
+Ignored.
+***** Description
+
+Writes the inheritance tree of CLASSES as a GraphViz diagram, using the
+DOT language. External parent classes are also included.
+
+See http://www.graphviz.org/ for details of the GraphViz language.
+
+
+-----
+
+# link target 2: <<write-colophon>>
+# link target: <<function write-colophon>>
+
+
+**** Internal Function: =write-colophon=                                   :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(write-colophon)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<write-disambiguation>>
+# link target: <<function write-disambiguation>>
+
+
+**** Internal Function: =write-disambiguation=                             :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(write-disambiguation sym uses)
+#+END_SRC
+
+
+***** Description
+
+Writes a section providing disambiguating links for the symbol
+SYM, which is bound in multiple namespaces.
+
+
+
+-----
+
+# link target 2: <<write-docstring>>
+# link target: <<function write-docstring>>
+
+
+**** Internal Function: =write-docstring=                                  :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(write-docstring str &key (levels *heading-level*) (default not documented.))
+#+END_SRC
+
+***** Arguments
+
+- STR :: A docstring.
+- LEVELS :: How many levels deep in the outline is
+  this docstring?
+- DEFAULT :: A string. Default text, used if =STR= is =NIL=.
+***** Return Value
+
+Ignored.
+***** Description
+
+Writes the docstring STR to the document. Before doing this, processes
+the docstring to:
+- Demote headings
+- Make all hyperlinks safe for org mode and HTML export
+- Convert lines beginning with ';;;' to syntax-highlighting markup.
+
+
+-----
+
+# link target 2: <<write-docstring-section>>
+# link target: <<function write-docstring-section>>
+
+
+**** Internal Function: =write-docstring-section=                          :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(write-docstring-section title docstr)
+#+END_SRC
+
+
+***** Description
+
+Writes the documentation string DOCSTR within its own subsection.
+
+
+
+-----
+
+# link target 2: <<write-heading>>
+# link target: <<function write-heading>>
+
+
+**** Internal Function: =write-heading=                                    :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(write-heading title)
+#+END_SRC
+
+
+***** Description
+
+Writes a section heading entitled =TITLE=.
+
+
+
+-----
+
+# link target 2: <<write-index>>
+# link target: <<function write-index>>
+
+
+**** Internal Function: =write-index=                                      :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(write-index pkg &optional (accessibilities (list internal external)))
+#+END_SRC
+
+
+***** Description
+
+Writes a section containing an alphabetical index of all the symbols
+in the package PKG.
+
+
+
+-----
+
+# link target 2: <<write-lambda-list-section>>
+# link target: <<function write-lambda-list-section>>
+
+
+**** Internal Function: =write-lambda-list-section=                        :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(write-lambda-list-section sym)
+#+END_SRC
+
+
+***** Description
+
+Writes a section describing the lambda list of the function or macro SYM.
+
+
+
+-----
+
+# link target 2: <<write-lines>>
+# link target: <<function write-lines>>
+
+
+**** Internal Function: =write-lines=                                      :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(write-lines &rest lines)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<write-list-as-paragraph>>
+# link target: <<function write-list-as-paragraph>>
+
+
+**** Internal Function: =write-list-as-paragraph=                          :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(write-list-as-paragraph ls)
+#+END_SRC
+
+
+***** Description
+
+LS is a list of items. Writes all the items in LS to output as a
+single wrapped paragraph. Individual items are separated by commas.
+
+
+
+-----
+
+# link target 2: <<write-out>>
+# link target: <<function write-out>>
+
+
+**** Internal Function: =write-out=                                        :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(write-out fmt &rest args)
+#+END_SRC
+
+
+***** Description
+
+Writes the result of =(FORMAT NIL FMT . ARGS)= to output.
+
+
+
+-----
+
+# link target 2: <<write-preamble>>
+# link target: <<function write-preamble>>
+
+
+**** Internal Function: =write-preamble=                                   :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(write-preamble)
+#+END_SRC
+
+***** Arguments
+
+None.
+***** Return Value
+
+Ignored.
+***** Description
+
+Writes some org instructions, intended to be placed at the start of the
+document. These specify the document's author, title, and set some
+export options.
+
+
+
+
+
+** Index
+
+ [[index A][A]]  [[index B][B]]  [[index C][C]]  [[index D][D]]  [[index E][E]]
+ [[index F][F]]  [[index H][H]]  [[index L][L]]  [[index M][M]]  [[index O][O]]
+ [[index R][R]]  [[index S][S]]  [[index T][T]]  [[index U][U]]  [[index W][W]]
+ [[index NONALPHABETIC][NONALPHABETIC]]  
+
+
+*** Nonalphabetic
+
+
+# link target: <<index NONALPHABETIC>>
+- [[variable *accessibilities*][=*accessibilities*=]], Variable
+- [[variable *alphabet*][=*alphabet*=]], Variable
+- [[variable *ambiguities*][=*ambiguities*=]], Variable
+- [[variable *auto-links*][=*auto-links*=]], Variable
+- [[variable *brief-methods*][=*brief-methods*=]], Variable
+- [[variable *class-diagram*][=*class-diagram*=]], Variable
+- [[variable *clod-version-string*][=*clod-version-string*=]], Variable
+- [[variable *document-author*][=*document-author*=]], Variable
+- [[variable *document-email*][=*document-email*=]], Variable
+- [[variable *document-style-sheet*][=*document-style-sheet*=]], Variable
+- [[variable *document-title*][=*document-title*=]], Variable
+- [[variable *heading-char*][=*heading-char*=]], Variable
+- [[variable *heading-level*][=*heading-level*=]], Variable
+- [[variable *hyperspec-root*][=*hyperspec-root*=]], Variable
+- [[variable *left-margin*][=*left-margin*=]], Variable
+- [[variable *line-width*][=*line-width*=]], Variable
+- [[variable *lines-between-sections*][=*lines-between-sections*=]], Variable
+- [[variable *out*][=*out*=]], Variable
+- [[variable *unsafe-html-chars*][=*unsafe-html-chars*=]], Variable
+- [[type ..3d..entity..3d..][==entity==]], Type
+
+
+
+*** A
+
+
+# link target: <<index A>>
+- [[function accessible-symbols][=accessible-symbols=]], Function
+- [[function ampersand-symbol..3f..][=ampersand-symbol?=]], Function
+- [[class animal][=animal=]], Class
+
+
+
+*** B
+
+
+# link target: <<index B>>
+- [[class bird][=bird=]], Class
+
+
+
+*** C
+
+
+# link target: <<index C>>
+- [[class cat][=cat=]], Class
+- [[package clod][=clod=]], Package
+
+
+
+*** D
+
+
+# link target: <<index D>>
+- [[function declared-special-p][=declared-special-p=]], Function
+- [[macro do-own-symbols][=do-own-symbols=]], Macro
+- [[function docpkg][=docpkg=]], Function
+- [[function document][=document=]], Function
+- [[function document-package][=document-package=]], Function
+- [[function document-package-contents][=document-package-contents=]], Function
+- [[function document-packages][=document-packages=]], Function
+- [[class dog][=dog=]], Class
+
+
+
+*** E
+
+
+# link target: <<index E>>
+- [[function entity-..3e..string][=entity->string=]], Function
+- [[function entity-..3e..tag][=entity->tag=]], Function
+
+
+
+*** F
+
+
+# link target: <<index F>>
+- [[function find-pkg][=find-pkg=]], Function
+- [[function find-sym][=find-sym=]], Function
+- [[function function-lambda-list][=function-lambda-list=]], Function
+- [[function function-name][=function-name=]], Function
+
+
+
+*** H
+
+
+# link target: <<index H>>
+- [[class hawk][=hawk=]], Class
+- [[function html-safe-string][=html-safe-string=]], Function
+
+
+
+*** L
+
+
+# link target: <<index L>>
+- [[function list-..3e..string-with-commas][=list->string-with-commas=]],
+  Function
+- [[function list-all-direct-slots][=list-all-direct-slots=]], Function
+- [[function list-all-indirect-slots][=list-all-indirect-slots=]], Function
+- [[function list-all-slot-accessors][=list-all-slot-accessors=]], Function
+
+
+
+*** M
+
+
+# link target: <<index M>>
+- [[function make-class-link][=make-class-link=]], Function
+- [[function make-link][=make-link=]], Function
+- [[function make-package-link][=make-package-link=]], Function
+- [[function make-specialised-lambda-list][=make-specialised-lambda-list=]],
+  Function
+- [[function make-target][=make-target=]], Function
+- [[class mammal][=mammal=]], Class
+- [[function map-list][=map-list=]], Function
+
+
+
+*** O
+
+
+# link target: <<index O>>
+- [[function org-safe-symbol][=org-safe-symbol=]], Function
+
+
+
+*** R
+
+
+# link target: <<index R>>
+- [[function replace-strings-with-symbols][=replace-strings-with-symbols=]],
+  Function
+
+
+
+*** S
+
+
+# link target: <<index S>>
+- [[function simple-type..3f..][=simple-type?=]], Function
+- [[function str..2b..][=str+=]], Function
+- [[function string-starts-with..3f..][=string-starts-with?=]], Function
+- [[function symbol-accessibility][=symbol-accessibility=]], Function
+
+
+
+*** T
+
+
+# link target: <<index T>>
+- [[function type-..3e..string][=type->string=]], Function
+
+
+
+*** U
+
+
+# link target: <<index U>>
+- [[function uses-for-symbol][=uses-for-symbol=]], Function
+
+
+
+*** W
+
+
+# link target: <<index W>>
+- [[function word-wrap][=word-wrap=]], Function
+- [[function wrap-and-write][=wrap-and-write=]], Function
+- [[function wrap-and-write-code][=wrap-and-write-code=]], Function
+- [[function write-bullet-point][=write-bullet-point=]], Function
+- [[function write-chapter][=write-chapter=]], Function
+- [[function write-class-hierarchy][=write-class-hierarchy=]], Function
+- [[function write-colophon][=write-colophon=]], Function
+- [[function write-disambiguation][=write-disambiguation=]], Function
+- [[function write-docstring][=write-docstring=]], Function
+- [[function write-docstring-section][=write-docstring-section=]], Function
+- [[function write-heading][=write-heading=]], Function
+- [[macro write-indented][=write-indented=]], Macro
+- [[function write-index][=write-index=]], Function
+- [[function write-lambda-list-section][=write-lambda-list-section=]], Function
+- [[function write-lines][=write-lines=]], Function
+- [[function write-list-as-paragraph][=write-list-as-paragraph=]], Function
+- [[function write-out][=write-out=]], Function
+- [[function write-preamble][=write-preamble=]], Function
+- [[macro writing-bulleted-list][=writing-bulleted-list=]], Macro
+- [[macro writing-section][=writing-section=]], Macro
+- [[macro writing-section-for-symbol][=writing-section-for-symbol=]], Macro
+
+
+
+
+
+* Colophon
+
+This documentation was generated from Common Lisp source code using CLOD, version 1.0.
+The latest version of CLOD is available [[http://bitbucket.org/eeeickythump/clod/][here]].

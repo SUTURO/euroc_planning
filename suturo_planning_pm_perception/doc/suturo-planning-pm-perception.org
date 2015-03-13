@@ -1,0 +1,893 @@
+#+TITLE: The SUTURO-PLANNING-PM-PERCEPTION package
+#+AUTHOR: CLOD
+#+EMAIL: your@email.here
+#+LINK: hs http://www.lispworks.com/reference/HyperSpec//%s
+#+STARTUP: showall
+#+OPTIONS: toc:4 H:10 @:t tags:nil
+
+# link target 2: <<suturo-planning-pm-perception>>
+# link target: <<package suturo-planning-pm-perception>>
+
+
+* Internal Package: =suturo-planning-pm-perception=                      :package:
+
+- Uses:
+    [[package cram-designators][cram-designators]], [[package common-lisp][common
+    lisp]], [[package cl-transforms][cl-transforms]], [[package cram-language
+    implementation][cram-language-implementation]], [[package suturo-planning
+    constants][suturo-planning-constants]]
+- Used by:
+    [[package suturo-planning-executive][suturo-planning-executive]]
+
+
+** Description
+
+Not documented.
+
+
+** External Symbols
+
+
+
+
+*** External Classes
+
+-----
+
+# link target: <<class suturo-planning-pm-perception>>
+
+
+**** Internal Class: =suturo-planning-pm-perception=                          :class:
+
+
+***** Inheritance
+
+- Parent classes:
+    [[class process-module][process-module]]
+- Precedence list:
+    [[class suturo-planning-pm-perception][suturo-planning-pm-perception]], [[class
+    process-module][process-module]], [[class abstract-process-module][abstract
+    process-module]], [[class standard-object][standard-object]], [[class slot
+    object][slot-object]], [[class t][t]]
+- Direct subclasses:
+    None.
+
+
+***** Description
+
+Not documented.
+
+
+***** Direct Slots
+
+
+
+***** Indirect Slots
+
+# link target 2: <<unprocessed-results>>
+# link target: <<slot unprocessed-results>>
+
+
+****** Slot: =unprocessed-results=                                               :slot:
+
+- Value type: =t=
+- Initial value: =(MAKE-HASH-TABLE :WEAKNESS :KEY :SYNCHRONIZED T)=
+- Initargs: none
+- Allocation: instance
+
+
+# link target 2: <<result>>
+# link target: <<slot result>>
+
+
+****** Internal Slot: =result=                                                   :slot:
+
+- Value type: =t=
+- Initial value: =NIL=
+- Initargs: none
+- Allocation: instance
+
+
+# link target 2: <<execute-lock>>
+# link target: <<slot execute-lock>>
+
+
+****** Slot: =execute-lock=                                                      :slot:
+
+- Value type: =t=
+- Initial value: =(SB-THREAD:MAKE-MUTEX)=
+- Initargs: none
+- Allocation: instance
+
+
+# link target 2: <<caller>>
+# link target: <<slot caller>>
+
+
+****** Slot: =caller=                                                            :slot:
+
+- Value type: =t=
+- Initial value: =NIL=
+- Initargs: none
+- Allocation: instance
+
+
+# link target 2: <<cancel>>
+# link target: <<slot cancel>>
+
+
+****** Slot: =cancel=                                                            :slot:
+
+- Value type: =t=
+- Initial value: =NIL=
+- Initargs: none
+- Allocation: instance
+
+
+# link target 2: <<status>>
+# link target: <<slot status>>
+
+
+****** Slot: =status=                                                            :slot:
+
+- Value type: =t=
+- Initial value: =NIL=
+- Initargs: none
+- Allocation: instance
+
+
+# link target 2: <<input>>
+# link target: <<slot input>>
+
+
+****** Slot: =input=                                                             :slot:
+
+- Value type: =t=
+- Initial value: =NIL=
+- Initargs: none
+- Allocation: instance
+
+
+# link target 2: <<name>>
+# link target: <<slot name>>
+
+
+****** Internal Slot: =name=                                                     :slot:
+
+- Value type: =t=
+- Initial value: =(ERROR "Process modules need a name.")=
+- Initargs: name
+- Allocation: instance
+
+
+
+
+
+
+
+
+** Internal Symbols
+
+
+
+
+*** Internal Global Variables
+
+-----
+
+# link target 2: <<*body*>>
+# link target: <<variable *body*>>
+
+
+**** Variable: =*body*=                                                    :variable:
+
+
+***** Value
+
+: (" * Arguments - objects :: objects from the yaml file * Description Tries to
+: map a region from the map to every object from the yaml file "  (LET ((SUTURO
+: PLANNING-PM-PERCEPTION::REGIONS         (SUTURO-PLANNING-PM-PERCEPTION::GET
+: REGIONS))        (SUTURO-PLANNING-PM-PERCEPTION::CLASSIFIED-REGIONS        
+: (MAKE-ARRAY 0 :FILL-POINTER 0 :ADJUSTABLE T)))    (SUTURO-PLANNING-PM
+: PERCEPTION::COMPARE-OBJECT-AND-REGIONS     CRAM-DESIGNATOR-PROPERTIES:OBJECTS
+: SUTURO-PLANNING-PM-PERCEPTION::REGIONS     SUTURO-PLANNING-PM
+: PERCEPTION::CLASSIFIED-REGIONS)    SUTURO-PLANNING-PM-PERCEPTION::CLASSIFIED
+: REGIONS))
+
+Type: =cons=
+
+
+***** Description
+
+Not documented.
+
+
+
+
+
+*** Internal Macros
+
+-----
+
+# link target 2: <<def-action-handler>>
+# link target: <<macro def-action-handler>>
+
+
+**** Macro: =def-action-handler=                                              :macro:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(def-action-handler name
+    args
+  &body
+  body)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+
+
+*** Internal Functions
+
+-----
+
+# link target 2: <<add-region-to-classified-regions>>
+# link target: <<function add-region-to-classified-regions>>
+
+
+**** Function: =add-region-to-classified-regions=                          :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(add-region-to-classified-regions region classified-regions)
+#+END_SRC
+
+
+***** Description
+
+
+***** Arguments
+
+- region :: a region
+- classified-regions :: an array of regions 
+Adds a region to the array classified-regions.
+
+
+
+-----
+
+# link target 2: <<analyze-perceived-object>>
+# link target: <<function analyze-perceived-object>>
+
+
+**** Function: =analyze-perceived-object=                                  :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(analyze-perceived-object object)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<call-classify-object>>
+# link target: <<function call-classify-object>>
+
+
+**** Function: =call-classify-object=                                      :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(call-classify-object object)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<call-euroc-object-to-odom-combined>>
+# link target: <<function call-euroc-object-to-odom-combined>>
+
+
+**** Function: =call-euroc-object-to-odom-combined=                        :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(call-euroc-object-to-odom-combined object)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<call-gripper-service>>
+# link target: <<function call-gripper-service>>
+
+
+**** Function: =call-gripper-service=                                      :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(call-gripper-service options)
+#+END_SRC
+
+
+***** Description
+
+
+***** Arguments
+
+- options :: The options that the service call transmits to the receiver
+***** Description
+
+Call the service suturo/GetGripper
+
+
+
+-----
+
+# link target 2: <<call-scene-service>>
+# link target: <<function call-scene-service>>
+
+
+**** Function: =call-scene-service=                                        :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(call-scene-service options)
+#+END_SRC
+
+
+***** Description
+
+
+***** Arguments
+
+- options :: The options that the service call transmits to the receiver
+***** Description
+
+Calls the service suturo/GetScene
+
+
+
+-----
+
+# link target 2: <<call-service-add-point-cloud>>
+# link target: <<function call-service-add-point-cloud>>
+
+
+**** Function: =call-service-add-point-cloud=                              :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(call-service-add-point-cloud scenecam &optional arm-origin)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<compare-object-and-regions>>
+# link target: <<function compare-object-and-regions>>
+
+
+**** Function: =compare-object-and-regions=                                :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(compare-object-and-regions yaml-objects regions classified-regions)
+#+END_SRC
+
+
+***** Description
+
+
+***** Arguments
+
+- yaml-objects :: objects from the yaml file
+- regions :: regions from the scanned map
+- classified-regions :: array where the regions that could be mapped will be stored
+***** Description
+
+Loops over the objects and calculates how many regions have the same color as the object. If this is one, the region is added to the array classified-regions.
+
+
+
+-----
+
+# link target 2: <<create-capability-string>>
+# link target: <<function create-capability-string>>
+
+
+**** Function: =create-capability-string=                                  :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(create-capability-string &optional (cuboid 1) (pose-estimation nil)
+                          (object-ids nil))
+#+END_SRC
+
+
+***** Description
+
+
+***** Arguments
+
+- cuboid :: 
+- pose-estimation :: Determines wether perception pipeline should estimate the pose of the objects
+- object-ids :: Ids of the objects
+***** Description
+
+Create the string that describes which capabilities are used by the perception
+
+
+
+-----
+
+# link target 2: <<find-regions-with-same-color>>
+# link target: <<function find-regions-with-same-color>>
+
+
+**** Function: =find-regions-with-same-color=                              :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(find-regions-with-same-color obj regions)
+#+END_SRC
+
+
+***** Description
+
+
+***** Arguments
+
+- obj :: is an object from the yaml-file
+- regions :: an array of all regions
+***** Description
+
+Loops over all regions and compares their color with the color of the object. If the color matches the region is added to an array which is returned at the end.
+
+
+
+-----
+
+# link target 2: <<get-obj-color>>
+# link target: <<function get-obj-color>>
+
+
+**** Function: =get-obj-color=                                             :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(get-obj-color obj)
+#+END_SRC
+
+
+***** Description
+
+
+***** Arguments
+
+- obj :: an object from the yaml file
+***** Description
+
+Returns the color of the object
+
+
+
+-----
+
+# link target 2: <<get-region-color>>
+# link target: <<function get-region-color>>
+
+
+**** Function: =get-region-color=                                          :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(get-region-color region)
+#+END_SRC
+
+
+***** Description
+
+
+***** Arguments
+
+- region :: a region
+***** Description
+
+Returns the color of the region
+
+
+
+-----
+
+# link target 2: <<get-regions>>
+# link target: <<function get-regions>>
+
+
+**** Function: =get-regions=                                               :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(get-regions)
+#+END_SRC
+
+
+***** Description
+
+
+***** Description
+
+Returns the Obstacle Regions from the map
+
+
+
+-----
+
+# link target 2: <<get-scene-perception>>
+# link target: <<function get-scene-perception>>
+
+
+**** Function: =get-scene-perception=                                      :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(get-scene-perception &optional (cuboid 1) (pose-estimation nil)
+                      (object-ids nil))
+#+END_SRC
+
+
+***** Description
+
+
+***** Arguments
+
+- cuboid ::
+- pose-estimation :: Determines wether perception pipeline should estimate the pose of the objects
+- object-ids :: Ids of the objects
+***** Description
+
+Get the objects recognized by the scene camera
+
+
+
+-----
+
+# link target 2: <<handle-object>>
+# link target: <<function handle-object>>
+
+
+**** Function: =handle-object=                                             :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(handle-object matched-object)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<handle-object-obstacle>>
+# link target: <<function handle-object-obstacle>>
+
+
+**** Function: =handle-object-obstacle=                                    :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(handle-object-obstacle matched-object)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<handle-object-unknown-or-table>>
+# link target: <<function handle-object-unknown-or-table>>
+
+
+**** Function: =handle-object-unknown-or-table=                            :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(handle-object-unknown-or-table matched-object)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<recognize-objects-of-interest>>
+# link target: <<function recognize-objects-of-interest>>
+
+
+**** Function: =recognize-objects-of-interest=                             :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(recognize-objects-of-interest colors)
+#+END_SRC
+
+
+***** Description
+
+
+***** Arguments
+
+- colors :: Colors of the objects
+***** Description
+
+Recognizes Objects of Interest. It gets a list of colors and returns a list of objects that matches these colors.
+
+
+
+
+
+*** Internal Generic Functions
+
+-----
+
+# link target 2: <<call-action>>
+# link target: <<generic-function call-action>>
+
+
+**** Generic Function: =call-action=                                        :generic:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(call-action action &rest params)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+***** Methods
+
+- (=call-action= (action-sym0                 (eql cram-designator
+  properties:find-objects-in-map)) &rest params1)
+- (=call-action= (action-sym542 (eql cram-designator-properties:focus-object))
+  &rest params543)
+- (=call-action= (action-sym444 (eql cram-designator-properties:classify
+  object)) &rest params445)
+- (=call-action= (action-sym419                 (eql cram-designator
+  properties:pose-estimate-object)) &rest params420)
+- (=call-action= (action-sym398                 (eql suturo-planning-pm
+  perception::perceive-scene-with-origin)) &rest params399)
+- (=call-action= (action-sym377                 (eql cram-designator
+  properties:perceive-scene-with)) &rest params378)
+- (=call-action= (action-sym356 (eql cram-designator-properties:perceive))
+  &rest params357)
+- (=call-action= :around (action-sym [[class t][=t=]]) &rest params)
+- (=call-action= (action-sym [[class t][=t=]]) &rest params)
+- (=call-action= (action-sym7                 (eql cram-designator
+  properties:get-gripper-perception)) &rest params8)
+
+
+
+
+
+
+** Ambiguous Symbols
+
+
+*** Suturo-Planning-Pm-Perception
+
+# target: <<suturo-planning-pm-perception>>
+Disambiguation.
+
+- Class: [[class suturo-planning-pm-perception][=suturo-planning-pm
+  perception:suturo-planning-pm-perception=]]
+- Package: [[package suturo-planning-pm-perception][=suturo-planning-pm
+  perception:suturo-planning-pm-perception=]]
+
+
+
+
+** Index
+
+ [[index A][A]]  [[index C][C]]  [[index D][D]]  [[index F][F]]  [[index G][G]]
+ [[index H][H]]  [[index R][R]]  [[index S][S]]  [[index
+NONALPHABETIC][NONALPHABETIC]]  
+
+
+*** Nonalphabetic
+
+
+# link target: <<index NONALPHABETIC>>
+- [[variable *body*][=suturo-planning-pm-perception::*body*=]], Variable
+
+
+
+*** A
+
+
+# link target: <<index A>>
+- [[function add-region-to-classified-regions][=suturo-planning-pm
+  perception::add-region-to-classified-regions=]], Function
+- [[function analyze-perceived-object][=suturo-planning-pm-perception::analyze
+  perceived-object=]], Function
+
+
+
+*** C
+
+
+# link target: <<index C>>
+- [[generic-function call-action][=suturo-planning-pm-perception::call
+  action=]], Generic Function
+- [[function call-classify-object][=suturo-planning-pm-perception::call
+  classify-object=]], Function
+- [[function call-euroc-object-to-odom-combined][=suturo-planning-pm
+  perception::call-euroc-object-to-odom-combined=]], Function
+- [[function call-gripper-service][=suturo-planning-pm-perception::call-gripper
+  service=]], Function
+- [[function call-scene-service][=suturo-planning-pm-perception::call-scene
+  service=]], Function
+- [[function call-service-add-point-cloud][=suturo-planning-pm-perception::call
+  service-add-point-cloud=]], Function
+- [[function compare-object-and-regions][=suturo-planning-pm
+  perception::compare-object-and-regions=]], Function
+- [[function create-capability-string][=suturo-planning-pm-perception::create
+  capability-string=]], Function
+
+
+
+*** D
+
+
+# link target: <<index D>>
+- [[macro def-action-handler][=suturo-planning-pm-perception::def-action
+  handler=]], Macro
+
+
+
+*** F
+
+
+# link target: <<index F>>
+- [[function find-regions-with-same-color][=suturo-planning-pm-perception::find
+  regions-with-same-color=]], Function
+
+
+
+*** G
+
+
+# link target: <<index G>>
+- [[function get-obj-color][=suturo-planning-pm-perception::get-obj-color=]],
+  Function
+- [[function get-region-color][=suturo-planning-pm-perception::get-region
+  color=]], Function
+- [[function get-regions][=suturo-planning-pm-perception::get-regions=]],
+  Function
+- [[function get-scene-perception][=suturo-planning-pm-perception::get-scene
+  perception=]], Function
+
+
+
+*** H
+
+
+# link target: <<index H>>
+- [[function handle-object][=suturo-planning-pm-perception::handle-object=]],
+  Function
+- [[function handle-object-obstacle][=suturo-planning-pm-perception::handle
+  object-obstacle=]], Function
+- [[function handle-object-unknown-or-table][=suturo-planning-pm
+  perception::handle-object-unknown-or-table=]], Function
+
+
+
+*** R
+
+
+# link target: <<index R>>
+- [[function recognize-objects-of-interest][=suturo-planning-pm
+  perception::recognize-objects-of-interest=]], Function
+
+
+
+*** S
+
+
+# link target: <<index S>>
+- [[class suturo-planning-pm-perception][=suturo-planning-pm-perception:suturo
+  planning-pm-perception=]], Class
+- [[package suturo-planning-pm-perception][=suturo-planning-pm
+  perception:suturo-planning-pm-perception=]], Package
+
+
+
+
+
+* Colophon
+
+This documentation was generated from Common Lisp source code using CLOD, version 1.0.
+The latest version of CLOD is available [[http://bitbucket.org/eeeickythump/clod/][here]].

@@ -1,0 +1,542 @@
+#+TITLE: The SUTURO-PLANNING-EXECUTIVE package
+#+AUTHOR: CLOD
+#+EMAIL: your@email.here
+#+LINK: hs http://www.lispworks.com/reference/HyperSpec//%s
+#+STARTUP: showall
+#+OPTIONS: toc:4 H:10 @:t tags:nil
+
+# link target 2: <<suturo-planning-executive>>
+# link target: <<package suturo-planning-executive>>
+
+
+* Internal Package: =suturo-planning-executive=                          :package:
+
+- Uses:
+    [[package cram-language][cram-language]], [[package cram-language-designator
+    support][cram-language-designator-support]], [[package cram-plan-library][cram
+    plan-library]], [[package cram-roslisp-common][cram-roslisp-common]], [[package
+    roslisp][roslisp]], [[package cram-designators][cram-designators]], [[package
+    suturo-planning-pm-perception][suturo-planning-pm-perception]], [[package
+    suturo-planning-pm-manipulation][suturo-planning-pm-manipulation]], [[package
+    suturo-planning-constants][suturo-planning-constants]], [[package suturo
+    planning-planlib][suturo-planning-planlib]]
+- Used by:
+    None.
+
+** Description
+
+Not documented.
+
+
+** External Symbols
+
+
+
+
+*** External Functions
+
+-----
+
+# link target 2: <<task-selector>>
+# link target: <<function task-selector>>
+
+
+**** Function: =task-selector=                                             :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(task-selector &optional (tsk task1_v1))
+#+END_SRC
+
+
+***** Description
+
+Starts the plan for the task from the parameter server.
+
+   If no task is set in the parameter server, the task given
+   as argument will be started (default: task1_v1)
+
+
+
+-----
+
+# link target 2: <<task1>>
+# link target: <<function task1>>
+
+
+**** Function: =task1=                                                     :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(task1)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+
+
+
+** Internal Symbols
+
+
+
+
+*** Internal Macros
+
+-----
+
+# link target 2: <<with-process-modules>>
+# link target: <<macro with-process-modules>>
+
+
+**** Macro: =with-process-modules=                                            :macro:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(with-process-modules
+  &body
+  body)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+
+
+*** Internal Functions
+
+-----
+
+# link target 2: <<call-service-state>>
+# link target: <<function call-service-state>>
+
+
+**** Function: =call-service-state=                                        :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(call-service-state service-name taskdata)
+#+END_SRC
+
+
+***** Description
+
+
+Calls the service of the given service-name. Every state service has to accept an object of suturo_interface_msgs-srv:TaskDataService.
+***** Arguments
+
+- service-name :: The name of a state service has to start with suturo/state/. This argument needs the last part of the service name e.g: suturo/state/myAwesomeService -> myAwesomeService.
+- taskdata :: The suturo_interface_msgs-msgs:Taskdata object that should be send to the service
+
+
+
+-----
+
+# link target 2: <<cram-task1>>
+# link target: <<function cram-task1>>
+
+
+**** Function: =cram-task1=                                                :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(cram-task1 &rest call-args435)
+#+END_SRC
+
+
+***** Description
+
+Top level plan for task 1 of the euroc challenge
+
+
+
+-----
+
+# link target 2: <<cram-task1-tmp>>
+# link target: <<function cram-task1-tmp>>
+
+
+**** Function: =cram-task1-tmp=                                            :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(cram-task1-tmp &rest call-args2262)
+#+END_SRC
+
+
+***** Description
+
+
+Temporary top-level plan to start the task 1. The argument *start_sim* should be T if the function is called the first time. Set the argument to nil
+if the plan should try to continue from the last state.
+***** Arguments
+
+- start_sim :: T if the simulation should be started
+
+
+
+-----
+
+# link target 2: <<init-simulation>>
+# link target: <<function init-simulation>>
+
+
+**** Function: =init-simulation=                                           :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(init-simulation &rest call-args3054)
+#+END_SRC
+
+
+***** Description
+
+
+Initialize the simulation:
+- Start simulation
+- Start manipulation
+- Start perception
+- Start classifier
+
+
+
+-----
+
+# link target 2: <<is-map-scanned>>
+# link target: <<function is-map-scanned>>
+
+
+**** Function: =is-map-scanned=                                            :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(is-map-scanned)
+#+END_SRC
+
+
+***** Description
+
+
+Checks if the a map is scanned. A map is scanned if more than 95% of the map is known.
+***** Return Value
+
+A boolean (T or nil) whether the map is scanned.
+
+
+
+-----
+
+# link target 2: <<is-robot-at-location>>
+# link target: <<function is-robot-at-location>>
+
+
+**** Function: =is-robot-at-location=                                      :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(is-robot-at-location temp-loc)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<is-robot-looking-at>>
+# link target: <<function is-robot-looking-at>>
+
+
+**** Function: =is-robot-looking-at=                                       :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(is-robot-looking-at location)
+#+END_SRC
+
+
+***** Description
+
+Checks if the robot is looking at the given location
+
+
+
+-----
+
+# link target 2: <<no>>
+# link target: <<function no>>
+
+
+**** Function: =no=                                                        :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(no &rest args)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<parse-yaml>>
+# link target: <<function parse-yaml>>
+
+
+**** Function: =parse-yaml=                                                :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(parse-yaml)
+#+END_SRC
+
+
+***** Description
+
+Subscribes the yaml publisher and sets environment:*yaml* to stay informed about changes
+
+
+
+-----
+
+# link target 2: <<poses-equal-p>>
+# link target: <<function poses-equal-p>>
+
+
+**** Function: =poses-equal-p=                                             :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(poses-equal-p pose-1 pose-2 &key (position-threshold 0.01)
+               (angle-threshold (/ pi 180)))
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<task1-tmp>>
+# link target: <<function task1-tmp>>
+
+
+**** Function: =task1-tmp=                                                 :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(task1-tmp &optional start_sim)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<yaml-cb>>
+# link target: <<function yaml-cb>>
+
+
+**** Function: =yaml-cb=                                                   :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(yaml-cb msg)
+#+END_SRC
+
+
+***** Description
+
+
+Callback for the function [[parse-yaml]]. Sets the variable environment:*yaml*.
+
+
+
+-----
+
+# link target 2: <<yaml-publisher>>
+# link target: <<function yaml-publisher>>
+
+
+**** Function: =yaml-publisher=                                            :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(yaml-publisher)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+-----
+
+# link target 2: <<yes>>
+# link target: <<function yes>>
+
+
+**** Function: =yes=                                                       :function:
+
+
+***** Syntax
+
+#+BEGIN_SRC lisp
+(yes &rest args)
+#+END_SRC
+
+
+***** Description
+
+Not documented.
+
+
+
+
+
+
+** Index
+
+ [[index C][C]]  [[index I][I]]  [[index N][N]]  [[index P][P]]  [[index T][T]]
+ [[index W][W]]  [[index Y][Y]]  
+
+
+*** C
+
+
+# link target: <<index C>>
+- [[function call-service-state][=suturo-planning-executive::call-service
+  state=]], Function
+- [[function cram-task1][=suturo-planning-executive::cram-task1=]], Function
+- [[function cram-task1-tmp][=suturo-planning-executive::cram-task1-tmp=]],
+  Function
+
+
+
+*** I
+
+
+# link target: <<index I>>
+- [[function init-simulation][=suturo-planning-executive::init-simulation=]],
+  Function
+- [[function is-map-scanned][=suturo-planning-executive::is-map-scanned=]],
+  Function
+- [[function is-robot-at-location][=suturo-planning-executive::is-robot-at
+  location=]], Function
+- [[function is-robot-looking-at][=suturo-planning-executive::is-robot-looking
+  at=]], Function
+
+
+
+*** N
+
+
+# link target: <<index N>>
+- [[function no][=suturo-planning-executive::no=]], Function
+
+
+
+*** P
+
+
+# link target: <<index P>>
+- [[function parse-yaml][=suturo-planning-executive::parse-yaml=]], Function
+- [[function poses-equal-p][=suturo-planning-executive::poses-equal-p=]],
+  Function
+
+
+
+*** T
+
+
+# link target: <<index T>>
+- [[function task-selector][=suturo-planning-executive:task-selector=]],
+  Function
+- [[function task1][=suturo-planning-executive:task1=]], Function
+- [[function task1-tmp][=suturo-planning-executive::task1-tmp=]], Function
+
+
+
+*** W
+
+
+# link target: <<index W>>
+- [[macro with-process-modules][=suturo-planning-executive::with-process
+  modules=]], Macro
+
+
+
+*** Y
+
+
+# link target: <<index Y>>
+- [[function yaml-cb][=suturo-planning-executive::yaml-cb=]], Function
+- [[function yaml-publisher][=suturo-planning-executive::yaml-publisher=]],
+  Function
+- [[function yes][=suturo-planning-executive::yes=]], Function
+
+
+
+
+
+* Colophon
+
+This documentation was generated from Common Lisp source code using CLOD, version 1.0.
+The latest version of CLOD is available [[http://bitbucket.org/eeeickythump/clod/][here]].
