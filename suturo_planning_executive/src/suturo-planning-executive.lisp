@@ -27,30 +27,31 @@
       ,@body)
     (roslisp-utilities:shutdown-ros)))
 
-(defun task-selector (&optional (tsk "task1_v1"))
+(defun task-selector ()
   "Starts the plan for the task from the parameter server.
 
    If no task is set in the parameter server, the task given
    as argument will be started (default: task1_v1)"
   (with-ros-node
-    (unless (wait-for-service +service-name-start-simulator+ +timeout-service+)
-      (ros-error (task-selector) "Service ~a timed out." +service-name-start-simulator+)
-      (fail))
-    (ros-info (task-selector) "Starting simulator...")
-    (let* ((ret (call-service +service-name-start-simulator+
-                                          'euroc_c2_msgs-srv:StartSimulator
-                                          :user_id "suturo"
-                                          :scene_name tsk))
-           (_ (ros-info (task-selector) "Task starter return: ~a" ret))
-           (task-description (slot-value ret 'euroc_c2_msgs-srv:description_yaml)))
-      (publish-msg *yaml-pub* :data task-description)
-      (let ((task (remove #\  (get-param "/task_description/public_description/task_name" tsk)))) ; whitespace sensitive!
-        (ros-info (task-selector) "Starting plan ~a..." task)
-        (unwind-protect
-          (funcall (symbol-function (read-from-string (format nil "exec:~a" task))))
-          (when cram-beliefstate::*logging-enabled*
-            (ros-info (task-selector) "Saving log files...")
-            (cram-beliefstate:extract-files)))))))
+    (let ((tsk (get-param "/task_variation" "task1_v1")))
+      (unless (wait-for-service +service-name-start-simulator+ +timeout-service+)
+        (ros-error (task-selector) "Service ~a timed out." +service-name-start-simulator+)
+        (fail))
+      (ros-info (task-selector) "Starting simulator...")
+      (let* ((ret (call-service +service-name-start-simulator+
+                                            'euroc_c2_msgs-srv:StartSimulator
+                                            :user_id "suturo"
+                                            :scene_name tsk))
+             (_ (ros-info (task-selector) "Task starter return: ~a" ret))
+             (task-description (slot-value ret 'euroc_c2_msgs-srv:description_yaml)))
+        (publish-msg *yaml-pub* :data task-description)
+        (let ((task (remove #\  (get-param "/task_description/public_description/task_name" tsk)))) ; whitespace sensitive!
+          (ros-info (task-selector) "Starting plan ~a..." task)
+          (unwind-protect
+            (funcall (symbol-function (read-from-string (format nil "exec:~a" task))))
+            (when cram-beliefstate::*logging-enabled*
+              (ros-info (task-selector) "Saving log files...")
+              (cram-beliefstate:extract-files))))))))
 
 (def-top-level-cram-function task1 ()
   "Top level plan for task 1 of the euroc challenge"

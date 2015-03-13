@@ -1,5 +1,10 @@
 <launch>
-  <include file="$(find suturo_planning_executive)/launch/task1_without_planning.launch" />
+
+  <arg name="task" default="task1_v1" />
+
+  <include file="$(find suturo_planning_executive)/launch/task1_without_planning.launch">
+    <arg name="task" value="$(arg task)" />
+  </include>
   
   <!-- Start logging -->
   <include file="$(find suturo_planning_executive)/launch/logging.launch" />
