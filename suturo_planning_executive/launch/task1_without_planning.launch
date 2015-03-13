@@ -16,7 +16,7 @@
   <node name="yaml_pars0r" pkg="suturo_planning_yaml_pars0r" type="yaml_pars0r_node.py" />
 
   <!-- Start Task selector -->
-  <!-- <node name="task_selector" pkg="euroc_launch" type="TaskSelector" /> -->
+  <node name="task_selector" pkg="euroc_launch" type="TaskSelector" />
 
   <!-- Start classifier -->
   <node name="classifier" pkg="suturo_perception_classifier" type="classifier.py" />
