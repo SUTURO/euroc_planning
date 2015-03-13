@@ -1,4 +1,5 @@
 (defsystem suturo-planning-pm-manipulation
+  :serial t
   :depends-on (roslisp
                cram-plan-library
                cram-plan-failures

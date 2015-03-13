@@ -1,4 +1,5 @@
 (defsystem suturo-planning-planlib
+  :serial t
   :depends-on (roslisp
                designators
                cram-plan-library

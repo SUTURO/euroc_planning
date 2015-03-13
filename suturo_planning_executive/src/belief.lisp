@@ -26,7 +26,11 @@
             angle-threshold)))
 
 (defun is-map-scanned()
-  "TODO Set timeout "
+  "
+Checks if the a map is scanned. A map is scanned if more than 95% of the map is known.
+* Return Value
+A boolean (T or nil) whether the map is scanned.
+"
   (let ((is-scanned nil)
         (percentage 0))
     (print "Im in is map scanned")
@@ -44,7 +48,9 @@
 
 
 (defmethod cram-plan-knowledge:holds (occasion &optional time-specification)
-  "Taken from simple_belief since the package pulls too many dependencies"
+  "
+* Source
+Taken from simple_belief since the package pulls too many dependencies"
   (if time-specification
     (cram-reasoning:prolog `(holds ?_ ,occasion ,time-specification))
     (cram-reasoning:prolog `(holds ,occasion))))

@@ -1,6 +1,7 @@
 (in-package :exec)
 
 (defun parse-yaml ()
+  "Subscribes the yaml publisher and sets environment:*yaml* to stay informed about changes"
   ; TODO: Publish the yaml description to the yaml pars0r input
   (roslisp:subscribe constants:+topic-name-get-yaml+ 'suturo_msgs-msg:Task #'yaml-cb))
 
@@ -74,11 +75,10 @@
 
 (def-top-level-cram-function task1-tmp (&optional start_sim)
   "
-* Arguments
-- start_sim :: T if the simulation should be started
-* Description
 Temporary top-level plan to start the task 1. The argument *start_sim* should be T if the function is called the first time. Set the argument to nil
 if the plan should try to continue from the last state.
+* Arguments
+- start_sim :: T if the simulation should be started
 "
   (roslisp:with-ros-node "testExecution"
   (with-process-modules
@@ -91,18 +91,16 @@ if the plan should try to continue from the last state.
 
 (defun yaml-cb (msg)
   "
-* Description
 Callback for the function [[parse-yaml]]. Sets the variable environment:*yaml*.
 "
   (setf environment:*yaml* msg))
 
 (defun call-service-state (service-name taskdata)
   "
+Calls the service of the given service-name. Every state service has to accept an object of suturo_interface_msgs-srv:TaskDataService.
 * Arguments
 - service-name :: The name of a state service has to start with suturo/state/. This argument needs the last part of the service name e.g: suturo/state/myAwesomeService -> myAwesomeService.
 - taskdata :: The suturo_interface_msgs-msgs:Taskdata object that should be send to the service
-* Description
-Calls the service of the given service-name. Every state service has to accept an object of suturo_interface_msgs-srv:TaskDataService.
 "
   (let
       ((full-service-name (concatenate 'string "suturo/state/" service-name)))
@@ -118,7 +116,6 @@ Calls the service of the given service-name. Every state service has to accept a
 
 (def-cram-function init-simulation (task_name)
   "
-* Description
 Initialize the simulation:
 - Start simulation
 - Start manipulation

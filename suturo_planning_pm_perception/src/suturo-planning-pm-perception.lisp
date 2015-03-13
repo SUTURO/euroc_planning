@@ -1,10 +1,19 @@
 (in-package :perception)
 
+"* Actions
+
+"
 
 (defmacro def-action-handler (name args &body body)
   (alexandria:with-gensyms (action-sym params)
-    `(defmethod call-action ((,action-sym (eql ',name)) &rest ,params)
-      (destructuring-bind ,args ,params ,@body))))
+    (defparameter *body* body)
+    (if (not (typep (first body) 'string))
+        `(defmethod call-action ((,action-sym (eql ',name)) &rest ,params)
+                                       (destructuring-bind ,args ,params ,@body))
+        `(defmethod call-action ((,action-sym (eql ',name)) &rest ,params)
+                                       ,(first body)
+                                       (destructuring-bind ,args ,params ,@body)))))
+        
 
 ;-------------------- Low level perception ------------------------------
 
@@ -78,6 +87,10 @@
 
 ;---------------scan map -------------------------------------
 (def-action-handler perceive-scene-with (scenecam)
+  "Scans the whole map
+* Arguments
+- scenecam :: blub
+"
   (call-service-add-point-cloud scenecam))
 
 (def-action-handler perceive-scene-with-origin (scenecam arm-origin)

@@ -1,4 +1,5 @@
 (defsystem suturo-planning-executive
+  :serial t
   :depends-on (roslisp
                roslisp-utilities
                cram-language
