@@ -52,11 +52,7 @@
             (ros-info (task-selector) "Saving log files...")
             (cram-beliefstate:extract-files)))))))
 
-(defun task1 ()
-  (roslisp:with-ros-node "testExecution"
-    (cram-task1)))
-
-(def-top-level-cram-function cram-task1 ()
+(def-top-level-cram-function task1 ()
   "Top level plan for task 1 of the euroc challenge"
   (with-process-modules
     (with-retry-counters ((all-retry-count 2)
