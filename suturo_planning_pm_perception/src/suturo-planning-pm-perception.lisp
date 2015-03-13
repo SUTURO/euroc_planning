@@ -161,6 +161,7 @@ Scans the map and add the perceived point cloud to the map.
 * Arguments
 - scenecam :: blub
 "
+  (cram-beliefstate:add-topic-image-to-active-node "/euroc_interface_node/cameras/tcp_rgb_cam")
   (call-service-add-point-cloud scenecam))
 
   "
@@ -171,6 +172,7 @@ Scans the map and add the perceived point cloud to the map.
 Scans the map and add the perceived point cloud to the map.
 "
 (def-action-handler perceive-scene-with-origin (scenecam arm-origin)
+  (cram-beliefstate:add-topic-image-to-active-node "/euroc_interface_node/cameras/scene_rgb_cam")
   (call-service-add-point-cloud scenecam arm-origin))
 
 ;----------------pose estimation------------------------------

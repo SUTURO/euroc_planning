@@ -1,9 +1,12 @@
 <launch>
   <!-- Log specified topics -->
-  <arg name="logged_topics" default="/tf" />
+  <arg name="logged_topics" default="/tf /logged_designators /logged_images_out/compressed" />
 
   <!-- CRAM Logging -->
   <node name="semrec_ros" pkg="semrec" type="semrec" output="screen" />
+
+  <!-- Compress logged images for mongodb storage... -->
+  <node name="image_compression" pkg="image_transport" type="republish" args="raw in:=/logged_images out:=/logged_images_out" />
 
   <!-- Topic logging -->
   <node name="topic_logging" pkg="mongodb_log" type="mongodb_log.py" args="$(arg logged_topics)" />
