@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>The SUTURO-PLANNING-PM-PERCEPTION package</title>
-<!-- 2015-03-13 Fr 14:37 -->
+<!-- 2015-03-13 Fr 15:29 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="CLOD" />
@@ -156,41 +156,36 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#sec-1-3">1.3. Internal Symbols</a>
 <ul>
-<li><a href="#sec-1-3-1">1.3.1. Internal Global Variables</a>
+<li><a href="#sec-1-3-1">1.3.1. Internal Macros</a>
 <ul>
-<li><a href="#sec-1-3-1-1">1.3.1.1. Variable: <code>*body*</code></a></li>
+<li><a href="#sec-1-3-1-1">1.3.1.1. Macro: <code>def-action-handler</code></a></li>
 </ul>
 </li>
-<li><a href="#sec-1-3-2">1.3.2. Internal Macros</a>
+<li><a href="#sec-1-3-2">1.3.2. Internal Functions</a>
 <ul>
-<li><a href="#sec-1-3-2-1">1.3.2.1. Macro: <code>def-action-handler</code></a></li>
+<li><a href="#sec-1-3-2-1">1.3.2.1. Function: <code>add-region-to-classified-regions</code></a></li>
+<li><a href="#sec-1-3-2-2">1.3.2.2. Function: <code>analyze-perceived-object</code></a></li>
+<li><a href="#sec-1-3-2-3">1.3.2.3. Function: <code>call-classify-object</code></a></li>
+<li><a href="#sec-1-3-2-4">1.3.2.4. Function: <code>call-euroc-object-to-odom-combined</code></a></li>
+<li><a href="#sec-1-3-2-5">1.3.2.5. Function: <code>call-gripper-service</code></a></li>
+<li><a href="#sec-1-3-2-6">1.3.2.6. Function: <code>call-scene-service</code></a></li>
+<li><a href="#sec-1-3-2-7">1.3.2.7. Function: <code>call-service-add-point-cloud</code></a></li>
+<li><a href="#sec-1-3-2-8">1.3.2.8. Function: <code>compare-object-and-regions</code></a></li>
+<li><a href="#sec-1-3-2-9">1.3.2.9. Function: <code>create-capability-string</code></a></li>
+<li><a href="#sec-1-3-2-10">1.3.2.10. Function: <code>find-regions-with-same-color</code></a></li>
+<li><a href="#sec-1-3-2-11">1.3.2.11. Function: <code>get-obj-color</code></a></li>
+<li><a href="#sec-1-3-2-12">1.3.2.12. Function: <code>get-region-color</code></a></li>
+<li><a href="#sec-1-3-2-13">1.3.2.13. Function: <code>get-regions</code></a></li>
+<li><a href="#sec-1-3-2-14">1.3.2.14. Function: <code>get-scene-perception</code></a></li>
+<li><a href="#sec-1-3-2-15">1.3.2.15. Function: <code>handle-object</code></a></li>
+<li><a href="#sec-1-3-2-16">1.3.2.16. Function: <code>handle-object-obstacle</code></a></li>
+<li><a href="#sec-1-3-2-17">1.3.2.17. Function: <code>handle-object-unknown-or-table</code></a></li>
+<li><a href="#sec-1-3-2-18">1.3.2.18. Function: <code>recognize-objects-of-interest</code></a></li>
 </ul>
 </li>
-<li><a href="#sec-1-3-3">1.3.3. Internal Functions</a>
+<li><a href="#sec-1-3-3">1.3.3. Internal Generic Functions</a>
 <ul>
-<li><a href="#sec-1-3-3-1">1.3.3.1. Function: <code>add-region-to-classified-regions</code></a></li>
-<li><a href="#sec-1-3-3-2">1.3.3.2. Function: <code>analyze-perceived-object</code></a></li>
-<li><a href="#sec-1-3-3-3">1.3.3.3. Function: <code>call-classify-object</code></a></li>
-<li><a href="#sec-1-3-3-4">1.3.3.4. Function: <code>call-euroc-object-to-odom-combined</code></a></li>
-<li><a href="#sec-1-3-3-5">1.3.3.5. Function: <code>call-gripper-service</code></a></li>
-<li><a href="#sec-1-3-3-6">1.3.3.6. Function: <code>call-scene-service</code></a></li>
-<li><a href="#sec-1-3-3-7">1.3.3.7. Function: <code>call-service-add-point-cloud</code></a></li>
-<li><a href="#sec-1-3-3-8">1.3.3.8. Function: <code>compare-object-and-regions</code></a></li>
-<li><a href="#sec-1-3-3-9">1.3.3.9. Function: <code>create-capability-string</code></a></li>
-<li><a href="#sec-1-3-3-10">1.3.3.10. Function: <code>find-regions-with-same-color</code></a></li>
-<li><a href="#sec-1-3-3-11">1.3.3.11. Function: <code>get-obj-color</code></a></li>
-<li><a href="#sec-1-3-3-12">1.3.3.12. Function: <code>get-region-color</code></a></li>
-<li><a href="#sec-1-3-3-13">1.3.3.13. Function: <code>get-regions</code></a></li>
-<li><a href="#sec-1-3-3-14">1.3.3.14. Function: <code>get-scene-perception</code></a></li>
-<li><a href="#sec-1-3-3-15">1.3.3.15. Function: <code>handle-object</code></a></li>
-<li><a href="#sec-1-3-3-16">1.3.3.16. Function: <code>handle-object-obstacle</code></a></li>
-<li><a href="#sec-1-3-3-17">1.3.3.17. Function: <code>handle-object-unknown-or-table</code></a></li>
-<li><a href="#sec-1-3-3-18">1.3.3.18. Function: <code>recognize-objects-of-interest</code></a></li>
-</ul>
-</li>
-<li><a href="#sec-1-3-4">1.3.4. Internal Generic Functions</a>
-<ul>
-<li><a href="#sec-1-3-4-1">1.3.4.1. Generic Function: <code>call-action</code></a></li>
+<li><a href="#sec-1-3-3-1">1.3.3.1. Generic Function: <code>call-action</code></a></li>
 </ul>
 </li>
 </ul>
@@ -202,15 +197,14 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#sec-1-5">1.5. Index</a>
 <ul>
-<li><a href="#sec-1-5-1">1.5.1. Nonalphabetic</a></li>
-<li><a href="#sec-1-5-2">1.5.2. A</a></li>
-<li><a href="#sec-1-5-3">1.5.3. C</a></li>
-<li><a href="#sec-1-5-4">1.5.4. D</a></li>
-<li><a href="#sec-1-5-5">1.5.5. F</a></li>
-<li><a href="#sec-1-5-6">1.5.6. G</a></li>
-<li><a href="#sec-1-5-7">1.5.7. H</a></li>
-<li><a href="#sec-1-5-8">1.5.8. R</a></li>
-<li><a href="#sec-1-5-9">1.5.9. S</a></li>
+<li><a href="#sec-1-5-1">1.5.1. A</a></li>
+<li><a href="#sec-1-5-2">1.5.2. C</a></li>
+<li><a href="#sec-1-5-3">1.5.3. D</a></li>
+<li><a href="#sec-1-5-4">1.5.4. F</a></li>
+<li><a href="#sec-1-5-5">1.5.5. G</a></li>
+<li><a href="#sec-1-5-6">1.5.6. H</a></li>
+<li><a href="#sec-1-5-7">1.5.7. R</a></li>
+<li><a href="#sec-1-5-8">1.5.8. S</a></li>
 </ul>
 </li>
 </ul>
@@ -318,7 +312,7 @@ Not documented.
 
 
 <div id="outline-container-sec-1-2-1-1-4-2" class="outline-7">
-<h7 id="sec-1-2-1-1-4-2"><span class="section-number-7">1.2.1.1.4.2</span> Internal Slot: <code>result</code></h7>
+<h7 id="sec-1-2-1-1-4-2"><span class="section-number-7">1.2.1.1.4.2</span> Slot: <code>result</code></h7>
 <div class="outline-text-7" id="text-1-2-1-1-4-2">
 <ul class="org-ul">
 <li>Value type: <code>t</code>
@@ -450,33 +444,26 @@ Not documented.
 <h3 id="sec-1-3"><span class="section-number-3">1.3</span> Internal Symbols</h3>
 <div class="outline-text-3" id="text-1-3">
 </div><div id="outline-container-sec-1-3-1" class="outline-4">
-<h4 id="sec-1-3-1"><span class="section-number-4">1.3.1</span> Internal Global Variables</h4>
+<h4 id="sec-1-3-1"><span class="section-number-4">1.3.1</span> Internal Macros</h4>
 <div class="outline-text-4" id="text-1-3-1">
 <hr  />
 </div>
 
 
 <div id="outline-container-sec-1-3-1-1" class="outline-5">
-<h5 id="sec-1-3-1-1"><span class="section-number-5">1.3.1.1</span> Variable: <code>*body*</code></h5>
+<h5 id="sec-1-3-1-1"><span class="section-number-5">1.3.1.1</span> Macro: <code>def-action-handler</code></h5>
 <div class="outline-text-5" id="text-1-3-1-1">
 </div><div id="outline-container-sec-1-3-1-1-1" class="outline-6">
-<h6 id="sec-1-3-1-1-1"><span class="section-number-6">1.3.1.1.1</span> Value</h6>
+<h6 id="sec-1-3-1-1-1"><span class="section-number-6">1.3.1.1.1</span> Syntax</h6>
 <div class="outline-text-6" id="text-1-3-1-1-1">
-<pre class="example">
-(" * Arguments - objects :: objects from the yaml file * Description Tries to
-map a region from the map to every object from the yaml file "  (LET ((SUTURO
-PLANNING-PM-PERCEPTION::REGIONS         (SUTURO-PLANNING-PM-PERCEPTION::GET
-REGIONS))        (SUTURO-PLANNING-PM-PERCEPTION::CLASSIFIED-REGIONS        
-(MAKE-ARRAY 0 :FILL-POINTER 0 :ADJUSTABLE T)))    (SUTURO-PLANNING-PM
-PERCEPTION::COMPARE-OBJECT-AND-REGIONS     CRAM-DESIGNATOR-PROPERTIES:OBJECTS
-SUTURO-PLANNING-PM-PERCEPTION::REGIONS     SUTURO-PLANNING-PM
-PERCEPTION::CLASSIFIED-REGIONS)    SUTURO-PLANNING-PM-PERCEPTION::CLASSIFIED
-REGIONS))
-</pre>
+<div class="org-src-container">
 
-<p>
-Type: <code>cons</code>
-</p>
+<pre class="src src-lisp">(def-action-handler name
+    args
+  &amp;body
+  body)
+</pre>
+</div>
 </div>
 </div>
 
@@ -497,58 +484,18 @@ Not documented.
 
 
 <div id="outline-container-sec-1-3-2" class="outline-4">
-<h4 id="sec-1-3-2"><span class="section-number-4">1.3.2</span> Internal Macros</h4>
+<h4 id="sec-1-3-2"><span class="section-number-4">1.3.2</span> Internal Functions</h4>
 <div class="outline-text-4" id="text-1-3-2">
 <hr  />
 </div>
 
 
 <div id="outline-container-sec-1-3-2-1" class="outline-5">
-<h5 id="sec-1-3-2-1"><span class="section-number-5">1.3.2.1</span> Macro: <code>def-action-handler</code></h5>
+<h5 id="sec-1-3-2-1"><span class="section-number-5">1.3.2.1</span> Function: <code>add-region-to-classified-regions</code></h5>
 <div class="outline-text-5" id="text-1-3-2-1">
 </div><div id="outline-container-sec-1-3-2-1-1" class="outline-6">
 <h6 id="sec-1-3-2-1-1"><span class="section-number-6">1.3.2.1.1</span> Syntax</h6>
 <div class="outline-text-6" id="text-1-3-2-1-1">
-<div class="org-src-container">
-
-<pre class="src src-lisp">(def-action-handler name
-    args
-  &amp;body
-  body)
-</pre>
-</div>
-</div>
-</div>
-
-
-<div id="outline-container-sec-1-3-2-1-2" class="outline-6">
-<h6 id="sec-1-3-2-1-2"><span class="section-number-6">1.3.2.1.2</span> Description</h6>
-<div class="outline-text-6" id="text-1-3-2-1-2">
-<p>
-Not documented.
-</p>
-</div>
-</div>
-</div>
-</div>
-
-
-
-
-
-<div id="outline-container-sec-1-3-3" class="outline-4">
-<h4 id="sec-1-3-3"><span class="section-number-4">1.3.3</span> Internal Functions</h4>
-<div class="outline-text-4" id="text-1-3-3">
-<hr  />
-</div>
-
-
-<div id="outline-container-sec-1-3-3-1" class="outline-5">
-<h5 id="sec-1-3-3-1"><span class="section-number-5">1.3.3.1</span> Function: <code>add-region-to-classified-regions</code></h5>
-<div class="outline-text-5" id="text-1-3-3-1">
-</div><div id="outline-container-sec-1-3-3-1-1" class="outline-6">
-<h6 id="sec-1-3-3-1-1"><span class="section-number-6">1.3.3.1.1</span> Syntax</h6>
-<div class="outline-text-6" id="text-1-3-3-1-1">
 <div class="org-src-container">
 
 <pre class="src src-lisp">(add-region-to-classified-regions region classified-regions)
@@ -558,14 +505,14 @@ Not documented.
 </div>
 
 
-<div id="outline-container-sec-1-3-3-1-2" class="outline-6">
-<h6 id="sec-1-3-3-1-2"><span class="section-number-6">1.3.3.1.2</span> Description</h6>
+<div id="outline-container-sec-1-3-2-1-2" class="outline-6">
+<h6 id="sec-1-3-2-1-2"><span class="section-number-6">1.3.2.1.2</span> Description</h6>
 </div>
 
 
-<div id="outline-container-sec-1-3-3-1-3" class="outline-6">
-<h6 id="sec-1-3-3-1-3"><span class="section-number-6">1.3.3.1.3</span> Arguments</h6>
-<div class="outline-text-6" id="text-1-3-3-1-3">
+<div id="outline-container-sec-1-3-2-1-3" class="outline-6">
+<h6 id="sec-1-3-2-1-3"><span class="section-number-6">1.3.2.1.3</span> Arguments</h6>
+<div class="outline-text-6" id="text-1-3-2-1-3">
 <dl class="org-dl">
 <dt> region </dt><dd>a region
 </dd>
@@ -584,12 +531,12 @@ Adds a region to the array classified-regions.
 </div>
 
 
-<div id="outline-container-sec-1-3-3-2" class="outline-5">
-<h5 id="sec-1-3-3-2"><span class="section-number-5">1.3.3.2</span> Function: <code>analyze-perceived-object</code></h5>
-<div class="outline-text-5" id="text-1-3-3-2">
-</div><div id="outline-container-sec-1-3-3-2-1" class="outline-6">
-<h6 id="sec-1-3-3-2-1"><span class="section-number-6">1.3.3.2.1</span> Syntax</h6>
-<div class="outline-text-6" id="text-1-3-3-2-1">
+<div id="outline-container-sec-1-3-2-2" class="outline-5">
+<h5 id="sec-1-3-2-2"><span class="section-number-5">1.3.2.2</span> Function: <code>analyze-perceived-object</code></h5>
+<div class="outline-text-5" id="text-1-3-2-2">
+</div><div id="outline-container-sec-1-3-2-2-1" class="outline-6">
+<h6 id="sec-1-3-2-2-1"><span class="section-number-6">1.3.2.2.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1-3-2-2-1">
 <div class="org-src-container">
 
 <pre class="src src-lisp">(analyze-perceived-object object)
@@ -599,9 +546,9 @@ Adds a region to the array classified-regions.
 </div>
 
 
-<div id="outline-container-sec-1-3-3-2-2" class="outline-6">
-<h6 id="sec-1-3-3-2-2"><span class="section-number-6">1.3.3.2.2</span> Description</h6>
-<div class="outline-text-6" id="text-1-3-3-2-2">
+<div id="outline-container-sec-1-3-2-2-2" class="outline-6">
+<h6 id="sec-1-3-2-2-2"><span class="section-number-6">1.3.2.2.2</span> Description</h6>
+<div class="outline-text-6" id="text-1-3-2-2-2">
 <p>
 Not documented.
 </p>
@@ -614,12 +561,12 @@ Not documented.
 </div>
 
 
-<div id="outline-container-sec-1-3-3-3" class="outline-5">
-<h5 id="sec-1-3-3-3"><span class="section-number-5">1.3.3.3</span> Function: <code>call-classify-object</code></h5>
-<div class="outline-text-5" id="text-1-3-3-3">
-</div><div id="outline-container-sec-1-3-3-3-1" class="outline-6">
-<h6 id="sec-1-3-3-3-1"><span class="section-number-6">1.3.3.3.1</span> Syntax</h6>
-<div class="outline-text-6" id="text-1-3-3-3-1">
+<div id="outline-container-sec-1-3-2-3" class="outline-5">
+<h5 id="sec-1-3-2-3"><span class="section-number-5">1.3.2.3</span> Function: <code>call-classify-object</code></h5>
+<div class="outline-text-5" id="text-1-3-2-3">
+</div><div id="outline-container-sec-1-3-2-3-1" class="outline-6">
+<h6 id="sec-1-3-2-3-1"><span class="section-number-6">1.3.2.3.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1-3-2-3-1">
 <div class="org-src-container">
 
 <pre class="src src-lisp">(call-classify-object object)
@@ -629,9 +576,9 @@ Not documented.
 </div>
 
 
-<div id="outline-container-sec-1-3-3-3-2" class="outline-6">
-<h6 id="sec-1-3-3-3-2"><span class="section-number-6">1.3.3.3.2</span> Description</h6>
-<div class="outline-text-6" id="text-1-3-3-3-2">
+<div id="outline-container-sec-1-3-2-3-2" class="outline-6">
+<h6 id="sec-1-3-2-3-2"><span class="section-number-6">1.3.2.3.2</span> Description</h6>
+<div class="outline-text-6" id="text-1-3-2-3-2">
 <p>
 Not documented.
 </p>
@@ -644,12 +591,12 @@ Not documented.
 </div>
 
 
-<div id="outline-container-sec-1-3-3-4" class="outline-5">
-<h5 id="sec-1-3-3-4"><span class="section-number-5">1.3.3.4</span> Function: <code>call-euroc-object-to-odom-combined</code></h5>
-<div class="outline-text-5" id="text-1-3-3-4">
-</div><div id="outline-container-sec-1-3-3-4-1" class="outline-6">
-<h6 id="sec-1-3-3-4-1"><span class="section-number-6">1.3.3.4.1</span> Syntax</h6>
-<div class="outline-text-6" id="text-1-3-3-4-1">
+<div id="outline-container-sec-1-3-2-4" class="outline-5">
+<h5 id="sec-1-3-2-4"><span class="section-number-5">1.3.2.4</span> Function: <code>call-euroc-object-to-odom-combined</code></h5>
+<div class="outline-text-5" id="text-1-3-2-4">
+</div><div id="outline-container-sec-1-3-2-4-1" class="outline-6">
+<h6 id="sec-1-3-2-4-1"><span class="section-number-6">1.3.2.4.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1-3-2-4-1">
 <div class="org-src-container">
 
 <pre class="src src-lisp">(call-euroc-object-to-odom-combined object)
@@ -659,9 +606,9 @@ Not documented.
 </div>
 
 
-<div id="outline-container-sec-1-3-3-4-2" class="outline-6">
-<h6 id="sec-1-3-3-4-2"><span class="section-number-6">1.3.3.4.2</span> Description</h6>
-<div class="outline-text-6" id="text-1-3-3-4-2">
+<div id="outline-container-sec-1-3-2-4-2" class="outline-6">
+<h6 id="sec-1-3-2-4-2"><span class="section-number-6">1.3.2.4.2</span> Description</h6>
+<div class="outline-text-6" id="text-1-3-2-4-2">
 <p>
 Not documented.
 </p>
@@ -674,12 +621,12 @@ Not documented.
 </div>
 
 
-<div id="outline-container-sec-1-3-3-5" class="outline-5">
-<h5 id="sec-1-3-3-5"><span class="section-number-5">1.3.3.5</span> Function: <code>call-gripper-service</code></h5>
-<div class="outline-text-5" id="text-1-3-3-5">
-</div><div id="outline-container-sec-1-3-3-5-1" class="outline-6">
-<h6 id="sec-1-3-3-5-1"><span class="section-number-6">1.3.3.5.1</span> Syntax</h6>
-<div class="outline-text-6" id="text-1-3-3-5-1">
+<div id="outline-container-sec-1-3-2-5" class="outline-5">
+<h5 id="sec-1-3-2-5"><span class="section-number-5">1.3.2.5</span> Function: <code>call-gripper-service</code></h5>
+<div class="outline-text-5" id="text-1-3-2-5">
+</div><div id="outline-container-sec-1-3-2-5-1" class="outline-6">
+<h6 id="sec-1-3-2-5-1"><span class="section-number-6">1.3.2.5.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1-3-2-5-1">
 <div class="org-src-container">
 
 <pre class="src src-lisp">(call-gripper-service options)
@@ -689,23 +636,23 @@ Not documented.
 </div>
 
 
-<div id="outline-container-sec-1-3-3-5-2" class="outline-6">
-<h6 id="sec-1-3-3-5-2"><span class="section-number-6">1.3.3.5.2</span> Description</h6>
+<div id="outline-container-sec-1-3-2-5-2" class="outline-6">
+<h6 id="sec-1-3-2-5-2"><span class="section-number-6">1.3.2.5.2</span> Description</h6>
 </div>
 
 
-<div id="outline-container-sec-1-3-3-5-3" class="outline-6">
-<h6 id="sec-1-3-3-5-3"><span class="section-number-6">1.3.3.5.3</span> Arguments</h6>
-<div class="outline-text-6" id="text-1-3-3-5-3">
+<div id="outline-container-sec-1-3-2-5-3" class="outline-6">
+<h6 id="sec-1-3-2-5-3"><span class="section-number-6">1.3.2.5.3</span> Arguments</h6>
+<div class="outline-text-6" id="text-1-3-2-5-3">
 <dl class="org-dl">
 <dt> options </dt><dd>The options that the service call transmits to the receiver
 </dd>
 </dl>
 </div>
 </div>
-<div id="outline-container-sec-1-3-3-5-4" class="outline-6">
-<h6 id="sec-1-3-3-5-4"><span class="section-number-6">1.3.3.5.4</span> Description</h6>
-<div class="outline-text-6" id="text-1-3-3-5-4">
+<div id="outline-container-sec-1-3-2-5-4" class="outline-6">
+<h6 id="sec-1-3-2-5-4"><span class="section-number-6">1.3.2.5.4</span> Description</h6>
+<div class="outline-text-6" id="text-1-3-2-5-4">
 <p>
 Call the service suturo/GetGripper
 </p>
@@ -718,12 +665,12 @@ Call the service suturo/GetGripper
 </div>
 
 
-<div id="outline-container-sec-1-3-3-6" class="outline-5">
-<h5 id="sec-1-3-3-6"><span class="section-number-5">1.3.3.6</span> Function: <code>call-scene-service</code></h5>
-<div class="outline-text-5" id="text-1-3-3-6">
-</div><div id="outline-container-sec-1-3-3-6-1" class="outline-6">
-<h6 id="sec-1-3-3-6-1"><span class="section-number-6">1.3.3.6.1</span> Syntax</h6>
-<div class="outline-text-6" id="text-1-3-3-6-1">
+<div id="outline-container-sec-1-3-2-6" class="outline-5">
+<h5 id="sec-1-3-2-6"><span class="section-number-5">1.3.2.6</span> Function: <code>call-scene-service</code></h5>
+<div class="outline-text-5" id="text-1-3-2-6">
+</div><div id="outline-container-sec-1-3-2-6-1" class="outline-6">
+<h6 id="sec-1-3-2-6-1"><span class="section-number-6">1.3.2.6.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1-3-2-6-1">
 <div class="org-src-container">
 
 <pre class="src src-lisp">(call-scene-service options)
@@ -733,23 +680,23 @@ Call the service suturo/GetGripper
 </div>
 
 
-<div id="outline-container-sec-1-3-3-6-2" class="outline-6">
-<h6 id="sec-1-3-3-6-2"><span class="section-number-6">1.3.3.6.2</span> Description</h6>
+<div id="outline-container-sec-1-3-2-6-2" class="outline-6">
+<h6 id="sec-1-3-2-6-2"><span class="section-number-6">1.3.2.6.2</span> Description</h6>
 </div>
 
 
-<div id="outline-container-sec-1-3-3-6-3" class="outline-6">
-<h6 id="sec-1-3-3-6-3"><span class="section-number-6">1.3.3.6.3</span> Arguments</h6>
-<div class="outline-text-6" id="text-1-3-3-6-3">
+<div id="outline-container-sec-1-3-2-6-3" class="outline-6">
+<h6 id="sec-1-3-2-6-3"><span class="section-number-6">1.3.2.6.3</span> Arguments</h6>
+<div class="outline-text-6" id="text-1-3-2-6-3">
 <dl class="org-dl">
 <dt> options </dt><dd>The options that the service call transmits to the receiver
 </dd>
 </dl>
 </div>
 </div>
-<div id="outline-container-sec-1-3-3-6-4" class="outline-6">
-<h6 id="sec-1-3-3-6-4"><span class="section-number-6">1.3.3.6.4</span> Description</h6>
-<div class="outline-text-6" id="text-1-3-3-6-4">
+<div id="outline-container-sec-1-3-2-6-4" class="outline-6">
+<h6 id="sec-1-3-2-6-4"><span class="section-number-6">1.3.2.6.4</span> Description</h6>
+<div class="outline-text-6" id="text-1-3-2-6-4">
 <p>
 Calls the service suturo/GetScene
 </p>
@@ -762,12 +709,12 @@ Calls the service suturo/GetScene
 </div>
 
 
-<div id="outline-container-sec-1-3-3-7" class="outline-5">
-<h5 id="sec-1-3-3-7"><span class="section-number-5">1.3.3.7</span> Function: <code>call-service-add-point-cloud</code></h5>
-<div class="outline-text-5" id="text-1-3-3-7">
-</div><div id="outline-container-sec-1-3-3-7-1" class="outline-6">
-<h6 id="sec-1-3-3-7-1"><span class="section-number-6">1.3.3.7.1</span> Syntax</h6>
-<div class="outline-text-6" id="text-1-3-3-7-1">
+<div id="outline-container-sec-1-3-2-7" class="outline-5">
+<h5 id="sec-1-3-2-7"><span class="section-number-5">1.3.2.7</span> Function: <code>call-service-add-point-cloud</code></h5>
+<div class="outline-text-5" id="text-1-3-2-7">
+</div><div id="outline-container-sec-1-3-2-7-1" class="outline-6">
+<h6 id="sec-1-3-2-7-1"><span class="section-number-6">1.3.2.7.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1-3-2-7-1">
 <div class="org-src-container">
 
 <pre class="src src-lisp">(call-service-add-point-cloud scenecam &amp;optional arm-origin)
@@ -777,9 +724,9 @@ Calls the service suturo/GetScene
 </div>
 
 
-<div id="outline-container-sec-1-3-3-7-2" class="outline-6">
-<h6 id="sec-1-3-3-7-2"><span class="section-number-6">1.3.3.7.2</span> Description</h6>
-<div class="outline-text-6" id="text-1-3-3-7-2">
+<div id="outline-container-sec-1-3-2-7-2" class="outline-6">
+<h6 id="sec-1-3-2-7-2"><span class="section-number-6">1.3.2.7.2</span> Description</h6>
+<div class="outline-text-6" id="text-1-3-2-7-2">
 <p>
 Not documented.
 </p>
@@ -792,12 +739,12 @@ Not documented.
 </div>
 
 
-<div id="outline-container-sec-1-3-3-8" class="outline-5">
-<h5 id="sec-1-3-3-8"><span class="section-number-5">1.3.3.8</span> Function: <code>compare-object-and-regions</code></h5>
-<div class="outline-text-5" id="text-1-3-3-8">
-</div><div id="outline-container-sec-1-3-3-8-1" class="outline-6">
-<h6 id="sec-1-3-3-8-1"><span class="section-number-6">1.3.3.8.1</span> Syntax</h6>
-<div class="outline-text-6" id="text-1-3-3-8-1">
+<div id="outline-container-sec-1-3-2-8" class="outline-5">
+<h5 id="sec-1-3-2-8"><span class="section-number-5">1.3.2.8</span> Function: <code>compare-object-and-regions</code></h5>
+<div class="outline-text-5" id="text-1-3-2-8">
+</div><div id="outline-container-sec-1-3-2-8-1" class="outline-6">
+<h6 id="sec-1-3-2-8-1"><span class="section-number-6">1.3.2.8.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1-3-2-8-1">
 <div class="org-src-container">
 
 <pre class="src src-lisp">(compare-object-and-regions yaml-objects regions classified-regions)
@@ -807,14 +754,14 @@ Not documented.
 </div>
 
 
-<div id="outline-container-sec-1-3-3-8-2" class="outline-6">
-<h6 id="sec-1-3-3-8-2"><span class="section-number-6">1.3.3.8.2</span> Description</h6>
+<div id="outline-container-sec-1-3-2-8-2" class="outline-6">
+<h6 id="sec-1-3-2-8-2"><span class="section-number-6">1.3.2.8.2</span> Description</h6>
 </div>
 
 
-<div id="outline-container-sec-1-3-3-8-3" class="outline-6">
-<h6 id="sec-1-3-3-8-3"><span class="section-number-6">1.3.3.8.3</span> Arguments</h6>
-<div class="outline-text-6" id="text-1-3-3-8-3">
+<div id="outline-container-sec-1-3-2-8-3" class="outline-6">
+<h6 id="sec-1-3-2-8-3"><span class="section-number-6">1.3.2.8.3</span> Arguments</h6>
+<div class="outline-text-6" id="text-1-3-2-8-3">
 <dl class="org-dl">
 <dt> yaml-objects </dt><dd>objects from the yaml file
 </dd>
@@ -825,9 +772,9 @@ Not documented.
 </dl>
 </div>
 </div>
-<div id="outline-container-sec-1-3-3-8-4" class="outline-6">
-<h6 id="sec-1-3-3-8-4"><span class="section-number-6">1.3.3.8.4</span> Description</h6>
-<div class="outline-text-6" id="text-1-3-3-8-4">
+<div id="outline-container-sec-1-3-2-8-4" class="outline-6">
+<h6 id="sec-1-3-2-8-4"><span class="section-number-6">1.3.2.8.4</span> Description</h6>
+<div class="outline-text-6" id="text-1-3-2-8-4">
 <p>
 Loops over the objects and calculates how many regions have the same color as the object. If this is one, the region is added to the array classified-regions.
 </p>
@@ -840,12 +787,12 @@ Loops over the objects and calculates how many regions have the same color as th
 </div>
 
 
-<div id="outline-container-sec-1-3-3-9" class="outline-5">
-<h5 id="sec-1-3-3-9"><span class="section-number-5">1.3.3.9</span> Function: <code>create-capability-string</code></h5>
-<div class="outline-text-5" id="text-1-3-3-9">
-</div><div id="outline-container-sec-1-3-3-9-1" class="outline-6">
-<h6 id="sec-1-3-3-9-1"><span class="section-number-6">1.3.3.9.1</span> Syntax</h6>
-<div class="outline-text-6" id="text-1-3-3-9-1">
+<div id="outline-container-sec-1-3-2-9" class="outline-5">
+<h5 id="sec-1-3-2-9"><span class="section-number-5">1.3.2.9</span> Function: <code>create-capability-string</code></h5>
+<div class="outline-text-5" id="text-1-3-2-9">
+</div><div id="outline-container-sec-1-3-2-9-1" class="outline-6">
+<h6 id="sec-1-3-2-9-1"><span class="section-number-6">1.3.2.9.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1-3-2-9-1">
 <div class="org-src-container">
 
 <pre class="src src-lisp">(create-capability-string &amp;optional (cuboid 1) (pose-estimation nil)
@@ -856,14 +803,14 @@ Loops over the objects and calculates how many regions have the same color as th
 </div>
 
 
-<div id="outline-container-sec-1-3-3-9-2" class="outline-6">
-<h6 id="sec-1-3-3-9-2"><span class="section-number-6">1.3.3.9.2</span> Description</h6>
+<div id="outline-container-sec-1-3-2-9-2" class="outline-6">
+<h6 id="sec-1-3-2-9-2"><span class="section-number-6">1.3.2.9.2</span> Description</h6>
 </div>
 
 
-<div id="outline-container-sec-1-3-3-9-3" class="outline-6">
-<h6 id="sec-1-3-3-9-3"><span class="section-number-6">1.3.3.9.3</span> Arguments</h6>
-<div class="outline-text-6" id="text-1-3-3-9-3">
+<div id="outline-container-sec-1-3-2-9-3" class="outline-6">
+<h6 id="sec-1-3-2-9-3"><span class="section-number-6">1.3.2.9.3</span> Arguments</h6>
+<div class="outline-text-6" id="text-1-3-2-9-3">
 <dl class="org-dl">
 <dt> cuboid </dt><dd></dd>
 <dt> pose-estimation </dt><dd>Determines wether perception pipeline should estimate the pose of the objects
@@ -873,9 +820,9 @@ Loops over the objects and calculates how many regions have the same color as th
 </dl>
 </div>
 </div>
-<div id="outline-container-sec-1-3-3-9-4" class="outline-6">
-<h6 id="sec-1-3-3-9-4"><span class="section-number-6">1.3.3.9.4</span> Description</h6>
-<div class="outline-text-6" id="text-1-3-3-9-4">
+<div id="outline-container-sec-1-3-2-9-4" class="outline-6">
+<h6 id="sec-1-3-2-9-4"><span class="section-number-6">1.3.2.9.4</span> Description</h6>
+<div class="outline-text-6" id="text-1-3-2-9-4">
 <p>
 Create the string that describes which capabilities are used by the perception
 </p>
@@ -888,12 +835,12 @@ Create the string that describes which capabilities are used by the perception
 </div>
 
 
-<div id="outline-container-sec-1-3-3-10" class="outline-5">
-<h5 id="sec-1-3-3-10"><span class="section-number-5">1.3.3.10</span> Function: <code>find-regions-with-same-color</code></h5>
-<div class="outline-text-5" id="text-1-3-3-10">
-</div><div id="outline-container-sec-1-3-3-10-1" class="outline-6">
-<h6 id="sec-1-3-3-10-1"><span class="section-number-6">1.3.3.10.1</span> Syntax</h6>
-<div class="outline-text-6" id="text-1-3-3-10-1">
+<div id="outline-container-sec-1-3-2-10" class="outline-5">
+<h5 id="sec-1-3-2-10"><span class="section-number-5">1.3.2.10</span> Function: <code>find-regions-with-same-color</code></h5>
+<div class="outline-text-5" id="text-1-3-2-10">
+</div><div id="outline-container-sec-1-3-2-10-1" class="outline-6">
+<h6 id="sec-1-3-2-10-1"><span class="section-number-6">1.3.2.10.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1-3-2-10-1">
 <div class="org-src-container">
 
 <pre class="src src-lisp">(find-regions-with-same-color obj regions)
@@ -903,14 +850,14 @@ Create the string that describes which capabilities are used by the perception
 </div>
 
 
-<div id="outline-container-sec-1-3-3-10-2" class="outline-6">
-<h6 id="sec-1-3-3-10-2"><span class="section-number-6">1.3.3.10.2</span> Description</h6>
+<div id="outline-container-sec-1-3-2-10-2" class="outline-6">
+<h6 id="sec-1-3-2-10-2"><span class="section-number-6">1.3.2.10.2</span> Description</h6>
 </div>
 
 
-<div id="outline-container-sec-1-3-3-10-3" class="outline-6">
-<h6 id="sec-1-3-3-10-3"><span class="section-number-6">1.3.3.10.3</span> Arguments</h6>
-<div class="outline-text-6" id="text-1-3-3-10-3">
+<div id="outline-container-sec-1-3-2-10-3" class="outline-6">
+<h6 id="sec-1-3-2-10-3"><span class="section-number-6">1.3.2.10.3</span> Arguments</h6>
+<div class="outline-text-6" id="text-1-3-2-10-3">
 <dl class="org-dl">
 <dt> obj </dt><dd>is an object from the yaml-file
 </dd>
@@ -919,9 +866,9 @@ Create the string that describes which capabilities are used by the perception
 </dl>
 </div>
 </div>
-<div id="outline-container-sec-1-3-3-10-4" class="outline-6">
-<h6 id="sec-1-3-3-10-4"><span class="section-number-6">1.3.3.10.4</span> Description</h6>
-<div class="outline-text-6" id="text-1-3-3-10-4">
+<div id="outline-container-sec-1-3-2-10-4" class="outline-6">
+<h6 id="sec-1-3-2-10-4"><span class="section-number-6">1.3.2.10.4</span> Description</h6>
+<div class="outline-text-6" id="text-1-3-2-10-4">
 <p>
 Loops over all regions and compares their color with the color of the object. If the color matches the region is added to an array which is returned at the end.
 </p>
@@ -934,12 +881,12 @@ Loops over all regions and compares their color with the color of the object. If
 </div>
 
 
-<div id="outline-container-sec-1-3-3-11" class="outline-5">
-<h5 id="sec-1-3-3-11"><span class="section-number-5">1.3.3.11</span> Function: <code>get-obj-color</code></h5>
-<div class="outline-text-5" id="text-1-3-3-11">
-</div><div id="outline-container-sec-1-3-3-11-1" class="outline-6">
-<h6 id="sec-1-3-3-11-1"><span class="section-number-6">1.3.3.11.1</span> Syntax</h6>
-<div class="outline-text-6" id="text-1-3-3-11-1">
+<div id="outline-container-sec-1-3-2-11" class="outline-5">
+<h5 id="sec-1-3-2-11"><span class="section-number-5">1.3.2.11</span> Function: <code>get-obj-color</code></h5>
+<div class="outline-text-5" id="text-1-3-2-11">
+</div><div id="outline-container-sec-1-3-2-11-1" class="outline-6">
+<h6 id="sec-1-3-2-11-1"><span class="section-number-6">1.3.2.11.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1-3-2-11-1">
 <div class="org-src-container">
 
 <pre class="src src-lisp">(get-obj-color obj)
@@ -949,23 +896,23 @@ Loops over all regions and compares their color with the color of the object. If
 </div>
 
 
-<div id="outline-container-sec-1-3-3-11-2" class="outline-6">
-<h6 id="sec-1-3-3-11-2"><span class="section-number-6">1.3.3.11.2</span> Description</h6>
+<div id="outline-container-sec-1-3-2-11-2" class="outline-6">
+<h6 id="sec-1-3-2-11-2"><span class="section-number-6">1.3.2.11.2</span> Description</h6>
 </div>
 
 
-<div id="outline-container-sec-1-3-3-11-3" class="outline-6">
-<h6 id="sec-1-3-3-11-3"><span class="section-number-6">1.3.3.11.3</span> Arguments</h6>
-<div class="outline-text-6" id="text-1-3-3-11-3">
+<div id="outline-container-sec-1-3-2-11-3" class="outline-6">
+<h6 id="sec-1-3-2-11-3"><span class="section-number-6">1.3.2.11.3</span> Arguments</h6>
+<div class="outline-text-6" id="text-1-3-2-11-3">
 <dl class="org-dl">
 <dt> obj </dt><dd>an object from the yaml file
 </dd>
 </dl>
 </div>
 </div>
-<div id="outline-container-sec-1-3-3-11-4" class="outline-6">
-<h6 id="sec-1-3-3-11-4"><span class="section-number-6">1.3.3.11.4</span> Description</h6>
-<div class="outline-text-6" id="text-1-3-3-11-4">
+<div id="outline-container-sec-1-3-2-11-4" class="outline-6">
+<h6 id="sec-1-3-2-11-4"><span class="section-number-6">1.3.2.11.4</span> Description</h6>
+<div class="outline-text-6" id="text-1-3-2-11-4">
 <p>
 Returns the color of the object
 </p>
@@ -978,12 +925,12 @@ Returns the color of the object
 </div>
 
 
-<div id="outline-container-sec-1-3-3-12" class="outline-5">
-<h5 id="sec-1-3-3-12"><span class="section-number-5">1.3.3.12</span> Function: <code>get-region-color</code></h5>
-<div class="outline-text-5" id="text-1-3-3-12">
-</div><div id="outline-container-sec-1-3-3-12-1" class="outline-6">
-<h6 id="sec-1-3-3-12-1"><span class="section-number-6">1.3.3.12.1</span> Syntax</h6>
-<div class="outline-text-6" id="text-1-3-3-12-1">
+<div id="outline-container-sec-1-3-2-12" class="outline-5">
+<h5 id="sec-1-3-2-12"><span class="section-number-5">1.3.2.12</span> Function: <code>get-region-color</code></h5>
+<div class="outline-text-5" id="text-1-3-2-12">
+</div><div id="outline-container-sec-1-3-2-12-1" class="outline-6">
+<h6 id="sec-1-3-2-12-1"><span class="section-number-6">1.3.2.12.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1-3-2-12-1">
 <div class="org-src-container">
 
 <pre class="src src-lisp">(get-region-color region)
@@ -993,23 +940,23 @@ Returns the color of the object
 </div>
 
 
-<div id="outline-container-sec-1-3-3-12-2" class="outline-6">
-<h6 id="sec-1-3-3-12-2"><span class="section-number-6">1.3.3.12.2</span> Description</h6>
+<div id="outline-container-sec-1-3-2-12-2" class="outline-6">
+<h6 id="sec-1-3-2-12-2"><span class="section-number-6">1.3.2.12.2</span> Description</h6>
 </div>
 
 
-<div id="outline-container-sec-1-3-3-12-3" class="outline-6">
-<h6 id="sec-1-3-3-12-3"><span class="section-number-6">1.3.3.12.3</span> Arguments</h6>
-<div class="outline-text-6" id="text-1-3-3-12-3">
+<div id="outline-container-sec-1-3-2-12-3" class="outline-6">
+<h6 id="sec-1-3-2-12-3"><span class="section-number-6">1.3.2.12.3</span> Arguments</h6>
+<div class="outline-text-6" id="text-1-3-2-12-3">
 <dl class="org-dl">
 <dt> region </dt><dd>a region
 </dd>
 </dl>
 </div>
 </div>
-<div id="outline-container-sec-1-3-3-12-4" class="outline-6">
-<h6 id="sec-1-3-3-12-4"><span class="section-number-6">1.3.3.12.4</span> Description</h6>
-<div class="outline-text-6" id="text-1-3-3-12-4">
+<div id="outline-container-sec-1-3-2-12-4" class="outline-6">
+<h6 id="sec-1-3-2-12-4"><span class="section-number-6">1.3.2.12.4</span> Description</h6>
+<div class="outline-text-6" id="text-1-3-2-12-4">
 <p>
 Returns the color of the region
 </p>
@@ -1022,12 +969,12 @@ Returns the color of the region
 </div>
 
 
-<div id="outline-container-sec-1-3-3-13" class="outline-5">
-<h5 id="sec-1-3-3-13"><span class="section-number-5">1.3.3.13</span> Function: <code>get-regions</code></h5>
-<div class="outline-text-5" id="text-1-3-3-13">
-</div><div id="outline-container-sec-1-3-3-13-1" class="outline-6">
-<h6 id="sec-1-3-3-13-1"><span class="section-number-6">1.3.3.13.1</span> Syntax</h6>
-<div class="outline-text-6" id="text-1-3-3-13-1">
+<div id="outline-container-sec-1-3-2-13" class="outline-5">
+<h5 id="sec-1-3-2-13"><span class="section-number-5">1.3.2.13</span> Function: <code>get-regions</code></h5>
+<div class="outline-text-5" id="text-1-3-2-13">
+</div><div id="outline-container-sec-1-3-2-13-1" class="outline-6">
+<h6 id="sec-1-3-2-13-1"><span class="section-number-6">1.3.2.13.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1-3-2-13-1">
 <div class="org-src-container">
 
 <pre class="src src-lisp">(get-regions)
@@ -1037,14 +984,14 @@ Returns the color of the region
 </div>
 
 
-<div id="outline-container-sec-1-3-3-13-2" class="outline-6">
-<h6 id="sec-1-3-3-13-2"><span class="section-number-6">1.3.3.13.2</span> Description</h6>
+<div id="outline-container-sec-1-3-2-13-2" class="outline-6">
+<h6 id="sec-1-3-2-13-2"><span class="section-number-6">1.3.2.13.2</span> Description</h6>
 </div>
 
 
-<div id="outline-container-sec-1-3-3-13-3" class="outline-6">
-<h6 id="sec-1-3-3-13-3"><span class="section-number-6">1.3.3.13.3</span> Description</h6>
-<div class="outline-text-6" id="text-1-3-3-13-3">
+<div id="outline-container-sec-1-3-2-13-3" class="outline-6">
+<h6 id="sec-1-3-2-13-3"><span class="section-number-6">1.3.2.13.3</span> Description</h6>
+<div class="outline-text-6" id="text-1-3-2-13-3">
 <p>
 Returns the Obstacle Regions from the map
 </p>
@@ -1057,12 +1004,12 @@ Returns the Obstacle Regions from the map
 </div>
 
 
-<div id="outline-container-sec-1-3-3-14" class="outline-5">
-<h5 id="sec-1-3-3-14"><span class="section-number-5">1.3.3.14</span> Function: <code>get-scene-perception</code></h5>
-<div class="outline-text-5" id="text-1-3-3-14">
-</div><div id="outline-container-sec-1-3-3-14-1" class="outline-6">
-<h6 id="sec-1-3-3-14-1"><span class="section-number-6">1.3.3.14.1</span> Syntax</h6>
-<div class="outline-text-6" id="text-1-3-3-14-1">
+<div id="outline-container-sec-1-3-2-14" class="outline-5">
+<h5 id="sec-1-3-2-14"><span class="section-number-5">1.3.2.14</span> Function: <code>get-scene-perception</code></h5>
+<div class="outline-text-5" id="text-1-3-2-14">
+</div><div id="outline-container-sec-1-3-2-14-1" class="outline-6">
+<h6 id="sec-1-3-2-14-1"><span class="section-number-6">1.3.2.14.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1-3-2-14-1">
 <div class="org-src-container">
 
 <pre class="src src-lisp">(get-scene-perception &amp;optional (cuboid 1) (pose-estimation nil)
@@ -1073,14 +1020,14 @@ Returns the Obstacle Regions from the map
 </div>
 
 
-<div id="outline-container-sec-1-3-3-14-2" class="outline-6">
-<h6 id="sec-1-3-3-14-2"><span class="section-number-6">1.3.3.14.2</span> Description</h6>
+<div id="outline-container-sec-1-3-2-14-2" class="outline-6">
+<h6 id="sec-1-3-2-14-2"><span class="section-number-6">1.3.2.14.2</span> Description</h6>
 </div>
 
 
-<div id="outline-container-sec-1-3-3-14-3" class="outline-6">
-<h6 id="sec-1-3-3-14-3"><span class="section-number-6">1.3.3.14.3</span> Arguments</h6>
-<div class="outline-text-6" id="text-1-3-3-14-3">
+<div id="outline-container-sec-1-3-2-14-3" class="outline-6">
+<h6 id="sec-1-3-2-14-3"><span class="section-number-6">1.3.2.14.3</span> Arguments</h6>
+<div class="outline-text-6" id="text-1-3-2-14-3">
 <dl class="org-dl">
 <dt> cuboid </dt><dd></dd>
 <dt> pose-estimation </dt><dd>Determines wether perception pipeline should estimate the pose of the objects
@@ -1090,9 +1037,9 @@ Returns the Obstacle Regions from the map
 </dl>
 </div>
 </div>
-<div id="outline-container-sec-1-3-3-14-4" class="outline-6">
-<h6 id="sec-1-3-3-14-4"><span class="section-number-6">1.3.3.14.4</span> Description</h6>
-<div class="outline-text-6" id="text-1-3-3-14-4">
+<div id="outline-container-sec-1-3-2-14-4" class="outline-6">
+<h6 id="sec-1-3-2-14-4"><span class="section-number-6">1.3.2.14.4</span> Description</h6>
+<div class="outline-text-6" id="text-1-3-2-14-4">
 <p>
 Get the objects recognized by the scene camera
 </p>
@@ -1105,12 +1052,12 @@ Get the objects recognized by the scene camera
 </div>
 
 
-<div id="outline-container-sec-1-3-3-15" class="outline-5">
-<h5 id="sec-1-3-3-15"><span class="section-number-5">1.3.3.15</span> Function: <code>handle-object</code></h5>
-<div class="outline-text-5" id="text-1-3-3-15">
-</div><div id="outline-container-sec-1-3-3-15-1" class="outline-6">
-<h6 id="sec-1-3-3-15-1"><span class="section-number-6">1.3.3.15.1</span> Syntax</h6>
-<div class="outline-text-6" id="text-1-3-3-15-1">
+<div id="outline-container-sec-1-3-2-15" class="outline-5">
+<h5 id="sec-1-3-2-15"><span class="section-number-5">1.3.2.15</span> Function: <code>handle-object</code></h5>
+<div class="outline-text-5" id="text-1-3-2-15">
+</div><div id="outline-container-sec-1-3-2-15-1" class="outline-6">
+<h6 id="sec-1-3-2-15-1"><span class="section-number-6">1.3.2.15.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1-3-2-15-1">
 <div class="org-src-container">
 
 <pre class="src src-lisp">(handle-object matched-object)
@@ -1120,9 +1067,9 @@ Get the objects recognized by the scene camera
 </div>
 
 
-<div id="outline-container-sec-1-3-3-15-2" class="outline-6">
-<h6 id="sec-1-3-3-15-2"><span class="section-number-6">1.3.3.15.2</span> Description</h6>
-<div class="outline-text-6" id="text-1-3-3-15-2">
+<div id="outline-container-sec-1-3-2-15-2" class="outline-6">
+<h6 id="sec-1-3-2-15-2"><span class="section-number-6">1.3.2.15.2</span> Description</h6>
+<div class="outline-text-6" id="text-1-3-2-15-2">
 <p>
 Not documented.
 </p>
@@ -1135,12 +1082,12 @@ Not documented.
 </div>
 
 
-<div id="outline-container-sec-1-3-3-16" class="outline-5">
-<h5 id="sec-1-3-3-16"><span class="section-number-5">1.3.3.16</span> Function: <code>handle-object-obstacle</code></h5>
-<div class="outline-text-5" id="text-1-3-3-16">
-</div><div id="outline-container-sec-1-3-3-16-1" class="outline-6">
-<h6 id="sec-1-3-3-16-1"><span class="section-number-6">1.3.3.16.1</span> Syntax</h6>
-<div class="outline-text-6" id="text-1-3-3-16-1">
+<div id="outline-container-sec-1-3-2-16" class="outline-5">
+<h5 id="sec-1-3-2-16"><span class="section-number-5">1.3.2.16</span> Function: <code>handle-object-obstacle</code></h5>
+<div class="outline-text-5" id="text-1-3-2-16">
+</div><div id="outline-container-sec-1-3-2-16-1" class="outline-6">
+<h6 id="sec-1-3-2-16-1"><span class="section-number-6">1.3.2.16.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1-3-2-16-1">
 <div class="org-src-container">
 
 <pre class="src src-lisp">(handle-object-obstacle matched-object)
@@ -1150,9 +1097,9 @@ Not documented.
 </div>
 
 
-<div id="outline-container-sec-1-3-3-16-2" class="outline-6">
-<h6 id="sec-1-3-3-16-2"><span class="section-number-6">1.3.3.16.2</span> Description</h6>
-<div class="outline-text-6" id="text-1-3-3-16-2">
+<div id="outline-container-sec-1-3-2-16-2" class="outline-6">
+<h6 id="sec-1-3-2-16-2"><span class="section-number-6">1.3.2.16.2</span> Description</h6>
+<div class="outline-text-6" id="text-1-3-2-16-2">
 <p>
 Not documented.
 </p>
@@ -1165,12 +1112,12 @@ Not documented.
 </div>
 
 
-<div id="outline-container-sec-1-3-3-17" class="outline-5">
-<h5 id="sec-1-3-3-17"><span class="section-number-5">1.3.3.17</span> Function: <code>handle-object-unknown-or-table</code></h5>
-<div class="outline-text-5" id="text-1-3-3-17">
-</div><div id="outline-container-sec-1-3-3-17-1" class="outline-6">
-<h6 id="sec-1-3-3-17-1"><span class="section-number-6">1.3.3.17.1</span> Syntax</h6>
-<div class="outline-text-6" id="text-1-3-3-17-1">
+<div id="outline-container-sec-1-3-2-17" class="outline-5">
+<h5 id="sec-1-3-2-17"><span class="section-number-5">1.3.2.17</span> Function: <code>handle-object-unknown-or-table</code></h5>
+<div class="outline-text-5" id="text-1-3-2-17">
+</div><div id="outline-container-sec-1-3-2-17-1" class="outline-6">
+<h6 id="sec-1-3-2-17-1"><span class="section-number-6">1.3.2.17.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1-3-2-17-1">
 <div class="org-src-container">
 
 <pre class="src src-lisp">(handle-object-unknown-or-table matched-object)
@@ -1180,9 +1127,9 @@ Not documented.
 </div>
 
 
-<div id="outline-container-sec-1-3-3-17-2" class="outline-6">
-<h6 id="sec-1-3-3-17-2"><span class="section-number-6">1.3.3.17.2</span> Description</h6>
-<div class="outline-text-6" id="text-1-3-3-17-2">
+<div id="outline-container-sec-1-3-2-17-2" class="outline-6">
+<h6 id="sec-1-3-2-17-2"><span class="section-number-6">1.3.2.17.2</span> Description</h6>
+<div class="outline-text-6" id="text-1-3-2-17-2">
 <p>
 Not documented.
 </p>
@@ -1195,12 +1142,12 @@ Not documented.
 </div>
 
 
-<div id="outline-container-sec-1-3-3-18" class="outline-5">
-<h5 id="sec-1-3-3-18"><span class="section-number-5">1.3.3.18</span> Function: <code>recognize-objects-of-interest</code></h5>
-<div class="outline-text-5" id="text-1-3-3-18">
-</div><div id="outline-container-sec-1-3-3-18-1" class="outline-6">
-<h6 id="sec-1-3-3-18-1"><span class="section-number-6">1.3.3.18.1</span> Syntax</h6>
-<div class="outline-text-6" id="text-1-3-3-18-1">
+<div id="outline-container-sec-1-3-2-18" class="outline-5">
+<h5 id="sec-1-3-2-18"><span class="section-number-5">1.3.2.18</span> Function: <code>recognize-objects-of-interest</code></h5>
+<div class="outline-text-5" id="text-1-3-2-18">
+</div><div id="outline-container-sec-1-3-2-18-1" class="outline-6">
+<h6 id="sec-1-3-2-18-1"><span class="section-number-6">1.3.2.18.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1-3-2-18-1">
 <div class="org-src-container">
 
 <pre class="src src-lisp">(recognize-objects-of-interest colors)
@@ -1210,23 +1157,23 @@ Not documented.
 </div>
 
 
-<div id="outline-container-sec-1-3-3-18-2" class="outline-6">
-<h6 id="sec-1-3-3-18-2"><span class="section-number-6">1.3.3.18.2</span> Description</h6>
+<div id="outline-container-sec-1-3-2-18-2" class="outline-6">
+<h6 id="sec-1-3-2-18-2"><span class="section-number-6">1.3.2.18.2</span> Description</h6>
 </div>
 
 
-<div id="outline-container-sec-1-3-3-18-3" class="outline-6">
-<h6 id="sec-1-3-3-18-3"><span class="section-number-6">1.3.3.18.3</span> Arguments</h6>
-<div class="outline-text-6" id="text-1-3-3-18-3">
+<div id="outline-container-sec-1-3-2-18-3" class="outline-6">
+<h6 id="sec-1-3-2-18-3"><span class="section-number-6">1.3.2.18.3</span> Arguments</h6>
+<div class="outline-text-6" id="text-1-3-2-18-3">
 <dl class="org-dl">
 <dt> colors </dt><dd>Colors of the objects
 </dd>
 </dl>
 </div>
 </div>
-<div id="outline-container-sec-1-3-3-18-4" class="outline-6">
-<h6 id="sec-1-3-3-18-4"><span class="section-number-6">1.3.3.18.4</span> Description</h6>
-<div class="outline-text-6" id="text-1-3-3-18-4">
+<div id="outline-container-sec-1-3-2-18-4" class="outline-6">
+<h6 id="sec-1-3-2-18-4"><span class="section-number-6">1.3.2.18.4</span> Description</h6>
+<div class="outline-text-6" id="text-1-3-2-18-4">
 <p>
 Recognizes Objects of Interest. It gets a list of colors and returns a list of objects that matches these colors.
 </p>
@@ -1239,19 +1186,19 @@ Recognizes Objects of Interest. It gets a list of colors and returns a list of o
 
 
 
-<div id="outline-container-sec-1-3-4" class="outline-4">
-<h4 id="sec-1-3-4"><span class="section-number-4">1.3.4</span> Internal Generic Functions</h4>
-<div class="outline-text-4" id="text-1-3-4">
+<div id="outline-container-sec-1-3-3" class="outline-4">
+<h4 id="sec-1-3-3"><span class="section-number-4">1.3.3</span> Internal Generic Functions</h4>
+<div class="outline-text-4" id="text-1-3-3">
 <hr  />
 </div>
 
 
-<div id="outline-container-sec-1-3-4-1" class="outline-5">
-<h5 id="sec-1-3-4-1"><span class="section-number-5">1.3.4.1</span> Generic Function: <code>call-action</code></h5>
-<div class="outline-text-5" id="text-1-3-4-1">
-</div><div id="outline-container-sec-1-3-4-1-1" class="outline-6">
-<h6 id="sec-1-3-4-1-1"><span class="section-number-6">1.3.4.1.1</span> Syntax</h6>
-<div class="outline-text-6" id="text-1-3-4-1-1">
+<div id="outline-container-sec-1-3-3-1" class="outline-5">
+<h5 id="sec-1-3-3-1"><span class="section-number-5">1.3.3.1</span> Generic Function: <code>call-action</code></h5>
+<div class="outline-text-5" id="text-1-3-3-1">
+</div><div id="outline-container-sec-1-3-3-1-1" class="outline-6">
+<h6 id="sec-1-3-3-1-1"><span class="section-number-6">1.3.3.1.1</span> Syntax</h6>
+<div class="outline-text-6" id="text-1-3-3-1-1">
 <div class="org-src-container">
 
 <pre class="src src-lisp">(call-action action &amp;rest params)
@@ -1261,9 +1208,9 @@ Recognizes Objects of Interest. It gets a list of colors and returns a list of o
 </div>
 
 
-<div id="outline-container-sec-1-3-4-1-2" class="outline-6">
-<h6 id="sec-1-3-4-1-2"><span class="section-number-6">1.3.4.1.2</span> Description</h6>
-<div class="outline-text-6" id="text-1-3-4-1-2">
+<div id="outline-container-sec-1-3-3-1-2" class="outline-6">
+<h6 id="sec-1-3-3-1-2"><span class="section-number-6">1.3.3.1.2</span> Description</h6>
+<div class="outline-text-6" id="text-1-3-3-1-2">
 <p>
 Not documented.
 </p>
@@ -1271,44 +1218,235 @@ Not documented.
 </div>
 
 
-<div id="outline-container-sec-1-3-4-1-3" class="outline-6">
-<h6 id="sec-1-3-4-1-3"><span class="section-number-6">1.3.4.1.3</span> Methods</h6>
-<div class="outline-text-6" id="text-1-3-4-1-3">
-<ul class="org-ul">
-<li>(<code>call-action</code> (action-sym0                 (eql cram-designator
-properties:find-objects-in-map)) &amp;rest params1)
-</li>
-<li>(<code>call-action</code> (action-sym542 (eql cram-designator-properties:focus-object))
-&amp;rest params543)
-</li>
-<li>(<code>call-action</code> (action-sym444 (eql cram-designator-properties:classify
-object)) &amp;rest params445)
-</li>
-<li>(<code>call-action</code> (action-sym419                 (eql cram-designator
-properties:pose-estimate-object)) &amp;rest params420)
-</li>
-<li>(<code>call-action</code> (action-sym398                 (eql suturo-planning-pm
-perception::perceive-scene-with-origin)) &amp;rest params399)
-</li>
-<li>(<code>call-action</code> (action-sym377                 (eql cram-designator
-properties:perceive-scene-with)) &amp;rest params378)
-</li>
-<li>(<code>call-action</code> (action-sym356 (eql cram-designator-properties:perceive))
-&amp;rest params357)
-</li>
-<li>(<code>call-action</code> :around (action-sym <i><code>t</code></i>) &amp;rest params)
-</li>
-<li>(<code>call-action</code> (action-sym <i><code>t</code></i>) &amp;rest params)
-</li>
-<li>(<code>call-action</code> (action-sym7                 (eql cram-designator
-properties:get-gripper-perception)) &amp;rest params8)
-</li>
-</ul>
+<div id="outline-container-sec-1-3-3-1-3" class="outline-6">
+<h6 id="sec-1-3-3-1-3"><span class="section-number-6">1.3.3.1.3</span> Methods</h6>
+<div class="outline-text-6" id="text-1-3-3-1-3">
+</div><div id="outline-container-sec-1-3-3-1-3-1" class="outline-7">
+<h7 id="sec-1-3-3-1-3-1"><span class="section-number-7">1.3.3.1.3.1</span> Method</h7>
+<div class="outline-text-7" id="text-1-3-3-1-3-1">
+<div class="org-src-container">
+
+<pre class="src src-lisp">method: (=call-action= (action-sym0
+                (eql cram-designator-properties:find-objects-in-map)) &amp;rest params1)(#&lt;sb-mop:eql-specializer
+
+                                                                                       {abd0ee1}&gt;)
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-1-3-3-1-3-1-1" class="outline-8">
+<h8 id="sec-1-3-3-1-3-1-1"><span class="section-number-8">1.3.3.1.3.1.1</span> Description</h8>
+</div>
+
+
+<div id="outline-container-sec-1-3-3-1-3-1-2" class="outline-8">
+<h8 id="sec-1-3-3-1-3-1-2"><span class="section-number-8">1.3.3.1.3.1.2</span> Arguments</h8>
+<div class="outline-text-8" id="text-1-3-3-1-3-1-2">
+<dl class="org-dl">
+<dt> objects </dt><dd>objects from the yaml file
+</dd>
+</dl>
+</div>
+</div>
+<div id="outline-container-sec-1-3-3-1-3-1-3" class="outline-8">
+<h8 id="sec-1-3-3-1-3-1-3"><span class="section-number-8">1.3.3.1.3.1.3</span> Description</h8>
+<div class="outline-text-8" id="text-1-3-3-1-3-1-3">
+<p>
+Tries to map a region from the map to every object from the yaml file
+</p>
+</div>
+</div>
+</div>
+
+
+
+<div id="outline-container-sec-1-3-3-1-3-2" class="outline-7">
+<h7 id="sec-1-3-3-1-3-2"><span class="section-number-7">1.3.3.1.3.2</span> Method</h7>
+<div class="outline-text-7" id="text-1-3-3-1-3-2">
+<div class="org-src-container">
+
+<pre class="src src-lisp">method: (=call-action= (action-sym542 (eql cram-designator-properties:focus-object)) &amp;rest params543)(#&lt;sb-mop:eql-specializer
+
+                                                                                                        {abd0ed1}&gt;)
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-1-3-3-1-3-2-1" class="outline-8">
+<h8 id="sec-1-3-3-1-3-2-1"><span class="section-number-8">1.3.3.1.3.2.1</span> Description</h8>
+<div class="outline-text-8" id="text-1-3-3-1-3-2-1">
+<p>
+Nothing ?
+</p>
+</div>
+</div>
+</div>
+
+
+
+<div id="outline-container-sec-1-3-3-1-3-3" class="outline-7">
+<h7 id="sec-1-3-3-1-3-3"><span class="section-number-7">1.3.3.1.3.3</span> Method</h7>
+<div class="outline-text-7" id="text-1-3-3-1-3-3">
+<div class="org-src-container">
+
+<pre class="src src-lisp">method: (=call-action= (action-sym444 (eql cram-designator-properties:classify-object)) &amp;rest params445)(#&lt;sb-mop:eql-specializer
+
+                                                                                                           {abd0ec1}&gt;)
+</pre>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-sec-1-3-3-1-3-4" class="outline-7">
+<h7 id="sec-1-3-3-1-3-4"><span class="section-number-7">1.3.3.1.3.4</span> Method</h7>
+<div class="outline-text-7" id="text-1-3-3-1-3-4">
+<div class="org-src-container">
+
+<pre class="src src-lisp">method: (=call-action= (action-sym419
+                (eql cram-designator-properties:pose-estimate-object)) &amp;rest params420)(#&lt;sb-mop:eql-specializer
+
+                                                                                          {abd0eb1}&gt;)
+</pre>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-sec-1-3-3-1-3-5" class="outline-7">
+<h7 id="sec-1-3-3-1-3-5"><span class="section-number-7">1.3.3.1.3.5</span> Method</h7>
+<div class="outline-text-7" id="text-1-3-3-1-3-5">
+<div class="org-src-container">
+
+<pre class="src src-lisp">method: (=call-action= (action-sym398
+                (eql suturo-planning-pm-perception::perceive-scene-with-origin)) &amp;rest params399)(#&lt;sb-mop:eql-specializer
+
+                                                                                                    {abd0ea1}&gt;)
+</pre>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-sec-1-3-3-1-3-6" class="outline-7">
+<h7 id="sec-1-3-3-1-3-6"><span class="section-number-7">1.3.3.1.3.6</span> Method</h7>
+<div class="outline-text-7" id="text-1-3-3-1-3-6">
+<div class="org-src-container">
+
+<pre class="src src-lisp">method: (=call-action= (action-sym377
+                (eql cram-designator-properties:perceive-scene-with)) &amp;rest params378)(#&lt;sb-mop:eql-specializer
+
+                                                                                         {abd0e91}&gt;)
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-1-3-3-1-3-6-1" class="outline-8">
+<h8 id="sec-1-3-3-1-3-6-1"><span class="section-number-8">1.3.3.1.3.6.1</span> Description</h8>
+<div class="outline-text-8" id="text-1-3-3-1-3-6-1">
+<p>
+Scans the whole map
+</p>
+</div>
+</div>
+<div id="outline-container-sec-1-3-3-1-3-6-2" class="outline-8">
+<h8 id="sec-1-3-3-1-3-6-2"><span class="section-number-8">1.3.3.1.3.6.2</span> Arguments</h8>
+<div class="outline-text-8" id="text-1-3-3-1-3-6-2">
+<dl class="org-dl">
+<dt> scenecam </dt><dd>blub
+</dd>
+</dl>
+</div>
+</div>
+</div>
+
+
+
+<div id="outline-container-sec-1-3-3-1-3-7" class="outline-7">
+<h7 id="sec-1-3-3-1-3-7"><span class="section-number-7">1.3.3.1.3.7</span> Method</h7>
+<div class="outline-text-7" id="text-1-3-3-1-3-7">
+<div class="org-src-container">
+
+<pre class="src src-lisp">method: (=call-action= (action-sym356 (eql cram-designator-properties:perceive)) &amp;rest params357)(#&lt;sb-mop:eql-specializer
+
+                                                                                                    {abd0e81}&gt;)
+</pre>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-sec-1-3-3-1-3-8" class="outline-7">
+<h7 id="sec-1-3-3-1-3-8"><span class="section-number-7">1.3.3.1.3.8</span> Method</h7>
+<div class="outline-text-7" id="text-1-3-3-1-3-8">
+<div class="org-src-container">
+
+<pre class="src src-lisp">method: (=call-action= :around (action-sym [[class t][=t=]]) &amp;rest params) :around(#&lt;built-in-class
+                                                                                     t&gt;)
+</pre>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-sec-1-3-3-1-3-9" class="outline-7">
+<h7 id="sec-1-3-3-1-3-9"><span class="section-number-7">1.3.3.1.3.9</span> Method</h7>
+<div class="outline-text-7" id="text-1-3-3-1-3-9">
+<div class="org-src-container">
+
+<pre class="src src-lisp">method: (=call-action= (action-sym [[class t][=t=]]) &amp;rest params)(#&lt;built-in-class
+                                                                     t&gt;)
+</pre>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-sec-1-3-3-1-3-10" class="outline-7">
+<h7 id="sec-1-3-3-1-3-10"><span class="section-number-7">1.3.3.1.3.10</span> Method</h7>
+<div class="outline-text-7" id="text-1-3-3-1-3-10">
+<div class="org-src-container">
+
+<pre class="src src-lisp">method: (=call-action= (action-sym7
+                (eql cram-designator-properties:get-gripper-perception)) &amp;rest params8)(#&lt;sb-mop:eql-specializer
+
+                                                                                          {abd0e71}&gt;)
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-1-3-3-1-3-10-1" class="outline-8">
+<h8 id="sec-1-3-3-1-3-10-1"><span class="section-number-8">1.3.3.1.3.10.1</span> Description</h8>
+</div>
+
+
+<div id="outline-container-sec-1-3-3-1-3-10-2" class="outline-8">
+<h8 id="sec-1-3-3-1-3-10-2"><span class="section-number-8">1.3.3.1.3.10.2</span> Arguments</h8>
+<div class="outline-text-8" id="text-1-3-3-1-3-10-2">
+<dl class="org-dl">
+<dt> cuboid </dt><dd></dd>
+<dt> pose-estimation </dt><dd>Determines wether perception pipeline should estimate the pose of the objects
+</dd>
+<dt> object-ids </dt><dd>Ids of the objects
+</dd>
+</dl>
+</div>
+</div>
+<div id="outline-container-sec-1-3-3-1-3-10-3" class="outline-8">
+<h8 id="sec-1-3-3-1-3-10-3"><span class="section-number-8">1.3.3.1.3.10.3</span> Description</h8>
+<div class="outline-text-8" id="text-1-3-3-1-3-10-3">
+<p>
+Get the objects recognized by the gripper camera
+</p>
 </div>
 </div>
 </div>
 </div>
 </div>
+</div>
+</div>
+
+
 
 
 
@@ -1345,26 +1483,14 @@ Disambiguation.
 <div class="outline-text-3" id="text-1-5">
 <p>
 <i>A</i>  <i>C</i>  <i>D</i>  <i>F</i>  <i>G</i>
-<i>H</i>  <i>R</i>  <i>S</i>  <i>NONALPHABETIC</i>  
+<i>H</i>  <i>R</i>  <i>S</i>  
 </p>
 </div>
 
 
 <div id="outline-container-sec-1-5-1" class="outline-4">
-<h4 id="sec-1-5-1"><span class="section-number-4">1.5.1</span> Nonalphabetic</h4>
+<h4 id="sec-1-5-1"><span class="section-number-4">1.5.1</span> A</h4>
 <div class="outline-text-4" id="text-1-5-1">
-<ul class="org-ul">
-<li><i><code>suturo-planning-pm-perception::*body*</code></i>, Variable
-</li>
-</ul>
-</div>
-</div>
-
-
-
-<div id="outline-container-sec-1-5-2" class="outline-4">
-<h4 id="sec-1-5-2"><span class="section-number-4">1.5.2</span> A</h4>
-<div class="outline-text-4" id="text-1-5-2">
 <ul class="org-ul">
 <li><i><code>suturo-planning-pm
   perception::add-region-to-classified-regions</code></i>, Function
@@ -1378,9 +1504,9 @@ Disambiguation.
 
 
 
-<div id="outline-container-sec-1-5-3" class="outline-4">
-<h4 id="sec-1-5-3"><span class="section-number-4">1.5.3</span> C</h4>
-<div class="outline-text-4" id="text-1-5-3">
+<div id="outline-container-sec-1-5-2" class="outline-4">
+<h4 id="sec-1-5-2"><span class="section-number-4">1.5.2</span> C</h4>
+<div class="outline-text-4" id="text-1-5-2">
 <ul class="org-ul">
 <li><i><code>suturo-planning-pm-perception::call
   action</code></i>, Generic Function
@@ -1412,9 +1538,9 @@ Disambiguation.
 
 
 
-<div id="outline-container-sec-1-5-4" class="outline-4">
-<h4 id="sec-1-5-4"><span class="section-number-4">1.5.4</span> D</h4>
-<div class="outline-text-4" id="text-1-5-4">
+<div id="outline-container-sec-1-5-3" class="outline-4">
+<h4 id="sec-1-5-3"><span class="section-number-4">1.5.3</span> D</h4>
+<div class="outline-text-4" id="text-1-5-3">
 <ul class="org-ul">
 <li><i><code>suturo-planning-pm-perception::def-action
   handler</code></i>, Macro
@@ -1425,9 +1551,9 @@ Disambiguation.
 
 
 
-<div id="outline-container-sec-1-5-5" class="outline-4">
-<h4 id="sec-1-5-5"><span class="section-number-4">1.5.5</span> F</h4>
-<div class="outline-text-4" id="text-1-5-5">
+<div id="outline-container-sec-1-5-4" class="outline-4">
+<h4 id="sec-1-5-4"><span class="section-number-4">1.5.4</span> F</h4>
+<div class="outline-text-4" id="text-1-5-4">
 <ul class="org-ul">
 <li><i><code>suturo-planning-pm-perception::find
   regions-with-same-color</code></i>, Function
@@ -1438,9 +1564,9 @@ Disambiguation.
 
 
 
-<div id="outline-container-sec-1-5-6" class="outline-4">
-<h4 id="sec-1-5-6"><span class="section-number-4">1.5.6</span> G</h4>
-<div class="outline-text-4" id="text-1-5-6">
+<div id="outline-container-sec-1-5-5" class="outline-4">
+<h4 id="sec-1-5-5"><span class="section-number-4">1.5.5</span> G</h4>
+<div class="outline-text-4" id="text-1-5-5">
 <ul class="org-ul">
 <li><i><code>suturo-planning-pm-perception::get-obj-color</code></i>,
 Function
@@ -1460,9 +1586,9 @@ Function
 
 
 
-<div id="outline-container-sec-1-5-7" class="outline-4">
-<h4 id="sec-1-5-7"><span class="section-number-4">1.5.7</span> H</h4>
-<div class="outline-text-4" id="text-1-5-7">
+<div id="outline-container-sec-1-5-6" class="outline-4">
+<h4 id="sec-1-5-6"><span class="section-number-4">1.5.6</span> H</h4>
+<div class="outline-text-4" id="text-1-5-6">
 <ul class="org-ul">
 <li><i><code>suturo-planning-pm-perception::handle-object</code></i>,
 Function
@@ -1479,9 +1605,9 @@ Function
 
 
 
-<div id="outline-container-sec-1-5-8" class="outline-4">
-<h4 id="sec-1-5-8"><span class="section-number-4">1.5.8</span> R</h4>
-<div class="outline-text-4" id="text-1-5-8">
+<div id="outline-container-sec-1-5-7" class="outline-4">
+<h4 id="sec-1-5-7"><span class="section-number-4">1.5.7</span> R</h4>
+<div class="outline-text-4" id="text-1-5-7">
 <ul class="org-ul">
 <li><i><code>suturo-planning-pm
   perception::recognize-objects-of-interest</code></i>, Function
@@ -1492,9 +1618,9 @@ Function
 
 
 
-<div id="outline-container-sec-1-5-9" class="outline-4">
-<h4 id="sec-1-5-9"><span class="section-number-4">1.5.9</span> S</h4>
-<div class="outline-text-4" id="text-1-5-9">
+<div id="outline-container-sec-1-5-8" class="outline-4">
+<h4 id="sec-1-5-8"><span class="section-number-4">1.5.8</span> S</h4>
+<div class="outline-text-4" id="text-1-5-8">
 <ul class="org-ul">
 <li><i><code>suturo-planning-pm-perception:suturo
   planning-pm-perception</code></i>, Class
@@ -1524,7 +1650,7 @@ The latest version of CLOD is available <a href="http://bitbucket.org/eeeickythu
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: CLOD</p>
-<p class="date">Created: 2015-03-13 Fr 14:37</p>
+<p class="date">Created: 2015-03-13 Fr 15:29</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode 8.2.10)</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>

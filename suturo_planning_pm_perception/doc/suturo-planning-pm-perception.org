@@ -80,7 +80,7 @@ Not documented.
 # link target: <<slot result>>
 
 
-****** Internal Slot: =result=                                                   :slot:
+****** Slot: =result=                                                            :slot:
 
 - Value type: =t=
 - Initial value: =NIL=
@@ -167,40 +167,6 @@ Not documented.
 
 
 ** Internal Symbols
-
-
-
-
-*** Internal Global Variables
-
------
-
-# link target 2: <<*body*>>
-# link target: <<variable *body*>>
-
-
-**** Variable: =*body*=                                                    :variable:
-
-
-***** Value
-
-: (" * Arguments - objects :: objects from the yaml file * Description Tries to
-: map a region from the map to every object from the yaml file "  (LET ((SUTURO
-: PLANNING-PM-PERCEPTION::REGIONS         (SUTURO-PLANNING-PM-PERCEPTION::GET
-: REGIONS))        (SUTURO-PLANNING-PM-PERCEPTION::CLASSIFIED-REGIONS        
-: (MAKE-ARRAY 0 :FILL-POINTER 0 :ADJUSTABLE T)))    (SUTURO-PLANNING-PM
-: PERCEPTION::COMPARE-OBJECT-AND-REGIONS     CRAM-DESIGNATOR-PROPERTIES:OBJECTS
-: SUTURO-PLANNING-PM-PERCEPTION::REGIONS     SUTURO-PLANNING-PM
-: PERCEPTION::CLASSIFIED-REGIONS)    SUTURO-PLANNING-PM-PERCEPTION::CLASSIFIED
-: REGIONS))
-
-Type: =cons=
-
-
-***** Description
-
-Not documented.
-
 
 
 
@@ -730,24 +696,136 @@ Not documented.
 
 ***** Methods
 
-- (=call-action= (action-sym0                 (eql cram-designator
-  properties:find-objects-in-map)) &rest params1)
-- (=call-action= (action-sym542 (eql cram-designator-properties:focus-object))
-  &rest params543)
-- (=call-action= (action-sym444 (eql cram-designator-properties:classify
-  object)) &rest params445)
-- (=call-action= (action-sym419                 (eql cram-designator
-  properties:pose-estimate-object)) &rest params420)
-- (=call-action= (action-sym398                 (eql suturo-planning-pm
-  perception::perceive-scene-with-origin)) &rest params399)
-- (=call-action= (action-sym377                 (eql cram-designator
-  properties:perceive-scene-with)) &rest params378)
-- (=call-action= (action-sym356 (eql cram-designator-properties:perceive))
-  &rest params357)
-- (=call-action= :around (action-sym [[class t][=t=]]) &rest params)
-- (=call-action= (action-sym [[class t][=t=]]) &rest params)
-- (=call-action= (action-sym7                 (eql cram-designator
-  properties:get-gripper-perception)) &rest params8)
+
+****** Method
+
+#+BEGIN_SRC lisp
+method: (=call-action= (action-sym0
+                (eql cram-designator-properties:find-objects-in-map)) &rest params1)(#<sb-mop:eql-specializer
+
+                                                                                       {abd0ee1}>)
+#+END_SRC
+
+******* Description
+
+
+******* Arguments
+
+- objects :: objects from the yaml file
+******* Description
+
+Tries to map a region from the map to every object from the yaml file
+
+
+
+****** Method
+
+#+BEGIN_SRC lisp
+method: (=call-action= (action-sym542 (eql cram-designator-properties:focus-object)) &rest params543)(#<sb-mop:eql-specializer
+
+                                                                                                        {abd0ed1}>)
+#+END_SRC
+
+******* Description
+
+Nothing ?
+
+
+
+****** Method
+
+#+BEGIN_SRC lisp
+method: (=call-action= (action-sym444 (eql cram-designator-properties:classify-object)) &rest params445)(#<sb-mop:eql-specializer
+
+                                                                                                           {abd0ec1}>)
+#+END_SRC
+
+
+****** Method
+
+#+BEGIN_SRC lisp
+method: (=call-action= (action-sym419
+                (eql cram-designator-properties:pose-estimate-object)) &rest params420)(#<sb-mop:eql-specializer
+
+                                                                                          {abd0eb1}>)
+#+END_SRC
+
+
+****** Method
+
+#+BEGIN_SRC lisp
+method: (=call-action= (action-sym398
+                (eql suturo-planning-pm-perception::perceive-scene-with-origin)) &rest params399)(#<sb-mop:eql-specializer
+
+                                                                                                    {abd0ea1}>)
+#+END_SRC
+
+
+****** Method
+
+#+BEGIN_SRC lisp
+method: (=call-action= (action-sym377
+                (eql cram-designator-properties:perceive-scene-with)) &rest params378)(#<sb-mop:eql-specializer
+
+                                                                                         {abd0e91}>)
+#+END_SRC
+
+******* Description
+
+Scans the whole map
+******* Arguments
+
+- scenecam :: blub
+
+
+
+****** Method
+
+#+BEGIN_SRC lisp
+method: (=call-action= (action-sym356 (eql cram-designator-properties:perceive)) &rest params357)(#<sb-mop:eql-specializer
+
+                                                                                                    {abd0e81}>)
+#+END_SRC
+
+
+****** Method
+
+#+BEGIN_SRC lisp
+method: (=call-action= :around (action-sym [[class t][=t=]]) &rest params) :around(#<built-in-class
+                                                                                     t>)
+#+END_SRC
+
+
+****** Method
+
+#+BEGIN_SRC lisp
+method: (=call-action= (action-sym [[class t][=t=]]) &rest params)(#<built-in-class
+                                                                     t>)
+#+END_SRC
+
+
+****** Method
+
+#+BEGIN_SRC lisp
+method: (=call-action= (action-sym7
+                (eql cram-designator-properties:get-gripper-perception)) &rest params8)(#<sb-mop:eql-specializer
+
+                                                                                          {abd0e71}>)
+#+END_SRC
+
+******* Description
+
+
+******* Arguments
+
+- cuboid ::  
+- pose-estimation :: Determines wether perception pipeline should estimate the pose of the objects
+- object-ids :: Ids of the objects
+******* Description
+
+Get the objects recognized by the gripper camera
+
+
 
 
 
@@ -773,16 +851,7 @@ Disambiguation.
 ** Index
 
  [[index A][A]]  [[index C][C]]  [[index D][D]]  [[index F][F]]  [[index G][G]]
- [[index H][H]]  [[index R][R]]  [[index S][S]]  [[index
-NONALPHABETIC][NONALPHABETIC]]  
-
-
-*** Nonalphabetic
-
-
-# link target: <<index NONALPHABETIC>>
-- [[variable *body*][=suturo-planning-pm-perception::*body*=]], Variable
-
+ [[index H][H]]  [[index R][R]]  [[index S][S]]  
 
 
 *** A

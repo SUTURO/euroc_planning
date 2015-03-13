@@ -33,8 +33,13 @@
 
 (defmacro def-action-handler (name args &body body)
   (alexandria:with-gensyms (action-sym params)
-    `(defmethod call-action ((,action-sym (eql ',name)) &rest ,params)
-      (destructuring-bind ,args ,params ,@body))))
+    (defparameter *body* body)
+    (if (not (typep (first body) 'string))
+        `(defmethod call-action ((,action-sym (eql ',name)) &rest ,params)
+                                       (destructuring-bind ,args ,params ,@body))
+        `(defmethod call-action ((,action-sym (eql ',name)) &rest ,params)
+                                       ,(first body)
+                                       (destructuring-bind ,args ,params ,@body)))))
 
 ; To see how these action handlers are implemented for the pr2, see
 ; https://github.com/cram-code/cram_pr2/blob/master/pr2_manipulation_process_module/src/action-handlers.lisp
