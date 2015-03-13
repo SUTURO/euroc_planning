@@ -121,9 +121,12 @@ class ManipulationNode(object):
 
     def __handle_open_gripper(self, msg):
         position = manipulation_constants.gripper_max_pose
-        if msg.position is not None:
+        if msg.position != 0:
             position = msg.position
-        return self.__manipulation.open_gripper(position)
+        rospy.loginfo("Openening gripper to pose: %d" % position)
+	for i in range(10):
+            rospy.loginfo(i)
+	return self.__manipulation.open_gripper(position)
 
     def __handle_close_gripper(self, msg):
         obj = msg.object

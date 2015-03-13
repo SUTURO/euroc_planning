@@ -3,9 +3,6 @@
   <!-- Run only task variation 1 by default -->
   <arg name="task" default="task1_v1" />
 
-  <!-- Start logging -->
-  <include file="$(find suturo_planning_executive)/launch/logging.launch" />
-
   <!-- Start manipulation -->
   <include file="$(find euroc_launch)/launch/manipulation.launch" />
 
@@ -27,10 +24,5 @@
   <!-- Fixed frame publisher -->
   <node name="map_odom_publisher" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 /map /odom_combined 100" />
 
-  <!-- The YAML files provided by euroc can't be loaded into the parameter server due to some invalid value;
-       The files below are copys of those files without the internal section -->
-  <group>
-    <rosparam command="load" file="$(find suturo_planning_executive)/launch/$(arg task).yml" ns="/task_description" />
-    <node name="simulator" pkg="suturo_planning_executive" type="start_simulator" args="$(arg task)" />
-  </group>
+  <rosparam command="load" file="$(find suturo_planning_executive)/launch/$(arg task).yml" ns="/task_description" />
 </launch>

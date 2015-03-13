@@ -3,7 +3,8 @@
 (defpackage suturo-planning-constants
   (:nicknames :constants)
   (:use #:roslisp
-        #:cl)
+        #:cl
+        #:cram-plan-failures)
   (:export #:+suturo-planning-constants-services-defined+
 	       #:+scan-obstacles-angle+
 	       #:+scan-obstacles-arm-max-distance+
@@ -24,6 +25,7 @@
            #:+service-name-move-robot+
 	         #:+service-name-open-gripper+
            #:+service-name-place-object+
+           #:+service-name-start-simulator+
 
            #:+topic-name-get-yaml+
            #:+base-origin-topic+

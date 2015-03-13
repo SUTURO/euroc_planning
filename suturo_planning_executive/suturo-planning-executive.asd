@@ -12,7 +12,9 @@
                suturo-planning-pm-perception
                suturo-planning-pm-manipulation
                suturo-planning-planlib
-               cram-beliefstate)
+               cram-beliefstate
+               euroc_c2_msgs-srv
+               euroc_c2_msgs-msg)
   :components
   ((:module "src"
             :components
