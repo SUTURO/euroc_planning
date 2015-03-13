@@ -140,7 +140,7 @@ Searches through the /yaml-objects/ and returns a list of positions with the id 
                                         (put-down-retry-count 2))
                     (seq
                       (with-failure-handling
-                        (((or manipulation-failure
+                        (((or cram-plan-failures:manipulation-failure
                               manipulation-pose-unreachable) (e)
                           (declare (ignore e))
                           (ros-warn (objects-in-place) "Failed to pick up object.")
@@ -154,7 +154,7 @@ Searches through the /yaml-objects/ and returns a list of positions with the id 
                                 (copy-designator (current-desig object-desig)
                                                  :new-description `((at ,(make-designator 'location '((gripper gripper))))))))
                       (with-failure-handling
-                        (((or manipulation-failure
+                        (((or cram-plan-failures:manipulation-failure
                               manipulation-pose-unreachable) (e)
                           (declare (ignore e))
                           (ros-warn (objects-in-place) "Failed to put down object.")

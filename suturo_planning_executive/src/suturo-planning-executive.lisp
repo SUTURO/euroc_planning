@@ -91,7 +91,7 @@
             (let ((objects (achieve '(objects-informed))))
               (with-failure-handling
                   (((or objects-in-place-failed
-                        manipulation-failure) (e)
+                        cram-plan-failures:manipulation-failure) (e)
                      (declare (ignore e))
                      (ros-warn (toplevel task1) "Failed to put objects in place.")
                      (do-retry objects-in-place-retry-count

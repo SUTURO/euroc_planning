@@ -68,7 +68,7 @@
                                                      :type (roslisp-msg-protocol:symbol-code 'suturo_manipulation_msgs-srv:Move-Request :ACTION_MOVE_ARM_TO)
                                                      :goal_pose goal1)))
             (if (not (msg-slot-value response 'result))
-                (fail 'manipulation-failure))
+                (cpl-impl:fail 'manipulation-failure))
             response)))))
 
 (def-action-handler follow (pose)
@@ -105,7 +105,8 @@
   (let ((collision-object (desig-prop-value object-designator 'cram-designator-properties:collision-object)))
     (if (not (roslisp:wait-for-service +service-name-grasp-object+ +timeout-service+))
         (let ((timed-out-text (concatenate 'string "Times out waiting for service" +service-name-grasp-object+)))
-          (roslisp:ros-warn nil t timed-out-text))
+          (roslisp:ros-warn nil t timed-out-text)
+          (cpl-impl:fail 'cram-plan-failures:manipulation-failure))
         (progn
           (let* ((response (roslisp:call-service +service-name-grasp-object+ 'suturo_interface_msgs-srv:GraspObject
                                                 :object (roslisp:setf-msg collision-object (stamp header) (roslisp:ros-time))
@@ -113,7 +114,7 @@
                  (result (roslisp:msg-slot-value response 'result))
                  (grasp-position (roslisp:msg-slot-value response 'grasp_position)))
             (if (not result)
-                (fail 'manipulation-failure))
+                (cpl-impl:fail 'cram-plan-failures:manipulation-failure))
             (let ((new-desig (copy-designator object-designator :new-description `((grasp-position ,grasp-position))))) 
               (equate object-designator new-desig)))))))
 

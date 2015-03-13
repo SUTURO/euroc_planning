@@ -16,13 +16,14 @@
   <node name="yaml_pars0r" pkg="suturo_planning_yaml_pars0r" type="yaml_pars0r_node.py" />
 
   <!-- Start Task selector -->
-  <node name="task_selector" pkg="euroc_launch" type="TaskSelector" />
+  <!-- <node name="task_selector" pkg="euroc_launch" type="TaskSelector" /> -->
 
   <!-- Start classifier -->
   <node name="classifier" pkg="suturo_perception_classifier" type="classifier.py" />
 
   <!-- Fixed frame publisher -->
   <node name="map_odom_publisher" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 /map /odom_combined 100" />
+  <node name="map_base_footprint_publisher" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 /map /base_footprint 100" />
 
   <rosparam command="load" file="$(find suturo_planning_executive)/launch/$(arg task).yml" ns="/task_description" />
 </launch>

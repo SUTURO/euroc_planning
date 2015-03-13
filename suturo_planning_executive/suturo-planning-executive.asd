@@ -4,6 +4,7 @@
                roslisp-utilities
                cram-language
                cram-plan-library
+		       cram-plan-failures
                cram-reasoning
                process-modules
                suturo_msgs-msg
