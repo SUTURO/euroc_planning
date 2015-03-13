@@ -7,8 +7,8 @@ import signal
 import atexit
 #from suturo_planning_interface.clean_up_plan import CleanUpPlan
 #from suturo_planning_interface.choose_object import ChooseObject
-#from suturo_planning_interface.grasp_object import GraspObject
-#from suturo_planning_interface.place_object import PlaceObject
+from suturo_planning_interface.grasp_object import GraspObject
+from suturo_planning_interface.place_object import PlaceObject
 #from suturo_planning_interface.check_placement import CheckPlacement
 
 #from suturo_planning_interface.tidy_up import GraspObjectService, PlaceObjectService, CheckPlacementService
@@ -21,7 +21,7 @@ from suturo_interface_msgs.srv import StartPlanning, StartPlanningResponse
 import start_nodes
 import tasks
 #from search_objects import SearchObjects
-#from scan_map import MapScanner
+from scan_map import MapScanner
 #from scan_obstacles import ScanObstacles
 #from classify_objects import ClassifyObjects
 #from focus_objects import FocusObjects
@@ -116,7 +116,7 @@ class Toplevel(object):
     def start_state_nodes(self):
         #self.search_object_state = SearchObjects()
         self.determine_task_type_state = TaskTypeDeterminer()
-        #self.map_scanner_state = MapScanner()
+        self.map_scanner_state = MapScanner()
         #self.scan_obstacles_state = ScanObstacles()
         #self.classify_objects_state = ClassifyObjects()
         #self.focus_objects_state = FocusObjects()
@@ -129,8 +129,8 @@ class Toplevel(object):
 
         #self.check_placement_state = CheckPlacement()
 
-        #self.grasp_object_handler = GraspObject()
-        #self.place_object_handler = PlaceObject()
+        self.grasp_object_handler = GraspObject()
+        self.place_object_handler = PlaceObject()
 
         self.start_simulation_state = StartSimulation()
         self.start_perception_state = StartPerception()
