@@ -1,0 +1,24 @@
+<package>
+  <name>cl_yaml</name>
+  <version>0.0.1</version>
+  <description>
+    package automatically imported from quicklisp.
+  </description>
+
+  <author email="bla@bla.org">See sources</author>
+  <maintainer email="bla@bla.org">See sources</maintainer>
+
+  <license>BSD</license>
+  <url type="website">http://ros.org/</url>
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>sbcl</build_depend>
+  <run_depend>sbcl</run_depend>
+  <build_depend>cl_libyaml</build_depend>
+  <run_depend>cl_libyaml</run_depend>
+  <build_depend>alexandria</build_depend>
+  <run_depend>alexandria</run_depend>
+  <build_depend>cl_ppcre</build_depend>
+  <run_depend>cl_ppcre</run_depend>
+  <build_depend>parse_number</build_depend>
+  <run_depend>parse_number</run_depend>
+</package>
