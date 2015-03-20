@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(cl_yaml)
+project(cl_libyaml)
 find_package(catkin REQUIRED
 cffi
 )

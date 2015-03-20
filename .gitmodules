@@ -1,0 +1,3 @@
+[submodule "parse_number"]
+    path = suturo_planning_3rd_party/parse_number/src
+    url = https://github.com/sharplispers/parse-number.git
