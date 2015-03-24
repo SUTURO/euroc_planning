@@ -3,6 +3,9 @@
   <!-- Run only task variation 1 by default -->
   <arg name="task" default="task1_v1" />
 
+  <!-- Let the /clock topic use the simulatioon time instead of real time. This param has to be set to true before we start other nodes! -->
+  <param name="use_sim_time" type="bool" value="true" />
+
   <!-- Start manipulation -->
   <include file="$(find euroc_launch)/launch/manipulation.launch" />
 
