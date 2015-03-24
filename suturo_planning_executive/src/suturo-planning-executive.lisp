@@ -8,12 +8,14 @@
   (roslisp:subscribe constants:+topic-name-get-yaml+ 'suturo_msgs-msg:Task #'yaml-cb))
 
 (defun yaml-publisher ()
+  "Creates the publisher for the yaml-file"
   (setf *yaml-pub* (advertise "/suturo/yaml_pars0r_input" "std_msgs/String")))
 
 (roslisp-utilities:register-ros-init-function parse-yaml)
 (roslisp-utilities:register-ros-init-function yaml-publisher)
 
 (defmacro with-process-modules (&body body)
+  "Macro to define the used process modules."
   `(cpm:with-process-modules-running
        (suturo-planning-pm-manipulation
         suturo-planning-pm-perception)
@@ -48,7 +50,10 @@
         (let ((task (remove #\  (get-param "/task_description/public_description/task_name" tsk)))) ; whitespace sensitive!
           (ros-info (task-selector) "Starting plan ~a..." task)
           (unwind-protect
+            (print "funcall")
+            (defparameter my-task task)
             (funcall (symbol-function (read-from-string (format nil "exec:~a" task))))
+            (print "funcall done")
             (when cram-beliefstate::*logging-enabled*
               (ros-info (task-selector) "Saving log files...")
               (cram-beliefstate:extract-files))))))))
@@ -97,6 +102,12 @@
                 (achieve `(objects-in-place ,objects))))))))))
 
 (defun task1-tmp (&optional start_sim)
+  "
+Temporary top-level plan to start the task 1. The argument *start\_sim* should be T if the function is called the first time. Set the argument to nil
+if the plan should try to continue from the last state.
+* Arguments
+- start\_sim :: T if the simulation should be started
+"
   (roslisp:with-ros-node "testExecution"
     (if start_sim
         (cram-task1-tmp t)
@@ -104,12 +115,11 @@
 
 (def-top-level-cram-function cram-task1-tmp (&optional start_sim)
   "
-Temporary top-level plan to start the task 1. The argument *start_sim* should be T if the function is called the first time. Set the argument to nil
+Temporary top-level plan to start the task 1. The argument *start\_sim* should be T if the function is called the first time. Set the argument to nil
 if the plan should try to continue from the last state.
 * Arguments
-- start_sim :: T if the simulation should be started
+- start\_sim :: T if the simulation should be started
 "
-
   (with-process-modules
     (if start_sim
         (init-simulation "task1_v1"))
@@ -156,5 +166,6 @@ Initialize the simulation:
     (call-service-state "start_manipulation" taskdata)
     (call-service-state "start_perception" taskdata)
     (call-service-state "start_classifier" taskdata)
+    (sleep 20)
     (call-service-state "init" taskdata)) 
   (manipulation:init))

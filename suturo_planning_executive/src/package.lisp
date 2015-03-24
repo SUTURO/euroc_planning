@@ -13,7 +13,7 @@
         #:manipulation
         #:constants
         #:suturo-planning-planlib)
-  (:export #:task-selector #:task1)
+  (:export #:task-selector #:task1 #:task1_v1)
   (:desig-properties
     #:type
     #:max-distance
@@ -44,4 +44,14 @@
     #:objects
     #:find-objects-in-map
     #:pose-estimate-object
-    #:scan-map))
+    #:scan-map)
+  (:documentation
+   "* Description
+This package contains steps to execute the tasks of the euroc challenge i.e:
+- start simulation
+- start perception / manipulation
+- define process modules 
+- choose the right plan
+- ...
+"
+))
