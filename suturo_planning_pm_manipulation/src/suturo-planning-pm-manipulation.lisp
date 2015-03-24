@@ -49,7 +49,17 @@
   nil)
 
 (def-action-handler navigation (goal &optional (do-not-blow-up-list #()))
-  "Moves the robot to the goal position"
+  "
+  * Description
+  Move the robot to the given goal position
+
+  * Arguments
+    - goal :: The pose wherer the robot should be moved to :: location-designator || geometry_msgs/PoseStamped
+    - do-not-blow-up-list :: A list of object-names which should not be blown up during planning :: (list string)
+  
+  * Return
+    - True if the robot has been moved to the given pose false otherwise :: bool
+  "
   (print "goal in navigation")
   (format t "~a" goal)
   (let ((goal1 (if (typep goal 'location-designator) (cl-tf:pose-stamped->msg (reference goal)) goal)))
@@ -100,6 +110,13 @@
 ;                (make-designator 'action (update-designator-properties `((grasp-point position)) (description object-designator))))))))))
 
 (def-action-handler grasp (object-designator)
+  "
+  * Description
+  Grasp the given object and lift it
+
+  * Arguments
+    - object-designator :: The designator describing the object :: object-designator
+  "
   (defparameter my-obj-designator object-designator)
   "Grasps the object specified by the obj-designator"
   (let ((collision-object (desig-prop-value object-designator 'cram-designator-properties:collision-object)))
@@ -119,6 +136,17 @@
               (equate object-designator new-desig)))))))
 
 (defun get-object-density (collision-object objects)
+  "
+  * Description
+  Get the density of the given object from the given list of all objects
+
+  * Arguments
+    - collision-object :: The object to get the density of :: moveit_msgs/CollisionObject
+    - objects :: The list of objects to get the density from
+
+  * Return
+    - The density of the given object :: int
+  "
   (let ((result nil))
     (loop for object across objects do
       (if (string= (roslisp:msg-slot-value object 'name) (roslisp:msg-slot-value collision-object 'id))
@@ -132,7 +160,15 @@
 )
 
 (def-action-handler put-down (collision-object location grasp)
-  "Puts the object specified by the obj-designator down at a location"
+  "
+  * Description
+  Put the given object down at the given location.
+
+  * Arguments
+    - collision-object :: The object which should be placed :: moveit_msgs/CollisionObject
+    - location :: The pose where the object should be placed :: cl-tf::pose-stamped
+    - grasp :: The pose where the given object has been grasped :: geometry_msgs/PoseStamped
+  "
   (if (not (roslisp:wait-for-service +service-name-move-robot+ +timeout-service+))
     (let ((timed-out-text (concatenate 'string "Timed out waiting for service" +service-name-move-robot+)))
       (roslisp:ros-warn nil t timed-out-text))
