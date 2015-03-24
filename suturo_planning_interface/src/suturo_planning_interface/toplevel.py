@@ -9,7 +9,6 @@ from suturo_planning_interface.clean_up_plan import CleanUpPlan
 from suturo_planning_interface.choose_object import ChooseObject
 from suturo_planning_interface.grasp_object import GraspObject
 from suturo_planning_interface.place_object import PlaceObject
-from suturo_planning_interface.check_placement import CheckPlacement
 
 #from suturo_planning_interface.tidy_up import GraspObjectService, PlaceObjectService, CheckPlacementService
 import tasks
@@ -127,8 +126,6 @@ class Toplevel(object):
         self.scan_shadow_state = ScanShadow()
         self.choose_object_state = ChooseObject()
         self.clean_up_plan_state = CleanUpPlan()
-
-        self.check_placement_state = CheckPlacement()
 
         self.grasp_object_handler = GraspObject()
         self.place_object_handler = PlaceObject()
