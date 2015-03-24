@@ -5,12 +5,8 @@ import subprocess
 import time
 import signal
 import atexit
-from suturo_planning_interface.clean_up_plan import CleanUpPlan
-from suturo_planning_interface.choose_object import ChooseObject
 from suturo_planning_interface.grasp_object import GraspObject
-from suturo_planning_interface.place_object import PlaceObject
 
-#from suturo_planning_interface.tidy_up import GraspObjectService, PlaceObjectService, CheckPlacementService
 import tasks
 import rospy
 from suturo_msgs.msg import Task
@@ -19,13 +15,7 @@ from suturo_interface_msgs.srv import StartPlanning, StartPlanningResponse
 
 import start_nodes
 import tasks
-from search_objects import SearchObjects
 from scan_map import MapScanner
-from scan_obstacles import ScanObstacles
-from classify_objects import ClassifyObjects
-from focus_objects import FocusObjects
-from pose_estimate_objects import PoseEstimateObject
-from scan_shadow import ScanShadow
 from start_nodes import StartClassifier, StartManipulation, StartPerception, StartSimulation, StopNodes, StopSimulation, StartYamlParser
 from suturo_planning_manipulation.manipulation import Manipulation
 from suturo_planning_task_selector import start_task
@@ -113,22 +103,13 @@ class Toplevel(object):
         utils.manipulation = Manipulation()
 
     def start_state_nodes(self):
-        self.search_object_state = SearchObjects()
         self.determine_task_type_state = TaskTypeDeterminer()
         self.map_scanner_state = MapScanner()
-        self.scan_obstacles_state = ScanObstacles()
-        self.classify_objects_state = ClassifyObjects()
-        self.focus_objects_state = FocusObjects()
         self.yaml_parser_state = StartYamlParser()
         # TODO: Pose estimate object(s) Name anpassen
-        self.pose_estimate_objects_state = PoseEstimateObject()
         #self.scan_map_state = MapScanner() TODO: Exception, da Mapscanner schon aufgerufen wird
-        self.scan_shadow_state = ScanShadow()
-        self.choose_object_state = ChooseObject()
-        self.clean_up_plan_state = CleanUpPlan()
 
         self.grasp_object_handler = GraspObject()
-        self.place_object_handler = PlaceObject()
 
         self.start_simulation_state = StartSimulation()
         self.start_perception_state = StartPerception()
