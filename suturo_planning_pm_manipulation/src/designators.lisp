@@ -1,6 +1,13 @@
 (in-package :manipulation)
 
 (cram-reasoning:def-fact-group manipulation-action-designator (action-desig)
+  "This function defines the conditions which are used in the prolog-reasoning-engine to find the proper action-handler for the given action-desig.
+Condition are build as following:
+(cram-reasoning:<- (action-desig ?designator (action-handler-that-should-be-executed action-handler-param1 action-handler-param2 ...)
+                                 (desig-prop ?designator (key1 value1)) ;assumes the designator contains a (key1 value1) pair
+                                 ... ))
+*Arguments
+- action-desig :: The action-designators which should be resolved"
   (cram-reasoning:<- (action-desig ?designator (follow ?pose))
                      (desig-prop ?designator (to follow))
                      (desig-prop ?designator (pose ?pose)))
@@ -53,6 +60,7 @@
 
 (cram-reasoning:def-fact-group manipulation-actions (cram-process-modules:matching-process-module
                                                      cram-process-modules:available-process-module)
+  "Defines which action (key:to,value:action) belongs to the process module suturo-planning-pm-manipulation"
   (cram-reasoning:<- (cram-process-modules:matching-process-module ?designator suturo-planning-pm-manipulation)
                      (or (desig-prop ?designator (to follow))
                          (desig-prop ?designator (to grasp))

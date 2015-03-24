@@ -3,24 +3,36 @@
 (defvar *base-origin* (cpl:make-fluent :name :base-origin :value nil)"The current center of the base as geometry_msgs:Point")
 
 (defun init ()
+  "Initializes the manipulation"
   (init-base-origin-subscriber))
 
 (defun init-base-origin-subscriber()
+  "Subscribes the base-origin-topic to get the center of the base"
   (roslisp:subscribe +base-origin-topic+ 'geometry_msgs-msg:PointStamped #'base-origin-cb))
  
 (defun base-origin-cb (msg)
+  "Callback for the base-origin-topic-subscriber"
   (setf (cpl:value *base-origin*) (roslisp:msg-slot-value msg 'point)))
 
 ; Helper functions
-(defgeneric call-action (action &rest params))
+(defgeneric call-action (action &rest params)
+  "Generic method to define an interface for executing actions. Whenever the function perform '(perform my-action-designator)' is executed, the prolog-reasoning-engine
+matches the designator-properties of my-action-designator with conditions defined in the file designators.lisp and decides which action is going to be performed.
+* Arguments
+- action :: 
+- params :: The parameter of the actions that should be called.
+"
+)
 
 (defmethod call-action ((action-sym t) &rest params)
+  "Standard implementation of call-action. Is called whenever an action couldn't be resolved"
   (roslisp:ros-info (suturo pm-manipulation)
                     "Unimplemented operation `~a' with parameters ~a. Doing nothing."
                     action-sym params)
   (sleep 0.5))
 
 (defmethod call-action :around (action-sym &rest params)
+  "Standard implementation of call-action. Is called whenever an action could be resolved"
   (roslisp:ros-info
     (suturo pm-manipulation)
     "Executing action `~a' with parameters ~a..."
@@ -32,6 +44,12 @@
                       action-sym params)))
 
 (defmacro def-action-handler (name args &body body)
+  "Defines a macro to create specific implementations of the generic function 'call-action'. Use this macro to define your actions !
+*Arguments
+- name :: The name of the function
+- args :: The arguments of the function
+- body :: The body of the function
+"
   (alexandria:with-gensyms (action-sym params)
     (defparameter *body* body)
     (if (not (typep (first body) 'string))
@@ -84,23 +102,9 @@
 (def-action-handler lift (collision-object grasp-point)
   "Lifts an arm by a distance") 
 
-
-;(def-action-handler grasp (object-designator)
-;  "Grasps the object specified by the obj-designator"
-;  (let ((collision-object (desig-prop-value object-designator 'collision-object)))
-;  (if (not (roslisp:wait-for-service +service-name-close-gripper+ +timeout-service+))
-;    (let ((timed-out-text (concatenate 'string "Times out waiting for service" +service-name-close-gripper+)))
-;      (roslisp:ros-warn nil t timed-out-text))
-;    (progn
-;        (with-fields (result joint_state) (roslisp:call-service +service-name-close-gripper+ 'suturo_manipulation_msgs-srv:CloseGripper
-;                                                                :object collision-object)
-;          (if (not result)
-;              (fail 'manipulation-failure)
-;              (with-fields (position) joint_state
-;                (make-designator 'action (update-designator-properties `((grasp-point position)) (description object-designator))))))))))
-
 (def-action-handler grasp (object-designator)
-  (defparameter my-obj-designator object-designator)
+  "Please comment me"
+  (defparameter my-obj-designator object-designator) ; @Torben: Global parameter defined in a function is bad, isn't it ?
   "Grasps the object specified by the obj-designator"
   (let ((collision-object (desig-prop-value object-designator 'cram-designator-properties:collision-object)))
     (if (not (roslisp:wait-for-service +service-name-grasp-object+ +timeout-service+))
@@ -119,6 +123,7 @@
               (equate object-designator new-desig)))))))
 
 (defun get-object-density (collision-object objects)
+  "Please comment me"
   (let ((result nil))
     (loop for object across objects do
       (if (string= (roslisp:msg-slot-value object 'name) (roslisp:msg-slot-value collision-object 'id))
@@ -196,10 +201,13 @@
 
 ;;----------service calls ----------------------------
 (defun call-add-collision-objects(objects)
-  (print "Calling add collision objects")
+  "Adds the given objects as collosion-objects to the moveit environment
+* Arguments
+- objects :: The objects as suturo_perception_msgs-msg:EurocObject that should be added to the collision scene"
   (if (not (roslisp:wait-for-service +service-name-add-collision-objects+ +timeout-service+))
         (print "Timed out")
         (roslisp:call-service +service-name-add-collision-objects+ 'suturo_manipulation_msgs-srv:AddCollisionObjects :objects objects)))
 
 (cpm:def-process-module suturo-planning-pm-manipulation (desig)
+  "Please comment me"
   (apply #'call-action (reference desig)))

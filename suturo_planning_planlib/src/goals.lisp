@@ -58,9 +58,9 @@
 
 (def-goal (achieve (objects-located ?objects))
     "* Arguments
-- ?objects :: An array of suturo_perception_msgs-msg:EurocObjects which should be found in the map 
+- ?objects :: An array of suturo\_perception\_msgs-msg:EurocObjects which should be found in the map 
 * Return Value 
-Returns every found region as in the map where the objects are suspected. The return type is an array of suturo_environment_msgs-msg:Region. 
+Returns every found region as in the map where the objects are suspected. The return type is an array of suturo\_environment\_msgs-msg:Region. 
 * Description 
 Tries to find the given objects in the current map"
   (perform (make-designator 'action `((to find-objects-in-map) 
@@ -68,18 +68,18 @@ Tries to find the given objects in the current map"
 
 (def-goal (achieve (my-test-goal '(?param1)))
     "* Arguments
-- ?objects :: An array of suturo_perception_msgs-msg:EurocObjects which should be found in the map 
+- ?objects :: An array of suturo\_perception\_msgs-msg:EurocObjects which should be found in the map 
 * Return Value 
-Returns every found region as in the map where the objects are suspected. The return type is an array of suturo_environment_msgs-msg:Region. 
+Returns every found region as in the map where the objects are suspected. The return type is an array of suturo\_environment\_msgs-msg:Region. 
 * Description 
 Tries to find the given objects in the current map"
                                      nil )
 
 (def-goal (achieve (unknown-scanned ?region))
     "* Arguments
-- ?region :: A suturo_environment_msgs-msg:Region which should be scanned
+- ?region :: A suturo\_environment\_msgs-msg:Region which should be scanned
 * Return Value
-Returns the suturo_perception_msgs-msg:EurocObject recognized by the scene cam
+Returns the suturo\_perception\_msgs-msg:EurocObject recognized by the scene cam
 * Description
 Tries to scan and recognize an object in the region. Moves the arm-cam in the proper position to scan the region"
   (look-at-obstacle ?region)
@@ -87,7 +87,7 @@ Tries to scan and recognize an object in the region. Moves the arm-cam in the pr
 
 (def-goal (achieve (object-classified ?object))
 "* Arguments
-- ?object :: A suturo_perception_msgs-msg:EurocObject which should be classified
+- ?object :: A suturo\_perception\_msgs-msg:EurocObject which should be classified
 * Return Value
 TODO
 * Description
@@ -102,7 +102,7 @@ Tries to classify the given object"
 
 (def-goal (achieve (pose-estimated ?object))
 "* Arguments
-- ?object :: A suturo_perception_msgs-msg:EurocObject which pose should be estimated
+- ?object :: A suturo\_perception\_msgs-msg:EurocObject which pose should be estimated
 * Return Value
 TODO
 * Description
@@ -112,10 +112,10 @@ Tries to estimate the pose of the given object"
 
 (defun get-yaml-object-nrs(yaml-objects  object-id)
 "* Arguments
-- yaml-objects :: The array of suturo_perception_msgs-msg:EurocObjects to search through
+- yaml-objects :: The array of suturo\_perception\_msgs-msg:EurocObjects to search through
 - object-id :: The object-id / name of an object as string
 * Return Value
-The positions of the suturo_perception_msgs-msg:EurocObjects in the array /yaml-objects/ with the id /object-id/
+The positions of the suturo\_perception\_msgs-msg:EurocObjects in the array /yaml-objects/ with the id /object-id/
 * Description
 Searches through the /yaml-objects/ and returns a list of positions with the id /object-id/"
   (let ((nrs (list))
