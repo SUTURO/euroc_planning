@@ -18,7 +18,7 @@
   (let* ((task-variation (roslisp:get-param "/planning/task_variation" "1"))
         (xml-zones (roslisp::xml-rpc-struct-alist
                      (roslisp:get-param
-		      (format nil "/task1_~a/public_description/target_zones"
+		      (format nil "/task_description/public_description/target_zones"
                                    task-variation)))))
     (mapcar #'parse-target-zone xml-zones)))
 
