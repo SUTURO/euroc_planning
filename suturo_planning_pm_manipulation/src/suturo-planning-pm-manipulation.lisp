@@ -23,13 +23,13 @@
   (sleep 0.5))
 
 (defgeneric call-action (action &rest params)
-  "Generic method to define an interface for executing actions. Whenever the function perform '(perform my-action-designator)' is executed, the prolog-reasoning-engine
+  (:documentation "Generic method to define an interface for executing actions. Whenever the function perform '(perform my-action-designator)' is executed, the prolog-reasoning-engine
  	 	 		matches the designator-properties of my-action-designator with conditions defined in the file designators.lisp and decides which action is going to be performed.
  	 	 		* Arguments
  	 	 		- action :: 
  	 	 		- params :: The parameter of the actions that should be called.
  	 	 		"
-  )
+))
 
 (defmethod call-action :around (action-sym &rest params)
   "Standard implementation of call-action. Is called whenever an action could be resolved"
