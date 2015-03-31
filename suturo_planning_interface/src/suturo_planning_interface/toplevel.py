@@ -10,8 +10,8 @@ from suturo_planning_interface.grasp_object import GraspObject
 import tasks
 import rospy
 from suturo_msgs.msg import Task
-from suturo_interface_msgs.srv import TaskDataService, TaskDataServiceResponse
-from suturo_interface_msgs.srv import StartPlanning, StartPlanningResponse
+from suturo_startup_msgs.srv import TaskDataService, TaskDataServiceResponse
+from suturo_startup_msgs.srv import StartPlanning, StartPlanningResponse
 
 import start_nodes
 import tasks

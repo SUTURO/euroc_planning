@@ -12,7 +12,7 @@ from sensor_msgs.msg._PointCloud2 import PointCloud2
 from sensor_msgs.point_cloud2 import create_cloud_xyz32, _get_struct_fmt, read_points
 from shape_msgs.msg._SolidPrimitive import SolidPrimitive
 from std_msgs.msg._ColorRGBA import ColorRGBA
-from suturo_perception_msgs.srv._GetPointArray import GetPointArray, GetPointArrayRequest
+from suturo_perception_msgs.srv import GetPointArray, GetPointArrayRequest
 import time
 from visualization_msgs.msg import Marker, MarkerArray
 from suturo_planning_manipulation.mathemagie import *
@@ -20,12 +20,12 @@ from suturo_planning_search.cell import Cell
 from suturo_planning_search.cluster_map import ClusterRegions, RegionType
 from suturo_planning_visualization import visualization
 from suturo_planning_manipulation.transformer import Transformer
-# from suturo_perception_msgs.msg import GetPointArray
-# import pcl
-import suturo_environment_msgs.msg
 from suturo_environment_msgs.srv import GetObstacleRegions,GetObstacleRegionsRequest,GetObstacleRegionsResponse
 from suturo_environment_msgs.srv import GetMap, GetMapRequest, GetMapResponse
-from suturo_manipulation_msgs.srv import FilterPoses, FilterPosesRequest, FilterPosesResponse
+from suturo_environment_msgs.srv import FilterPoses, FilterPosesRequest, FilterPosesResponse
+from suturo_environment_msgs.msg import Region as RegionMessage
+from suturo_environment_msgs.msg import Map as MapMessage
+
 from suturo_msgs.msg import Task, Int32Array2D,Int32Array
 
 __author__ = 'ichumuh'
@@ -74,7 +74,7 @@ class Map:
         resp.obstacle_regions = []
         for region in regions:
             print("handle_get_obstacle region")
-            region_msg = suturo_environment_msgs.msg.Region()
+            region_msg = RegionMessage()
             avg = region.get_avg()
             region_msg.avg_x = avg[0]
             region_msg.avg_y = avg[1]
@@ -104,7 +104,7 @@ class Map:
 
 
     def to_msg(self):
-        map = suturo_environment_msgs.msg.Map()
+        map = MapMessage()
         map.size = self.size
         map.size_column = self.num_of_cells
         map.max_coord = self.max_coord
@@ -112,7 +112,7 @@ class Map:
         map.field = []
         for column in self.field:
             for element in column:
-                cell = suturo_environment_msgs.msg.Cell()
+                cell = Cell()
                 cell.average_z = element.average_z
                 cell.highest_z = element.highest_z
                 cell.marked = element.marked

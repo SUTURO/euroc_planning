@@ -14,10 +14,10 @@ from suturo_planning_task_selector import save_task
 from suturo_planning_task_selector import stop_task
 from rosgraph_msgs.msg import Clock
 from actionlib_msgs.msg import GoalStatusArray
-from suturo_perception_msgs.msg import PerceptionNodeStatus
-from suturo_manipulation_msgs.msg import ManipulationNodeStatus
+from suturo_startup_msgs.msg import PerceptionNodeStatus
+from suturo_startup_msgs.msg import ManipulationNodeStatus
 from suturo_msgs.msg import Task
-from suturo_interface_msgs.srv import TaskDataService, TaskDataServiceResponse
+from suturo_startup_msgs.srv import TaskDataService, TaskDataServiceResponse
 from suturo_planning_yaml_pars0r.yaml_pars0r import YamlPars0r
 
 perception_process = None

@@ -121,7 +121,7 @@
           (roslisp:ros-warn nil t timed-out-text)
           (cpl-impl:fail 'cram-plan-failures:manipulation-failure))
         (progn
-          (let* ((response (roslisp:call-service +service-name-grasp-object+ 'suturo_interface_msgs-srv:GraspObject
+          (let* ((response (roslisp:call-service +service-name-grasp-object+ 'suturo_manipulation_msgs-srv:GraspObject
                                                 :object (roslisp:setf-msg collision-object (stamp header) (roslisp:ros-time))
                                                 :density (get-object-density collision-object (roslisp:msg-slot-value environment:*yaml* 'objects))))
                  (result (roslisp:msg-slot-value response 'result))

@@ -10,10 +10,9 @@
                geometry_msgs-msg
                suturo_perception_msgs-msg
                suturo_perception_msgs-srv
-               suturo_manipulation_msgs-msg
                suturo_manipulation_msgs-srv
-               suturo_interface_msgs-msg
-               suturo_interface_msgs-srv
+               suturo_startup_msgs-msg
+               suturo_startup_msgs-srv
                suturo-planning-environment
                suturo-planning-pm-manipulation
                suturo-planning-pm-perception

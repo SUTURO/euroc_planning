@@ -1,5 +1,5 @@
 import rospy
-from suturo_perception_msgs.srv import *
+from suturo_perception_msgs.srv import GetCameraPerception
 
 
 def recognize_objects_of_interest(colors):
@@ -27,7 +27,7 @@ def get_gripper_perception(cuboid=True, pose_estimation=False, object_ids=[]):
 
     rospy.wait_for_service('suturo/GetGripper')
     try:
-        perceived_objects = rospy.ServiceProxy('suturo/GetGripper', GetGripper)
+        perceived_objects = rospy.ServiceProxy('suturo/GetGripper', GetCameraPerception)
         return perceived_objects(s).objects
     except rospy.ServiceException, e:
         print "Service call failed: %s" % e

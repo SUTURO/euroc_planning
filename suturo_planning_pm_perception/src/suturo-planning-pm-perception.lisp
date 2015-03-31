@@ -37,7 +37,7 @@ Get the objects recognized by the gripper camera
 * Description
 Call the service suturo/GetGripper
 "
-    (roslisp:call-service "suturo/GetGripper" 'suturo_perception_msgs-srv:GetGripper :s options))
+    (roslisp:call-service "suturo/GetGripper" 'suturo_perception_msgs-srv:GetCameraPerception :s options))
 
 (defun get-scene-perception (&optional (cuboid 1) (pose-estimation nil) (object-ids nil))
   "
@@ -59,7 +59,7 @@ Get the objects recognized by the scene camera
 * Description
 Calls the service suturo/GetScene
 "
-  (roslisp:call-service "suturo/GetScene" 'suturo_perception_msgs-srv:GetScene :s options))
+  (roslisp:call-service "suturo/GetScene" 'suturo_perception_msgs-srv:GetCameraPerception :s options))
 
 (defun create-capability-string(&optional (cuboid 1) (pose-estimation nil) (object-ids nil))
   "
@@ -279,7 +279,7 @@ Transform the EurocObject to /odom_combined . Also returns an EurocObject.
   (print "Calling euroc object to odom combined ")
   (if (not (roslisp:wait-for-service +service-name-euroc-object-to-odom-combined+ +timeout-service+))
       (print "Timed out")
-      (roslisp:call-service +service-name-euroc-object-to-odom-combined+ 'suturo_interface_msgs-srv:EurocObjectToOdomCombined :toConvert object)))
+      (roslisp:call-service +service-name-euroc-object-to-odom-combined+ 'suturo_environment_msgs-srv:EurocObjectToOdomCombined :toConvert object)))
   "
 * Arguments
 - scenecam :: the camera
@@ -294,8 +294,8 @@ Adds the Point Cloud from the camera to the map.
         (fail 'map-scanning-failed))
       (progn
         (if (not arm-origin)
-            (roslisp:call-service +service-name-add-point-cloud+ 'suturo_interface_msgs-srv:AddPointCloud :scenecam scenecam)
-            (roslisp:call-service +service-name-add-point-cloud+ 'suturo_interface_msgs-srv:AddPointCloud :scenecam scenecam :arm_origin arm-origin)))))
+            (roslisp:call-service +service-name-add-point-cloud+ 'suturo_environment_msgs-srv:AddPointCloud :scenecam scenecam)
+            (roslisp:call-service +service-name-add-point-cloud+ 'suturo_environment_msgs-srv:AddPointCloud :scenecam scenecam :arm_origin arm-origin)))))
 
 
   "

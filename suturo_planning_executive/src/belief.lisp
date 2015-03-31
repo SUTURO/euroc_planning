@@ -38,7 +38,7 @@ A boolean (T or nil) whether the map is scanned.
         (roslisp:ros-warn nil t (concatenate 'string "Following service timed out: " "suturo/map/get_percent_cleared" ))
         (progn
           (print "calling service percent cleared")
-          (setf percentage (roslisp:msg-slot-value (roslisp:call-service  "suturo/map/get_percent_cleared" 'suturo_interface_msgs-srv:GetPercentCleared) 'percent))
+          (setf percentage (roslisp:msg-slot-value (roslisp:call-service  "suturo/map/get_percent_cleared" 'suturo_environment_msgs-srv:GetPercentCleared) 'percent))
           (print "Service call done")
           (format t "~$" percentage)
           (if (> percentage 0.95)
