@@ -1594,8 +1594,6 @@ SYM, which is bound in multiple namespaces."
         (dolist (m (generic-function-methods gf))
           (document m :method))))))
 
-
-
 (defmethod document ((sym symbol) (doctype (eql :slot-reader)))
   (let ((gf (symbol-function sym)))
     (writing-section-for-symbol (:slot-reader sym)

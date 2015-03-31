@@ -1,10 +1,14 @@
 (in-package :perception)
 
-"* Actions
-
-"
-
 (defmacro def-action-handler (name args &body body)
+  "
+  * Arguments
+  - name :: The name of the function
+  - args :: The arguments of the function
+  - body :: The body of the function
+  * Description
+  Defines a macro to create specific implementations of the generic function 'call-action'. Use this macro to define your actions !
+  "
   (alexandria:with-gensyms (action-sym params)
     (defparameter *body* body)
     (if (not (typep (first body) 'string))
@@ -42,7 +46,7 @@ Call the service suturo/GetGripper
 (defun get-scene-perception (&optional (cuboid 1) (pose-estimation nil) (object-ids nil))
   "
 * Arguments
-- cuboid ::
+- cuboid :: Bounding box 
 - pose-estimation :: Determines wether perception pipeline should estimate the pose of the objects
 - object-ids :: Ids of the objects
 * Description
@@ -64,7 +68,7 @@ Calls the service suturo/GetScene
 (defun create-capability-string(&optional (cuboid 1) (pose-estimation nil) (object-ids nil))
   "
 * Arguments
-- cuboid :: 
+- cuboid :: Bounding box 
 - pose-estimation :: Determines wether perception pipeline should estimate the pose of the objects
 - object-ids :: Ids of the objects
 * Description
@@ -96,37 +100,24 @@ Recognizes Objects of Interest. It gets a list of colors and returns a list of o
                                                   (r) (nth 0 color) (g) (nth 1 color) (b) (nth 2 color) (a) (nth 3 color)))))
       (roslisp:call-service "suturo/RecognizeOoI" 'suturo_perception_msgs-srv:RecognizeOoI :colors color-message)))
 
-  "
-* Arguments
-- action ::
-- params ::
-* Description
-
-"
-(defgeneric call-action (action &rest params))
+(defgeneric call-action (action &rest params)
+  (:documentation "Generic method to define an interface for executing actions. Whenever the function perform '(perform my-action-designator)' is executed, the prolog-reasoning-engine
+ 	 	 		matches the designator-properties of my-action-designator with conditions defined in the file designators.lisp and decides which action is going to be performed.
+ 	 	 		* Arguments
+ 	 	 		- action :: 
+ 	 	 		- params :: The parameter of the actions that should be called.
+ 	 	 		"
+))
  
- "
-* Arguments
-- action-sym ::
-- params ::
-- params
-* Description
-
-"
 (defmethod call-action ((action-sym t) &rest params)
+  "Standard implementation of call-action. Is called whenever an action couldn't be resolved"
   (roslisp:ros-info (suturo pm-perception)
                     "Unimplemented operation `~a' with parameters ~a. Doing nothing."
                     action-sym params)
   (sleep 0.5))
 
-  "
-* Arguments
-- action-sym ::
-- params :: 
-* Description
-
-"
 (defmethod call-action :around (action-sym &rest params)
+  "Standard implementation of call-action. Is called whenever an action could be resolved"
   (roslisp:ros-info
     (suturo pm-perception)
     "Executing action `~a' with parameters ~a..."
@@ -137,33 +128,21 @@ Recognizes Objects of Interest. It gets a list of colors and returns a list of o
                       "Done executing action `~a'."
                       action-sym params)))
 
-;;@INFO
-;; (desig-prop-value mydesig 'color)
-;; (defparameter mydesig (make-designator 'object `((color (1 2 3 4))) ))
-  "
-* Arguments
-- obj-designator::
-* Description
-
-"
 (def-action-handler perceive (obj-designator)
   (list obj-designator))
 
 ;---------------scan map -------------------------------------
+(def-action-handler perceive-scene-with (scenecam)
   "
 * Arguments
 - scenecam :: the camera the map should be scanned with
 * Description
 Scans the map and add the perceived point cloud to the map.
 "
-(def-action-handler perceive-scene-with (scenecam)
-  "Scans the whole map
-* Arguments
-- scenecam :: blub
-"
   (cram-beliefstate:add-topic-image-to-active-node "/euroc_interface_node/cameras/tcp_rgb_cam")
   (call-service-add-point-cloud scenecam))
 
+(def-action-handler perceive-scene-with-origin (scenecam arm-origin)
   "
 * Arguments
 - scenecam :: the camera the map should be scanned with
@@ -171,18 +150,17 @@ Scans the map and add the perceived point cloud to the map.
 * Description
 Scans the map and add the perceived point cloud to the map.
 "
-(def-action-handler perceive-scene-with-origin (scenecam arm-origin)
   (cram-beliefstate:add-topic-image-to-active-node "/euroc_interface_node/cameras/scene_rgb_cam")
   (call-service-add-point-cloud scenecam arm-origin))
 
 ;----------------pose estimation------------------------------
+(def-action-handler pose-estimate-object (ids)
   "
 * Arguments
 - ids :: 
 * Description
 Estimates the pose of the objects. Returns a list of EurocObjects.
 "
-(def-action-handler pose-estimate-object (ids)
       (let ((pose-estimated-object (elt (roslisp:msg-slot-value (call-gripper-service (create-capability-string nil T ids)) 'objects) 0)))
       ;(let ((pose-estimated-object (elt (roslisp:msg-slot-value (get-gripper-perception nil T id) 'objects) 0))) ;;ID as vector/array ? 
         (if (not pose-estimated-object)
@@ -209,13 +187,12 @@ Classifies an EurocObject. Returns the classified EurocObject
   ;cuboid = TRUE, pose-estimation = false, objects-ids = []
   (analyze-perceived-object perceived-object))
 
+(defun analyze-perceived-object(object)
   "
 * Arguments
 - object :: Euroc object that should be analyzed
 * Description
-
 "
-(defun analyze-perceived-object(object)
     (let ((matched-object (roslisp:msg-slot-value (call-classify-object object) 'classifiedObject))
           (type-obstacle (roslisp:symbol-code 'suturo_perception_msgs-msg:EurocObject :OBSTACLE))
           (type-unknown (roslisp:symbol-code 'suturo_perception_msgs-msg:EurocObject :UNKNOWN))
@@ -227,33 +204,32 @@ Classifies an EurocObject. Returns the classified EurocObject
          (handle-object-unknown-or-table matched-object))
         ((= (roslisp:msg-slot-value matched-object 'c_type) type-object) (handle-object matched-object)))))
 
+(defun handle-object-obstacle (matched-object)
   "
 * Arguments
 - matched-object :: 
 * Description
-
 "
-(defun handle-object-obstacle (matched-object)
   (if (roslisp:msg-slot-value matched-object 'c_cuboid_success)
       (print "Found obstacle")))
 
+(defun handle-object-unknown-or-table (matched-object) 
   "
 * Arguments
 - matched-object :: 
 * Description
 Handles the behaviour when an unknown object or the table is perceived
 "
-(defun handle-object-unknown-or-table (matched-object) 
   (if (roslisp:msg-slot-value matched-object 'c_cuboid_success)
       (print "Unknown object or table perceived. Ignoring it for now.")))
 
+(defun handle-object (matched-object)
   "
 * Arguments
 - matched-object :: the found object
 * Description
 Gets called when a valid object is found.
 "
-(defun handle-object (matched-object)
   (print "Found object")
   (roslisp:msg-slot-value (call-euroc-object-to-odom-combined matched-object)'converted))
 
@@ -269,17 +245,20 @@ Calls the service that classifies the object
   (if (not (roslisp:wait-for-service +service-name-classify-objects+ +timeout-service+))
         (print "Timed out")
         (roslisp:call-service +service-name-classify-objects+ 'suturo_perception_msgs-srv:Classifier :unclassifiedObject object)))
+
+(defun call-euroc-object-to-odom-combined(object)
+  (print "Calling euroc object to odom combined ")
   "
 * Arguments
 - object :: the EurocObject that should be converted
 * Description
 Transform the EurocObject to /odom_combined . Also returns an EurocObject.
 "
-(defun call-euroc-object-to-odom-combined(object)
-  (print "Calling euroc object to odom combined ")
   (if (not (roslisp:wait-for-service +service-name-euroc-object-to-odom-combined+ +timeout-service+))
       (print "Timed out")
       (roslisp:call-service +service-name-euroc-object-to-odom-combined+ 'suturo_interface_msgs-srv:EurocObjectToOdomCombined :toConvert object)))
+
+(defun call-service-add-point-cloud(scenecam &optional arm-origin)
   "
 * Arguments
 - scenecam :: the camera
@@ -287,7 +266,6 @@ Transform the EurocObject to /odom_combined . Also returns an EurocObject.
 * Description
 Adds the Point Cloud from the camera to the map. 
 "
-(defun call-service-add-point-cloud(scenecam &optional arm-origin)
   (if (not (roslisp:wait-for-service +service-name-add-point-cloud+ +timeout-service+))
       (progn
         (roslisp:ros-warn nil t (concatenate 'string "Following service timed out: " +service-name-add-point-cloud+))
@@ -298,21 +276,15 @@ Adds the Point Cloud from the camera to the map.
             (roslisp:call-service +service-name-add-point-cloud+ 'suturo_interface_msgs-srv:AddPointCloud :scenecam scenecam :arm_origin arm-origin)))))
 
 
+(def-action-handler focus-object (obj-designator)
   "
 * Arguments
 - obj-designator :: 
 * Description
 
 "
-(def-action-handler focus-object (obj-designator)
   "Nothing ?")
 
 
-  "
-* Arguments
-- desig :: 
-* Description
-
-"
 (cpm:def-process-module suturo-planning-pm-perception (desig)
   (apply #'call-action (reference desig)))

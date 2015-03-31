@@ -63,8 +63,10 @@
 Returns every found region as in the map where the objects are suspected. The return type is an array of suturo\_environment\_msgs-msg:Region. 
 * Description 
 Tries to find the given objects in the current map"
-  (perform (make-designator 'action `((to find-objects-in-map) 
+  (with-designators
+      ((find-objects-in-map (action `((to find-objects-in-map) 
                                       (objects ,?objects)))))
+  (perform find-objects-in-map)
 
 (def-goal (achieve (my-test-goal '(?param1)))
     "* Arguments

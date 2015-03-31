@@ -3,7 +3,7 @@
 (defun transform-to (pose to-frame)
   "
   Transform the given pose to the given frame
-
+  * Arguments
   - pose :: The pose of to be converted - geometry_msgs/PoseStamped
   - to-frame :: The name of the frame to which the pose should be converted - string
   - Return :: The transformed pose - geometry_msgs/PoseStamped  
@@ -42,7 +42,7 @@
 (defun msg->quaternion (msg)
   "
   Convert the given message to a cl-transforms:Quaternion.
-
+  * Arguments
   - msg :: The message which should be converted - geometry_msgs/Quaternion
   - Return :: The message as a new quaternion - cl-transforms:Quaternion
   "
@@ -53,7 +53,7 @@
   "
   Convert the given quaternion to a point.
   This function converts the given quaternion to a point by omitting the w-value.
-  
+  * Arguments 
   - q :: The quaternion to convert to a point - cl-transforms:Quaternion
   - Return :: The quaternion converted to a point - geometry_msgs/Point
   "
@@ -65,7 +65,7 @@
 (defun quaternion->Quaternion (q)
   "
   Convert the given cl-transforms:Quaternion to a quaternion message.
-  
+  * Arguments 
   - q :: The quaternion to convert - cl-transforms:Quaternion
   - Return :: The converted quaternion as a message - geometry_msgs/Quaternion
   "
@@ -78,7 +78,7 @@
 (defun msg->vector (msg)
   "
   Convert the given point to a 3D-Vector.
-  
+  * Arguments 
   - msg :: The message which should be converted - geometry_msgs/Point
   - Return :: The converted message as a 3D-Vector - cl-transforms:3d-vector
   "
@@ -88,7 +88,7 @@
 (defun vector->msg (v)
   "
   Convert the given 3D-vector to a point message.
-
+  * Arguments
   - v :: The 3D-Vector to be converted - cl-transforms:3d-vector
   - Return :: The converted 3D-Vector as a Point message - geometry_msgs/Point
   "
@@ -98,7 +98,7 @@
 (defun normalize-vector (v)
   "
   Normalize the length of the given vector.
-
+  * Arguments
   - v :: The vector to be normalized - cl-transforms:3d-vector
   - Return :: The normalized vector with a length of 1 - cl-transforms:3d-vector
   "
@@ -107,7 +107,7 @@
 (defun magnitude (v)
   "
   Return the length of the given message.
-
+  * Arguments
   - v :: The point message for which the length should be calculated - geometry_msgs/Point
   - Return :: The length of the given message - float
   "
@@ -116,7 +116,7 @@
 (defun rotate-quaternion (q roll pitch yaw)
   "
   Rotate the given quaternion message by the given values roll, pitch and yaw.
-
+  * Arguments
   - q :: The quaternion which should be rotated - geometry_msgs/Quaternion
   - roll :: The value of which the quaternion should be rolled - float
   - pitch :: The value of which the quaternion should be pitched - float
@@ -132,7 +132,7 @@
   "
   Add the given points.
   This operation is symmetric: add-point(v1 v2) = add-point(v2 v1).
-
+  * Arguments
   - v1 :: The point which should be added to - geometry_msgs/Point
   - v2 :: The point which should be added - geometry_msgs/Point
   - Return :: The addition of both points - geometry_msgs/Point
@@ -142,7 +142,7 @@
 (defun quaternion-conjugate (q)
   "
   Return the conjugation of the given quaternion.  
-
+  * Arguments
   - q :: The quaternion for which the conjugation should be calculated - geometry_msgs/Quaternion
   - Return :: The conjugation of the given quaternion - geometry_msgs/Quaternion
   "
@@ -152,7 +152,7 @@
 (defun qv-mult (q1 v1)
   "
   Rotate the given quaternion q1 by the given vector v1.
-
+  * Arguments
   - q1 :: The quaternion to rotate - geometry_msgs/Quaternion
   - v1 :: The vector to rotate the quaternion of - geometry_msgs/Point || geometry_msgs/Quaternion
   - Return :: The rotated quaternion - geometry_msgs/Quaternion
@@ -169,7 +169,7 @@
 (defun quaternion-multiply (q v)
   "
   Multiply the given quaternions via q*v
-  
+  * Arguments 
   - q :: The quaternion to be multiplied - geometry_msgs/Quaternion
   - v :: The quaternion to multiply with - geometry_msgs/Quaternion
   - Return :: The multiplication of the two quaternions - geometry_mgs/Quaternion
@@ -182,7 +182,7 @@
 (defun three-points-to-quaternion (origin to &optional roll)
   "
   Create a quaternion from the three given points
-
+  * Arguments
   - origin :: The point which describes the origin of the quaternion - geometry_msgs/Point
   - to :: The point which describes the coordinates to which the quaternion should point - geometry_msgs/Point
   - roll :: (optional) The point which describes how the quaternion should be rolled - geometry_msgs/Point
@@ -209,7 +209,7 @@
 (defun get-angle (p1 p2)
   "
   Return the angle between the two given points
-
+  * Arguments
   - p1 :: The first point for which the angle should be calculated - geometry_msgs/Point
   - p2 :: The second point for whic hthe angle should be calculated - geometry_msgs/Point
   - Return :: The angle between the two point in radians - float
@@ -221,7 +221,7 @@
 (defun get-pitch (q)
   "
   Calculate the pitch of the given quaternion
-
+  * Arguments
   - q :: The quaternion for which the pitch is calculated - geometry_msgs/Quaternion
   - Return :: The pitch of the given quaternion - float
   "
@@ -235,7 +235,7 @@
 (defun set-vector-length (l p)
   "
   Set the Length of the given p to the length l
-
+  * Arguments
   - l :: The length to which the given point should be resized - float
   - p :: The point which should be resized - geometry_msgs/Point
   - Return :: The rezied point - cl-transforms:3d-vector
@@ -246,7 +246,7 @@
 (defun mag (msg)
   "
   Calculate the magnitude of the given pose
-
+  * Arguments
   - msg :: The pose for which the magnitude should be calculated - geometry_msgs/PoseStamped
   - Return :: The magnitude of the given pose - float
   "
@@ -255,7 +255,7 @@
 (defun make-scan-poses (point distance angle frame n)
   "
   Calculate `n` scan poses for the given point with a given distance and a given angle.
-
+  * Arguments
   - point :: The point which should be looked at - geometry_msgs/Point
   - distance :: The distance from the scan-poses to the given point - float
   - angle :: The angle of the scan-pose to the given point in radians - float
@@ -286,7 +286,7 @@
 (defun get-fingertip (hand-pose)
   "
   Calculate the fingertip for a given hand pose
-
+  * Arguments
   - hand-pose :: The pose of the hand - geometry_msgs/PoseStamped
   - Return :: The position of the fingertip - geometry_msgs/PointStamped
   "
@@ -303,7 +303,7 @@
   "
   Calculate the pre-grasp pose for the given grasp pose.
   The pre-grasp pose is slightly above the given grasp pose.
-
+  * Arguments
   - grasp :: The pose to grasp at - geometry_msgs/PoseStamped
   - Return :: The pre grasp pose slightly above the given pose - geometry_msgs/PoseStamped
   "
@@ -329,7 +329,7 @@
 (defun get-place-positions (collision-object destination distance grasp)
 	"
   Calculate a list of place poses for the given collision-object and destination.
-
+  * Arguments
   - collision-object :: The object which should be placed - moveit_msgs/CollisionObject
   - destination :: The destination where the object should be placed - geometry_msgs/Point
   - distance :: The distance of the object to the destination point - float
@@ -348,7 +348,7 @@
   "
   Calculate the place poses for a given collision-object with a single primitive, like a cube or a cylinder.
   For more informations see `get-place-positions`.
-
+  * Arguments
   - collision-object :: The object which should be placed - moveit_msgs/CollisionObject
   - destination :: The destination where the object should be placed - geometry_msgs/Point
   - distance :: The distance of the object to the destination point - float
@@ -381,7 +381,7 @@
   "
   Calculate the place poses for a given collision-object which is a handlebar.
   For more informations see `get-place-positions`.
-
+  * Arguments
   - collision-object :: The object which should be placed - moveit_msgs/CollisionObject
   - destination :: The destination where the object should be placed - geometry_msgs/Point
   - distance :: The distance of the object to the destination point - float
@@ -407,7 +407,7 @@
 (defun get-pre-place-position (pose-stamped)
   "
   Calculate the pre-place pose for the given place pose.
-
+  * Arguments
   - pose-stamped :: The pose where the object should be places - geometry_msgs/PoseStamped
   - Return :: The pre place pose for the given pose - geometry_msgs/PoseStamped
   "

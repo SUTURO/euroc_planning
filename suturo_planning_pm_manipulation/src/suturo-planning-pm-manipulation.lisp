@@ -1,6 +1,6 @@
 (in-package :manipulation)
 
-(defvar *base-origin* (cpl:make-fluent :name :base-origin :value nil)"The current center of the base as geometry_msgs:Point")
+(defvar *base-origin* (cpl:make-fluent :name :base-origin :value nil)"The current center of the base as geometry\_msgs:Point")
 
 (defun init ()
   "Initializes the manipulation"
@@ -45,14 +45,14 @@
 
 (defmacro def-action-handler (name args &body body)
   "
-  Defines a macro to create specific implementations of the generic function 'call-action'. Use this macro to define your actions !
-
+  * Arguments
   - name :: The name of the function
   - args :: The arguments of the function
   - body :: The body of the function
+  * Description
+  Defines a macro to create specific implementations of the generic function 'call-action'. Use this macro to define your actions !
   "
   (alexandria:with-gensyms (action-sym params)
-    (defparameter *body* body)
     (if (not (typep (first body) 'string))
         `(defmethod call-action ((,action-sym (eql ',name)) &rest ,params)
                                        (destructuring-bind ,args ,params ,@body))
@@ -61,7 +61,7 @@
                                        (destructuring-bind ,args ,params ,@body)))))
 
 ; To see how these action handlers are implemented for the pr2, see
-; https://github.com/cram-code/cram_pr2/blob/master/pr2_manipulation_process_module/src/action-handlers.lisp
+; https://github.com/cram-code/cram\_pr2/blob/master/pr2_manipulation_process_module/src/action-handlers.lisp
 
 (def-action-handler no-navigation (goal)
   "Do nothing"
@@ -70,8 +70,9 @@
 (def-action-handler navigation (goal &optional (do-not-blow-up-list #()))
   "
   Move the robot to the given goal position
+  * Arguments
 
-  - goal :: The pose wherer the robot should be moved to - location-designator || geometriy_msgs/PoseStamped
+  - goal :: The pose wherer the robot should be moved to - location-designator || geometriy\_msgs/PoseStamped
   - do-not-blow-up-list :: A list of object-names which should not be blown up during planning - (list string)
   - Return :: True if the robot has been moved to the given pose false otherwise - bool
   "
@@ -112,7 +113,7 @@
 (def-action-handler grasp (object-designator)
   "
   Grasp the given object and lift it
-
+  * Arguments
   - object-designator :: The designator describing the object - object-designator
   "
   (let ((collision-object (desig-prop-value object-designator 'cram-designator-properties:collision-object)))
@@ -134,7 +135,7 @@
 (defun get-object-density (collision-object objects)
   "
   Get the density of the given object from the given list of all objects
-
+  * Arguments
   - collision-object :: The object to get the density of - moveit\_msgs/CollisionObject
   - objects :: The list of objects to get the density from
   - Return :: The density of the given object - int
@@ -154,10 +155,10 @@
 (def-action-handler put-down (collision-object location grasp)
   "
   Put the given object down at the given location.
-
-  - collision-object :: The object which should be placed - moveit_msgs/CollisionObject
+  * Arguments
+  - collision-object :: The object which should be placed - moveit\_msgs/CollisionObject
   - location :: The pose where the object should be placed - cl-tf::pose-stamped
-  - grasp :: The pose where the given object has been grasped - geometry_msgs/PoseStamped
+  - grasp :: The pose where the given object has been grasped - geometry\_msgs/PoseStamped
   "
   (if (not (roslisp:wait-for-service +service-name-move-robot+ +timeout-service+))
     (let ((timed-out-text (concatenate 'string "Timed out waiting for service" +service-name-move-robot+)))
@@ -173,7 +174,6 @@
             (block place-block
               (let ((place-poses (get-place-positions collision-object location-msg dist-to-obj grasp)))
               (loop for place-pose in place-poses do
-                (setf *place-pose* place-pose)
                 (block try-BLOCK
                   ; Move to the pre place position
                   (ros-info (achieve put-down) "Move to pre place position")
@@ -222,13 +222,17 @@
 
 ;;----------service calls ----------------------------
 (defun call-add-collision-objects(objects)
-  "
-  Adds the given objects as collosion-objects to the moveit environment
-    
-  - objects :: The objects as suturo_perception_msgs-msg:EurocObject that should be added to the collision scene"
+  "* Arguments 
+- objects :: The objects as suturo\_perception\_msgs-msg:EurocObject that should be added to the collision scene
+* Return Value
+Ignored
+* Description
+Adds the given objects as collosion-objects to the moveit environment"
   (if (not (roslisp:wait-for-service +service-name-add-collision-objects+ +timeout-service+))
         (print "Timed out")
         (roslisp:call-service +service-name-add-collision-objects+ 'suturo_manipulation_msgs-srv:AddCollisionObjects :objects objects)))
 
 (cpm:def-process-module suturo-planning-pm-manipulation (desig)
   (apply #'call-action (reference desig)))
+
+
