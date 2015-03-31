@@ -1,13 +1,15 @@
 <launch>
 
   <arg name="task" default="task1_v1" />
+  <arg name="disable_logging" default="false" />
+  <arg name="disable_planning" default="false" />
 
   <include file="$(find suturo_planning_executive)/launch/task1_without_planning.launch">
     <arg name="task" value="$(arg task)" />
   </include>
   
   <!-- Start logging -->
-  <include file="$(find suturo_planning_executive)/launch/logging.launch" />
+  <include unless="$(arg disable_logging)" file="$(find suturo_planning_executive)/launch/logging.launch" />
   
-  <node name="planning" pkg="suturo_planning_executive" type="task" required="true" output="screen" />
+  <node unless="$(arg disable_planning)" name="planning" pkg="suturo_planning_executive" type="task" required="true" output="screen" />
 </launch>
