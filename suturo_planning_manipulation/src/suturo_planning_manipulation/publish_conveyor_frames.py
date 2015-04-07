@@ -36,7 +36,7 @@ def cb(msg):
 def add_conveyor_frames():
     rospy.init_node('listener', anonymous=True)
 
-    rospy.Subscriber("suturo/yaml_pars0r", Task, cb)
+    rospy.Subscriber("suturo/startup/yaml_pars0r", Task, cb)
 
     rospy.spin()
     print "Oooppss"

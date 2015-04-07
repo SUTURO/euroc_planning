@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from rospy.rostime import Duration
-from suturo_perception_msgs.srv import GetGripper
+from suturo_perception_msgs.srv import GetCameraPerception
 from manipulation import *
 from tabulate import tabulate
 from mathemagie import euler_to_quaternion
@@ -51,7 +51,7 @@ def test_extrapolation(dir, m, pose1, pose2, service, time1, time_12):
 
 def pos_calc_test(m):
     # create service
-    service = rospy.ServiceProxy("/suturo/GetGripper", GetGripper)
+    service = rospy.ServiceProxy("/suturo/perception/GetGripper", GetCameraPerception)
     # get the first perception
     resp = service("firstConveyorCall,centroid,cuboid")
     object1 = resp.objects[0].object

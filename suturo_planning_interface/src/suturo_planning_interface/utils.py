@@ -86,9 +86,9 @@ def start_logger(stdin, initialization_time, log_name, logging, dont_print=False
 
 
 def classify_object(obj):
-    rospy.wait_for_service('suturo/Classifier')
+    rospy.wait_for_service('suturo/perception/Classifier')
     try:
-        classifier = rospy.ServiceProxy('suturo/Classifier', Classifier)
+        classifier = rospy.ServiceProxy('suturo/perception/Classifier', Classifier)
         return classifier(obj).classifiedObject
     except rospy.ServiceException, e:
         print "Service call failed: %s" % e

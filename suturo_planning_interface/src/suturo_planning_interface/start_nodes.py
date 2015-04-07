@@ -14,10 +14,10 @@ from suturo_planning_task_selector import save_task
 from suturo_planning_task_selector import stop_task
 from rosgraph_msgs.msg import Clock
 from actionlib_msgs.msg import GoalStatusArray
-from suturo_perception_msgs.msg import PerceptionNodeStatus
-from suturo_manipulation_msgs.msg import ManipulationNodeStatus
+from suturo_startup_msgs.msg import PerceptionNodeStatus
+from suturo_startup_msgs.msg import ManipulationNodeStatus
 from suturo_msgs.msg import Task
-from suturo_interface_msgs.srv import TaskDataService, TaskDataServiceResponse
+from suturo_startup_msgs.srv import TaskDataService, TaskDataServiceResponse
 from suturo_planning_yaml_pars0r.yaml_pars0r import YamlPars0r
 
 perception_process = None
@@ -33,7 +33,7 @@ class StartYamlParser():
         self.start_service()
 
     def start_service(self):
-        self.start_yaml_parser = rospy.Service('suturo/state/start_yaml_parser', TaskDataService,
+        self.start_yaml_parser = rospy.Service('suturo/startup/start_yaml_parser', TaskDataService,
                                                         self.start_yaml_parser)
 
     def start_yaml_parser(self, req):
@@ -51,7 +51,7 @@ class StartManipulation(object):
         self.start_service()
 
     def start_service(self):
-        self.start_manipulation_service = rospy.Service('suturo/state/start_manipulation', TaskDataService,
+        self.start_manipulation_service = rospy.Service('suturo/startup/start_manipulation', TaskDataService,
                                                         self.start_manipulation)
 
     def start_manipulation(self, req):
@@ -60,8 +60,8 @@ class StartManipulation(object):
         rospy.loginfo('Executing TestNode init.')
         subprocess.Popen('rosrun euroc_launch TestNode --init', shell=True)
         rospy.loginfo('Executing state StartManipulation')
-        rospy.loginfo('Subscribing to /suturo/manipulation_node_status.')
-        self.__nodes_subscriber = rospy.Subscriber('/suturo/manipulation_node_status', ManipulationNodeStatus,
+        rospy.loginfo('Subscribing to /suturo/startup/manipulation_node_status.')
+        self.__nodes_subscriber = rospy.Subscriber('/suturo/startup/manipulation_node_status', ManipulationNodeStatus,
                                              self.wait_for_manipulation)
         rospy.loginfo('Subscribign to /move_group/status topic.')
         rospy.sleep(1)
@@ -135,7 +135,7 @@ class StartPerception(object):
         self.start_service()
 
     def start_service(self):
-        self.start_perception_service = rospy.Service('suturo/state/start_perception', TaskDataService,
+        self.start_perception_service = rospy.Service('suturo/startup/start_perception', TaskDataService,
                                                       self.start_perception)
 
     def wait_for_perception(self, msg):
@@ -172,8 +172,8 @@ class StartPerception(object):
         resp = TaskDataServiceResponse()
         resp.taskdata = req.taskdata
         rospy.loginfo('Executing state StartPerception')
-        rospy.loginfo('Subscribing to /suturo/perception_node_status.')
-        self.__subscriber = rospy.Subscriber('/suturo/perception_node_status', PerceptionNodeStatus,
+        rospy.loginfo('Subscribing to /suturo/startup/perception_node_status.')
+        self.__subscriber = rospy.Subscriber('/suturo/startup/perception_node_status', PerceptionNodeStatus,
                                              self.wait_for_perception)
         rospy.sleep(1)
         task_type = resp.taskdata.yaml.task_type
@@ -200,7 +200,7 @@ class StartClassifier(object):
         self.start_service()
 
     def start_service(self):
-        self.start_classifier_service = rospy.Service('suturo/state/start_classifier', TaskDataService,
+        self.start_classifier_service = rospy.Service('suturo/startup/start_classifier', TaskDataService,
                                                       self.start_classifier)
 
     def start_classifier(self, req):
@@ -225,7 +225,7 @@ class StartSimulation(object):
         self.start_service()
 
     def start_service(self):
-        self.start_simulation_service = rospy.Service('suturo/state/start_simulation', TaskDataService,
+        self.start_simulation_service = rospy.Service('suturo/startup/start_simulation', TaskDataService,
                                                       self.start_simulation)
 
     def start_simulation(self, req):
@@ -260,7 +260,7 @@ class StopSimulation(object):
         self.start_service()
 
     def start_service(self):
-        self.stop_simulation_service = rospy.Service('suturo/state/stop_simulation', TaskDataService,
+        self.stop_simulation_service = rospy.Service('suturo/startup/stop_simulation', TaskDataService,
                                                      self.stop_simulation)
 
     def stop_simulation(self, req):
@@ -296,7 +296,7 @@ class StopNodes(object):
         self.start_service()
 
     def start_service(self):
-        self.stop_nodes_service = rospy.Service('suturo/state/stop_nodes', TaskDataService, self.stop_nodes)
+        self.stop_nodes_service = rospy.Service('suturo/startup/stop_nodes', TaskDataService, self.stop_nodes)
 
     def stop_nodes(self, req):
         resp = TaskDataServiceResponse()

@@ -3,6 +3,7 @@ import rospy
 from threading import Thread
 from geometry_msgs.msg import PointStamped
 from std_srvs.srv import Empty
+from suturo_environment_msgs.srv import *
 from suturo_manipulation_msgs.srv import *
 from suturo_planning_manipulation import manipulation_constants
 from suturo_planning_manipulation.manipulation import Manipulation

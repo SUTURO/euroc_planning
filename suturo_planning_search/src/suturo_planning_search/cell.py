@@ -6,11 +6,12 @@ import rospy
 import scipy
 from sensor_msgs.msg._PointCloud2 import PointCloud2
 from sensor_msgs.point_cloud2 import create_cloud_xyz32, _get_struct_fmt, read_points
-from suturo_perception_msgs.srv._GetPointArray import GetPointArray, GetPointArrayRequest
+from suturo_perception_msgs.srv import GetPointArray, GetPointArrayRequest
 from visualization_msgs.msg import Marker, MarkerArray
 from suturo_planning_visualization import visualization
 from suturo_planning_manipulation.transformer import Transformer
-import suturo_environment_msgs
+
+from suturo_environment_msgs.msg import Cell
 
 __author__ = 'ichumuh'
 
@@ -78,7 +79,7 @@ class Cell:
                other.is_unknown() and self.is_unknown()
 
     def to_msg(self):
-        cell = suturo_environment_msgs.msg.Cell()
+        cell = Cell()
         cell.average_z = self.average_z
         cell.highest_z = self.highest_z
         cell.marked = self.marked

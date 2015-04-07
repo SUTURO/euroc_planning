@@ -39,9 +39,9 @@ Get the objects recognized by the gripper camera
 * Arguments
 - options :: The options that the service call transmits to the receiver
 * Description
-Call the service suturo/GetGripper
+Call the service suturo/perception/GetGripper
 "
-    (roslisp:call-service "suturo/GetGripper" 'suturo_perception_msgs-srv:GetGripper :s options))
+    (roslisp:call-service "suturo/perception/GetGripper" 'suturo_perception_msgs-srv:GetCameraPerception :s options))
 
 (defun get-scene-perception (&optional (cuboid 1) (pose-estimation nil) (object-ids nil))
   "
@@ -61,9 +61,9 @@ Get the objects recognized by the scene camera
 * Arguments
 - options :: The options that the service call transmits to the receiver
 * Description
-Calls the service suturo/GetScene
+Calls the service suturo/perception/GetScene
 "
-  (roslisp:call-service "suturo/GetScene" 'suturo_perception_msgs-srv:GetScene :s options))
+  (roslisp:call-service "suturo/perception/GetScene" 'suturo_perception_msgs-srv:GetCameraPerception :s options))
 
 (defun create-capability-string(&optional (cuboid 1) (pose-estimation nil) (object-ids nil))
   "
@@ -98,7 +98,7 @@ Recognizes Objects of Interest. It gets a list of colors and returns a list of o
     (dolist(color colors)
       (setf color-message (list (roslisp:make-msg "std_msgs/ColorRGBA"
                                                   (r) (nth 0 color) (g) (nth 1 color) (b) (nth 2 color) (a) (nth 3 color)))))
-      (roslisp:call-service "suturo/RecognizeOoI" 'suturo_perception_msgs-srv:RecognizeOoI :colors color-message)))
+      (roslisp:call-service "suturo/perception/RecognizeOoI" 'suturo_perception_msgs-srv:RecognizeOoI :colors color-message)))
 
 (defgeneric call-action (action &rest params)
   (:documentation "Generic method to define an interface for executing actions. Whenever the function perform '(perform my-action-designator)' is executed, the prolog-reasoning-engine
@@ -256,7 +256,7 @@ Transform the EurocObject to /odom_combined . Also returns an EurocObject.
 "
   (if (not (roslisp:wait-for-service +service-name-euroc-object-to-odom-combined+ +timeout-service+))
       (print "Timed out")
-      (roslisp:call-service +service-name-euroc-object-to-odom-combined+ 'suturo_interface_msgs-srv:EurocObjectToOdomCombined :toConvert object)))
+      (roslisp:call-service +service-name-euroc-object-to-odom-combined+ 'suturo_environment_msgs-srv:EurocObjectToOdomCombined :toConvert object)))
 
 (defun call-service-add-point-cloud(scenecam &optional arm-origin)
   "
@@ -272,8 +272,8 @@ Adds the Point Cloud from the camera to the map.
         (fail 'map-scanning-failed))
       (progn
         (if (not arm-origin)
-            (roslisp:call-service +service-name-add-point-cloud+ 'suturo_interface_msgs-srv:AddPointCloud :scenecam scenecam)
-            (roslisp:call-service +service-name-add-point-cloud+ 'suturo_interface_msgs-srv:AddPointCloud :scenecam scenecam :arm_origin arm-origin)))))
+            (roslisp:call-service +service-name-add-point-cloud+ 'suturo_environment_msgs-srv:AddPointCloud :scenecam scenecam)
+            (roslisp:call-service +service-name-add-point-cloud+ 'suturo_environment_msgs-srv:AddPointCloud :scenecam scenecam :arm_origin arm-origin)))))
 
 
 (def-action-handler focus-object (obj-designator)

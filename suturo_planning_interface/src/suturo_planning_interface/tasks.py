@@ -1,7 +1,6 @@
 import rospy
 from suturo_perception_msgs.msg import EurocObject
-from suturo_interface_msgs.msg import TaskData
-import suturo_msgs.msg
+from suturo_startup_msgs.msg import TaskData
 from geometry_msgs.msg import Point
 from geometry_msgs.msg import PointStamped
 from geometry_msgs.msg import PoseStamped

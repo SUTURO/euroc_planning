@@ -5,9 +5,10 @@ from suturo_planning_interface import utils
 from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_position, get_pre_grasp
 from suturo_planning_visualization.visualization import visualize_poses
 from mathemagie import get_fingertip, subtract_point, magnitude
-import suturo_interface_msgs.srv
 import time
 from suturo_perception_msgs.msg import EurocObject
+from suturo_manipulation_msgs.srv import GraspObject as GraspObjectService
+from suturo_manipulation_msgs.srv import GraspObjectResponse, GraspObjectRequest
 
 class GraspObject(object):
     SERVICE_NAME = 'suturo/manipulation/grasp_object'
@@ -17,11 +18,11 @@ class GraspObject(object):
         self._create_service()
 
     def _create_service(self):
-        rospy.Service(self.SERVICE_NAME, suturo_interface_msgs.srv.GraspObject, self.__handle_request)
+        rospy.Service(self.SERVICE_NAME, GraspObjectService, self.__handle_request)
 
     def __handle_request(self, req):
         result = self.__grasp(req.object, req.density)
-        return suturo_interface_msgs.srv.GraspObjectResponse(result=result, grasp_position=self.grasp_position)
+        return GraspObjectResponse(result=result, grasp_position=self.grasp_position)
 
     def __grasp(self, collision_object, density):
         rospy.loginfo('Executing state GraspObject')

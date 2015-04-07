@@ -9,7 +9,7 @@
 
 (defun yaml-publisher ()
   "Creates the publisher for the yaml-file"
-  (setf *yaml-pub* (advertise "/suturo/yaml_pars0r_input" "std_msgs/String")))
+  (setf *yaml-pub* (advertise "/suturo/startup/yaml_pars0r_input" "std_msgs/String")))
 
 (roslisp-utilities:register-ros-init-function parse-yaml)
 (roslisp-utilities:register-ros-init-function yaml-publisher)
@@ -136,13 +136,13 @@ Callback for the function [[parse-yaml]]. Sets the variable environment:*yaml*.
 
 (defun call-service-state (service-name taskdata)
   "
-Calls the service of the given service-name. Every state service has to accept an object of suturo_interface_msgs-srv:TaskDataService.
+Calls the service of the given service-name. Every state service has to accept an object of suturo_startup_msgs-srv:TaskDataService.
 * Arguments
-- service-name :: The name of a state service has to start with suturo/state/. This argument needs the last part of the service name e.g: suturo/state/myAwesomeService -> myAwesomeService.
-- taskdata :: The suturo_interface_msgs-msgs:Taskdata object that should be send to the service
+- service-name :: The name of a state service has to start with suturo/startup/. This argument needs the last part of the service name e.g: suturo/startup/myAwesomeService -> myAwesomeService.
+- taskdata :: The suturo_startup_msgs-msgs:Taskdata object that should be send to the service
 "
   (let
-      ((full-service-name (concatenate 'string "suturo/state/" service-name)))
+      ((full-service-name (concatenate 'string "suturo/startup/" service-name)))
     (print (concatenate 'string "calling service: " service-name))
     (if (not (roslisp:wait-for-service full-service-name +timeout-service+))
         (progn
@@ -150,7 +150,7 @@ Calls the service of the given service-name. Every state service has to accept a
               ((timed-out-text (concatenate 'string "Timed out waiting for service " service-name)))
             (roslisp:ros-warn nil t timed-out-text))
           nil)
-        (let ((value (roslisp:call-service full-service-name 'suturo_interface_msgs-srv:TaskDataService :taskdata taskdata)))
+        (let ((value (roslisp:call-service full-service-name 'suturo_startup_msgs-srv:TaskDataService :taskdata taskdata)))
           (roslisp:msg-slot-value value 'result)))))
 
 (def-cram-function init-simulation (task_name)
@@ -161,7 +161,7 @@ Initialize the simulation:
 - Start perception
 - Start classifier
 "
-  (let ((taskdata (roslisp:make-msg "suturo_interface_msgs/TaskData" (name) task_name)))
+  (let ((taskdata (roslisp:make-msg "suturo_startup_msgs/TaskData" (name) task_name)))
     (call-service-state "start_simulation" taskdata)
     (call-service-state "start_manipulation" taskdata)
     (call-service-state "start_perception" taskdata)
