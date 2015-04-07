@@ -31,9 +31,9 @@ from shape_msgs.msg import SolidPrimitive
 class YamlPars0r:
 
     def __init__(self):
-        self.pub = rospy.Publisher('suturo/yaml_pars0r', Task, queue_size=10, latch=True)
+        self.pub = rospy.Publisher('suturo/startup/yaml_pars0r', Task, queue_size=10, latch=True)
         #rospy.init_node('yaml_pars0r_node', anonymous=True, log_level=rospy.INFO)
-        self._subscriber = rospy.Subscriber("suturo/yaml_pars0r_input", String, self.get_input)
+        self._subscriber = rospy.Subscriber("suturo/startup/yaml_pars0r_input", String, self.get_input)
         rospy.loginfo('Initialised YAML parser.')
 
     def get_input(self, msg):

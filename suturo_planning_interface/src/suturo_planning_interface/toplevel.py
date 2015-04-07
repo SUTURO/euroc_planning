@@ -77,7 +77,7 @@ class Toplevel(object):
             sys.stdout = __logger_process.stdin
 
     def start_task_data_creator_service(self):
-        self.init_service = rospy.Service('suturo/toplevel/create_task_data', StartPlanning, self.create_task_data)
+        self.init_service = rospy.Service('suturo/startup/create_task_data', StartPlanning, self.create_task_data)
 
     def create_task_data(self, req):
         resp = StartPlanningResponse()
@@ -89,8 +89,8 @@ class Toplevel(object):
 #        return self.yaml_handler.get_yaml(data)
 
     def start_init_service(self):
-        print("Waiting for service call suturo/state/init")
-        self.init_service = rospy.Service('suturo/state/init', TaskDataService, self.init)
+        print("Waiting for service call suturo/startup/init")
+        self.init_service = rospy.Service('suturo/startup/init', TaskDataService, self.init)
 
     def init(self, req):
         resp = TaskDataServiceResponse()
@@ -127,7 +127,7 @@ class Toplevel(object):
 #         self._lock = None
 #
 #     #def start_service(self):
-#     #    self.yaml_handler_service = rospy.Service('suturo/state/yaml_handler', TaskDataService, self.get_yaml)
+#     #    self.yaml_handler_service = rospy.Service('suturo/startup/yaml_handler', TaskDataService, self.get_yaml)
 #     #    rospy.spin()
 #
 #     def get_yaml(self, data):
@@ -159,7 +159,7 @@ class TaskTypeDeterminer(object):
         self.start_service()
 
     def start_service(self):
-        self.task_type_service = rospy.Service('suturo/state/TaskTypeDeterminer', TaskDataService, self.determine_task_type)
+        self.task_type_service = rospy.Service('suturo/startup/TaskTypeDeterminer', TaskDataService, self.determine_task_type)
 
     def determine_task_type(self, req):
         resp = TaskDataServiceResponse()

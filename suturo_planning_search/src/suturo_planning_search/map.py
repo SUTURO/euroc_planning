@@ -46,7 +46,7 @@ class Map:
         self.max_coord = self.size / 2
         self.obstacle_regions = []
         self.unknown_regions = []
-        self.__get_point_array = rospy.ServiceProxy('/suturo/GetPointArray', GetPointArray)
+        self.__get_point_array = rospy.ServiceProxy('/suturo/perception/GetPointArray', GetPointArray)
         rospy.Service(self.NAME_SERIVE_GET_OBSTACLE_REGIONS, GetObstacleRegions, self._handle_get_obstacle_regions)
         rospy.Service(self.NAME_SERVICE_GET_MAP,GetMap, self._handle_get_map)
         rospy.Service(self.NAME_SERVICE_FILTER_INVALID_SCAN_POSES,FilterPoses, self._handle_filter_invalid_scan_poses)

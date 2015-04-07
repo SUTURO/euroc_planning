@@ -35,9 +35,9 @@ Get the objects recognized by the gripper camera
 * Arguments
 - options :: The options that the service call transmits to the receiver
 * Description
-Call the service suturo/GetGripper
+Call the service suturo/perception/GetGripper
 "
-    (roslisp:call-service "suturo/GetGripper" 'suturo_perception_msgs-srv:GetCameraPerception :s options))
+    (roslisp:call-service "suturo/perception/GetGripper" 'suturo_perception_msgs-srv:GetCameraPerception :s options))
 
 (defun get-scene-perception (&optional (cuboid 1) (pose-estimation nil) (object-ids nil))
   "
@@ -57,9 +57,9 @@ Get the objects recognized by the scene camera
 * Arguments
 - options :: The options that the service call transmits to the receiver
 * Description
-Calls the service suturo/GetScene
+Calls the service suturo/perception/GetScene
 "
-  (roslisp:call-service "suturo/GetScene" 'suturo_perception_msgs-srv:GetCameraPerception :s options))
+  (roslisp:call-service "suturo/perception/GetScene" 'suturo_perception_msgs-srv:GetCameraPerception :s options))
 
 (defun create-capability-string(&optional (cuboid 1) (pose-estimation nil) (object-ids nil))
   "
@@ -94,7 +94,7 @@ Recognizes Objects of Interest. It gets a list of colors and returns a list of o
     (dolist(color colors)
       (setf color-message (list (roslisp:make-msg "std_msgs/ColorRGBA"
                                                   (r) (nth 0 color) (g) (nth 1 color) (b) (nth 2 color) (a) (nth 3 color)))))
-      (roslisp:call-service "suturo/RecognizeOoI" 'suturo_perception_msgs-srv:RecognizeOoI :colors color-message)))
+      (roslisp:call-service "suturo/perception/RecognizeOoI" 'suturo_perception_msgs-srv:RecognizeOoI :colors color-message)))
 
   "
 * Arguments

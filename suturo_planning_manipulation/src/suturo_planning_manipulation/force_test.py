@@ -51,7 +51,7 @@ def test_extrapolation(dir, m, pose1, pose2, service, time1, time_12):
 
 def pos_calc_test(m):
     # create service
-    service = rospy.ServiceProxy("/suturo/GetGripper", GetCameraPerception)
+    service = rospy.ServiceProxy("/suturo/perception/GetGripper", GetCameraPerception)
     # get the first perception
     resp = service("firstConveyorCall,centroid,cuboid")
     object1 = resp.objects[0].object
