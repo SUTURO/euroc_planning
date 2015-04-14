@@ -12,5 +12,4 @@ else
   SBCL=sbcl
 fi
 
-ROSLISP_CURRENT_PACKAGE=suturo_planning_executive $SBCL --noinform --end-runtime-options --noprint --no-userinit
---disable-debugger --load $ROSLISP_PATH/scripts/roslisp-sbcl-init --load $EXECUTIVE_PATH/scripts/doc.lisp --end-toplevel-options $*
+ROSLISP_CURRENT_PACKAGE=suturo_planning_executive $SBCL --noinform --end-runtime-options --noprint --no-userinit --disable-debugger --load $ROSLISP_PATH/scripts/roslisp-sbcl-init --load $EXECUTIVE_PATH/scripts/doc.lisp --end-toplevel-options $*
