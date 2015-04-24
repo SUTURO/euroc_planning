@@ -25,7 +25,7 @@ from suturo_environment_msgs.srv import GetMap, GetMapRequest, GetMapResponse
 from suturo_environment_msgs.srv import FilterPoses, FilterPosesRequest, FilterPosesResponse
 from suturo_environment_msgs.msg import Region as RegionMessage
 from suturo_environment_msgs.msg import Map as MapMessage
-
+from suturo_environment_msgs.srv import ResetMap, ResetMapRequest, ResetMapResponse
 from suturo_msgs.msg import Task, Int32Array2D,Int32Array
 
 __author__ = 'ichumuh'
@@ -34,6 +34,7 @@ __author__ = 'ichumuh'
 class Map:
     NAME_SERIVE_GET_OBSTACLE_REGIONS = "/suturo/environment/get_obstacle_regions"
     NAME_SERVICE_GET_MAP = "/suturo/environment/get_map"
+    NAME_SERVICE_RESET_MAP = "/suturo/environment/reset_map"
     NAME_SERVICE_FILTER_INVALID_SCAN_POSES = "/suturo/environment/filter_invalid_scan_poses"
     NAME_SERVICE_FILTER_INVALID_SCAN_POSES2 = "/suturo/environment/filter_invalid_scan_poses2"
 
@@ -49,12 +50,17 @@ class Map:
         self.__get_point_array = rospy.ServiceProxy('/suturo/perception/GetPointArray', GetPointArray)
         rospy.Service(self.NAME_SERIVE_GET_OBSTACLE_REGIONS, GetObstacleRegions, self._handle_get_obstacle_regions)
         rospy.Service(self.NAME_SERVICE_GET_MAP,GetMap, self._handle_get_map)
+        rospy.Service(self.NAME_SERVICE_RESET_MAP, ResetMap, self._handle_reset_map)
         rospy.Service(self.NAME_SERVICE_FILTER_INVALID_SCAN_POSES,FilterPoses, self._handle_filter_invalid_scan_poses)
         rospy.Service(self.NAME_SERVICE_FILTER_INVALID_SCAN_POSES2,FilterPoses, self._handle_filter_invalid_scan_poses2)
 
     def _handle_get_map(self, req):
         resp = GetMapResponse()
         resp.map = self.to_msg()
+        return resp
+
+    def _handle_reset_map(self, req):
+        resp = ResetMapResponse()
         return resp
 
     def _handle_filter_invalid_scan_poses(self, req):
