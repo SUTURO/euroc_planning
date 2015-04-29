@@ -1,18 +1,16 @@
 from geometry_msgs.msg._PointStamped import PointStamped
-from numpy.core.multiarray import dot
 from shape_msgs.msg._SolidPrimitive import SolidPrimitive
-from suturo_msgs.msg._Object import Object
 from suturo_planning_manipulation.manipulation_constants import hand_length, finger_length
 from copy import deepcopy
-from math import sqrt, pi, cos, sin, acos
+from math import sqrt, pi
 import numpy as np
 
 import geometry_msgs.msg
 from geometry_msgs.msg._Point import Point
 from geometry_msgs.msg._Quaternion import Quaternion
 import geometry_msgs.msg
-from tf.transformations import quaternion_from_matrix, rotation_matrix, quaternion_from_euler, quaternion_multiply, \
-    quaternion_conjugate, quaternion_matrix
+from tf.transformations import quaternion_from_matrix, quaternion_from_euler, quaternion_multiply, \
+    quaternion_conjugate
 from geometry_msgs.msg._PoseStamped import PoseStamped
 
 def get_angle(p1, p2):

@@ -1,39 +1,27 @@
 #!/usr/bin/env python
-from Crypto.Random.OSRNG import posix
-from asyncore import dispatcher
-from docutils.parsers.rst.roles import role
-from math import pi
-from math import isnan
-from pdb import post_mortem
 
-import sys
-import copy
+import math
+
 from euroc_c2_msgs.srv import *
-from geometry_msgs.msg._PointStamped import PointStamped
 from geometry_msgs.msg._Pose import Pose
 from geometry_msgs.msg._Vector3 import Vector3
 from moveit_msgs.msg import *
-from moveit_msgs.srv._GetMotionPlan import GetMotionPlan, GetMotionPlanRequest, GetMotionPlanResponse
+from moveit_msgs.srv._GetMotionPlan import GetMotionPlan, GetMotionPlanRequest
 import geometry_msgs.msg
-import rospy
-from std_msgs.msg._Duration import Duration
+from suturo_planning_manipulation import manipulation_constants
+from euroc_c2_msgs.msg import *
+from euroc_c2_msgs.srv import *
+from shape_msgs.msg._SolidPrimitive import SolidPrimitive
+from moveit_commander.exception import MoveItCommanderException
+import moveit_commander
+
 from calc_grasp_position import *
 from place import get_place_position, get_pre_place_position, get_grasped_part
 from planningsceneinterface import *
 from manipulation_constants import *
 from manipulation_service import *
-import math
-# from suturo_planning_visualization.visualization import visualize_poses
 from suturo_planning_visualization.visualization import visualize_poses, visualize_pose
-from suturo_planning_manipulation import manipulation_constants
 from transformer import Transformer
-from euroc_c2_msgs.msg import *
-from euroc_c2_msgs.srv import *
-from sensor_msgs.msg import JointState
-from shape_msgs.msg._SolidPrimitive import SolidPrimitive
-from suturo_msgs.msg import Task
-import time
-from moveit_commander.exception import MoveItCommanderException
 
 
 class Manipulation(object):

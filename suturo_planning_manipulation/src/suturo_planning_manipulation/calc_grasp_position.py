@@ -1,28 +1,13 @@
 #!/usr/bin/env python
-from array import array
-from copy import deepcopy
-from math import sqrt, pi, cos, sin, acos
-import numpy
+from math import cos, sin
 
-import sys
-import copy
 import geometry_msgs.msg
-from geometry_msgs.msg._Point import Point
-from geometry_msgs.msg._PointStamped import PointStamped
-from geometry_msgs.msg._PoseStamped import PoseStamped
-from geometry_msgs.msg._Quaternion import Quaternion
 from moveit_msgs.msg._CollisionObject import CollisionObject
-import rospy
-import moveit_commander
-import moveit_msgs.msg
 import geometry_msgs.msg
 import shape_msgs.msg
-import tf
-from tf.transformations import quaternion_from_matrix, rotation_matrix, quaternion_from_euler, quaternion_multiply
-import visualization_msgs.msg
+
 from manipulation_constants import *
 from mathemagie import *
-from suturo_planning_visualization.visualization import visualize_point
 
 
 def calculate_grasp_position(collision_object, transform_func, cylinder_side=True, n=8):

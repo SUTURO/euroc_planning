@@ -1,22 +1,10 @@
-from copy import deepcopy
-from math import isnan
-import struct
 import numpy
-import rospy
-import scipy
-from sensor_msgs.msg._PointCloud2 import PointCloud2
-from sensor_msgs.point_cloud2 import create_cloud_xyz32, _get_struct_fmt, read_points
-from suturo_perception_msgs.srv import GetPointArray, GetPointArrayRequest
-from visualization_msgs.msg import Marker, MarkerArray
-from suturo_planning_visualization import visualization
-from suturo_planning_manipulation.transformer import Transformer
-
-from suturo_environment_msgs.msg import Cell
+from suturo_environment_msgs.msg import Cell as CellMessage
 
 __author__ = 'ichumuh'
 
 
-class Cell:
+class Cell(CellMessage):
     Free = 0
     Unknown = 1
     Obstacle = 2
@@ -51,18 +39,15 @@ class Cell:
     #a cell only gets a color, when at least 5% of the points have this color
     undef_threshold = 0.05
 
-    def __init__(self):
-        self.average_z = 0
-        self.highest_z = 0
+    def __init__(self, average_z=0, highest_z=0, marked=False, state=None,
+                        points=None):
+        if state is None:
+            state = Cell.Unknown
+        if points is None:
+            points = numpy.asarray([0 for x in range(7)], dtype=numpy.int)
+        super(Cell, self).__init__(average_z=average_z, highest_z=highest_z, marked=marked, state=state, points=points)
         self.segment_id = 0
         self.threshold_min_points = 15
-        self.marked = False
-        self.state = self.Unknown
-
-        self.points = [0 for x in range(7)]
-
-    def __del__(self):
-        pass
 
     def __str__(self):
         return "free: " + str(self.is_free()) + \
@@ -79,14 +64,7 @@ class Cell:
                other.is_unknown() and self.is_unknown()
 
     def to_msg(self):
-        cell = Cell()
-        cell.average_z = self.average_z
-        cell.highest_z = self.highest_z
-        cell.marked = self.marked
-        cell.state = self.state
-        cell.treshold_min_point = self.threshold_min_points
-        cell.points = self.points
-        return cell
+        return self
 
     def update_cell(self, z, color):
         """

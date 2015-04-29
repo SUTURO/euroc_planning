@@ -5,16 +5,12 @@ from suturo_msgs.msg._Task import Task
 __author__ = 'ichumuh'
 
 from __builtin__ import staticmethod
-from geometry_msgs.msg._PoseStamped import PoseStamped
-from geometry_msgs.msg._Quaternion import Quaternion
-import moveit_commander
 import moveit_msgs
-from moveit_msgs.msg._CollisionObject import CollisionObject
-from shape_msgs.msg._SolidPrimitive import SolidPrimitive
 import moveit_msgs.msg
 import moveit_msgs.srv
 from calc_grasp_position import *
 from copy import deepcopy
+import rospy
 
 
 class PlanningSceneInterface(object):

@@ -1,37 +1,32 @@
 from copy import deepcopy
 from math import isnan
-import struct
+import math
 import numpy
 from geometry_msgs.msg._Point import Point
 from geometry_msgs.msg._Pose import Pose
 from moveit_msgs.msg._CollisionObject import CollisionObject
 import rospy
-import scipy
-from rostopic import _publish_latched
-from sensor_msgs.msg._PointCloud2 import PointCloud2
-from sensor_msgs.point_cloud2 import create_cloud_xyz32, _get_struct_fmt, read_points
 from shape_msgs.msg._SolidPrimitive import SolidPrimitive
 from std_msgs.msg._ColorRGBA import ColorRGBA
 from suturo_perception_msgs.srv import GetPointArray, GetPointArrayRequest
-import time
-from visualization_msgs.msg import Marker, MarkerArray
-from suturo_planning_manipulation.mathemagie import *
+from visualization_msgs.msg import Marker
+from suturo_planning_manipulation.mathemagie import get_puzzle_fixture_center, euclidean_distance_in_2d,\
+    subtract_point, get_angle,set_vector_length, magnitude
 from suturo_planning_search.cell import Cell
 from suturo_planning_search.cluster_map import ClusterRegions, RegionType
 from suturo_planning_visualization import visualization
-from suturo_planning_manipulation.transformer import Transformer
-from suturo_environment_msgs.srv import GetObstacleRegions,GetObstacleRegionsRequest,GetObstacleRegionsResponse
-from suturo_environment_msgs.srv import GetMap, GetMapRequest, GetMapResponse
-from suturo_environment_msgs.srv import FilterPoses, FilterPosesRequest, FilterPosesResponse
-from suturo_environment_msgs.msg import Region as RegionMessage
+from suturo_environment_msgs.srv import GetObstacleRegions, GetObstacleRegionsResponse
+from suturo_environment_msgs.srv import GetMap, GetMapResponse
+from suturo_environment_msgs.srv import FilterPoses, FilterPosesResponse
 from suturo_environment_msgs.msg import Map as MapMessage
-from suturo_environment_msgs.srv import ResetMap, ResetMapRequest, ResetMapResponse
-from suturo_msgs.msg import Task, Int32Array2D,Int32Array
+from suturo_environment_msgs.srv import ResetMap, ResetMapResponse
+from suturo_msgs.msg import Task
+
 
 __author__ = 'ichumuh'
 
 
-class Map:
+class Map(MapMessage):
     NAME_SERIVE_GET_OBSTACLE_REGIONS = "/suturo/environment/get_obstacle_regions"
     NAME_SERVICE_GET_MAP = "/suturo/environment/get_map"
     NAME_SERVICE_RESET_MAP = "/suturo/environment/reset_map"
@@ -40,26 +35,35 @@ class Map:
 
     num_of_cells = 50
 
-    def __init__(self, size):
-        self.field = [[Cell() for i in range(self.num_of_cells)] for j in range(self.num_of_cells)]
-        self.cell_size = 1.0 * size / self.num_of_cells
-        self.size = size
-        self.max_coord = self.size / 2
+    def __init__(self, size, size_column=None, cell_size=None, max_coord=None,
+                 field=None, obstacle_regions=None, register_services=True):
+
+        if cell_size is None:
+            cell_size = 1.0 * size / self.num_of_cells
+        if max_coord is None:
+            max_coord = size / 2
+        if field is None:
+            field = numpy.asarray([Cell() for _ in range(self.num_of_cells**2)], dtype=Cell)
+        super(Map, self).__init__(size=size, size_column=size_column, cell_size=cell_size, max_coord=max_coord,
+                                  field=field)
         self.obstacle_regions = []
         self.unknown_regions = []
-        self.__get_point_array = rospy.ServiceProxy('/suturo/perception/GetPointArray', GetPointArray)
-        rospy.Service(self.NAME_SERIVE_GET_OBSTACLE_REGIONS, GetObstacleRegions, self._handle_get_obstacle_regions)
-        rospy.Service(self.NAME_SERVICE_GET_MAP,GetMap, self._handle_get_map)
-        rospy.Service(self.NAME_SERVICE_RESET_MAP, ResetMap, self._handle_reset_map)
-        rospy.Service(self.NAME_SERVICE_FILTER_INVALID_SCAN_POSES,FilterPoses, self._handle_filter_invalid_scan_poses)
-        rospy.Service(self.NAME_SERVICE_FILTER_INVALID_SCAN_POSES2,FilterPoses, self._handle_filter_invalid_scan_poses2)
+
+        if register_services:
+            self.__get_point_array = rospy.ServiceProxy('/suturo/perception/GetPointArray', GetPointArray)
+            rospy.Service(self.NAME_SERIVE_GET_OBSTACLE_REGIONS, GetObstacleRegions, self._handle_get_obstacle_regions)
+            rospy.Service(self.NAME_SERVICE_GET_MAP, GetMap, self._handle_get_map)
+            rospy.Service(self.NAME_SERVICE_RESET_MAP, ResetMap, self._handle_reset_map)
+            rospy.Service(self.NAME_SERVICE_FILTER_INVALID_SCAN_POSES, FilterPoses, self._handle_filter_invalid_scan_poses)
+            rospy.Service(self.NAME_SERVICE_FILTER_INVALID_SCAN_POSES2, FilterPoses, self._handle_filter_invalid_scan_poses2)
 
     def _handle_get_map(self, req):
         resp = GetMapResponse()
-        resp.map = self.to_msg()
+        resp.map = self
         return resp
 
     def _handle_reset_map(self, req):
+        self.reset()
         resp = ResetMapResponse()
         return resp
 
@@ -68,103 +72,58 @@ class Map:
         return FilterPosesResponse(poses=poses)
 
     def _handle_filter_invalid_scan_poses2(self, req):
-        print "Handle Create Poses For Scanning: invalid scan poses2"
         rospy.loginfo("Handle Create Poses For Scanning: invalid scan poses2")
         poses = self.filter_invalid_scan_poses2(req.cell_x, req.cell_y, req.poses)
         return FilterPosesResponse(poses=poses)
 
     def _handle_get_obstacle_regions(self, req):
         resp = GetObstacleRegionsResponse()
-        regions = self.get_obstacle_regions()
-        print(regions)
-        resp.obstacle_regions = []
-        for region in regions:
-            print("handle_get_obstacle region")
-            region_msg = RegionMessage()
-            avg = region.get_avg()
-            region_msg.avg_x = avg[0]
-            region_msg.avg_y = avg[1]
-            region_msg.cells = []
-            for cell in region.cells:
-                region_msg.cells.append(cell.to_msg())
-            region_msg.id = region.id
-            region_msg.min_x = region.min_x
-            region_msg.max_x = region.max_x
-            region_msg.min_y = region.min_y
-            region_msg.max_y = region.max_y
-            region_msg.was_merged = region.was_merged
-            region_msg.is_closed = region.is_closed
-            region_msg.cell_coords = Int32Array2D() #content: [[x0,y0],[x1,y1],...]
-            region_msg.cell_coords.data = []
-            region_msg.color_hex = str(region.get_color_hex())
-            if region_msg.color_hex is None:
-                region_msg.color_hex = ""
-            for cell_coord in region.cell_coords:
-                cell_coord_msg = Int32Array()
-                cell_coord_msg.data = []
-                cell_coord_msg.data.append(cell_coord[0])
-                cell_coord_msg.data.append(cell_coord[1])
-                region_msg.cell_coords.data.append(cell_coord_msg)
-            resp.obstacle_regions.append(region_msg)
+        resp.obstacle_regions = self.get_obstacle_regions()
         return resp
 
 
     def to_msg(self):
-        map = MapMessage()
-        map.size = self.size
-        map.size_column = self.num_of_cells
-        map.max_coord = self.max_coord
-        map.cell_size = self.cell_size
-        map.field = []
-        for column in self.field:
-            for element in column:
-                cell = Cell()
-                cell.average_z = element.average_z
-                cell.highest_z = element.highest_z
-                cell.marked = element.marked
-                cell.state = element.state
-                cell.treshold_min_point = element.threshold_min_points
-                cell.points = element.points
-                map.field.append(cell)
-        return map
+        return self
 
-
-
-    def __del__(self):
-        pass
+    @classmethod
+    def from_msg(cls, msg):
+        return Map(size=msg.size, cell_size=msg.cell_size, max_coord=msg.max_coord, field=msg.field,
+                   register_services=False)
 
     def __str__(self):
         s = "\n"
-        for x in xrange(len(self.field)):
-            for y in xrange(len(self.field[x])):
-                if self.field[x][y].is_free():
+        field = self.get_field()
+        for x in xrange(len(field)):
+            for y in xrange(len(field[x])):
+                if field[x][y].is_free():
                     s += "FF "
-                elif self.field[x][y].is_object():
+                elif field[x][y].is_object():
                     s += "OO "
-                elif self.field[x][y].is_obstacle():
-                    if self.field[x][y].is_blue():
+                elif field[x][y].is_obstacle():
+                    if field[x][y].is_blue():
                         s += "BB "
-                    elif self.field[x][y].is_green():
+                    elif field[x][y].is_green():
                         s += "GG "
-                    elif self.field[x][y].is_red():
+                    elif field[x][y].is_red():
                         s += "RR "
-                    elif self.field[x][y].is_yellow():
+                    elif field[x][y].is_yellow():
                         s += "YY "
-                    elif self.field[x][y].is_cyan():
+                    elif field[x][y].is_cyan():
                         s += "CC "
-                    elif self.field[x][y].is_magenta():
+                    elif field[x][y].is_magenta():
                         s += "MM "
                     else:
                         s += "UU "
-                elif self.field[x][y].is_unknown():
+                elif field[x][y].is_unknown():
                     s += ".. "
             s += "\n"
         return s
 
     def print_height_map(self):
         s = ""
-        for x in xrange(len(self.field)):
-            for y in xrange(len(self.field[x])):
+        field = self.get_field()
+        for x in xrange(len(field)):
+            for y in xrange(len(field[x])):
                 if not self.get_cell_by_index(x, y).is_free():
                     i = int(self.get_cell_by_index(x, y).highest_z * 100)
                     if i < 10:
@@ -177,7 +136,9 @@ class Map:
         print s
 
     def reset(self):
-        self.field = [[Cell() for i in range(self.num_of_cells)] for j in range(self.num_of_cells)]
+        self.field = numpy.asarray([Cell() for _ in range(self.num_of_cells**2)], dtype=Cell)
+        self.obstacle_regions = []
+        self.unknown_regions = []
 
     def add_point_cloud(self, arm_origin=Point(0, 0, 0), radius=0.1, scene_cam=True):
         """
@@ -192,7 +153,6 @@ class Map:
         :return: whether or not the map has changed
         :type: bool
         """
-
         oldmap = deepcopy(self.field)
         rospy.logdebug("scanning")
 
@@ -243,7 +203,7 @@ class Map:
         rospy.logdebug("Scan complete")
         rospy.logdebug(self)
         self.print_height_map()
-        return not self.field == oldmap
+        return not (self.field == oldmap).all()
 
     def __is_point_in_arm(self, arm_origin, radius, x, y):
         return arm_origin.x - radius < x < arm_origin.x + radius and \
@@ -289,10 +249,11 @@ class Map:
         cell_changed = True
         iterations = 0
         max_iterations = 150
+        field = self.get_field()
         while cell_changed and iterations < max_iterations:
             cell_changed = False
-            for x in range(0, len(self.field)):
-                for y in range(0, len(self.field[x])):
+            for x in range(0, len(field)):
+                for y in range(0, len(field[x])):
                     cell = self.get_cell_by_index(x, y)
                     if cell.is_unknown():
                         obstacles = self.get_surrounding_obstacles(x, y)
@@ -336,12 +297,13 @@ class Map:
 
     def remove_puzzle_fixture(self, yaml):
         rospy.logdebug("remove_puzzle_fixture called!")
+        field = self.get_field()
         if yaml.task_type == Task.TASK_5:
             #fixture_position = deepcopy(yaml.puzzle_fixture.position)
             #fixture_position = add_point(fixture_position, Point(0.115 if yaml.puzzle_fixture.position.x < 0 else -0.18, 0.165 if yaml.puzzle_fixture.position.y < 0 else 0.05, 0))
             fixture_position = get_puzzle_fixture_center(yaml.puzzle_fixture)
-            for x in range(0, len(self.field)):
-                for y in range(0, len(self.field[x])):
+            for x in range(0, len(field)):
+                for y in range(0, len(field[x])):
                     cell = self.get_cell_by_index(x, y)
                     cell_coor_2d = self.index_to_coordinates(x, y)
                     cell_x, cell_y = cell_coor_2d
@@ -374,12 +336,13 @@ class Map:
         primitive.dimensions.append(self.cell_size)
         primitive.dimensions.append(self.cell_size)
         primitive.dimensions.append(2)
+        field = self.get_field()
 
-        for x in range(0, len(self.field)):
-            for y in range(0, len(self.field[x])):
-                if self.field[x][y].is_free() or self.field[x][y].is_object():
+        for x in range(0, len(field)):
+            for y in range(0, len(field[x])):
+                if field[x][y].is_free() or field[x][y].is_object():
                     continue
-                if self.field[x][y].is_obstacle():
+                if field[x][y].is_obstacle():
                     primitive.dimensions[primitive.BOX_Z] = self.get_cell_by_index(x, y).highest_z * 2
                 else:
                     primitive.dimensions[primitive.BOX_Z] = self.get_average_z_of_surrounded_obstacles(x, y) * 2
@@ -521,7 +484,7 @@ class Map:
                     # filter poses that are pointing to unknowns or obstacles
                     cell_to_pose = subtract_point(Point(x_under_pose, y_under_pose, 0), p2)
                     angle = get_angle(cell_to_p, cell_to_pose)
-                    if angle <= pi / 4 + 0.0001 and pose in poses:
+                    if angle <= math.pi / 4 + 0.0001 and pose in poses:
                         poses.remove(pose)
 
         return poses
@@ -579,7 +542,7 @@ class Map:
     # GETTER
 
     def get_field(self):
-        return self.field
+        return self.field.reshape(self.num_of_cells, self.num_of_cells)
 
 
     def get_cell(self, x, y):
@@ -603,23 +566,23 @@ class Map:
         :return: cell
         :type Cell
         """
+        warn = lambda: rospy.logwarn("Index out auf range: " + str(x) + " " + str(y))
         x2 = x
         y2 = y
-        warn = lambda: rospy.logwarn("Index out auf range: " + str(x) + " " + str(y))
         if x < 0:
             warn()
             x2 = 0
+        elif x >= self.num_of_cells:
+            warn()
+            x2 = self.num_of_cells - 1
         if y < 0:
             warn()
             y2 = 0
-        if x >= len(self.field):
+        elif y >= self.num_of_cells:
             warn()
-            x2 = len(self.field) - 1
-        if y >= len(self.field):
-            warn()
-            y2 = len(self.field) - 1
+            y2 = self.num_of_cells - 1
 
-        return self.field[x2][y2]
+        return self.get_field()[x2, y2]
 
     def get_surrounding_cells_by_index(self, x_index, y_index):
         """
@@ -634,18 +597,19 @@ class Map:
         :return: list of surrounding cells
         :type: [Cell]
         """
+        field = self.get_field()
         cells = []
         if not x_index - 1 < 0:
-            cells.append((self.field[x_index - 1][y_index], x_index - 1, y_index))
+            cells.append((field[x_index - 1][y_index], x_index - 1, y_index))
 
         if not y_index - 1 < 0:
-            cells.append((self.field[x_index][y_index - 1], x_index, y_index - 1))
+            cells.append((field[x_index][y_index - 1], x_index, y_index - 1))
 
         if not x_index + 1 >= self.num_of_cells:
-            cells.append((self.field[x_index + 1][y_index], x_index + 1, y_index))
+            cells.append((field[x_index + 1][y_index], x_index + 1, y_index))
 
         if not y_index + 1 >= self.num_of_cells:
-            cells.append((self.field[x_index][y_index + 1], x_index, y_index + 1))
+            cells.append((field[x_index][y_index + 1], x_index, y_index + 1))
 
         return cells
 
@@ -677,39 +641,39 @@ class Map:
         :return: list of surrounding cells
         :type: [Cell]
         """
+        field = self.get_field()
         cells = []
         xm1 = False
         xp1 = False
         ym1 = False
         yp1 = False
         if not x_index - 1 < 0:
-            cells.append((self.field[x_index - 1][y_index],) + self.index_to_coordinates(x_index - 1, y_index))
+            cells.append((field[x_index - 1][y_index],) + self.index_to_coordinates(x_index - 1, y_index))
             xm1 = True
 
         if not y_index - 1 < 0:
-            cells.append((self.field[x_index][y_index - 1],) + self.index_to_coordinates(x_index, y_index - 1))
+            cells.append((field[x_index][y_index - 1],) + self.index_to_coordinates(x_index, y_index - 1))
             ym1 = True
 
         if not x_index + 1 >= self.num_of_cells:
-            cells.append((self.field[x_index + 1][y_index],) + self.index_to_coordinates(x_index + 1, y_index))
+            cells.append((field[x_index + 1][y_index],) + self.index_to_coordinates(x_index + 1, y_index))
             xp1 = True
 
         if not y_index + 1 >= self.num_of_cells:
-            cells.append((self.field[x_index][y_index + 1],) + self.index_to_coordinates(x_index, y_index + 1))
+            cells.append((field[x_index][y_index + 1],) + self.index_to_coordinates(x_index, y_index + 1))
             yp1 = True
 
         if xm1 and ym1:
-            cells.append((self.field[x_index - 1][y_index - 1],) + self.index_to_coordinates(x_index - 1, y_index - 1))
+            cells.append((field[x_index - 1][y_index - 1],) + self.index_to_coordinates(x_index - 1, y_index - 1))
 
         if xm1 and yp1:
-            cells.append((self.field[x_index - 1][y_index + 1],) + self.index_to_coordinates(x_index - 1, y_index + 1))
+            cells.append((field[x_index - 1][y_index + 1],) + self.index_to_coordinates(x_index - 1, y_index + 1))
 
         if xp1 and ym1:
-            cells.append((self.field[x_index + 1][y_index - 1],) + self.index_to_coordinates(x_index + 1, y_index - 1))
+            cells.append((field[x_index + 1][y_index - 1],) + self.index_to_coordinates(x_index + 1, y_index - 1))
 
         if xp1 and yp1:
-            cells.append((self.field[x_index + 1][y_index + 1],) + self.index_to_coordinates(x_index + 1, y_index + 1))
-
+            cells.append((field[x_index + 1][y_index + 1],) + self.index_to_coordinates(x_index + 1, y_index + 1))
         return cells
 
     def get_surrounding_cells8(self, x, y):
@@ -732,9 +696,10 @@ class Map:
         :return: list of the indices of all unknowns
         :type: [(int, int)]
         """
+        field = self.get_field()
         unknowns = []
-        for x in range(len(self.field)):
-            for y in range(len(self.field[x])):
+        for x in range(len(field)):
+            for y in range(len(field[x])):
                 if self.get_cell_by_index(x, y).is_unknown():
                     unknowns.append((x, y))
         return unknowns
@@ -780,10 +745,11 @@ class Map:
         :type: [Point]
         """
         boarder_cells = []
+        field = self.get_field()
         for [x_index, y_index] in region.cell_coords:
             p = Point()
             (p.x, p.y) = self.index_to_coordinates(x_index, y_index)
-            if self.field[x_index][y_index].is_unknown():
+            if field[x_index][y_index].is_unknown():
                 sc = self.get_surrounding_cells8_by_index(x_index, y_index)
                 # if min 2 neighbors are free
                 if sum(1 for c in sc if c[0].is_free()) > 1:
@@ -887,7 +853,7 @@ class Map:
         """
         if len(self.obstacle_regions) == 0:
             cm = ClusterRegions()
-            cm.set_field(self.field)
+            cm.set_field(self.get_field())
 
             cm.set_region_type(RegionType.blue)
             cm.group_regions()
@@ -924,7 +890,7 @@ class Map:
         """
         cm = ClusterRegions()
         cm.set_region_type(RegionType.unknown)
-        cm.set_field(self.field)
+        cm.set_field(self.get_field())
         cm.group_regions()
         self.unknown_regions = cm.get_result_regions()
         return self.unknown_regions
@@ -1072,8 +1038,9 @@ class Map:
         """
         marker = Marker()
         marker.type = Marker.CUBE_LIST
-        for x in range(0, len(self.field)):
-            for y in range(0, len(self.field[0])):
+        field = self.get_field()
+        for x in range(0, len(field)):
+            for y in range(0, len(field[0])):
                 marker.header.frame_id = '/odom_combined'
                 marker.ns = 'suturo_planning/map'
                 marker.id = 23
