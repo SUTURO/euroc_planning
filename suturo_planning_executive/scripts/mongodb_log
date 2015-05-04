@@ -1,5 +1,13 @@
 #!/bin/sh
 
-DB_NAME="roslog"
+DB_NAME_ID=$((`ls -1 ~/sr_experimental_data | tail -n 1 | cut -d'-' -f 2`+1))
 
-exec rosrun mongodb_log mongodb_log --mongodb-name $DB_NAME $@
+if [ -z "$DB_NAME_ID" ]; then
+  DB_NAME_ID="1"
+fi
+
+DB_NAME="exp-$DB_NAME_ID"
+
+echo $DB_NAME
+
+# exec rosrun mongodb_log mongodb_log --mongodb-name $DB_NAME $@
