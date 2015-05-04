@@ -9,5 +9,5 @@
   <node name="image_compression" pkg="image_transport" type="republish" args="raw in:=/logged_images out:=/logged_images_out" />
 
   <!-- Topic logging -->
-  <node name="topic_logging" pkg="mongodb_log" type="mongodb_log.py" args="$(arg logged_topics)" />
+  <node name="topic_logging" pkg="suturo_planning_executive" type="mongodb_log" args="$(arg logged_topics)" />
 </launch>

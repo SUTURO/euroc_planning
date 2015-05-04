@@ -1,0 +1,5 @@
+#!/bin/sh
+
+DB_NAME="roslog"
+
+exec rosrun mongodb_log mongodb_log --mongodb-name $DB_NAME $@
