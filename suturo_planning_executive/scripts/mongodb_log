@@ -8,6 +8,4 @@ fi
 
 DB_NAME="exp-$DB_NAME_ID"
 
-echo $DB_NAME
-
-# exec rosrun mongodb_log mongodb_log --mongodb-name $DB_NAME $@
+exec rosrun mongodb_log mongodb_log --mongodb-name $DB_NAME $@
