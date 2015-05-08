@@ -2,6 +2,10 @@ from copy import deepcopy
 import sys
 from suturo_planning_search.cell import Cell
 from math import sqrt
+from suturo_environment_msgs.msg import Region as RegionMsg
+from suturo_msgs.msg import Int32Array2D
+from suturo_msgs.msg import Int32Array
+import rospy
 
 __author__ = 'pmania'
 
@@ -46,6 +50,37 @@ class Region:
         # s += "\nAverage: " + str(self.avg[0]) + " " + str(self.avg[1])
         s += ". min/max dims: (" + str(self.min_x) + "x" + str(self.min_y) + ")-(" + str(self.max_x) + "x" + str(self.max_y) + ")"
         return s
+
+    def region_to_msg(toConvert):
+        region = RegionMsg()
+        region.avg_x = toConvert.get_avg()[0]
+        region.avg_y = toConvert.get_avg()[1]
+        region.color_hex = toConvert.get_color_hex()
+        region.id = int(toConvert.id)
+        region.is_closed = toConvert.is_closed
+        region.max_x = toConvert.max_x
+        region.min_x = toConvert.min_x
+        region.max_y = toConvert.max_x
+        region.min_y = toConvert.min_y
+        region.was_merged = toConvert.was_merged
+        region.cells = toConvert.cells
+        cell_coords = Int32Array2D()
+        cell_coords.data = [] #Int32Array
+
+        for cell_coord in toConvert.cell_coords:
+            arr = Int32Array()
+            arr.data = cell_coord
+            rospy.logwarn(arr.data)
+            cell_coords.data.append(arr)
+
+        if len(cell_coords.data) == 0:
+            arr = Int32Array()
+            arr.data = []
+            cell_coords.data.append(arr)
+
+
+        region.cell_coords = cell_coords
+        return region
 
     def euclidean_distance_to_avg(self, x1, y1):
         """

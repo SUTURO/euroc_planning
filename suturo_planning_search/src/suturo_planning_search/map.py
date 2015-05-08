@@ -13,7 +13,7 @@ from visualization_msgs.msg import Marker
 from suturo_planning_manipulation.mathemagie import get_puzzle_fixture_center, euclidean_distance_in_2d,\
     subtract_point, get_angle,set_vector_length, magnitude
 from suturo_planning_search.cell import Cell
-from suturo_planning_search.cluster_map import ClusterRegions, RegionType
+from suturo_planning_search.cluster_map import ClusterRegions, RegionType, Region
 from suturo_planning_visualization import visualization
 from suturo_environment_msgs.srv import GetObstacleRegions, GetObstacleRegionsResponse
 from suturo_environment_msgs.srv import GetMap, GetMapResponse
@@ -78,7 +78,10 @@ class Map(MapMessage):
 
     def _handle_get_obstacle_regions(self, req):
         resp = GetObstacleRegionsResponse()
-        resp.obstacle_regions = self.get_obstacle_regions()
+        regions = self.get_obstacle_regions()
+        resp.obstacle_regions = []
+        for region in regions:
+            resp.obstacle_regions.append(Region.region_to_msg(region))
         return resp
 
 
@@ -881,7 +884,9 @@ class Map(MapMessage):
             rospy.logdebug(cm.print_field())
 
             self.obstacle_regions = cm.get_result_regions()
+        rospy.logwarn("Returning obstacle regions")
         return self.obstacle_regions
+
 
     def get_unknown_regions(self):
         """

@@ -26,6 +26,7 @@ class Cell(CellMessage):
     YELLOW_ID = 5
     UNDEF_ID = 6
 
+    UNKNOWN_HEX = '000000'
     BLUE_HEX = '0000ff'
     GREEN_HEX = '00ff00'
     CYAN_HEX = '00ffff'
@@ -44,7 +45,7 @@ class Cell(CellMessage):
         if state is None:
             state = Cell.Unknown
         if points is None:
-            points = numpy.asarray([0 for x in range(7)], dtype=numpy.int)
+            points = [0 for x in range(7)]
         super(Cell, self).__init__(average_z=average_z, highest_z=highest_z, marked=marked, state=state, points=points)
         self.segment_id = 0
         self.threshold_min_points = 15
@@ -178,7 +179,7 @@ class Cell(CellMessage):
             return self.MAGENTA_HEX
         elif color_id == self.YELLOW_ID:
             return self.YELLOW_HEX
-        return None
+        return self.UNKNOWN_HEX
 
     # setter
 
