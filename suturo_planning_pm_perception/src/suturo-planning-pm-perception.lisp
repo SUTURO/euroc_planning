@@ -139,7 +139,9 @@ Recognizes Objects of Interest. It gets a list of colors and returns a list of o
 * Description
 Scans the map and add the perceived point cloud to the map.
 "
-  (cram-beliefstate:add-topic-image-to-active-node "/euroc_interface_node/cameras/tcp_rgb_cam")
+  (if scenecam
+    (cram-beliefstate:add-topic-image-to-active-node "/euroc_interface_node/cameras/scene_rgb_cam")
+    (cram-beliefstate:add-topic-image-to-active-node "/euroc_interface_node/cameras/tcp_rgb_cam"))
   (call-service-add-point-cloud scenecam))
 
 (def-action-handler perceive-scene-with-origin (scenecam arm-origin)
@@ -150,7 +152,9 @@ Scans the map and add the perceived point cloud to the map.
 * Description
 Scans the map and add the perceived point cloud to the map.
 "
-  (cram-beliefstate:add-topic-image-to-active-node "/euroc_interface_node/cameras/scene_rgb_cam")
+  (if scenecam
+    (cram-beliefstate:add-topic-image-to-active-node "/euroc_interface_node/cameras/scene_rgb_cam")
+    (cram-beliefstate:add-topic-image-to-active-node "/euroc_interface_node/cameras/tcp_rgb_cam"))
   (call-service-add-point-cloud scenecam arm-origin))
 
 ;----------------pose estimation------------------------------
