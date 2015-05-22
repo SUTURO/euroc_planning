@@ -131,11 +131,11 @@ Recognizes Objects of Interest. It gets a list of colors and returns a list of o
 (def-action-handler perceive (obj-designator)
   (list obj-designator))
 
-(defun log-rgb-and-depth (camera)
+(defun log-camera-types (camera types)
   (mapcar (lambda (typ)
             (cram-beliefstate:add-topic-image-to-active-node
-              (format nil "/euroc_interface_node/cameras/~a_~a_cam" camera typ)))
-          '("rgb" "depth")))
+              (format nil "~(/euroc_interface_node/cameras/~a_~a_cam~)" camera typ)))
+          types))
 
 ;---------------scan map -------------------------------------
 (def-action-handler perceive-scene-with (scenecam)
@@ -146,8 +146,8 @@ Recognizes Objects of Interest. It gets a list of colors and returns a list of o
 Scans the map and add the perceived point cloud to the map.
 "
   (if scenecam
-    (log-rgb-and-depth "scene")
-    (log-rgb-and-depth "tcp"))
+    (log-camera-types 'scene '(rgb depth))
+    (log-camera-types 'tcp '(rgb depth)))
   (call-service-add-point-cloud scenecam))
 
 (def-action-handler perceive-scene-with-origin (scenecam arm-origin)
@@ -159,8 +159,8 @@ Scans the map and add the perceived point cloud to the map.
 Scans the map and add the perceived point cloud to the map.
 "
   (if scenecam
-    (log-rgb-and-depth "scene")
-    (log-rgb-and-depth "tcp"))
+    (log-camera-types 'scene '(rgb depth))
+    (log-camera-types 'tcp '(rgb depth)))
   (call-service-add-point-cloud scenecam arm-origin))
 
 ;----------------pose estimation------------------------------
