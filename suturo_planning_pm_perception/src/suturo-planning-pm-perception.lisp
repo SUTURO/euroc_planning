@@ -147,7 +147,7 @@ Scans the map and add the perceived point cloud to the map.
 "
   (if scenecam
     (log-rgb-and-depth "scene")
-    (log-rgb-and-depth "tcp")
+    (log-rgb-and-depth "tcp"))
   (call-service-add-point-cloud scenecam))
 
 (def-action-handler perceive-scene-with-origin (scenecam arm-origin)
@@ -160,7 +160,7 @@ Scans the map and add the perceived point cloud to the map.
 "
   (if scenecam
     (log-rgb-and-depth "scene")
-    (log-rgb-and-depth "tcp")
+    (log-rgb-and-depth "tcp"))
   (call-service-add-point-cloud scenecam arm-origin))
 
 ;----------------pose estimation------------------------------
