@@ -418,10 +418,13 @@ class YamlPars0r:
             return parsed_primitives
         for primitive in primitives:
             f_type = YamlPars0r.get_dict_value(primitive, 'type')
+            print(f_type)
             if f_type == 'cylinder':
                 f_type = SolidPrimitive.CYLINDER
             elif f_type == 'box':
                 f_type = SolidPrimitive.BOX
+            elif f_type == 'sphere':
+                f_type = SolidPrimitive.SPHERE
             else:
                 raise UnhandledValue("Unhandled shape type: " + str(f_type))
             f_pose = YamlPars0r.parse_pose(YamlPars0r.get_dict_value(primitive, 'pose'))
@@ -452,6 +455,11 @@ class YamlPars0r:
                     f_dimensions[SolidPrimitive.CYLINDER_HEIGHT] = f_length
                 if f_radius is not None:
                     f_dimensions[SolidPrimitive.CYLINDER_RADIUS] = f_radius
+            elif f_type == SolidPrimitive.SPHERE:
+                f_dimensions = [float('inf')] * 1
+                f_radius = YamlPars0r.get_dict_value(primitive, 'radius', float)
+                if f_radius is not None:
+                    f_dimensions[SolidPrimitive.SPHERE_RADIUS] = f_radius
             else:
                 raise UnhandledValue("Unhandled primitive type: " + str(f_type))
             primitive = SolidPrimitive(dimensions=f_dimensions,
