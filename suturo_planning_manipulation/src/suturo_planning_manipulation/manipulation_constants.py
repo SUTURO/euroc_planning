@@ -16,6 +16,7 @@ gripper_max_pose = 0.0345
 max_motion_time = 40
 
 MOVE_SERVICE = "/suturo/manipulation/move"
+MOVE_RELATIVE_SERVICE= "/suturo/manipulation/move_relative"
 PLAN_SERVICE = "/suturo/manipulation/plan"
 MOVE_WITH_PLAN_SERVICE = "/suturo/manipulation/move_with_plan"
 ADD_COLLISION_OBJECTS_SERVICE = "/suturo/manipulation/add_collision_objects"
@@ -28,4 +29,5 @@ BLOW_UP_OBJECTS_SERVICE = "/suturo/manipulation/blow_up_objects"
 BLOW_DOWN_OBJECTS_SERVICE = "/suturo/manipulation/blow_down_objects"
 GET_EEF_POSITION_TOPIC = "/suturo/manipulation/get_eef_position"
 BASE_ORIGIN_TOPIC = "/suturo/environment/get_base_origin"
+
 

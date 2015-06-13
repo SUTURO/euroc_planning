@@ -1,10 +1,13 @@
 #!/usr/bin/env python
+from geometry_msgs.msg._Quaternion import Quaternion
+from geometry_msgs.msg._TwistStamped import TwistStamped
 import rospy
 from threading import Thread
 from geometry_msgs.msg import PointStamped
 from std_srvs.srv import Empty
 from suturo_environment_msgs.srv import *
 from suturo_manipulation_msgs.srv import *
+from suturo_planning_manipulation.mathemagie import add_point, rotate_quaternion
 from suturo_planning_manipulation import manipulation_constants
 from suturo_planning_manipulation.manipulation import Manipulation
 from moveit_msgs.msg import CollisionObject
@@ -12,11 +15,12 @@ from geometry_msgs.msg import PoseStamped
 from suturo_planning_manipulation.manipulation_constants import MOVE_SERVICE, MOVE_WITH_PLAN_SERVICE, \
     ADD_COLLISION_OBJECTS_SERVICE, GET_COLLSISION_OBJECT_SERVICE, MOVE_MASTCAM_SERVICE, OPEN_GRIPPER_SERVICE, \
     CLOSE_GRIPPER_SERVICE, BASE_ORIGIN_TOPIC, GET_EEF_POSITION_TOPIC, CREATE_POSES_FOR_OBJECT_SCANNING_SERVICE, \
-    BLOW_DOWN_OBJECTS_SERVICE, BLOW_UP_OBJECTS_SERVICE
+    BLOW_DOWN_OBJECTS_SERVICE, BLOW_UP_OBJECTS_SERVICE, MOVE_RELATIVE_SERVICE
 from suturo_planning_manipulation.manipulation_constants import PLAN_SERVICE
 from suturo_planning_manipulation.calc_grasp_position import make_scan_pose
 from suturo_planning_interface import utils
 from suturo_planning_visualization.visualization import visualize_poses
+from math import pi
 
 __author__ = 'hansa'
 
@@ -39,9 +43,28 @@ class ManipulationNode(object):
                       self.__handle_create_poses_for_scanning)
         rospy.Service(BLOW_UP_OBJECTS_SERVICE, BlowUpObjects, self.__handle_blow_up_objects)
         rospy.Service(BLOW_DOWN_OBJECTS_SERVICE, Empty, self.__handle_blow_down_objects)
+        rospy.Service(MOVE_RELATIVE_SERVICE, MoveRelative, self.__handle_move_relative)
 
         self.__base_publisher = rospy.Publisher(BASE_ORIGIN_TOPIC, PointStamped)
         self.__eef_position_publisher = rospy.Publisher(GET_EEF_POSITION_TOPIC, PoseStamped)
+        # self.__tf = Transformer()
+
+    def __handle_move_relative(self, msg):
+        # a = TwistStamped()
+        a = msg.relative_goal
+        eef_pos = PoseStamped()
+
+        eef_pos.pose.position.x = a.twist.linear.x
+        eef_pos.pose.position.y = a.twist.linear.y
+        eef_pos.pose.position.z = a.twist.linear.z
+        eef_pos.pose.orientation.w = 1.0
+        eef_pos.pose.orientation = rotate_quaternion(eef_pos.pose.orientation, a.twist.angular.x, a.twist.angular.y, a.twist.angular.z)
+        eef_pos.pose.orientation = rotate_quaternion(eef_pos.pose.orientation, 0, -pi/2, pi/2) # dirty hack
+        # self.__tf.transform_to(eef_pos, "/odom_combined")
+        eef_pos.header.frame_id = self.__manipulation.get_eef_link()
+        rospy.loginfo("relative goal: "+str(eef_pos))
+        result = self.__manipulation.move_arm_and_base_to(eef_pos)
+        return MoveRelativeResponse(result)
 
     def __handle_create_poses_for_scanning(self, msg):
         __region_centroid = msg.centroid
@@ -74,10 +97,10 @@ class ManipulationNode(object):
     def __handle_move(self, msg):
         goal_pose = self.__get_goal_pose(msg)
 
-	# print("########################################################################################################################################################################################")
-	# print(msg)
-	# print(goal_pose)
-	# print("########################################################################################################################################################################################")
+        # print("########################################################################################################################################################################################")
+        # print(msg)
+        # print(goal_pose)
+        # print("########################################################################################################################################################################################")
 
         if msg.type == MoveRequest.ACTION_MOVE_ARM_TO:
             result = self.__manipulation.move_to(goal_pose, msg.do_not_blow_up_list)
@@ -125,9 +148,9 @@ class ManipulationNode(object):
         if msg.position != 0:
             position = msg.position
         rospy.loginfo("Openening gripper to pose: %d" % position)
-	for i in range(10):
-            rospy.loginfo(i)
-	return self.__manipulation.open_gripper(position)
+        for i in range(10):
+                rospy.loginfo(i)
+        return self.__manipulation.open_gripper(position)
 
     def __handle_close_gripper(self, msg):
         obj = msg.object

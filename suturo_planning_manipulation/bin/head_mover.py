@@ -2,37 +2,38 @@
 from copy import copy, deepcopy
 
 import numpy
-import sys
-import copy
-from math import sqrt
-from datetime import time
+# import sys
+# import copy
+from math import sqrt, pi
+# from datetime import time
 from geometry_msgs.msg._PointStamped import PointStamped
 from geometry_msgs.msg._Quaternion import Quaternion
-from moveit_msgs.msg._CollisionObject import CollisionObject
-from numpy.core.multiarray import dot
-import rospy
-import moveit_commander
-import moveit_msgs.msg
-import geometry_msgs.msg
-from sensor_msgs.msg._JointState import JointState
-import shape_msgs.msg
-from suturo_perception_msgs.msg._EurocObject import EurocObject
-import tf
-from tf.transformations import quaternion_from_matrix, rotation_matrix, euler_from_quaternion, quaternion_matrix
-import suturo_planning_manipulation.calc_grasp_position
-from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_position_box, calculate_grasp_position
-from suturo_planning_manipulation.manipulation import Manipulation
-from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_position_cylinder
-from suturo_planning_manipulation.calc_grasp_position import get_pre_grasp
-from suturo_planning_manipulation.planningsceneinterface import *
-from suturo_planning_manipulation.planningsceneinterface import PlanningSceneInterface
-from suturo_planning_perception.perception import *
+# from moveit_msgs.msg._CollisionObject import CollisionObject
+# from numpy.core.multiarray import dot
+# import rospy
+# import moveit_commander
+# import moveit_msgs.msg
+# import geometry_msgs.msg
+# from sensor_msgs.msg._JointState import JointState
+# import shape_msgs.msg
+# from suturo_perception_msgs.msg._EurocObject import EurocObject
+# import tf
+# from tf.transformations import quaternion_from_matrix, rotation_matrix, euler_from_quaternion, quaternion_matrix
+# import suturo_planning_manipulation.calc_grasp_position
+# from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_position_box, calculate_grasp_position
+# from suturo_planning_manipulation.manipulation import Manipulation
+# from suturo_planning_manipulation.calc_grasp_position import calculate_grasp_position_cylinder
+# from suturo_planning_manipulation.calc_grasp_position import get_pre_grasp
+# from suturo_planning_manipulation.planningsceneinterface import *
+# from suturo_planning_manipulation.planningsceneinterface import PlanningSceneInterface
+# from suturo_planning_perception.perception import *
 # from suturo_planning_perception.src.suturo_planning_perception.perception import get_gripper_perception
 # from suturo_planning_plans.visualization import visualize_poses
 # from suturo_planning_search.map import Map
+from mathemagie import rotate_quaternion
 import suturo_planning_manipulation.mathemagie
-from suturo_planning_search.map import Map
-from suturo_planning_visualization.visualization import visualize_poses
+# from suturo_planning_search.map import Map
+# from suturo_planning_visualization.visualization import visualize_poses
 
 
 def test_task1(mani):
@@ -85,11 +86,11 @@ def test_task1_v2(mani):
     # mani.grasp_and_move("blue_handle")
 
 def test_task3(mani):
-    dest = PointStamped()
-
-    dest.header.frame_id = "/odom_combined"
-    dest.point = Point(0.85, -0.85, 0)
-    mani.place_and_move(dest)
+    # dest = PointStamped()
+    #
+    # dest.header.frame_id = "/odom_combined"
+    # dest.point = Point(0.85, -0.85, 0)
+    # mani.place_and_move(dest)
 
     # mani.grasp_and_move("red_cube")
     #
@@ -104,11 +105,23 @@ def test_task3(mani):
     # dest.header.frame_id = "/odom_combined"
     # dest.point = Point(-0.85, -0.85, 0)
     # mani.place_and_move(dest)
+    pass
 
 if __name__ == '__main__':
-    rospy.init_node('head_mover', log_level=rospy.DEBUG)
+    # rospy.init_node('head_mover', log_level=rospy.DEBUG)
 
-    m = Manipulation()
+    q = Quaternion()
+    q.w = 1
+    q = rotate_quaternion(q, pi, 0, pi/2)
+    print q
+    print ""
+    q = rotate_quaternion(q, 0, -pi/2, pi/2)
+    print q
+    print ""
+    q = rotate_quaternion(q, pi / 2, pi, pi / 2)
+    print q
+
+    # m = Manipulation()
     # print m.get_arm_base_move_group().get_goal_orientation_tolerance()
     # print m.get_arm_base_move_group().get_goal_position_tolerance()
     # print m.get_arm_base_move_group().get_goal_joint_tolerance()
@@ -127,17 +140,17 @@ if __name__ == '__main__':
     # m.grasp("cyan_cylinder")
     # print m.get_eef_position()
 
-    t_point = geometry_msgs.msg.PoseStamped()
-    t_point.header.frame_id = "/odom_combined"
-    p = Point(0.3,0,0.7)
-    # p = Point(0.91,0.66,0.37341)
-    t_point.pose.position = p
-    t_point.pose.orientation = euler_to_quaternion(0, 0, 0)
-    # visualize_poses([t_point])
-    # m.move_arm_and_base_to([0.92, 0, 0,0,0,0,0,0,0])
-    # m.move_arm_and_base_to([-0.92, 0, 0,0,0,0,0,0,0])
+    # t_point = geometry_msgs.msg.PoseStamped()
+    # t_point.header.frame_id = "/odom_combined"
+    # p = Point(0.3,0,0.7)
+    # # p = Point(0.91,0.66,0.37341)
+    # t_point.pose.position = p
+    # t_point.pose.orientation = euler_to_quaternion(0, 0, 0)
+    # # visualize_poses([t_point])
+    # # m.move_arm_and_base_to([0.92, 0, 0,0,0,0,0,0,0])
+    # # m.move_arm_and_base_to([-0.92, 0, 0,0,0,0,0,0,0])
+    # # m.move_arm_and_base_to(t_point)
     # m.move_arm_and_base_to(t_point)
-    m.move_arm_and_base_to(t_point)
     # j = JointState()
     # j.header.frame_id = "/odom_combined"
     # print m.get_arm_base_move_group().get_joints()

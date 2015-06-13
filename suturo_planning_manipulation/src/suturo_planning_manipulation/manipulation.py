@@ -253,6 +253,9 @@ class Manipulation(object):
 
         return plan
 
+    def get_eef_link(self):
+        return self.__arm_base_group.get_end_effector_link()
+
     def plan(self, move_group, goal, start_state, max_movement_time):
         """
         Generates a plan by calling the MoveIt! service.
