@@ -456,7 +456,7 @@ class YamlPars0r:
                 if f_radius is not None:
                     f_dimensions[SolidPrimitive.CYLINDER_RADIUS] = f_radius
             elif f_type == SolidPrimitive.SPHERE:
-                f_dimensions = [float('inf')] * 1
+                f_dimensions = [float('0')] * 1
                 f_radius = YamlPars0r.get_dict_value(primitive, 'radius', float)
                 if f_radius is not None:
                     f_dimensions[SolidPrimitive.SPHERE_RADIUS] = f_radius

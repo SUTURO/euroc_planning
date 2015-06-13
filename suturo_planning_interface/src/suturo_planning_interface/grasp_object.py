@@ -9,6 +9,7 @@ import time
 from suturo_perception_msgs.msg import EurocObject
 from suturo_manipulation_msgs.srv import GraspObject as GraspObjectService
 from suturo_manipulation_msgs.srv import GraspObjectResponse, GraspObjectRequest
+from suturo_planning_manipulation.manipulation import Manipulation
 
 class GraspObject(object):
     SERVICE_NAME = 'suturo/manipulation/grasp_object'
@@ -21,11 +22,14 @@ class GraspObject(object):
         rospy.Service(self.SERVICE_NAME, GraspObjectService, self.__handle_request)
 
     def __handle_request(self, req):
-        result = self.__grasp(req.object, req.density)
+        result = self.__grasp(req.object, req.density, req.prefer_grasp_position)
         return GraspObjectResponse(result=result, grasp_position=self.grasp_position)
 
-    def __grasp(self, collision_object, density):
+    def __grasp(self, collision_object, density, prefer_grasp_position):
         rospy.loginfo('Executing state GraspObject')
+
+        if utils.manipulation is None:
+            utils.manipulation = Manipulation()
 
         move_to_func = utils.manipulation.move_to
         plan_to_func = utils.manipulation.plan_arm_to
@@ -47,12 +51,47 @@ class GraspObject(object):
         if len(grasp_positions) == 0:
             rospy.logwarn("No grasppositions found")
 
+        rospy.logwarn("printing found")
+        for position in grasp_positions:
+            rospy.logwarn("%s", position)
+
+        def filterTest(pos):
+            rospy.logwarn("Checking: %s", pos)
+            
+            tmp = pos.pose.orientation.x >= 0.67 and pos.pose.orientation.x <= 0.73 and \
+            pos.pose.orientation.w >= 0.67 and pos.pose.orientation.w <= 0.73 and int(pos.pose.orientation.y) == 0 and \
+            int(pos.pose.orientation.z) == 0
+
+            rospy.logwarn("result: %s", tmp)
+            return tmp
+
+
+
         #sort to try the best grasps first
+        if prefer_grasp_position == 1:
+            grasp_positions = filter(lambda pos: pos.pose.orientation.y >= 0.67 and pos.pose.orientation.y <= 0.73 and
+                    pos.pose.orientation.w >= 0.67 and pos.pose.orientation.w <= 0.73 and pos.pose.orientation.x == 0 and
+                    pos.pose.orientation.z == 0, grasp_positions)
+        elif prefer_grasp_position == 2:
+            grasp_positions = filter(filterTest, grasp_positions)
+
+        rospy.logwarn("printing filtered")
+        for position in grasp_positions:
+            rospy.logwarn("%s", position)
+
         grasp_positions.sort(cmp=lambda x, y: utils.manipulation.cmp_pose_stamped(collision_object, x, y))
+
+        rospy.logwarn("printing sorted")
+        for position in grasp_positions:
+            rospy.logwarn("%s", position)
         visualize_poses(grasp_positions)
 
         utils.manipulation.open_gripper()
         grasp_positions = [utils.manipulation.transform_to(grasp) for grasp in grasp_positions]
+        rospy.logwarn("printing transformed position")
+        for position in grasp_positions:
+            rospy.logwarn("%s", position)
+
         utils.manipulation.blow_up_objects(do_not_blow_up_list=collision_object.id)
         for grasp in grasp_positions:
             self.grasp_position = grasp
@@ -65,10 +104,12 @@ class GraspObject(object):
             utils.manipulation.blow_up_objects(do_not_blow_up_list=("map", collision_object.id))
             plan_to_grasp = plan_to_func(grasp, start_state=utils.manipulation.get_end_state(plan_pre_grasp))
             if plan_to_grasp is None or not utils.manipulation.move_with_plan_to(plan_pre_grasp):
+                rospy.logwarn("Failed to move to Graspposition pre grasp:  %s", plan_to_grasp)
                 rospy.logdebug("Failed to move to Graspposition")
                 continue
             rospy.sleep(0.5)
             if not utils.manipulation.move_with_plan_to(plan_to_grasp):
+                rospy.logwarn("Failed to move to Graspposition")
                 rospy.logdebug("Failed to move to Graspposition")
                 continue
 

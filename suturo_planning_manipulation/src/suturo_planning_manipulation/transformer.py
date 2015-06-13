@@ -37,12 +37,16 @@ class Transformer:
                     i = 0
                     new_co = deepcopy(pose_target)
                     for cop in pose_target.primitive_poses:
+                        rospy.logwarn("IN FOR")
                         p = PoseStamped()
                         p.header = pose_target.header
                         p.pose.orientation = cop.orientation
                         p.pose.position = cop.position
+                        rospy.logwarn("PoseStamped: %s", p)
+                        rospy.logwarn("TargetFrame: %s", target_frame)
                         p = self.transform_to(p, target_frame)
                         if p is None:
+                            rospy.logwarn("RETURNING NONE")
                             return None
                         new_co.primitive_poses[i].position = p.pose.position
                         new_co.primitive_poses[i].orientation = p.pose.orientation
@@ -50,6 +54,9 @@ class Transformer:
                     new_co.header.frame_id = target_frame
                     return new_co
                 if type(pose_target) is PoseStamped:
+                    rospy.logwarn("In PoseStamped")
+                    rospy.logwarn("target_frame: %s", target_frame)
+                    rospy.logwarn("pose_target: %s", pose_target)
                     odom_pose = self.__listener.transformPose(target_frame, pose_target)
                     break
                 if type(pose_target) is Vector3Stamped:
@@ -63,6 +70,7 @@ class Transformer:
                     break
 
             except Exception, e:
+                rospy.logwarn("tf error::: %s", e)
                 print "tf error:::", e
             rospy.sleep(0.5)
 

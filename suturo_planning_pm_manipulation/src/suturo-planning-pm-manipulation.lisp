@@ -1,14 +1,31 @@
 (in-package :manipulation)
 
 (defvar *base-origin* (cpl:make-fluent :name :base-origin :value nil)"The current center of the base as geometry\_msgs:Point")
+(defparameter *collision-object-publisher* '() "Publisher used to publish collision objects on the topic /collision_object")
+(defvar *collision-object-counter* 0 "Counter of the collision object publisher")
 
 (defun init ()
   "Initializes the manipulation"
-  (init-base-origin-subscriber))
+  (init-base-origin-subscriber)
+  (init-collision-object-publisher))
 
 (defun init-base-origin-subscriber()
   "Subscribes the base-origin-topic to get the center of the base"
   (roslisp:subscribe +base-origin-topic+ 'geometry_msgs-msg:PointStamped #'base-origin-cb))
+
+(defun init-collision-object-publisher()
+  "Initialize the collision-object-publisher"
+  (setf *collision-object-publisher* (roslisp:advertise "/collision_object" "moveit_msgs/CollisionObject")))
+
+(defun publish-collision-object (id primitives primitives_poses operation)
+  (roslisp:publish *collision-object-publisher* (make-msg "moveit_msgs/CollisionObject" 
+                                                          :ID id 
+                                                          :PRIMITIVES primitives
+                                                          :PRIMITIVE_POSES primitives_poses
+                                                          :OPERATION operation
+                                                          (:FRAME_ID :HEADER) "/map"
+                                                          (:STAMP :HEADER) (roslisp:ros-time) 
+                                                          (:SEQ :HEADER) (incf *collision-object-counter*))))
  
 (defun base-origin-cb (msg)
   "Callback for the base-origin-topic-subscriber"
@@ -111,7 +128,7 @@
   "Lifts an arm by a distance") 
 
 (def-action-handler grasp (object-designator)
-  "
+"
   Grasp the given object and lift it
   * Arguments
   - object-designator :: The designator describing the object - object-designator
@@ -124,7 +141,8 @@
         (progn
           (let* ((response (roslisp:call-service +service-name-grasp-object+ 'suturo_manipulation_msgs-srv:GraspObject
                                                 :object (roslisp:setf-msg collision-object (stamp header) (roslisp:ros-time))
-                                                :density (get-object-density collision-object (roslisp:msg-slot-value environment:*yaml* 'objects))))
+                                                :density (get-object-density collision-object (roslisp:msg-slot-value environment:*yaml* 'objects))
+                                                :prefer_grasp_position 0))
                  (result (roslisp:msg-slot-value response 'result))
                  (grasp-position (roslisp:msg-slot-value response 'grasp_position)))
             (if (not result)
@@ -220,6 +238,19 @@
             result))))))
 
 
+(defun object-to-collision-object (obj)
+  "Converts an object into a collision object. The frame id is currently set to /map
+* Arguments :: The obj as suturo\_msgs\_msg:Object that should be converted
+* Return Value
+The converted Object as moveit\_msgs-msg:CollisionObject"
+        (make-msg "moveit_msgs/CollisionObject" 
+                  :ID (msg-slot-value obj 'name) 
+                  :PRIMITIVES (msg-slot-value obj 'primitives)
+                  :PRIMITIVE_POSES (msg-slot-value obj 'primitive_poses)
+                  :OPERATIOIN 0
+                  (:FRAME_ID :HEADER) "/map"
+                  (:STAMP :HEADER) (roslisp:ros-time) ))
+
 ;;----------service calls ----------------------------
 (defun call-add-collision-objects(objects)
   "* Arguments 
@@ -228,8 +259,10 @@
 Ignored
 * Description
 Adds the given objects as collosion-objects to the moveit environment"
+  (print "Adding collision objects")
+  (format t "~a" objects)
   (if (not (roslisp:wait-for-service +service-name-add-collision-objects+ +timeout-service+))
-        (print "Timed out")
+        (print "Add collision objects Timed out")
         (roslisp:call-service +service-name-add-collision-objects+ 'suturo_manipulation_msgs-srv:AddCollisionObjects :objects objects)))
 
 (cpm:def-process-module suturo-planning-pm-manipulation (desig)

@@ -22,7 +22,12 @@
 
 ** Description
 
-Not documented.
+This package defines the process module suturo-planning-pm-manipulation and contains actions that are concerned to the manipulation part of a plan. To define new actions you have to do 
+the following steps:
+- Define an action-handler and implement the functionality
+- Add the reasoning for the action-handler / the process module in designators.lisp
+- Add the used designator properties to the desig-props in this package.lisp
+- Add the used designator properties to the desig-props of the calling package
 
 
 ** External Symbols
@@ -194,7 +199,14 @@ Not documented.
 
 ***** Description
 
-Not documented.
+
+  * Arguments
+  - name :: The name of the function
+  - args :: The arguments of the function
+  - body :: The body of the function
+  * Description
+  Defines a macro to create specific implementations of the generic function 'call-action'. Use this macro to define your actions !
+  
 
 
 
@@ -247,7 +259,12 @@ Adds a region to the array classified-regions.
 
 ***** Description
 
-Not documented.
+
+***** Arguments
+
+- object :: Euroc object that should be analyzed
+***** Description
+
 
 
 
@@ -319,7 +336,7 @@ Not documented.
 - options :: The options that the service call transmits to the receiver
 ***** Description
 
-Call the service suturo/GetGripper
+Call the service suturo/perception/GetGripper
 
 
 
@@ -347,7 +364,7 @@ Call the service suturo/GetGripper
 - options :: The options that the service call transmits to the receiver
 ***** Description
 
-Calls the service suturo/GetScene
+Calls the service suturo/perception/GetScene
 
 
 
@@ -369,7 +386,14 @@ Calls the service suturo/GetScene
 
 ***** Description
 
-Not documented.
+
+***** Arguments
+
+- scenecam :: the camera
+- arm-origin :: the origin of the arm
+***** Description
+
+Adds the Point Cloud from the camera to the map. 
 
 
 
@@ -425,7 +449,7 @@ Loops over the objects and calculates how many regions have the same color as th
 
 ***** Arguments
 
-- cuboid :: 
+- cuboid :: Bounding box 
 - pose-estimation :: Determines wether perception pipeline should estimate the pose of the objects
 - object-ids :: Ids of the objects
 ***** Description
@@ -566,7 +590,7 @@ Returns the Obstacle Regions from the map
 
 ***** Arguments
 
-- cuboid ::
+- cuboid :: Bounding box 
 - pose-estimation :: Determines wether perception pipeline should estimate the pose of the objects
 - object-ids :: Ids of the objects
 ***** Description
@@ -593,7 +617,13 @@ Get the objects recognized by the scene camera
 
 ***** Description
 
-Not documented.
+
+***** Arguments
+
+- matched-object :: the found object
+***** Description
+
+Gets called when a valid object is found.
 
 
 
@@ -615,7 +645,12 @@ Not documented.
 
 ***** Description
 
-Not documented.
+
+***** Arguments
+
+- matched-object :: 
+***** Description
+
 
 
 
@@ -637,7 +672,13 @@ Not documented.
 
 ***** Description
 
-Not documented.
+
+***** Arguments
+
+- matched-object :: 
+***** Description
+
+Handles the behaviour when an unknown object or the table is perceived
 
 
 
@@ -691,7 +732,12 @@ Recognizes Objects of Interest. It gets a list of colors and returns a list of o
 
 ***** Description
 
-Not documented.
+Generic method to define an interface for executing actions. Whenever the function perform '(perform my-action-designator)' is executed, the prolog-reasoning-engine
+ 	 	 		matches the designator-properties of my-action-designator with conditions defined in the file designators.lisp and decides which action is going to be performed.
+ 	 	 		* Arguments
+ 	 	 		- action :: 
+ 	 	 		- params :: The parameter of the actions that should be called.
+ 	 	 		
 
 
 ***** Methods
@@ -703,7 +749,7 @@ Not documented.
 method: (=call-action= (action-sym0
                 (eql cram-designator-properties:find-objects-in-map)) &rest params1)(#<sb-mop:eql-specializer
 
-                                                                                       {abd0ee1}>)
+                                                                                       {abd7dd1}>)
 #+END_SRC
 
 ******* Description
@@ -721,70 +767,102 @@ Tries to map a region from the map to every object from the yaml file
 ****** Method
 
 #+BEGIN_SRC lisp
-method: (=call-action= (action-sym542 (eql cram-designator-properties:focus-object)) &rest params543)(#<sb-mop:eql-specializer
+method: (=call-action= (action-sym576 (eql cram-designator-properties:focus-object)) &rest params577)(#<sb-mop:eql-specializer
 
-                                                                                                        {abd0ed1}>)
+                                                                                                        {abd7dc1}>)
 #+END_SRC
 
 ******* Description
 
-Nothing ?
 
-
-
-****** Method
-
-#+BEGIN_SRC lisp
-method: (=call-action= (action-sym444 (eql cram-designator-properties:classify-object)) &rest params445)(#<sb-mop:eql-specializer
-
-                                                                                                           {abd0ec1}>)
-#+END_SRC
-
-
-****** Method
-
-#+BEGIN_SRC lisp
-method: (=call-action= (action-sym419
-                (eql cram-designator-properties:pose-estimate-object)) &rest params420)(#<sb-mop:eql-specializer
-
-                                                                                          {abd0eb1}>)
-#+END_SRC
-
-
-****** Method
-
-#+BEGIN_SRC lisp
-method: (=call-action= (action-sym398
-                (eql suturo-planning-pm-perception::perceive-scene-with-origin)) &rest params399)(#<sb-mop:eql-specializer
-
-                                                                                                    {abd0ea1}>)
-#+END_SRC
-
-
-****** Method
-
-#+BEGIN_SRC lisp
-method: (=call-action= (action-sym377
-                (eql cram-designator-properties:perceive-scene-with)) &rest params378)(#<sb-mop:eql-specializer
-
-                                                                                         {abd0e91}>)
-#+END_SRC
-
-******* Description
-
-Scans the whole map
 ******* Arguments
 
-- scenecam :: blub
+- obj-designator :: 
+******* Description
+
+
 
 
 
 ****** Method
 
 #+BEGIN_SRC lisp
-method: (=call-action= (action-sym356 (eql cram-designator-properties:perceive)) &rest params357)(#<sb-mop:eql-specializer
+method: (=call-action= (action-sym478 (eql cram-designator-properties:classify-object)) &rest params479)(#<sb-mop:eql-specializer
 
-                                                                                                    {abd0e81}>)
+                                                                                                           {abd7db1}>)
+#+END_SRC
+
+
+****** Method
+
+#+BEGIN_SRC lisp
+method: (=call-action= (action-sym453
+                (eql cram-designator-properties:pose-estimate-object)) &rest params454)(#<sb-mop:eql-specializer
+
+                                                                                          {abd7da1}>)
+#+END_SRC
+
+******* Description
+
+
+******* Arguments
+
+- ids :: 
+******* Description
+
+Estimates the pose of the objects. Returns a list of EurocObjects.
+
+
+
+****** Method
+
+#+BEGIN_SRC lisp
+method: (=call-action= (action-sym432
+                (eql suturo-planning-pm-perception::perceive-scene-with-origin)) &rest params433)(#<sb-mop:eql-specializer
+
+                                                                                                    {abd7d91}>)
+#+END_SRC
+
+******* Description
+
+
+******* Arguments
+
+- scenecam :: the camera the map should be scanned with
+- arm-origin :: the origin of the arm
+******* Description
+
+Scans the map and add the perceived point cloud to the map.
+
+
+
+****** Method
+
+#+BEGIN_SRC lisp
+method: (=call-action= (action-sym411
+                (eql cram-designator-properties:perceive-scene-with)) &rest params412)(#<sb-mop:eql-specializer
+
+                                                                                         {abd7d81}>)
+#+END_SRC
+
+******* Description
+
+
+******* Arguments
+
+- scenecam :: the camera the map should be scanned with
+******* Description
+
+Scans the map and add the perceived point cloud to the map.
+
+
+
+****** Method
+
+#+BEGIN_SRC lisp
+method: (=call-action= (action-sym390 (eql cram-designator-properties:perceive)) &rest params391)(#<sb-mop:eql-specializer
+
+                                                                                                    {abd7d71}>)
 #+END_SRC
 
 
@@ -795,6 +873,11 @@ method: (=call-action= :around (action-sym [[class t][=t=]]) &rest params) :arou
                                                                                      t>)
 #+END_SRC
 
+******* Description
+
+Standard implementation of call-action. Is called whenever an action could be resolved
+
+
 
 ****** Method
 
@@ -803,6 +886,11 @@ method: (=call-action= (action-sym [[class t][=t=]]) &rest params)(#<built-in-cl
                                                                      t>)
 #+END_SRC
 
+******* Description
+
+Standard implementation of call-action. Is called whenever an action couldn't be resolved
+
+
 
 ****** Method
 
@@ -810,7 +898,7 @@ method: (=call-action= (action-sym [[class t][=t=]]) &rest params)(#<built-in-cl
 method: (=call-action= (action-sym7
                 (eql cram-designator-properties:get-gripper-perception)) &rest params8)(#<sb-mop:eql-specializer
 
-                                                                                          {abd0e71}>)
+                                                                                          {abd7d61}>)
 #+END_SRC
 
 ******* Description
