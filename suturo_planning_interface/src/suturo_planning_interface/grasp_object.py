@@ -55,17 +55,19 @@ class GraspObject(object):
         for position in grasp_positions:
             rospy.logwarn("%s", position)
 
-        def filterTest(pos):
+        def filterSide(pos):
             rospy.logwarn("Checking: %s", pos)
             
-            tmp = pos.pose.orientation.x >= 0.67 and pos.pose.orientation.x <= 0.73 and \
-            pos.pose.orientation.w >= 0.67 and pos.pose.orientation.w <= 0.73 and int(pos.pose.orientation.y) == 0 and \
+            #tmp = pos.pose.orientation.x >= 0.60 and pos.pose.orientation.x <= 0.79 and \
+            #pos.pose.orientation.y >= 0.60 and pos.pose.orientation.y <= 0.79 and int(pos.pose.orientation.w) == 0 and \
+            #int(pos.pose.orientation.z) == 0
+
+            tmp = pos.pose.orientation.w >= 0.85 and pos.pose.orientation.w <= 1 and \
+            pos.pose.orientation.y >= 0.3 and pos.pose.orientation.y <= 0.5 and int(pos.pose.orientation.x) == 0 and \
             int(pos.pose.orientation.z) == 0
 
             rospy.logwarn("result: %s", tmp)
             return tmp
-
-
 
         #sort to try the best grasps first
         if prefer_grasp_position == 1:
@@ -73,7 +75,8 @@ class GraspObject(object):
                     pos.pose.orientation.w >= 0.67 and pos.pose.orientation.w <= 0.73 and pos.pose.orientation.x == 0 and
                     pos.pose.orientation.z == 0, grasp_positions)
         elif prefer_grasp_position == 2:
-            grasp_positions = filter(filterTest, grasp_positions)
+            #grasp_positions = filter(filterSide, grasp_positions)
+            pass
 
         rospy.logwarn("printing filtered")
         for position in grasp_positions:

@@ -38,6 +38,7 @@
     #:move-mast-cam
     #:grasp-position
     #:grasp-point
+    #:prefer-grasp-position
     #:collision-object)
   (:documentation
    "This package defines the process module suturo-planning-pm-manipulation and contains actions that are concerned to the manipulation part of a plan. To define new actions you have to do 

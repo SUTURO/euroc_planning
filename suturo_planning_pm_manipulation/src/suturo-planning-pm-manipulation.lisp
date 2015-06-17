@@ -133,7 +133,10 @@
   * Arguments
   - object-designator :: The designator describing the object - object-designator
   "
-  (let ((collision-object (desig-prop-value object-designator 'cram-designator-properties:collision-object)))
+  (let ((collision-object (desig-prop-value (current-desig object-designator) 'cram-designator-properties:collision-object))
+        (prefer-grasp-position (if (desig-prop-value (current-desig object-designator) 'cram-designator-properties:prefer-grasp-position) 
+                                   (desig-prop-value (current-desig object-designator) 'cram-designator-properties:prefer-grasp-position)
+                                   0)))
     (if (not (roslisp:wait-for-service +service-name-grasp-object+ +timeout-service+))
         (let ((timed-out-text (concatenate 'string "Times out waiting for service" +service-name-grasp-object+)))
           (roslisp:ros-warn nil t timed-out-text)
@@ -142,7 +145,7 @@
           (let* ((response (roslisp:call-service +service-name-grasp-object+ 'suturo_manipulation_msgs-srv:GraspObject
                                                 :object (roslisp:setf-msg collision-object (stamp header) (roslisp:ros-time))
                                                 :density (get-object-density collision-object (roslisp:msg-slot-value environment:*yaml* 'objects))
-                                                :prefer_grasp_position 0))
+                                                :prefer_grasp_position prefer-grasp-position))
                  (result (roslisp:msg-slot-value response 'result))
                  (grasp-position (roslisp:msg-slot-value response 'grasp_position)))
             (if (not result)
