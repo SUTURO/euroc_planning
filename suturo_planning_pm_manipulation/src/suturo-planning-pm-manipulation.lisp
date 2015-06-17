@@ -173,6 +173,15 @@
   ; Will not be implemented as we have nothing to do within this action
 )
 
+(def-action-handler open-gripper (position)
+  (if (not (roslisp:wait-for-service +service-name-open-gripper+ +timeout-service+))
+      (let ((timed-out-text (concatenate 'string "Timed out waiting for service" +service-name-open-gripper+)))
+        (roslisp:ros-warn nil t timed-out-text))
+      (let ((response (roslisp:call-service +service-name-open-gripper+ 'suturo_manipulation_msgs-srv:OpenGripper :position position)))
+        (with-fields (result) response
+          (if (not result)
+              (cram-language-implementation:fail 'cram-plan-failures:manipulation-failure))))))
+
 (def-action-handler put-down (collision-object location grasp)
   "
   Put the given object down at the given location.

@@ -42,6 +42,10 @@ Condition are build as following:
                      (desig-prop ?designator (to carry))
                      (desig-prop ?designator (obj ?obj)))
 
+  (cram-reasoning:<- (action-desig ?designator (open-gripper ?position))
+                     (desig-prop ?designator (to open-gripper))
+                     (desig-prop ?designator (position ?position)))
+
   (cram-reasoning:<- (action-desig ?designator (no-navigation ?goal))
                      (desig-prop ?designator (type navigation))
                      (desig-prop ?designator (goal ?goal)))
@@ -64,6 +68,7 @@ Condition are build as following:
   (cram-reasoning:<- (cram-process-modules:matching-process-module ?designator suturo-planning-pm-manipulation)
                      (or (desig-prop ?designator (to follow))
                          (desig-prop ?designator (to grasp))
+                         (desig-prop ?designator (to open-gripper))
                          (desig-prop ?designator (to lift))
                          (desig-prop ?designator (to carry))
                          (desig-prop ?designator (type navigation))
