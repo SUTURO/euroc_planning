@@ -1,3 +1,4 @@
+from copy import deepcopy
 from math import isinf
 from geometry_msgs.msg import Vector3, PoseStamped
 import rospy
@@ -151,7 +152,11 @@ class GraspObject(object):
             fingertip_to_tcp = subtract_point(grasp.pose.position, fingertip.point)
 
             rospy.logdebug("lift object")
-            the_pre_grasp = get_pre_grasp(grasp)
+            if collision_object.id == "blue_handle":
+                the_pre_grasp = deepcopy(grasp)
+                the_pre_grasp.pose.position.z += 0.1
+            else:
+                the_pre_grasp = get_pre_grasp(grasp)
             the_move_to_func = move_to_func(the_pre_grasp, do_not_blow_up_list=collision_object.id)
 
             if not the_move_to_func:
