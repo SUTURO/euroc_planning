@@ -34,8 +34,9 @@ class GraspObject(object):
         move_to_func = utils.manipulation.move_to
         plan_to_func = utils.manipulation.plan_arm_to
 
-        if collision_object is None:
-            rospy.logwarn("Collision Object is not in planningscene.")
+        collision_object = utils.manipulation.get_planning_scene().get_collision_object(collision_object.id)
+        # if collision_object is None:
+        #     rospy.logwarn("Collision Object is not in planningscene.")
 
 
         rospy.logdebug("Grasping: " + str(collision_object))
