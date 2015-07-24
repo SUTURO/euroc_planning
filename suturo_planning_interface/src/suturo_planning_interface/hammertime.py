@@ -1,28 +1,31 @@
 #!/usr/bin/env python
 import rospy
-import suturo_planning_interface
-from suturo_head_mover_msgs.srv import Hammertime
+#import suturo_planning_interface
+from suturo_head_mover_msgs.srv import Hammertime, HammertimeRequest, HammertimeResponse
+#from suturo_planning_interface import start_nodes
+from os import system
 
-def start_hammertime_service():
-    rospy.init_node('suturo_hammertime')
-    s = rospy.Service('/suturo/hammertime', suturo_head_mover_msgs.Hammertime, hammertime_service_call)
-    print 'service is announced'
-    rospy.spin()
-
-def hammertime_service_call(req):
-    exit_handler()
-    return suturo_head_mover_msgs.srv.Hammertime(True)
     
     
     
 class HammerTime(object):
     
     def __init__(self):
-        start_hammertime_service()
-    
+        self.start_hammertime_service()
+        
+    def start_hammertime_service(self):
+        s = rospy.Service('/suturo/hammertime', Hammertime, self.hammertime_service_call)
+        print 'service is announced'
+        rospy.spin()
+
+    def hammertime_service_call(self, req):
+        self.exit_handler()
+        return HammertimeResponse(True)
 
     def exit_handler(self):
         print 'exit handler called!'
+        res = system('rosnode kill /planning /yaml_pars0r arm_base_controller /arm_controller /base_controller /euroc_c2_task_selector  /euroc_interface_node /gripper_controller  /image_compression /json_prolog /manipulation_controller /map_base_footprint_publisher /map_odom_publisher /mongodb_log_worker_0_logged_images_out_compressed  /mongodb_log_worker_1_logged_designators /mongodb_log_worker_2_tf /move_group /publish_objects_tf_frames /robot_state_publisher /scan_map_services /semrec_ros /telemetry_to_joint_state /topic_logging')
+        print "done."
         #global __handling_exit
         #global _save_log
         #print 'rospy.is_shutdown() = ' + str(rospy.is_shutdown())
@@ -56,4 +59,5 @@ class HammerTime(object):
 
 if __name__ == '__main__':
     print 'starting hammertime service'
+    rospy.init_node('suturo_hammertime')
     ht = HammerTime()
