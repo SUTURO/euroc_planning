@@ -1,13 +1,20 @@
 <launch>
+  <arg name="disable_semrec" default="false" />
+
   <!-- Log specified topics -->
-  <arg name="logged_topics" default="/tf /logged_designators /logged_images_out/compressed" />
+  <!-- <arg name="logged_topics" default="/tf /logged_designators /logged_images_out/compressed /joint_states" /> -->
 
   <!-- CRAM Logging -->
-  <node name="semrec_ros" pkg="semrec" type="semrec" output="screen" />
+  <node unless="$(arg disable_semrec)" name="semrec_ros" pkg="semrec" type="semrec" output="screen" />
 
   <!-- Compress logged images for mongodb storage... -->
   <node name="image_compression" pkg="image_transport" type="republish" args="raw in:=/logged_images out:=/logged_images_out" />
 
   <!-- Topic logging -->
-  <node name="topic_logging" pkg="suturo_planning_executive" type="mongodb_log" args="$(arg logged_topics)" />
+  <!-- using an arg with a list is prettier but mongodb_log goes through the list in reversed order and blocks if a topic isn't published yet -->
+  <node name="$(anon topic_logging)" pkg="suturo_planning_executive" type="mongodb_log" args="/logged_designators" />
+  <node name="$(anon topic_logging)" pkg="suturo_planning_executive" type="mongodb_log" args="/logged_images_out/compressed" />
+  <node name="$(anon topic_logging)" pkg="suturo_planning_executive" type="mongodb_log" args="/tf" />
+
+  <node name="gazebo_logger" pkg="gazebo_model_state_publisher" type="gazebo_model_state_startup.py" args="" />
 </launch>
