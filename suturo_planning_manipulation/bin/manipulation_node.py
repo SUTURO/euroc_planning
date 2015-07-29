@@ -63,7 +63,7 @@ class ManipulationNode(object):
         # self.__tf.transform_to(eef_pos, "/odom_combined")
         eef_pos.header.frame_id = self.__manipulation.get_eef_link()
         rospy.loginfo("relative goal: "+str(eef_pos))
-        result = self.__manipulation.move_arm_and_base_to(eef_pos)
+        result = self.__manipulation.move_to(eef_pos)
         return MoveRelativeResponse(result)
 
     def __handle_create_poses_for_scanning(self, msg):
