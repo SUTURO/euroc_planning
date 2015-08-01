@@ -70,7 +70,7 @@ class Region:
         for cell_coord in toConvert.cell_coords:
             arr = Int32Array()
             arr.data = cell_coord
-            rospy.logwarn(arr.data)
+            # rospy.logwarn(arr.data)
             cell_coords.data.append(arr)
 
         if len(cell_coords.data) == 0:

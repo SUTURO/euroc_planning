@@ -99,7 +99,7 @@ def get_place_position_for_single_object(collision_object, destination, transfor
     p2 = PointStamped()
     p2.header.frame_id = collision_object.id
     p2 = transform_func(p2, "tcp")
-    rospy.logwarn(p2)
+    # rospy.logwarn(p2)
     if p2.point.y < 0:
         for i in range(0, len(place_poses)):
             place_poses[i].pose.orientation = rotate_quaternion(place_poses[i].pose.orientation, pi, 0, 0)

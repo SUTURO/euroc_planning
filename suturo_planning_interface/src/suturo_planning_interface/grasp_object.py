@@ -53,12 +53,12 @@ class GraspObject(object):
         if len(grasp_positions) == 0:
             rospy.logwarn("No grasppositions found")
 
-        rospy.logwarn("printing found")
+        # rospy.logwarn("printing found")
         for position in grasp_positions:
-            rospy.logwarn("%s", position)
+            rospy.logdebug("%s", position)
 
         def filterSide(pos):
-            rospy.logwarn("Checking: %s", pos)
+            # rospy.logwarn("Checking: %s", pos)
             
             #tmp = pos.pose.orientation.x >= 0.60 and pos.pose.orientation.x <= 0.79 and \
             #pos.pose.orientation.y >= 0.60 and pos.pose.orientation.y <= 0.79 and int(pos.pose.orientation.w) == 0 and \
@@ -68,7 +68,7 @@ class GraspObject(object):
             pos.pose.orientation.y >= 0.3 and pos.pose.orientation.y <= 0.5 and int(pos.pose.orientation.x) == 0 and \
             int(pos.pose.orientation.z) == 0
 
-            rospy.logwarn("result: %s", tmp)
+            # rospy.logwarn("result: %s", tmp)
             return tmp
 
         #sort to try the best grasps first
@@ -80,22 +80,22 @@ class GraspObject(object):
             #grasp_positions = filter(filterSide, grasp_positions)
             pass
 
-        rospy.logwarn("printing filtered")
+        # rospy.logwarn("printing filtered")
         for position in grasp_positions:
-            rospy.logwarn("%s", position)
+            rospy.logdebug("%s", position)
 
         grasp_positions.sort(cmp=lambda x, y: utils.manipulation.cmp_pose_stamped(collision_object, x, y))
 
-        rospy.logwarn("printing sorted")
+        # rospy.logwarn("printing sorted")
         for position in grasp_positions:
-            rospy.logwarn("%s", position)
+            rospy.logdebug("%s", position)
         visualize_poses(grasp_positions)
 
         utils.manipulation.open_gripper()
         grasp_positions = [utils.manipulation.transform_to(grasp) for grasp in grasp_positions]
-        rospy.logwarn("printing transformed position")
+        # rospy.logwarn("printing transformed position")
         for position in grasp_positions:
-            rospy.logwarn("%s", position)
+            rospy.logdebug("%s", position)
 
         utils.manipulation.blow_up_objects(do_not_blow_up_list=collision_object.id)
         for grasp in grasp_positions:
