@@ -26,7 +26,7 @@ class HammerTime(object):
     def exit_handler(self):
         print 'exit handler called!'
         kill_cmd = "kill $(ps aux | grep ros | grep -v grep | awk '{print $2}')"
-        kill_cmd = "kill -9 $(ps aux | grep 'ros\\|euroc_c2s1/bin/gzserver\\|euroc_c2s1/bin/task_selector\\|euroc_c2s1/bin/gzclient' | grep -v grep | awk '{print $2}')"
+        kill_cmd = "kill -9 $(ps aux | grep 'ros\\|euroc_c2s1/bin/gzserver\\|euroc_c2s1/bin/task_selector\\|euroc_c2s1/bin/gzclient\\|mongodb_log_' | grep -v grep | awk '{print $2}')"
         task = subprocess.Popen(kill_cmd, shell=True, stdout=subprocess.PIPE)
         data = task.stdout.read()
         assert task.wait() == 0
