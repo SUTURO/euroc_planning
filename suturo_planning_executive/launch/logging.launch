@@ -15,6 +15,7 @@
   <node name="$(anon topic_logging)" pkg="suturo_planning_executive" type="mongodb_log" args="/logged_designators" />
   <node name="$(anon topic_logging)" pkg="suturo_planning_executive" type="mongodb_log" args="/logged_images_out/compressed" />
   <node name="$(anon topic_logging)" pkg="suturo_planning_executive" type="mongodb_log" args="/tf" />
+  <node name="$(anon topic_logging)" pkg="suturo_planning_executive" type="mongodb_log" args="/gazebo/model_poses" />
 
-  <node name="gazebo_logger" pkg="gazebo_model_state_publisher" type="gazebo_model_state_startup.py" args="" />
+  <node name="gazebo_logger" pkg="gazebo_model_state_publisher" type="gazebo_model_state_publisher_node" args="" />
 </launch>
